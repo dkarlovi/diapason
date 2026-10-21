@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>diapason — whistle to MIDI</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0e1116;
+        --panel: #171c24;
+        --line: #2a313c;
+        --fg: #e6e9ee;
+        --muted: #8a94a3;
+        --accent: #5ad1a8;
+        --warn: #e0a84e;
+        --bad: #e05a5a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font: 15px/1.5 system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        padding: 2rem 1rem 4rem;
+      }
+      main { max-width: 640px; margin: 0 auto; }
+      h1 { font-size: 1.6rem; margin: 0 0 0.2rem; }
+      h1 span { color: var(--accent); }
+      .tagline { color: var(--muted); margin: 0 0 1.5rem; }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1.1rem 1.2rem;
+        margin-bottom: 1rem;
+      }
+      section[hidden] { display: none; }
+      h2 { font-size: 1rem; margin: 0 0 0.9rem; letter-spacing: 0.02em; }
+      label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 0.3rem; }
+      select, button, input {
+        font: inherit;
+        color: var(--fg);
+        background: #0e1116;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 0.5rem 0.7rem;
+      }
+      select, input { width: 100%; }
+      button {
+        cursor: pointer;
+        background: #222a34;
+        transition: background 0.12s;
+      }
+      button:hover:not(:disabled) { background: #2d3744; }
+      button:disabled { opacity: 0.4; cursor: default; }
+      button.primary { background: var(--accent); color: #06231a; border-color: var(--accent); font-weight: 600; }
+      button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+      .row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+      .row > * { margin: 0; }
+      .field { margin-bottom: 0.9rem; }
+
+      .badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.2rem 0 0.9rem; }
+      .badge {
+        font-size: 0.75rem; padding: 0.2rem 0.55rem; border-radius: 20px;
+        border: 1px solid var(--line); color: var(--muted);
+      }
+      .badge.ok { color: var(--accent); border-color: var(--accent); }
+      .badge.bad { color: var(--bad); border-color: var(--bad); }
+
+      .meter { height: 14px; background: #0a0d11; border-radius: 7px; overflow: hidden; border: 1px solid var(--line); }
+      .meter > div { height: 100%; width: 0%; background: var(--accent); transition: width 0.05s linear; }
+      .meter.clip > div { background: var(--bad); }
+      .hint { color: var(--muted); font-size: 0.82rem; margin: 0.35rem 0 0; }
+
+      .readout { font-size: 2.6rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+      .readout.idle { color: var(--muted); }
+      .sub { text-align: center; color: var(--muted); margin: 0.1rem 0 0.8rem; font-variant-numeric: tabular-nums; }
+
+      .note-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 7px; }
+      .note-list table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+      .note-list th, .note-list td { text-align: left; padding: 0.35rem 0.7rem; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
+      .note-list th { color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--panel); }
+
+      .log { color: var(--muted); font-size: 0.82rem; min-height: 1.2em; margin-top: 0.3rem; }
+      .log.err { color: var(--bad); }
+      .step { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+      canvas.trace { width: 100%; height: 150px; display: block; border-radius: 7px; border: 1px solid var(--line); background: #0a0d11; }
+      hr { border: none; border-top: 1px solid var(--line); margin: 1.3rem 0; }
+
+      .checklist { list-style: none; padding: 0; margin: 0.6rem 0 0; }
+      .checklist li { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; font-size: 0.85rem; color: var(--muted); }
+      .checklist .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: none; }
+      .checklist li.pass { color: var(--fg); }
+      .checklist li.pass .dot { background: var(--accent); }
+      .checklist li.fail .dot { background: var(--bad); }
+      .checklist .detail { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; font-size: 0.78rem; }
+
+      .verdict { font-weight: 600; margin: 0.7rem 0 0; }
+      .verdict.good { color: var(--accent); }
+      .verdict.meh { color: var(--warn); }
+
+      .samples { margin: 0.6rem 0 0; display: flex; flex-direction: column; gap: 0.4rem; }
+      .sample { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; border: 1px solid var(--line); border-radius: 7px; }
+      .sample.active { border-color: var(--accent); }
+      .sample .name { font-size: 0.85rem; }
+      .sample .meta { color: var(--muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+      .sample .spacer { margin-left: auto; }
+      .sample button { padding: 0.3rem 0.55rem; font-size: 0.8rem; }
+      .pill { font-size: 0.72rem; padding: 0.12rem 0.5rem; border-radius: 20px; border: 1px solid var(--line); color: var(--muted); }
+      .pill.good { color: var(--accent); border-color: var(--accent); }
+      .pill.meh { color: var(--warn); border-color: var(--warn); }
+
+      .tune { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+      .tune .ctl label { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+      .tune .ctl label .val { color: var(--accent); font-variant-numeric: tabular-nums; }
+      .tune .ctl .desc { color: var(--muted); font-size: 0.75rem; margin: 0.15rem 0 0; }
+      .tune input[type='range'] { width: 100%; accent-color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1><span>diapason</span></h1>
+      <p class="tagline">Whistle into your mic → MIDI out.</p>
+
+      <!-- STEP 1: device + calibration -->
+      <section id="sec-calibrate">
+        <p class="step">Step 1 — Calibrate</p>
+        <h2>Input &amp; signal check</h2>
+
+        <div class="field">
+          <label for="device">Microphone</label>
+          <div class="row">
+            <select id="device" style="flex:1"></select>
+            <button id="btn-refresh" title="Re-scan devices">↻</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom: 0.9rem">
+          <button id="btn-calibrate" class="primary">Start calibration</button>
+          <button id="btn-stop-calibrate" disabled>Stop</button>
+        </div>
+
+        <div id="calib-body" hidden>
+          <label>Raw-audio status (all should be OFF for whistling)</label>
+          <div class="badges" id="dsp-status"></div>
+
+          <label>Input level — keep out of the red</label>
+          <div class="meter" id="level-meter"><div></div></div>
+          <p class="hint" id="level-hint">Whistle a steady note at your normal volume.</p>
+
+          <div class="field" style="margin-top: 0.7rem">
+            <label>Input gain — <span id="gain-val">1.0×</span> <span class="hint">(boosts quiet mics; does not affect pitch accuracy)</span></label>
+            <input id="gain" type="range" min="1" max="20" step="0.5" value="1" style="width:100%" />
+          </div>
+
+          <div class="field" style="margin-top: 0.9rem">
+            <label>Room noise — required before capture</label>
+            <div class="row">
+              <button id="btn-noise">● Record the room (stay silent ~1.5s)</button>
+              <span class="hint" id="noise-readout" style="margin:0">not measured yet</span>
+            </div>
+            <p class="hint">Sets the silence threshold so breaths and hum aren't mistaken for notes.</p>
+          </div>
+
+          <label style="margin-top: 0.6rem">Live pitch</label>
+          <div class="row" style="justify-content: space-between">
+            <div class="readout idle" id="pitch-note" style="font-size: 2rem; text-align: left">—</div>
+            <div class="sub" id="pitch-sub" style="text-align: right; margin: 0">whistle to test</div>
+          </div>
+          <canvas class="trace" id="live-trace"></canvas>
+          <p class="hint">A steady whistle should draw a flat, bright-green line near one of the note gridlines. Jagged, dim, or broken = detection is struggling.</p>
+
+          <ul class="checklist" id="live-verdict"></ul>
+
+          <hr />
+
+          <label>Sample bank — record once, test as often as you like</label>
+          <p class="hint" style="margin-top: 0">Whistle a few short clips, then re-run detection on them below without whistling live. Great for tuning.</p>
+          <div class="row" style="margin: 0.5rem 0">
+            <button id="btn-rec-sample">● Record</button>
+            <div style="width: 78px">
+              <input id="sample-secs" type="number" value="5" min="1" max="20" title="seconds" />
+            </div>
+            <span class="hint" style="margin: 0">sec</span>
+            <span class="hint" id="sample-hint" style="margin: 0 0 0 0.4rem">no samples yet</span>
+          </div>
+          <div class="samples" id="sample-list"></div>
+
+          <div id="sample-inspect" hidden style="margin-top: 0.8rem">
+            <label id="sample-inspect-label">Sample analysis</label>
+            <canvas class="trace" id="sample-trace"></canvas>
+            <ul class="checklist" id="sample-verdict"></ul>
+            <p class="sub" id="sample-notes" style="text-align:left; margin:0.4rem 0 0"></p>
+            <div class="note-list" id="sample-note-list" style="margin-top:0.4rem"></div>
+            <div class="row" style="margin-top: 0.6rem">
+              <button id="btn-dl-wav">Download .wav</button>
+              <button id="btn-dl-json">Download .json</button>
+              <button id="btn-copy-log">Copy log</button>
+              <span class="hint" id="copy-status" style="margin: 0"></span>
+            </div>
+            <p class="hint" style="margin-top:0.3rem">The .wav is the raw captured audio for offline inspection; the .json holds the metrics (noise gate, levels, per-frame pitch track).</p>
+            <textarea id="log-out" readonly spellcheck="false"
+              style="width:100%; height:130px; margin-top:0.5rem; font:11px/1.4 ui-monospace,monospace; background:#0a0d11; color:var(--fg); border:1px solid var(--line); border-radius:7px; padding:0.5rem; resize:vertical; white-space:pre; overflow:auto"
+              placeholder="Press “Copy diagnostics log” — the full report appears here and is copied to your clipboard."></textarea>
+          </div>
+
+          <div style="margin-top: 1.2rem">
+            <button id="btn-to-capture" class="primary" disabled>Looks good → Capture</button>
+            <p class="hint" id="gate-hint" style="margin-top: 0.4rem">Record the room and get a clean signal to continue.</p>
+          </div>
+        </div>
+        <p class="log" id="calib-log"></p>
+      </section>
+
+      <!-- Tuning: live segmentation parameters -->
+      <section id="sec-tuning">
+        <p class="step">Tuning</p>
+        <h2>Note detection — adjust live</h2>
+        <p class="hint" style="margin-top:0">Changes apply instantly to the inspected sample above and to capture. Record a sample, Inspect it, then tune until the notes look right.</p>
+        <div class="tune" style="margin-top:0.9rem">
+          <div class="ctl">
+            <label for="t-sticky">Stickiness <span class="val" id="t-sticky-v"></span></label>
+            <input id="t-sticky" type="range" min="0" max="1" step="0.05" value="0.4" />
+            <p class="desc">How far pitch can drift (± semitones beyond 0.5) before it counts as a new note. Higher = fewer, stickier notes.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-minlen">Min note length <span class="val" id="t-minlen-v"></span></label>
+            <input id="t-minlen" type="range" min="20" max="300" step="10" value="80" />
+            <p class="desc">Notes shorter than this are discarded as blips.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-silence">Silence gap <span class="val" id="t-silence-v"></span></label>
+            <input id="t-silence" type="range" min="30" max="300" step="10" value="90" />
+            <p class="desc">A quiet gap this long ends the current note.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-debounce">Change debounce <span class="val" id="t-debounce-v"></span></label>
+            <input id="t-debounce" type="range" min="0" max="200" step="10" value="60" />
+            <p class="desc">A new pitch must hold this long before it splits the note.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-smooth">Smoothing <span class="val" id="t-smooth-v"></span></label>
+            <input id="t-smooth" type="range" min="1" max="11" step="2" value="5" />
+            <p class="desc">Median filter width (frames) that tames pitch jitter.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-clarity">Clarity gate <span class="val" id="t-clarity-v"></span></label>
+            <input id="t-clarity" type="range" min="0.85" max="0.999" step="0.005" value="0.9" />
+            <p class="desc">Minimum detection confidence for a frame to count.</p>
+          </div>
+          <div class="ctl">
+            <label for="t-gate">Level gate <span class="val" id="t-gate-v"></span></label>
+            <input id="t-gate" type="range" min="0.001" max="0.1" step="0.001" value="0.003" />
+            <p class="desc">Frames quieter than this are treated as silence (set by “Record the room”, adjustable here).</p>
+          </div>
+        </div>
+        <div class="row" style="margin-top:1rem">
+          <button id="btn-reset-tuning">Reset to defaults</button>
+        </div>
+      </section>
+
+      <!-- STEP 2: capture -->
+      <section id="sec-capture" hidden>
+        <p class="step">Step 2 — Capture</p>
+        <h2>Record your whistle</h2>
+        <div class="readout idle" id="capture-note">—</div>
+        <div class="sub" id="capture-sub">press Record and whistle your melody</div>
+        <div class="row">
+          <button id="btn-record" class="primary">● Record</button>
+          <button id="btn-stop-record" disabled>■ Stop</button>
+          <button id="btn-back">← Recalibrate</button>
+        </div>
+        <p class="log" id="capture-log"></p>
+      </section>
+
+      <!-- STEP 3: results -->
+      <section id="sec-results" hidden>
+        <p class="step">Step 3 — Export</p>
+        <h2>Detected notes</h2>
+        <p class="sub" id="results-summary" style="text-align:left"></p>
+        <div class="note-list" id="note-list"></div>
+        <div class="field row" style="margin-top: 1rem">
+          <div style="width: 110px">
+            <label for="bpm">Tempo (BPM)</label>
+            <input id="bpm" type="number" value="120" min="40" max="300" />
+          </div>
+          <button id="btn-download" class="primary" style="align-self: flex-end">Download .mid</button>
+          <button id="btn-again" style="align-self: flex-end">Record again</button>
+        </div>
+        <p class="hint">Import the .mid into BandLab (or any DAW) on an instrument track.</p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
