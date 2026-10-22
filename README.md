@@ -46,7 +46,7 @@ Requires Node 22+.
 
 ```bash
 npm install
-npm run dev      # opens http://localhost:5173
+npm run dev      # opens http://localhost:5173/diapason/
 ```
 
 Microphone access needs a secure context; `localhost` qualifies, so the plain
@@ -59,6 +59,17 @@ npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 ```
+
+## Deployment
+
+GitHub Actions builds and typechecks pull requests. Pushes to `main` (or a manual
+workflow run) also deploy `dist/` to <https://dkarlovi.github.io/diapason/>.
+GitHub Pages must use **GitHub Actions** as its publishing source in the
+repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
+the committed lockfile; no deployment secrets are needed.
+
+Vite's base path is `/diapason/` so built assets load from the project URL.
+The app uses hash routing, so editor and capture links also work on Pages.
 
 ## How it works
 
