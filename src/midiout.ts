@@ -108,35 +108,3 @@ export function playNotesMidi(
     },
   };
 }
-
-const CONNECT = "__connect";
-
-/** Wire the (global, always-present) output picker: browser synth, connected ports,
- *  or a "connect" entry. Call once at startup. */
-export function bindOutputSelect(sel: HTMLSelectElement): void {
-  const render = (): void => {
-    sel.hidden = !midiSupported();
-    const ports = midiOutputs();
-    const opts = [`<option value="">Browser synth</option>`];
-    for (const p of ports) opts.push(`<option value="${p.id}"></option>`);
-    if (!ports.length) opts.push(`<option value="${CONNECT}">MIDI device…</option>`);
-    sel.innerHTML = opts.join("");
-    ports.forEach((p, i) => (sel.options[i + 1]!.textContent = `MIDI: ${p.name ?? p.id}`));
-    sel.value = activeOutput() ? selectedOutputId() : "";
-  };
-  sel.onchange = async (): Promise<void> => {
-    if (sel.value !== CONNECT) return selectOutput(sel.value);
-    if (!(await connectMidi(true))) alert("MIDI access was denied or is unavailable.");
-    else if (!midiOutputs().length)
-      alert(
-        "MIDI is enabled, but no output devices were found. Start a synth or create a virtual MIDI port.",
-      );
-    // Auto-select the first port after connecting, that's what the user was after.
-    const first = midiOutputs()[0];
-    if (first) selectOutput(first.id);
-    else render();
-  };
-  onOutputChange(render);
-  render();
-  void connectMidi(false); // reconnect silently if already permitted
-}

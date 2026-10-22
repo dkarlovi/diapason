@@ -1,77 +1,31 @@
 import { INSTRUMENTS } from "../instruments";
 import { useEditor } from "../hooks/useEditor";
+import { SLIDERS, sliderLabel, sliderValue, type SliderDef } from "../editor-model";
+import type { Tuning } from "../tuning";
 import { Breadcrumb, Button, Field } from "./primitives";
 
-const sliders = [
-  {
-    id: "t-sticky",
-    label: "Stickiness",
-    min: "0",
-    max: "1",
-    step: "0.05",
-    value: "0.4",
-    tip: "How far pitch can drift before a new note starts.",
-  },
-  {
-    id: "t-minlen",
-    label: "Min note length",
-    min: "20",
-    max: "300",
-    step: "10",
-    value: "80",
-    tip: "Notes shorter than this are dropped.",
-  },
-  {
-    id: "t-silence",
-    label: "Silence gap",
-    min: "30",
-    max: "300",
-    step: "10",
-    value: "90",
-    tip: "A quiet gap this long ends the current note.",
-  },
-  {
-    id: "t-debounce",
-    label: "Change debounce",
-    min: "0",
-    max: "200",
-    step: "10",
-    value: "60",
-    tip: "A new pitch must hold this long before it splits the note.",
-  },
-  {
-    id: "t-smooth",
-    label: "Smoothing",
-    min: "1",
-    max: "11",
-    step: "2",
-    value: "5",
-    tip: "Median filter width in frames.",
-  },
-  {
-    id: "t-clarity",
-    label: "Clarity gate",
-    min: "0.85",
-    max: "0.999",
-    step: "0.005",
-    value: "0.9",
-    tip: "Minimum detection confidence per frame.",
-  },
-  {
-    id: "t-gate",
-    label: "Level gate",
-    min: "0.001",
-    max: "0.1",
-    step: "0.001",
-    value: "0.003",
-    tip: "Frames quieter than this are silence.",
-  },
-];
-
-function Slider({ item }: { item: (typeof sliders)[number] }) {
+function Slider({
+  item,
+  tuning,
+  onChange,
+  onReset,
+}: {
+  item: SliderDef;
+  tuning: Tuning;
+  onChange: (key: keyof Tuning, value: number) => void;
+  onReset: (key: keyof Tuning) => void;
+}) {
+  const value = sliderValue(item.key, tuning);
   return (
     <div className="ctl">
-      <label htmlFor={item.id} title={`${item.tip}\nDouble-click to reset.`}>
+      <label
+        htmlFor={item.id}
+        title={`${item.tip}\nDouble-click to reset.`}
+        onDoubleClick={(event) => {
+          event.preventDefault();
+          onReset(item.key);
+        }}
+      >
         {item.label}
       </label>
       <input
@@ -80,15 +34,20 @@ function Slider({ item }: { item: (typeof sliders)[number] }) {
         min={item.min}
         max={item.max}
         step={item.step}
-        defaultValue={item.value}
+        value={value}
+        onChange={(event) => onChange(item.key, Number(event.target.value))}
       />
-      <span className="val" id={`${item.id}-v`} />
+      <span className="val">{sliderLabel(item.key, value)}</span>
     </div>
   );
 }
 
 export function Editor({ id }: { id: string }) {
-  useEditor(id);
+  const state = useEditor(id);
+  const playhead =
+    state.position === null || !state.record
+      ? null
+      : `${Math.min(100, (state.position / state.record.durationSec) * 100)}%`;
   return (
     <div id="view-editor">
       <Breadcrumb current="Take" />
@@ -96,75 +55,141 @@ export function Editor({ id }: { id: string }) {
         <section className="side">
           <div className="side-head">
             <h2>Take</h2>
-            <span className="hint" id="ed-meta" />
+            <span className="hint">{state.meta}</span>
           </div>
           <div className="grid-wrap">
-            <canvas className="trace roll" id="ed-trace" />
-            <div className="playhead" hidden />
+            <canvas className="trace roll" ref={state.traceRef} />
+            <div
+              className="playhead"
+              hidden={playhead === null}
+              style={{ left: playhead ?? undefined }}
+            />
           </div>
           <div className="row actions">
-            <Button id="ed-play-audio" className="play">
-              ▶ Play audio
+            <Button
+              className="play"
+              disabled={!state.record}
+              onClick={() => state.togglePlayback("audio")}
+            >
+              {state.playing === "audio" ? "■ Stop" : "▶ Play audio"}
             </Button>
-            <Button id="ed-dl-wav" className="export" title="The raw recorded audio.">
+            <Button
+              className="export"
+              disabled={!state.record}
+              onClick={state.downloadWav}
+              title="The raw recorded audio."
+            >
               ⬇ .wav
             </Button>
-            <Button id="ed-dl-json" title="Diagnostics data.">
+            <Button disabled={!state.record} onClick={state.downloadJson} title="Diagnostics data.">
               ⬇ .json
             </Button>
-            <Button id="ed-copy-log">Copy log</Button>
-            <span className="hint" id="ed-copy-status" />
+            <Button disabled={!state.record} onClick={() => void state.copyLog()}>
+              Copy log
+            </Button>
+            <span className="hint">{state.copyStatus}</span>
           </div>
           <div style={{ marginTop: "1.1rem" }}>
             <Field label="Name" htmlFor="ed-name">
-              <input id="ed-name" type="text" />
+              <input
+                id="ed-name"
+                type="text"
+                value={state.draftName}
+                onChange={(event) => state.setDraftName(event.target.value)}
+                onBlur={state.commitName}
+                disabled={!state.record}
+              />
             </Field>
           </div>
           <div className="row">
-            <Button id="ed-duplicate">Duplicate</Button>
-            <Button id="ed-delete" variant="danger" className="spacer">
+            <Button disabled={!state.record} onClick={() => void state.duplicate()}>
+              Duplicate
+            </Button>
+            <Button
+              disabled={!state.record}
+              variant="danger"
+              className="spacer"
+              onClick={() => void state.remove()}
+            >
               Delete take
             </Button>
           </div>
-          <textarea id="ed-log-out" readOnly spellCheck={false} hidden />
+          <textarea
+            id="ed-log-out"
+            ref={state.logRef}
+            value={state.reportText}
+            readOnly
+            spellCheck={false}
+            hidden={!state.reportText}
+          />
         </section>
         <section className="side">
           <div className="side-head">
             <h2>MIDI</h2>
-            <span className="hint" id="ed-notes" />
+            <span className="hint">{state.notesLabel}</span>
           </div>
           <div className="grid-wrap">
             <canvas
               className="trace roll"
-              id="ed-roll"
+              ref={state.rollRef}
+              onClick={state.clickRoll}
+              onMouseMove={state.moveRoll}
+              style={{ cursor: state.rollHover ? "pointer" : undefined }}
               title="Click a note to hear it, Ctrl+click to mute or unmute it."
             />
-            <div className="playhead" hidden />
+            <div
+              className="playhead"
+              hidden={playhead === null}
+              style={{ left: playhead ?? undefined }}
+            />
           </div>
           <div className="row actions">
-            <Button id="ed-play-midi" className="play">
-              ▶ Play MIDI
+            <Button
+              className="play"
+              disabled={!state.record}
+              onClick={() => state.togglePlayback("midi")}
+            >
+              {state.playing === "midi" ? "■ Stop" : "▶ Play MIDI"}
             </Button>
             <Button
-              id="ed-dl-midi"
               variant="primary"
               className="export"
+              disabled={!state.record}
+              onClick={state.downloadMidi}
               title="Import into a DAW on an instrument track."
             >
               ⬇ .mid
             </Button>
             <select
-              id="ed-instrument"
               className="spacer"
-              title="Instrument for playback (the .mid has no instrument)."
+              value={state.play.instrument}
+              disabled={!state.record || state.externalOutput}
+              onChange={(event) =>
+                state.changePlay({
+                  ...state.play,
+                  instrument: event.target.value as typeof state.play.instrument,
+                })
+              }
+              title={
+                state.externalOutput
+                  ? "Playing through a MIDI device — it picks the sound."
+                  : "Instrument for playback (the .mid has no instrument)."
+              }
             >
-              {INSTRUMENTS.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.label}
+              {INSTRUMENTS.map((instrument) => (
+                <option key={instrument.id} value={instrument.id}>
+                  {instrument.label}
                 </option>
               ))}
             </select>
-            <select id="ed-octave" title="Shift playback by octaves (doesn't affect the .mid).">
+            <select
+              value={state.play.octave}
+              disabled={!state.record}
+              onChange={(event) =>
+                state.changePlay({ ...state.play, octave: Number(event.target.value) })
+              }
+              title="Shift playback by octaves (doesn't affect the .mid)."
+            >
               <option value="1">+1 oct</option>
               <option value="0">±0 oct</option>
               <option value="-1">−1 oct</option>
@@ -174,11 +199,25 @@ export function Editor({ id }: { id: string }) {
           </div>
           <div className="row" style={{ marginTop: "1.1rem" }}>
             <label style={{ display: "flex", alignItems: "center", gap: ".4rem", margin: 0 }}>
-              <input type="checkbox" id="ed-quant-on" style={{ width: "auto" }} defaultChecked />{" "}
+              <input
+                type="checkbox"
+                style={{ width: "auto" }}
+                checked={state.quantize.on}
+                disabled={!state.record}
+                onChange={(event) =>
+                  state.changeQuantize(event.target.checked, state.quantize.subdivision)
+                }
+              />{" "}
               Quantize to
             </label>
             <div style={{ width: 140 }}>
-              <select id="ed-subdiv" defaultValue="2">
+              <select
+                value={state.quantize.subdivision}
+                disabled={!state.record || !state.quantize.on}
+                onChange={(event) =>
+                  state.changeQuantize(state.quantize.on, Number(event.target.value))
+                }
+              >
                 <option value="1">1/4 notes</option>
                 <option value="2">1/8 notes</option>
                 <option value="4">1/16 notes</option>
@@ -187,19 +226,33 @@ export function Editor({ id }: { id: string }) {
             </div>
           </div>
           <div className="tune" style={{ marginTop: "1rem" }}>
-            {sliders.slice(0, 2).map((item) => (
-              <Slider key={item.id} item={item} />
+            {SLIDERS.slice(0, 2).map((item) => (
+              <Slider
+                key={item.id}
+                item={item}
+                tuning={state.tuning}
+                onChange={state.changeTuning}
+                onReset={state.resetTuning}
+              />
             ))}
           </div>
           <details className="more">
             <summary>More</summary>
             <div className="tune">
-              {sliders.slice(2).map((item) => (
-                <Slider key={item.id} item={item} />
+              {SLIDERS.slice(2).map((item) => (
+                <Slider
+                  key={item.id}
+                  item={item}
+                  tuning={state.tuning}
+                  onChange={state.changeTuning}
+                  onReset={state.resetTuning}
+                />
               ))}
             </div>
             <div className="row" style={{ marginTop: ".8rem" }}>
-              <Button id="ed-reset-tuning">Reset all</Button>
+              <Button disabled={!state.record} onClick={() => state.resetTuning()}>
+                Reset all
+              </Button>
             </div>
           </details>
           <p className="hint">

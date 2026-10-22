@@ -266,7 +266,7 @@ canvas.trace {
 }
 
 /* editor: take (left) vs. MIDI result (right), mirrored */
-body.wide main {
+main:has(#view-editor) {
   max-width: 1280px;
 }
 .pair {

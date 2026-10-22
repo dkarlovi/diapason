@@ -1,316 +1,323 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { openMic, listInputDevices, type MicHandle } from "../audio";
 import { createPitchDetector, type PitchDetector } from "../pitch";
-import { type Frame } from "../notes";
+import type { Frame } from "../notes";
 import { drawTrace, autoRange } from "../trace";
 import { createRecorder, qualityStats, type Recorder } from "../recorder";
 import { startMetronome, type MetronomeHandle } from "../metronome";
 import { encodeAudio } from "../codec";
 import { putRecording, type Recording } from "../db";
 import { loadLastTuning } from "../tuning";
-import { $, renderChecklist, checksFor, fmtDate } from "../ui";
-import { go, takePath } from "../router";
+import { checksFor, fmtDate, type Check } from "../ui";
+import {
+  dspStatus,
+  isDownbeat,
+  levelHint,
+  noiseCalibration,
+  peakLevel,
+  trimCountIn,
+} from "../capture-model";
+import { takePath } from "../router";
 
 const LIVE_WINDOW_SEC = 5;
-
-let mic: MicHandle | null = null;
-let detector: PitchDetector | null = null;
-let recorder: Recorder | null = null;
-let metro: MetronomeHandle | null = null;
-let rafId = 0;
-let active = false;
-let noiseTimer = 0;
-let beatTimer = 0;
-let micGeneration = 0;
-
-let micStart = 0;
-let liveFrames: Frame[] = [];
-let rmsGate = 0.003;
-let noiseMeasured = false;
-let measuringNoise = false;
-let noiseSamples: number[] = [];
-let lastVerdictAt = 0;
-
-let recording = false;
-let tcap0 = 0;
-
-const num = (id: string): number => Number(($(id) as HTMLInputElement).value);
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-async function refreshDevices(): Promise<void> {
-  try {
-    const devices = await listInputDevices();
-    if (!active) return;
-    const sel = $<HTMLSelectElement>("cap-device");
-    const prev = sel.value;
-    sel.innerHTML = "";
-    for (const d of devices) {
-      const o = document.createElement("option");
-      o.value = d.deviceId;
-      o.textContent = d.label || `Microphone ${sel.length + 1}`;
-      sel.appendChild(o);
+type Beat = { on: boolean; accent: boolean; count: string };
+
+export function useCapture() {
+  const navigate = useNavigate();
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [deviceId, setDeviceId] = useState("");
+  const [gain, setGainValue] = useState(1);
+  const [dsp, setDsp] = useState<{ name: string; off: boolean }[]>([]);
+  const [sampleRate, setSampleRate] = useState(0);
+  const [level, setLevel] = useState({ rms: 0, peak: 0 });
+  const [checks, setChecks] = useState<Check[]>([]);
+  const [noiseReadout, setNoiseReadout] = useState("not measured yet");
+  const [noiseMeasured, setNoiseMeasured] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState("");
+  const [bpm, setBpm] = useState(90);
+  const [beatsPerBar, setBeatsPerBar] = useState(4);
+  const [beat, setBeat] = useState<Beat>({ on: false, accent: false, count: "" });
+
+  const traceRef = useRef<HTMLCanvasElement>(null);
+  const mic = useRef<MicHandle | null>(null);
+  const detector = useRef<PitchDetector | null>(null);
+  const recorder = useRef<Recorder | null>(null);
+  const metro = useRef<MetronomeHandle | null>(null);
+  const raf = useRef(0);
+  const noiseTimer = useRef(0);
+  const beatTimer = useRef(0);
+  const generation = useRef(0);
+  const mounted = useRef(false);
+  const gainRef = useRef(gain);
+  const micStart = useRef(0);
+  const frames = useRef<Frame[]>([]);
+  const rmsGate = useRef(0.003);
+  const measuring = useRef(false);
+  const noiseSamples = useRef<number[]>([]);
+  const lastVerdict = useRef(0);
+  const recordingRef = useRef(false);
+  const startingRef = useRef(false);
+  const captureStart = useRef(0);
+
+  const closeMic = useCallback(() => {
+    cancelAnimationFrame(raf.current);
+    recorder.current?.dispose();
+    recorder.current = null;
+    mic.current?.close();
+    mic.current = null;
+    detector.current = null;
+  }, []);
+
+  const refreshDevices = useCallback(async () => {
+    try {
+      const found = await listInputDevices();
+      if (mounted.current) setDevices(found);
+    } catch {
+      // Device labels can be unavailable before permission is granted.
     }
-    if (prev) sel.value = prev;
-  } catch {
-    /* labels appear only after permission */
-  }
-}
+  }, []);
 
-async function openCaptureMic(): Promise<void> {
-  const generation = ++micGeneration;
-  closeMic();
-  const deviceId = $<HTMLSelectElement>("cap-device").value;
-  const opened = await openMic(deviceId ? { deviceId } : {});
-  if (!active || generation !== micGeneration) {
-    opened.close();
-    return;
-  }
-  mic = opened;
-  detector = createPitchDetector(mic.sampleRate);
-  mic.setGain(num("cap-gain"));
-  micStart = performance.now();
-  liveFrames = [];
-  await refreshDevices();
-  renderDsp();
-}
+  const loop = useCallback(() => {
+    if (!mounted.current || !mic.current || !detector.current) return;
+    raf.current = requestAnimationFrame(loop);
+    const t = (performance.now() - micStart.current) / 1000;
+    const buf = mic.current.readFrame();
+    const { freq, clarity, rms } = detector.current(buf);
+    const peak = peakLevel(buf);
+    setLevel({ rms, peak });
+    if (measuring.current) noiseSamples.current.push(rms);
+    frames.current.push({
+      t,
+      freq: freq !== null && rms >= rmsGate.current ? freq : null,
+      clarity,
+      rms,
+    });
+    while (frames.current.length && frames.current[0]!.t < t - (LIVE_WINDOW_SEC + 1))
+      frames.current.shift();
+    if (traceRef.current)
+      drawTrace(traceRef.current, frames.current, {
+        tMin: t - LIVE_WINDOW_SEC,
+        tMax: t,
+        ...autoRange(frames.current),
+      });
+    if (performance.now() - lastVerdict.current > 200) {
+      lastVerdict.current = performance.now();
+      setChecks(checksFor(qualityStats(frames.current.filter((f) => f.t >= t - 3))));
+    }
+  }, []);
 
-function closeMic(): void {
-  recorder?.dispose();
-  recorder = null;
-  mic?.close();
-  mic = null;
-  detector = null;
-}
+  const openDevice = useCallback(
+    async (id: string) => {
+      if (recordingRef.current || startingRef.current) return;
+      const current = ++generation.current;
+      window.clearTimeout(noiseTimer.current);
+      measuring.current = false;
+      noiseSamples.current = [];
+      closeMic();
+      setDeviceId(id);
+      setNoiseMeasured(false);
+      setNoiseReadout("not measured yet");
+      rmsGate.current = 0.003;
+      setStatus("");
+      try {
+        const opened = await openMic(id ? { deviceId: id } : {});
+        if (!mounted.current || current !== generation.current) {
+          opened.close();
+          return;
+        }
+        mic.current = opened;
+        detector.current = createPitchDetector(opened.sampleRate);
+        opened.setGain(gainRef.current);
+        micStart.current = performance.now();
+        frames.current = [];
+        setDsp(dspStatus(opened.getSettings()));
+        setSampleRate(opened.sampleRate);
+        await refreshDevices();
+        if (mounted.current && current === generation.current) loop();
+      } catch (error) {
+        if (mounted.current && current === generation.current)
+          setStatus(`Mic error: ${(error as Error).message}`);
+      }
+    },
+    [closeMic, loop, refreshDevices],
+  );
 
-function renderDsp(): void {
-  if (!mic) return;
-  const s = mic.getSettings() as Record<string, unknown>;
-  const checks: [string, boolean][] = [
-    ["echoCancellation", s.echoCancellation !== true],
-    ["noiseSuppression", s.noiseSuppression !== true],
-    ["autoGainControl", s.autoGainControl !== true],
-  ];
-  const box = $("cap-dsp");
-  box.innerHTML = "";
-  for (const [name, ok] of checks) {
-    const b = document.createElement("span");
-    b.className = `badge ${ok ? "ok" : "bad"}`;
-    b.textContent = `${name}: ${ok ? "OFF ✓" : "ON ✗"}`;
-    box.appendChild(b);
-  }
-  const r = document.createElement("span");
-  r.className = "badge";
-  r.textContent = `${mic.sampleRate} Hz`;
-  box.appendChild(r);
-}
+  useEffect(() => {
+    mounted.current = true;
+    void openDevice("");
+    return () => {
+      mounted.current = false;
+      generation.current++;
+      window.clearTimeout(noiseTimer.current);
+      window.clearTimeout(beatTimer.current);
+      metro.current?.stop();
+      metro.current = null;
+      recordingRef.current = false;
+      startingRef.current = false;
+      closeMic();
+    };
+  }, [closeMic, openDevice]);
 
-function dspOff(): boolean {
-  if (!mic) return false;
-  const s = mic.getSettings() as Record<string, unknown>;
-  return s.echoCancellation !== true && s.noiseSuppression !== true && s.autoGainControl !== true;
-}
+  const changeGain = useCallback((value: number) => {
+    gainRef.current = value;
+    setGainValue(value);
+    mic.current?.setGain(value);
+  }, []);
 
-function refreshGate(): void {
-  const ready = noiseMeasured && !recording;
-  ($("cap-record") as HTMLButtonElement).disabled = !ready;
-  const hint = $("cap-gate-hint");
-  if (recording) hint.textContent = "";
-  else if (ready)
-    hint.textContent =
-      "Ready — set your tempo and hit Record. (Aim for a green signal check above.)";
-  else hint.textContent = "Record the room (silence) to enable recording.";
-}
+  const resume = useCallback(() => {
+    void mic.current?.context.resume();
+  }, []);
 
-const meterBar = (): HTMLDivElement => $("cap-level-meter").querySelector("div") as HTMLDivElement;
+  const measureRoom = useCallback(() => {
+    if (measuring.current || !mic.current) return;
+    resume();
+    measuring.current = true;
+    noiseSamples.current = [];
+    setNoiseReadout("measuring… stay silent");
+    noiseTimer.current = window.setTimeout(() => {
+      if (!mounted.current) return;
+      measuring.current = false;
+      const { floor, gate } = noiseCalibration(noiseSamples.current);
+      rmsGate.current = gate;
+      setNoiseReadout(`floor ${floor.toFixed(4)} · gate ${gate.toFixed(4)} ✓`);
+      setNoiseMeasured(true);
+    }, 1500);
+  }, [resume]);
 
-function loop(): void {
-  rafId = requestAnimationFrame(loop);
-  if (!mic || !detector) return;
-  const t = (performance.now() - micStart) / 1000;
-  const buf = mic.readFrame();
-  const { freq, clarity, rms } = detector(buf);
+  const flashBeat = useCallback((index: number, bar: number) => {
+    if (!mounted.current) return;
+    setBeat({ on: true, accent: isDownbeat(index, bar), count: index < 0 ? String(-index) : "" });
+    window.clearTimeout(beatTimer.current);
+    beatTimer.current = window.setTimeout(() => {
+      if (mounted.current) setBeat((previous) => ({ ...previous, on: false }));
+    }, 90);
+  }, []);
 
-  let peak = 0;
-  for (let i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i]!));
-  meterBar().style.width = `${Math.min(100, rms * 400)}%`;
-  $("cap-level-meter").classList.toggle("clip", peak > 0.98);
-  $("cap-level-hint").textContent =
-    peak > 0.98
-      ? "⚠ Clipping — lower Input gain or move back."
-      : peak < 0.08
-        ? "Signal is low — raise Input gain or move closer."
-        : "Good level — whistle a steady note.";
+  const startRecording = useCallback(async () => {
+    const opened = mic.current;
+    if (!opened || recordingRef.current || startingRef.current || !noiseMeasured) return;
+    const current = generation.current;
+    startingRef.current = true;
+    setStarting(true);
+    try {
+      await opened.context.resume();
+      if (!mounted.current || current !== generation.current) return;
+      if (!recorder.current) {
+        const created = await createRecorder(opened.context, opened.tap);
+        if (!mounted.current || current !== generation.current) {
+          created.dispose();
+          return;
+        }
+        recorder.current = created;
+      }
+      const bar = Math.max(1, Math.round(beatsPerBar));
+      const tempo = Math.max(40, Math.round(bpm));
+      recorder.current.start();
+      captureStart.current = opened.context.currentTime;
+      recordingRef.current = true;
+      setRecording(true);
+      setStatus("Counting in…");
+      metro.current = startMetronome(opened.context, {
+        bpm: tempo,
+        beatsPerBar: bar,
+        countInBars: 1,
+        onBeat: (index) => flashBeat(index, bar),
+        onDownbeat: () => {
+          if (mounted.current) setStatus("Recording… hit Stop when done.");
+        },
+      });
+    } catch (error) {
+      if (mounted.current && current === generation.current) {
+        recordingRef.current = false;
+        setRecording(false);
+        setStatus(`Record error: ${(error as Error).message}`);
+      }
+    } finally {
+      startingRef.current = false;
+      if (mounted.current && current === generation.current) setStarting(false);
+    }
+  }, [beatsPerBar, bpm, flashBeat, noiseMeasured]);
 
-  if (measuringNoise) noiseSamples.push(rms);
+  const stopRecording = useCallback(async () => {
+    const opened = mic.current;
+    const activeRecorder = recorder.current;
+    const metronome = metro.current;
+    if (!opened || !activeRecorder || !metronome) return;
+    const pcm = activeRecorder.stop();
+    const downbeat = metronome.downbeatTime;
+    metronome.stop();
+    metro.current = null;
+    recordingRef.current = false;
+    setRecording(false);
+    const trimmed = trimCountIn(pcm, downbeat, captureStart.current, opened.sampleRate);
+    if (trimmed.length < opened.sampleRate * 0.3) {
+      setStatus("Too short — try again.");
+      return;
+    }
+    setSaving(true);
+    setStatus("Saving…");
+    try {
+      const now = Date.now();
+      const record: Recording = {
+        id: uid(),
+        name: `Take ${fmtDate(now)}`,
+        createdAt: now,
+        sampleRate: opened.sampleRate,
+        durationSec: trimmed.length / opened.sampleRate,
+        bpm: Math.max(40, Math.round(bpm)),
+        beatsPerBar: Math.max(1, Math.round(beatsPerBar)),
+        audio: await encodeAudio(trimmed),
+        capture: {
+          gain: gainRef.current,
+          peak: peakLevel(trimmed),
+          noiseFloor: rmsGate.current,
+          dspOff: dspStatus(opened.getSettings()).every((check) => check.off),
+        },
+        tuning: loadLastTuning(),
+      };
+      await putRecording(record);
+      if (mounted.current) navigate(takePath(record.id));
+    } catch (error) {
+      if (mounted.current) {
+        setSaving(false);
+        setStatus(`Save error: ${(error as Error).message}`);
+      }
+    }
+  }, [beatsPerBar, bpm, navigate]);
 
-  const voiced = freq !== null && rms >= rmsGate;
-  liveFrames.push({ t, freq: voiced ? freq : null, clarity, rms });
-  while (liveFrames.length && liveFrames[0]!.t < t - (LIVE_WINDOW_SEC + 1)) liveFrames.shift();
-
-  const range = autoRange(liveFrames);
-  drawTrace($<HTMLCanvasElement>("cap-trace"), liveFrames, {
-    tMin: t - LIVE_WINDOW_SEC,
-    tMax: t,
-    ...range,
-  });
-
-  if (performance.now() - lastVerdictAt > 200) {
-    lastVerdictAt = performance.now();
-    const recent = liveFrames.filter((f) => f.t >= t - 3);
-    const stats = qualityStats(recent);
-    renderChecklist("cap-verdict", checksFor(stats));
-  }
-}
-
-function measureRoom(): void {
-  if (measuringNoise || !mic) return;
-  void mic.context.resume();
-  measuringNoise = true;
-  noiseSamples = [];
-  $("cap-noise-readout").textContent = "measuring… stay silent";
-  noiseTimer = window.setTimeout(() => {
-    if (!active) return;
-    measuringNoise = false;
-    noiseSamples.sort((a, b) => a - b);
-    const p95 = noiseSamples[Math.floor(noiseSamples.length * 0.95)] ?? 0;
-    rmsGate = Math.min(0.1, Math.max(0.003, p95 * 1.5));
-    $("cap-noise-readout").textContent = `floor ${p95.toFixed(4)} · gate ${rmsGate.toFixed(4)} ✓`;
-    noiseMeasured = true;
-    refreshGate();
-  }, 1500);
-}
-
-function flashBeat(beatIndex: number, beatsPerBar: number): void {
-  const dot = $("cap-beatdot");
-  const accent = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
-  dot.classList.toggle("accent", accent);
-  dot.classList.add("on");
-  window.clearTimeout(beatTimer);
-  beatTimer = window.setTimeout(() => dot.classList.remove("on"), 90);
-  $("cap-count").textContent = beatIndex < 0 ? String(-beatIndex) : "";
-}
-
-async function startRecording(): Promise<void> {
-  if (!mic) return;
-  const ctx = mic.context;
-  await ctx.resume();
-  if (!active || !mic) return;
-  if (!recorder) recorder = await createRecorder(ctx, mic.tap);
-  if (!active) {
-    closeMic();
-    return;
-  }
-  const beatsPerBar = Math.max(1, Math.round(num("cap-beats")));
-  const bpm = Math.max(40, Math.round(num("cap-bpm")));
-
-  recorder.start();
-  tcap0 = ctx.currentTime;
-  recording = true;
-  ($("cap-record") as HTMLButtonElement).disabled = true;
-  ($("cap-stop") as HTMLButtonElement).disabled = false;
-  $("cap-status").textContent = "Counting in…";
-  refreshGate();
-
-  metro = startMetronome(ctx, {
+  return {
+    devices,
+    deviceId,
+    gain,
+    dsp,
+    sampleRate,
+    level,
+    levelHint: levelHint(level.peak),
+    checks,
+    noiseReadout,
+    noiseMeasured,
+    recording,
+    starting,
+    saving,
+    status,
     bpm,
     beatsPerBar,
-    countInBars: 1,
-    onBeat: (b) => flashBeat(b, beatsPerBar),
-    onDownbeat: () => {
-      $("cap-status").textContent = "Recording… hit Stop when done.";
-    },
-  });
-}
-
-async function stopRecording(): Promise<void> {
-  if (!recorder || !mic || !metro) return;
-  const sr = mic.sampleRate;
-  const pcm = recorder.stop();
-  const downbeat = metro.downbeatTime;
-  metro.stop();
-  metro = null;
-  recording = false;
-  ($("cap-stop") as HTMLButtonElement).disabled = true;
-
-  const drop = Math.min(pcm.length, Math.max(0, Math.round((downbeat - tcap0) * sr)));
-  const trimmed = pcm.slice(drop);
-  if (trimmed.length < sr * 0.3) {
-    $("cap-status").textContent = "Too short — try again.";
-    refreshGate();
-    return;
-  }
-  let peak = 0;
-  for (let i = 0; i < trimmed.length; i++) peak = Math.max(peak, Math.abs(trimmed[i]!));
-
-  $("cap-status").textContent = "Saving…";
-  const rec: Recording = {
-    id: uid(),
-    name: `Take ${fmtDate(Date.now())}`,
-    createdAt: Date.now(),
-    sampleRate: sr,
-    durationSec: trimmed.length / sr,
-    bpm: Math.max(40, Math.round(num("cap-bpm"))),
-    beatsPerBar: Math.max(1, Math.round(num("cap-beats"))),
-    audio: await encodeAudio(trimmed),
-    capture: { gain: num("cap-gain"), peak, noiseFloor: rmsGate, dspOff: dspOff() },
-    tuning: loadLastTuning(),
+    beat,
+    traceRef,
+    refreshDevices,
+    openDevice,
+    changeGain,
+    resume,
+    measureRoom,
+    startRecording,
+    stopRecording,
+    setBpm,
+    setBeatsPerBar,
   };
-  await putRecording(rec);
-  if (active) go(takePath(rec.id));
-}
-
-function activateCapture(): void {
-  active = true;
-  noiseMeasured = false;
-  recording = false;
-  rmsGate = 0.003;
-  $("cap-noise-readout").textContent = "not measured yet";
-  $("cap-status").textContent = "";
-  $("cap-count").textContent = "";
-  renderChecklist("cap-verdict", []);
-
-  // The AudioContext can start suspended (no direct gesture on route change); resume on
-  // the first interaction so the live meter/trace actually run.
-  $("view-capture").onpointerdown = (): void => void mic?.context.resume();
-
-  $("cap-refresh").onclick = (): void => void refreshDevices();
-  $<HTMLSelectElement>("cap-device").onchange = (): void => void openCaptureMic();
-  $("cap-gain").oninput = (e): void => {
-    const g = Number((e.target as HTMLInputElement).value);
-    mic?.setGain(g);
-    $("cap-gain-v").textContent = `${g.toFixed(1)}×`;
-  };
-  $("cap-noise-btn").onclick = (): void => measureRoom();
-  $("cap-record").onclick = (): void => void startRecording();
-  $("cap-stop").onclick = (): void => void stopRecording();
-
-  ($("cap-record") as HTMLButtonElement).disabled = true;
-  ($("cap-stop") as HTMLButtonElement).disabled = true;
-  refreshGate();
-
-  openCaptureMic()
-    .then(() => active && loop())
-    .catch((err) => {
-      if (active) $("cap-status").textContent = `Mic error: ${(err as Error).message}`;
-    });
-}
-
-function deactivateCapture(): void {
-  active = false;
-  micGeneration++;
-  window.clearTimeout(noiseTimer);
-  window.clearTimeout(beatTimer);
-  cancelAnimationFrame(rafId);
-  rafId = 0;
-  metro?.stop();
-  metro = null;
-  recording = false;
-  closeMic();
-}
-
-export function useCapture(): void {
-  useEffect(() => {
-    activateCapture();
-    return deactivateCapture;
-  }, []);
 }

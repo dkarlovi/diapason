@@ -1,16 +1,6 @@
-// Shared DOM helpers used across views.
+// Shared presentation data and download helpers.
 
 import type { QualityStats } from "./recorder";
-
-export const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`missing #${id}`);
-  return el as T;
-};
-
-export const show = (id: string, visible: boolean): void => {
-  $(id).hidden = !visible;
-};
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -46,17 +36,6 @@ export function checksFor(stats: QualityStats): Check[] {
       detail: `±${stats.centsStd.toFixed(0)}¢`,
     },
   ];
-}
-
-export function renderChecklist(id: string, checks: Check[]): void {
-  const ul = $(id);
-  ul.innerHTML = "";
-  for (const c of checks) {
-    const li = document.createElement("li");
-    li.className = c.pass ? "pass" : c.detail ? "fail" : "";
-    li.innerHTML = `<span class="dot"></span><span>${c.label}</span><span class="detail">${c.detail}</span>`;
-    ul.appendChild(li);
-  }
 }
 
 export const fmtDate = (ms: number): string =>

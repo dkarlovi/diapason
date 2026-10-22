@@ -1,387 +1,391 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useNavigate } from "react-router";
 import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
 import { decodeAudio } from "../codec";
-import { analyzeBuffer, ANALYZE_DEFAULTS, qualityStats, type QualityStats } from "../recorder";
-import type { Frame, NoteEvent } from "../notes";
-import { PITCH_DEFAULTS } from "../pitch";
+import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
+import type { Frame } from "../notes";
 import { drawTrace, autoRange, type TraceView } from "../trace";
-import { takeItems, takeNotes, covers, DEFAULT_QUANTIZE, type NoteItem } from "../take";
+import { takeItems, DEFAULT_QUANTIZE } from "../take";
 import { notesToMidi } from "../midi";
 import { encodeWav } from "../wav";
-import { buildReport, buildReportData, type ReportInput } from "../diagnostics";
+import { buildReport, buildReportData } from "../diagnostics";
 import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
-import { $, downloadBlob } from "../ui";
-import { go, takePath } from "../router";
+import { downloadBlob } from "../ui";
+import { takePath } from "../router";
 import { playPcm, playNotes, type Playback } from "../playback";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import { onOutputChange, activeOutput } from "../midiout";
+import {
+  exportSlug,
+  makeReportInput,
+  noteAtPoint,
+  toggleMuted,
+  updateTuning,
+} from "../editor-model";
 
-let rec: Recording | null = null;
-let pcm = new Float32Array(0);
-let frames: Frame[] = [];
-let stats: QualityStats | null = null;
-let persistTimer = 0;
-let playback: Playback | null = null;
-let playingBtn: HTMLButtonElement | null = null;
-let rafId = 0;
-let preview: Playback | null = null;
-let offOutput: (() => void) | null = null;
-let loadGeneration = 0;
-
-/** Slider id ↔ tuning key, with the slider's unit conversion and value label. */
-interface Slider {
-  id: string;
-  key: keyof Tuning;
-  toUi: (v: number) => number;
-  fromUi: (v: number) => number;
-  fmt: (ui: number) => string;
-}
-const ms = {
-  toUi: (v: number) => Math.round(v * 1000),
-  fromUi: (v: number) => v / 1000,
-  fmt: (v: number) => `${v} ms`,
+const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+const gridLabels: Record<number, string> = {
+  1: "1/4 notes",
+  2: "1/8 notes",
+  4: "1/16 notes",
+  3: "1/8 triplets",
 };
-const same = { toUi: (v: number) => v, fromUi: (v: number) => v };
-const SLIDERS: Slider[] = [
-  {
-    id: "t-sticky",
-    key: "hysteresisSemitones",
-    ...same,
-    fmt: (v) => `±${(0.5 + v).toFixed(2)} st`,
-  },
-  { id: "t-minlen", key: "minDurationSec", ...ms },
-  { id: "t-silence", key: "silenceGapSec", ...ms },
-  { id: "t-debounce", key: "changeDebounceSec", ...ms },
-  { id: "t-smooth", key: "medianWindow", ...same, fmt: (v) => `${v} fr` },
-  { id: "t-clarity", key: "clarityThreshold", ...same, fmt: (v) => v.toFixed(3) },
-  { id: "t-gate", key: "rmsGate", ...same, fmt: (v) => v.toFixed(3) },
-];
-const input = (id: string): HTMLInputElement => $<HTMLInputElement>(id);
 
-function writeSliders(t: Tuning): void {
-  for (const s of SLIDERS) input(s.id).value = String(s.toUi(t[s.key]));
-}
+export function useEditor(id: string) {
+  const navigate = useNavigate();
+  const [record, setRecord] = useState<Recording | null>(null);
+  const [frames, setFrames] = useState<Frame[]>([]);
+  const [draftName, setDraftName] = useState("");
+  const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
+  const [position, setPosition] = useState<number | null>(null);
+  const [rollHover, setRollHover] = useState(false);
+  const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
+  const [reportText, setReportText] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
 
-function readSliders(): Tuning {
-  const t = { ...DEFAULT_TUNING };
-  for (const s of SLIDERS) t[s.key] = s.fromUi(Number(input(s.id).value));
-  return t;
-}
+  const recordRef = useRef<Recording | null>(null);
+  const pcm = useRef(new Float32Array(0));
+  const stats = useRef<QualityStats | null>(null);
+  const traceRef = useRef<HTMLCanvasElement>(null);
+  const rollRef = useRef<HTMLCanvasElement>(null);
+  const logRef = useRef<HTMLTextAreaElement>(null);
+  const playback = useRef<Playback | null>(null);
+  const preview = useRef<Playback | null>(null);
+  const raf = useRef(0);
+  const persistTimer = useRef(0);
+  const tuningDirty = useRef(false);
+  const mounted = useRef(false);
+  const playingRef = useRef<"audio" | "midi" | null>(null);
 
-function refreshLabels(): void {
-  for (const s of SLIDERS) $(`${s.id}-v`).textContent = s.fmt(Number(input(s.id).value));
-}
+  const replaceRecord = useCallback((next: Recording) => {
+    recordRef.current = next;
+    setRecord(next);
+  }, []);
 
-function noteItems(): NoteItem[] {
-  return rec ? takeItems(rec, frames) : [];
-}
-
-function currentNotes(): NoteEvent[] {
-  return rec ? takeNotes(rec, frames) : [];
-}
-
-// What the MIDI grid currently shows, for hit-testing clicks without re-segmenting.
-let rollView: TraceView | null = null;
-let rollItems: NoteItem[] = [];
-
-/** The note under a mouse position on the MIDI grid, if any. */
-function noteAt(e: MouseEvent): NoteItem | null {
-  if (!rollView) return null;
-  const canvas = e.currentTarget as HTMLCanvasElement;
-  const r = canvas.getBoundingClientRect();
-  const { tMin, tMax, midiMin, midiMax } = rollView;
-  const t = tMin + ((e.clientX - r.left) / r.width) * (tMax - tMin);
-  const midi = midiMax - ((e.clientY - r.top) / r.height) * (midiMax - midiMin);
-  const padT = (4 / r.width) * (tMax - tMin); // a few px of slack for tiny notes
-  let best: NoteItem | null = null;
-  for (const it of rollItems) {
-    const { start, duration } = it.note;
-    if (t < start - padT || t > start + duration + padT) continue;
-    const d = Math.abs(midi - it.note.midi);
-    if (d <= 0.75 && (!best || d < Math.abs(midi - best.note.midi))) best = it;
-  }
-  return best;
-}
-
-function toggleMute(it: NoteItem): void {
-  if (!rec) return;
-  const muted = rec.muted ?? [];
-  rec.muted = it.muted
-    ? muted.filter((m) => !covers(m, it.raw))
-    : [...muted, { t: it.raw.start + it.raw.duration / 2, midi: it.raw.midi }];
-  void putRecording(rec);
-  render();
-}
-
-function reportInput(): ReportInput {
-  return {
-    title: rec!.name,
-    sampleRate: rec!.sampleRate,
-    durationSec: rec!.durationSec,
-    windowSize: ANALYZE_DEFAULTS.windowSize,
-    hop: ANALYZE_DEFAULTS.hop,
-    detector: {
-      minFreq: PITCH_DEFAULTS.minFreq,
-      maxFreq: PITCH_DEFAULTS.maxFreq,
-      clarityThreshold: PITCH_DEFAULTS.clarityThreshold,
-    },
-    rmsGate: rec!.tuning.rmsGate ?? DEFAULT_TUNING.rmsGate,
-    frames,
-    stats: stats!,
-  };
-}
-
-function render(): void {
-  if (!rec) return;
-  // Both grids share time axis, pitch range and beat lines so they line up 1:1.
-  const view = { tMin: 0, tMax: rec.durationSec, ...autoRange(frames) };
-  const beats = { bpm: rec.bpm, beatsPerBar: rec.beatsPerBar };
-  drawTrace($<HTMLCanvasElement>("ed-trace"), frames, { ...view, beats });
-
-  const items = noteItems();
-  rollItems = items;
-  const notes = items.filter((i) => !i.muted).map((i) => i.note);
-  const muted = items.filter((i) => i.muted).map((i) => i.note);
-  const quant = input("ed-quant-on").checked;
-  const sel = $<HTMLSelectElement>("ed-subdiv");
-  const sub = Number(sel.value);
-  rollView = { ...view, beats: { ...beats, subdivision: quant ? sub : 1 }, notes, muted };
-  drawTrace($<HTMLCanvasElement>("ed-roll"), frames, rollView);
-  sel.disabled = !quant;
-  const grid = quant ? sel.selectedOptions[0]!.text : "not quantized";
-  $("ed-notes").textContent =
-    `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${grid}`;
-}
-
-function stopPlayback(): void {
-  playback?.stop();
-  playback = null;
-  if (playingBtn) playingBtn.textContent = playingBtn.dataset.label!;
-  playingBtn = null;
-  cancelAnimationFrame(rafId);
-  for (const ph of document.querySelectorAll<HTMLElement>("#view-editor .playhead"))
-    ph.hidden = true;
-}
-
-/** Toggle playback from `btn`; the playhead sweeps both grids since they share a time axis. */
-function togglePlayback(btn: HTMLButtonElement, start: () => Playback): void {
-  const wasThis = playingBtn === btn;
-  stopPlayback();
-  if (wasThis || !rec) return;
-  btn.dataset.label ??= btn.textContent!;
-  btn.textContent = "■ Stop";
-  playingBtn = btn;
-  playback = start();
-  const heads = document.querySelectorAll<HTMLElement>("#view-editor .playhead");
-  const dur = rec.durationSec;
-  const tick = (): void => {
-    const p = playback?.position();
-    if (p == null) return stopPlayback();
-    for (const ph of heads) {
-      ph.hidden = false;
-      ph.style.left = `${Math.min(100, (p / dur) * 100)}%`;
+  const stopPlayback = useCallback(() => {
+    playback.current?.stop();
+    playback.current = null;
+    playingRef.current = null;
+    cancelAnimationFrame(raf.current);
+    if (mounted.current) {
+      setPlaying(null);
+      setPosition(null);
     }
-    rafId = requestAnimationFrame(tick);
-  };
-  rafId = requestAnimationFrame(tick);
-}
+  }, []);
 
-function onTuneChange(): void {
-  if (!rec) return;
-  refreshLabels();
-  rec.tuning = readSliders();
-  render();
-  // Persist (debounced — a slider drag fires many events).
-  window.clearTimeout(persistTimer);
-  persistTimer = window.setTimeout(() => {
-    if (!rec) return;
-    void putRecording(rec);
-    saveLastTuning(rec.tuning as Tuning);
-  }, 300);
-}
+  const flushTuning = useCallback(() => {
+    if (!tuningDirty.current) return;
+    tuningDirty.current = false;
+    persistTimer.current = 0;
+    const latest = recordRef.current;
+    if (!latest) return;
+    void putRecording(latest);
+    saveLastTuning(latest.tuning as Tuning);
+  }, []);
 
-async function load(id: string, generation: number): Promise<void> {
-  const r = await getRecording(id);
-  if (generation !== loadGeneration) return;
-  if (!r) {
-    go("/");
-    return;
-  }
-  stopPlayback();
-  const decoded = await decodeAudio(r.audio);
-  if (generation !== loadGeneration) return;
-  rec = r;
-  pcm = decoded;
-  frames = analyzeBuffer(pcm, r.sampleRate, { maskBpm: r.bpm });
-  stats = qualityStats(frames, pcm);
-
-  ($("ed-name") as HTMLInputElement).value = r.name;
-  $("ed-meta").textContent =
-    `${r.bpm} BPM · ${r.beatsPerBar}/4 · ${r.durationSec.toFixed(1)}s · ${r.sampleRate} Hz${r.capture.dspOff ? "" : " · ⚠ DSP was on"}`;
-  writeSliders({ ...DEFAULT_TUNING, ...r.tuning });
-  const q = r.quantize ?? DEFAULT_QUANTIZE;
-  input("ed-quant-on").checked = q.on;
-  const play = r.play ?? DEFAULT_PLAY;
-  $<HTMLSelectElement>("ed-instrument").value = play.instrument;
-  $<HTMLSelectElement>("ed-octave").value = String(play.octave);
-  $<HTMLSelectElement>("ed-subdiv").value = String(q.subdivision);
-  refreshLabels();
-  const log = $<HTMLTextAreaElement>("ed-log-out");
-  log.value = "";
-  log.hidden = true;
-  $("ed-copy-status").textContent = "";
-  render();
-}
-
-function activateEditor(id: string): void {
-  rec = null;
-  document.body.classList.add("wide");
-  window.addEventListener("resize", render);
-
-  for (const s of SLIDERS) {
-    input(s.id).oninput = onTuneChange;
-    // Double-click a label to reset just that slider.
-    document.querySelector<HTMLLabelElement>(`label[for="${s.id}"]`)!.ondblclick = (e): void => {
-      e.preventDefault();
-      input(s.id).value = String(s.toUi(DEFAULT_TUNING[s.key]));
-      onTuneChange();
+  useEffect(() => {
+    mounted.current = true;
+    let cancelled = false;
+    recordRef.current = null;
+    setRecord(null);
+    setFrames([]);
+    setReportText("");
+    setCopyStatus("");
+    void (async () => {
+      const found = await getRecording(id);
+      if (cancelled) return;
+      if (!found) {
+        navigate("/");
+        return;
+      }
+      const decoded = await decodeAudio(found.audio);
+      if (cancelled) return;
+      pcm.current = decoded;
+      const analyzed = analyzeBuffer(decoded, found.sampleRate, { maskBpm: found.bpm });
+      stats.current = qualityStats(analyzed, decoded);
+      setFrames(analyzed);
+      replaceRecord(found);
+      setDraftName(found.name);
+    })();
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+      window.clearTimeout(persistTimer.current);
+      flushTuning();
+      stopPlayback();
+      preview.current?.stop();
+      preview.current = null;
     };
-  }
-  $("ed-reset-tuning").onclick = (): void => {
-    writeSliders(DEFAULT_TUNING);
-    onTuneChange();
-  };
-  $("ed-quant-on").onchange = $("ed-subdiv").onchange = (): void => {
-    if (!rec) return;
-    rec.quantize = {
-      on: input("ed-quant-on").checked,
-      subdivision: Number($<HTMLSelectElement>("ed-subdiv").value),
-    };
-    void putRecording(rec);
-    render();
-  };
+  }, [flushTuning, id, navigate, replaceRecord, stopPlayback]);
 
-  ($("ed-name") as HTMLInputElement).onchange = (e): void => {
-    if (!rec) return;
-    rec.name = (e.target as HTMLInputElement).value.trim() || "Untitled";
-    void putRecording(rec);
-  };
+  useEffect(
+    () =>
+      onOutputChange(() => {
+        stopPlayback();
+        setExternalOutput(!!activeOutput());
+      }),
+    [stopPlayback],
+  );
 
-  $("ed-duplicate").onclick = async (): Promise<void> => {
-    if (!rec) return;
-    const copy: Recording = {
-      ...rec,
-      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-      name: `${rec.name} (copy)`,
-      createdAt: Date.now(),
+  const quantize = record?.quantize ?? DEFAULT_QUANTIZE;
+  const play = record?.play ?? DEFAULT_PLAY;
+  const tuning = { ...DEFAULT_TUNING, ...record?.tuning };
+  const items = useMemo(() => (record ? takeItems(record, frames) : []), [record, frames]);
+  const notes = useMemo(
+    () => items.filter((item) => !item.muted).map((item) => item.note),
+    [items],
+  );
+  const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
+  const baseView = useMemo(
+    () => (record ? { tMin: 0, tMax: record.durationSec, ...autoRange(frames) } : null),
+    [record, frames],
+  );
+  const beats = useMemo(
+    () => (record ? { bpm: record.bpm, beatsPerBar: record.beatsPerBar } : null),
+    [record],
+  );
+  const rollView: TraceView | null = useMemo(
+    () =>
+      baseView && beats
+        ? {
+            ...baseView,
+            beats: { ...beats, subdivision: quantize.on ? quantize.subdivision : 1 },
+            notes,
+            muted,
+          }
+        : null,
+    [baseView, beats, quantize.on, quantize.subdivision, notes, muted],
+  );
+
+  useEffect(() => {
+    if (!record || !baseView || !beats || !rollView) return;
+    const draw = () => {
+      if (traceRef.current) drawTrace(traceRef.current, frames, { ...baseView, beats });
+      if (rollRef.current) drawTrace(rollRef.current, frames, rollView);
     };
+    draw();
+    window.addEventListener("resize", draw);
+    return () => window.removeEventListener("resize", draw);
+  }, [record, frames, baseView, beats, rollView]);
+
+  const persist = useCallback((next: Recording) => {
+    void putRecording(next);
+  }, []);
+  const changeTuning = useCallback(
+    (key: keyof Tuning, value: number) => {
+      const current = recordRef.current;
+      if (!current) return;
+      const next = {
+        ...current,
+        tuning: updateTuning({ ...DEFAULT_TUNING, ...current.tuning }, key, value),
+      };
+      replaceRecord(next);
+      tuningDirty.current = true;
+      window.clearTimeout(persistTimer.current);
+      persistTimer.current = window.setTimeout(flushTuning, 300);
+    },
+    [flushTuning, replaceRecord],
+  );
+
+  const resetTuning = useCallback(
+    (key?: keyof Tuning) => {
+      const current = recordRef.current;
+      if (!current) return;
+      const next = {
+        ...current,
+        tuning: key
+          ? { ...DEFAULT_TUNING, ...current.tuning, [key]: DEFAULT_TUNING[key] }
+          : { ...DEFAULT_TUNING },
+      };
+      replaceRecord(next);
+      tuningDirty.current = true;
+      window.clearTimeout(persistTimer.current);
+      persistTimer.current = window.setTimeout(flushTuning, 300);
+    },
+    [flushTuning, replaceRecord],
+  );
+
+  const changeQuantize = useCallback(
+    (on: boolean, subdivision: number) => {
+      const current = recordRef.current;
+      if (!current) return;
+      const next = { ...current, quantize: { on, subdivision } };
+      replaceRecord(next);
+      persist(next);
+    },
+    [replaceRecord, persist],
+  );
+
+  const changePlay = useCallback(
+    (settings: PlaySettings) => {
+      const current = recordRef.current;
+      if (!current) return;
+      const next = { ...current, play: settings };
+      replaceRecord(next);
+      persist(next);
+    },
+    [replaceRecord, persist],
+  );
+
+  const commitName = useCallback(() => {
+    const current = recordRef.current;
+    if (!current) return;
+    const name = draftName.trim() || "Untitled";
+    setDraftName(name);
+    const next = { ...current, name };
+    replaceRecord(next);
+    persist(next);
+  }, [draftName, persist, replaceRecord]);
+
+  const duplicate = useCallback(async () => {
+    const current = recordRef.current;
+    if (!current) return;
+    const copy = { ...current, id: uid(), name: `${current.name} (copy)`, createdAt: Date.now() };
     await putRecording(copy);
-    go(takePath(copy.id));
-  };
-  $("ed-delete").onclick = async (): Promise<void> => {
-    if (!rec || !confirm(`Delete “${rec.name}”?`)) return;
-    await deleteRecording(rec.id);
-    go("/");
-  };
+    if (mounted.current) navigate(takePath(copy.id));
+  }, [navigate]);
 
-  const roll = $<HTMLCanvasElement>("ed-roll");
-  // Plain click auditions a note (muted ones too); Ctrl/Cmd+click mutes or unmutes it.
-  roll.onclick = (e): void => {
-    const it = noteAt(e);
-    if (!it) return;
-    if (e.ctrlKey || e.metaKey) return toggleMute(it);
-    preview?.stop();
-    preview = playNotes([{ ...it.note, start: 0 }], it.note.duration, rec?.play);
-  };
-  roll.onmousemove = (e): void => {
-    roll.style.cursor = noteAt(e) ? "pointer" : "";
-  };
+  const remove = useCallback(async () => {
+    const current = recordRef.current;
+    if (!current || !confirm(`Delete “${current.name}”?`)) return;
+    await deleteRecording(current.id);
+    if (mounted.current) navigate("/");
+  }, [navigate]);
 
-  // Playback instrument/octave, saved with the take.
-  const instSel = $<HTMLSelectElement>("ed-instrument");
-  const octSel = $<HTMLSelectElement>("ed-octave");
-  instSel.onchange = octSel.onchange = (): void => {
-    if (!rec) return;
-    rec.play = {
-      instrument: instSel.value as PlaySettings["instrument"],
-      octave: Number(octSel.value),
-    };
-    void putRecording(rec);
-  };
+  const noteAt = useCallback(
+    (event: MouseEvent<HTMLCanvasElement>) => {
+      if (!rollView) return null;
+      const rect = event.currentTarget.getBoundingClientRect();
+      return noteAtPoint(items, rollView, {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+    },
+    [items, rollView],
+  );
 
-  // MIDI out is picked in the header; an external synth picks its own sound,
-  // so only the octave applies then.
-  const syncInstrument = (): void => {
-    instSel.disabled = !!activeOutput();
-    instSel.title = instSel.disabled
-      ? "Playing through a MIDI device — it picks the sound."
-      : "Instrument for playback (the .mid has no instrument).";
-  };
-  syncInstrument();
-  offOutput?.();
-  offOutput = onOutputChange(() => {
-    stopPlayback(); // don't leave a take playing on the old output
-    syncInstrument();
-  });
+  const clickRoll = useCallback(
+    (event: MouseEvent<HTMLCanvasElement>) => {
+      const item = noteAt(event);
+      const current = recordRef.current;
+      if (!item || !current) return;
+      if (event.ctrlKey || event.metaKey) {
+        const next = { ...current, muted: toggleMuted(current.muted ?? [], item) };
+        replaceRecord(next);
+        persist(next);
+        return;
+      }
+      preview.current?.stop();
+      preview.current = playNotes([{ ...item.note, start: 0 }], item.note.duration, current.play);
+    },
+    [noteAt, persist, replaceRecord],
+  );
 
-  $("ed-play-audio").onclick = (e): void =>
-    togglePlayback(e.currentTarget as HTMLButtonElement, () => playPcm(pcm, rec!.sampleRate));
-  $("ed-play-midi").onclick = (e): void =>
-    togglePlayback(e.currentTarget as HTMLButtonElement, () =>
-      playNotes(currentNotes(), rec!.durationSec, rec!.play),
+  const moveRoll = useCallback(
+    (event: MouseEvent<HTMLCanvasElement>) => setRollHover(!!noteAt(event)),
+    [noteAt],
+  );
+
+  const togglePlayback = useCallback(
+    (kind: "audio" | "midi") => {
+      const current = recordRef.current;
+      const wasThis = playingRef.current === kind;
+      stopPlayback();
+      if (!current || wasThis) return;
+      playback.current =
+        kind === "audio"
+          ? playPcm(pcm.current, current.sampleRate)
+          : playNotes(notes, current.durationSec, current.play);
+      playingRef.current = kind;
+      setPlaying(kind);
+      const tick = () => {
+        const value = playback.current?.position();
+        if (value == null) {
+          stopPlayback();
+          return;
+        }
+        setPosition(value);
+        raf.current = requestAnimationFrame(tick);
+      };
+      raf.current = requestAnimationFrame(tick);
+    },
+    [notes, stopPlayback],
+  );
+
+  const filename = useCallback(
+    (extension: string) =>
+      `${exportSlug(recordRef.current?.name ?? "take", Date.now())}.${extension}`,
+    [],
+  );
+  const downloadMidi = useCallback(() => {
+    const current = recordRef.current;
+    if (current) downloadBlob(notesToMidi(notes, { bpm: current.bpm }), filename("mid"));
+  }, [filename, notes]);
+  const downloadWav = useCallback(() => {
+    const current = recordRef.current;
+    if (current) downloadBlob(encodeWav(pcm.current, current.sampleRate), filename("wav"));
+  }, [filename]);
+  const downloadJson = useCallback(() => {
+    const current = recordRef.current;
+    if (!current || !stats.current) return;
+    const json = JSON.stringify(
+      buildReportData(makeReportInput(current, frames, stats.current)),
+      null,
+      2,
     );
-
-  $("ed-dl-midi").onclick = (): void => {
-    if (!rec) return;
-    downloadBlob(notesToMidi(currentNotes(), { bpm: rec.bpm }), `${slug()}.mid`);
-  };
-  $("ed-dl-wav").onclick = (): void => {
-    if (!rec) return;
-    downloadBlob(encodeWav(pcm, rec.sampleRate), `${slug()}.wav`);
-  };
-  $("ed-dl-json").onclick = (): void => {
-    const json = JSON.stringify(buildReportData(reportInput()), null, 2);
-    downloadBlob(new Blob([json], { type: "application/json" }), `${slug()}.json`);
-  };
-  $("ed-copy-log").onclick = async (): Promise<void> => {
-    const report = buildReport(reportInput());
-    const log = $<HTMLTextAreaElement>("ed-log-out");
-    log.value = report;
-    log.hidden = false;
+    downloadBlob(new Blob([json], { type: "application/json" }), filename("json"));
+  }, [filename, frames]);
+  const copyLog = useCallback(async () => {
+    const current = recordRef.current;
+    if (!current || !stats.current) return;
+    const report = buildReport(makeReportInput(current, frames, stats.current));
+    setReportText(report);
     try {
       await navigator.clipboard.writeText(report);
-      $("ed-copy-status").textContent = "copied ✓";
+      if (mounted.current) setCopyStatus("copied ✓");
     } catch {
-      log.select();
-      $("ed-copy-status").textContent = "select the text above to copy";
+      if (mounted.current) setCopyStatus("select the text above to copy");
     }
-  };
-
-  void load(id, ++loadGeneration);
-}
-
-function slug(): string {
-  const base = (rec?.name ?? "take")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `diapason-${base || "take"}-${Date.now()}`;
-}
-
-function deactivateEditor(): void {
-  loadGeneration++;
-  window.clearTimeout(persistTimer);
-  stopPlayback();
-  preview?.stop();
-  offOutput?.();
-  offOutput = null;
-  document.body.classList.remove("wide");
-  window.removeEventListener("resize", render);
-}
-
-export function useEditor(id: string): void {
+  }, [frames]);
   useEffect(() => {
-    activateEditor(id);
-    return deactivateEditor;
-  }, [id]);
+    if (copyStatus.startsWith("select")) logRef.current?.select();
+  }, [copyStatus]);
+
+  return {
+    record,
+    draftName,
+    setDraftName,
+    commitName,
+    traceRef,
+    rollRef,
+    logRef,
+    reportText,
+    copyStatus,
+    quantize,
+    play,
+    tuning,
+    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${quantize.on ? (gridLabels[quantize.subdivision] ?? "grid") : "not quantized"}`,
+    meta: record
+      ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
+      : "",
+    playing,
+    position,
+    rollHover,
+    externalOutput,
+    changeTuning,
+    resetTuning,
+    changeQuantize,
+    changePlay,
+    duplicate,
+    remove,
+    clickRoll,
+    moveRoll,
+    togglePlayback,
+    downloadMidi,
+    downloadWav,
+    downloadJson,
+    copyLog,
+  };
 }

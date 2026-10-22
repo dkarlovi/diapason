@@ -3,27 +3,9 @@ import { BrowserRouter, Link, Route, Routes, useParams } from "react-router";
 import { Library } from "./components/Library";
 import { Capture } from "./components/Capture";
 import { Editor } from "./components/Editor";
-import { useMidiOutput } from "./hooks/useMidiOutput";
+import { MidiOutputPicker } from "./components/MidiOutputPicker";
 import { BASE } from "./router";
 import "./styles.css";
-
-function MidiOutputPicker() {
-  useMidiOutput();
-  return (
-    <label
-      className="spacer"
-      style={{ display: "flex", alignItems: "center", gap: ".5rem", marginTop: ".4rem" }}
-    >
-      MIDI out{" "}
-      <select
-        id="midi-output"
-        style={{ width: "auto" }}
-        title="Where MIDI playback goes. Remembered on this machine."
-        hidden
-      />
-    </label>
-  );
-}
 
 function TakeRoute() {
   const { id } = useParams();

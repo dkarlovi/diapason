@@ -62,15 +62,17 @@ npm test          # Vitest regression tests
 npm run lint      # oxlint
 npm run format    # oxfmt
 npm run format:check # verify formatting
+npm run check     # typecheck + lint + format check + tests + build
 ```
 
 ## Deployment
 
-GitHub Actions builds and typechecks pull requests. Pushes to `main` (or a manual
+GitHub Actions runs `npm run check` on pull requests. Pushes to `main` (or a manual
 workflow run) also deploy `dist/` to <https://dkarlovi.github.io/diapason/>.
 GitHub Pages must use **GitHub Actions** as its publishing source in the
 repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
 the committed lockfile; no deployment secrets are needed.
+To block merges until checks pass, require the `build` job in the `main` branch protection rule.
 
 Vite's base path is `/diapason/` so built assets load from the project URL.
 The build copies `index.html` to `404.html` so direct links to capture and editor routes work on GitHub Pages.
@@ -93,7 +95,8 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | IndexedDB library               | `src/db.ts`                                     | Persisted takes (no deps)                               |
 | Per-take tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
 | Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                          |
-| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and screen behavior                     |
+| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and browser effects                     |
+| Screen models                   | `src/capture-model.ts`, `src/editor-model.ts`   | Pure calculations shared by hooks and tests             |
 | Shared UI + entry               | `src/components/primitives.tsx`, `src/main.tsx` | controls and app root                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
