@@ -1,12 +1,19 @@
-import { allRecordings, deleteRecording, getRecording, putRecording, storageEstimate, type Recording } from '../db';
-import { $, show, fmtDate } from '../ui';
-import { go } from '../router';
-import { decodeAudio } from '../codec';
-import { analyzeBuffer } from '../recorder';
-import { playPcm, playNotes, type Playback } from '../playback';
-import { takeNotes } from '../take';
-import { onOutputChange } from '../midiout';
-import type { Frame } from '../notes';
+import {
+  allRecordings,
+  deleteRecording,
+  getRecording,
+  putRecording,
+  storageEstimate,
+  type Recording,
+} from "../db";
+import { $, show, fmtDate } from "../ui";
+import { go } from "../router";
+import { decodeAudio } from "../codec";
+import { analyzeBuffer } from "../recorder";
+import { playPcm, playNotes, type Playback } from "../playback";
+import { takeNotes } from "../take";
+import { onOutputChange } from "../midiout";
+import type { Frame } from "../notes";
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -27,20 +34,27 @@ function stopPlayback(): void {
   cancelAnimationFrame(rafId);
 }
 
-async function togglePlay(btn: HTMLButtonElement, r: Recording, what: 'audio' | 'midi'): Promise<void> {
+async function togglePlay(
+  btn: HTMLButtonElement,
+  r: Recording,
+  what: "audio" | "midi",
+): Promise<void> {
   const wasThis = playingBtn === btn;
   stopPlayback();
   if (wasThis) return;
   btn.dataset.label ??= btn.textContent!;
-  btn.textContent = '■ Stop';
+  btn.textContent = "■ Stop";
   playingBtn = btn;
 
   let d = decoded.get(r.id);
   if (!d) decoded.set(r.id, (d = { pcm: await decodeAudio(r.audio) }));
-  if (what === 'midi') d.frames ??= analyzeBuffer(d.pcm, r.sampleRate, { maskBpm: r.bpm });
+  if (what === "midi") d.frames ??= analyzeBuffer(d.pcm, r.sampleRate, { maskBpm: r.bpm });
   if (playingBtn !== btn) return; // stopped or switched while decoding
 
-  playback = what === 'audio' ? playPcm(d.pcm, r.sampleRate) : playNotes(takeNotes(r, d.frames!), r.durationSec, r.play);
+  playback =
+    what === "audio"
+      ? playPcm(d.pcm, r.sampleRate)
+      : playNotes(takeNotes(r, d.frames!), r.durationSec, r.play);
   const tick = (): void => {
     if (playback?.position() == null) return stopPlayback();
     rafId = requestAnimationFrame(tick);
@@ -51,13 +65,13 @@ async function togglePlay(btn: HTMLButtonElement, r: Recording, what: 'audio' | 
 async function render(): Promise<void> {
   stopPlayback(); // the cards (and their buttons) are rebuilt
   const takes = await allRecordings();
-  show('library-empty', takes.length === 0);
+  show("library-empty", takes.length === 0);
 
-  const list = $('library-list');
-  list.innerHTML = '';
+  const list = $("library-list");
+  list.innerHTML = "";
   for (const r of takes) {
-    const card = document.createElement('div');
-    card.className = 'take';
+    const card = document.createElement("div");
+    card.className = "take";
     const dur = r.durationSec.toFixed(1);
     card.innerHTML = `
       <div>
@@ -71,19 +85,19 @@ async function render(): Promise<void> {
         <button data-act="dup">Duplicate</button>
         <button data-act="del" class="danger">Delete</button>
       </div>`;
-    (card.querySelector('.name') as HTMLElement).textContent = r.name;
-    for (const what of ['audio', 'midi'] as const) {
+    (card.querySelector(".name") as HTMLElement).textContent = r.name;
+    for (const what of ["audio", "midi"] as const) {
       const btn = card.querySelector<HTMLButtonElement>(`[data-act="${what}"]`)!;
-      btn.addEventListener('click', () => void togglePlay(btn, r, what));
+      btn.addEventListener("click", () => void togglePlay(btn, r, what));
     }
-    card.querySelector('[data-act="open"]')!.addEventListener('click', () => go(`#/take/${r.id}`));
-    card.querySelector('[data-act="dup"]')!.addEventListener('click', () => void duplicate(r.id));
-    card.querySelector('[data-act="del"]')!.addEventListener('click', () => void remove(r));
+    card.querySelector('[data-act="open"]')!.addEventListener("click", () => go(`#/take/${r.id}`));
+    card.querySelector('[data-act="dup"]')!.addEventListener("click", () => void duplicate(r.id));
+    card.querySelector('[data-act="del"]')!.addEventListener("click", () => void remove(r));
     list.appendChild(card);
   }
 
   const est = await storageEstimate();
-  $('storage-line').textContent = est
+  $("storage-line").textContent = est
     ? `${takes.length} take(s) · ~${(est.usage / 1e6).toFixed(1)} MB used`
     : `${takes.length} take(s)`;
 }
@@ -105,8 +119,8 @@ async function remove(r: Recording): Promise<void> {
 }
 
 export function activateLibrary(): void {
-  show('view-library', true);
-  $('btn-new').onclick = (): void => go('#/new');
+  show("view-library", true);
+  $("btn-new").onclick = (): void => go("#/new");
   offOutput?.();
   offOutput = onOutputChange(stopPlayback); // don't leave a take playing on the old output
   void render();
@@ -117,5 +131,5 @@ export function deactivateLibrary(): void {
   offOutput?.();
   offOutput = null;
   decoded.clear(); // the editor may change tuning/mutes; re-derive next time
-  show('view-library', false);
+  show("view-library", false);
 }

@@ -17,12 +17,12 @@ export function int16ToFloat(i16: Int16Array): Float32Array<ArrayBuffer> {
 }
 
 export async function gzip(data: ArrayBuffer): Promise<Blob> {
-  const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('gzip'));
+  const stream = new Blob([data]).stream().pipeThrough(new CompressionStream("gzip"));
   return new Response(stream).blob();
 }
 
 export async function gunzip(blob: Blob): Promise<ArrayBuffer> {
-  const stream = blob.stream().pipeThrough(new DecompressionStream('gzip'));
+  const stream = blob.stream().pipeThrough(new DecompressionStream("gzip"));
   return new Response(stream).arrayBuffer();
 }
 

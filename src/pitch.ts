@@ -36,10 +36,7 @@ const KEY_FACTOR = 0.9;
 
 export type PitchDetector = (buf: Float32Array) => PitchResult;
 
-export function createPitchDetector(
-  sampleRate: number,
-  opts: PitchOptions = {},
-): PitchDetector {
+export function createPitchDetector(sampleRate: number, opts: PitchOptions = {}): PitchDetector {
   const cfg = { ...DEFAULTS, ...opts };
   const minLag = Math.max(2, Math.floor(sampleRate / cfg.maxFreq));
   const maxLag = Math.ceil(sampleRate / cfg.minFreq);

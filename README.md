@@ -4,7 +4,7 @@ Whistle into your microphone and get a MIDI file out. Browser-based, fully
 client-side monophonic **pitch → MIDI** — built for people who can't play an
 instrument but can carry a tune by whistling.
 
-> A *diapason* is the full tonal compass of a voice or instrument, and the
+> A _diapason_ is the full tonal compass of a voice or instrument, and the
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
@@ -38,7 +38,7 @@ auto-gain pumps the level up and down. That's the "distortion."
 diapason requests a **raw** audio stream with all three disabled, and the
 calibration screen shows you their actual state (`OFF ✓`) plus a live level
 meter, a clipping warning, and a live pitch test, so you can confirm the signal
-is good *before* recording.
+is good _before_ recording.
 
 ## Running it
 
@@ -73,24 +73,24 @@ The app uses hash routing, so editor and capture links also work on Pages.
 
 ## How it works
 
-| Stage | File | Notes |
-|-------|------|-------|
-| Mic capture (raw, DSP off) | `src/audio.ts` | `getUserMedia` + `AnalyserNode` |
-| Pitch detection | `src/pitch.ts` | McLeod / NSDF, band-limited to whistle range |
-| Note mapping + segmentation | `src/notes.ts` | Hz→MIDI, median-filter, onset/offset heuristics |
-| PCM recorder + offline analysis | `src/recorder.ts` | AudioWorklet capture, re-analyze buffers, quality stats |
-| Pitch-trace visualization | `src/trace.ts` | Canvas 2D pitch-over-time renderer |
-| WAV encoder | `src/wav.ts` | Mono 16-bit PCM WAV for offline inspection |
-| Diagnostics report | `src/diagnostics.ts` | Structured (.json) + text report of a sample |
-| MIDI file writer | `src/midi.ts` | Standard MIDI File (Type 0), no deps |
-| Metronome | `src/metronome.ts` | Count-in + audible click, AudioContext-scheduled |
-| Tempo quantization | `src/quantize.ts` | Snap note start/length to a beat grid |
-| Storage codec | `src/codec.ts` | Float32↔Int16, gzip via `CompressionStream` |
-| IndexedDB library | `src/db.ts` | Persisted takes (no deps) |
-| Per-take tuning | `src/tuning.ts` | Defaults + last-used persistence |
-| Hash router | `src/router.ts` | `#/`, `#/new`, `#/take/:id` |
-| Views | `src/views/*.ts` | `library`, `capture`, `editor` |
-| Shared UI + entry | `src/ui.ts`, `src/main.ts` | helpers + router wiring |
+| Stage                           | File                       | Notes                                                   |
+| ------------------------------- | -------------------------- | ------------------------------------------------------- |
+| Mic capture (raw, DSP off)      | `src/audio.ts`             | `getUserMedia` + `AnalyserNode`                         |
+| Pitch detection                 | `src/pitch.ts`             | McLeod / NSDF, band-limited to whistle range            |
+| Note mapping + segmentation     | `src/notes.ts`             | Hz→MIDI, median-filter, onset/offset heuristics         |
+| PCM recorder + offline analysis | `src/recorder.ts`          | AudioWorklet capture, re-analyze buffers, quality stats |
+| Pitch-trace visualization       | `src/trace.ts`             | Canvas 2D pitch-over-time renderer                      |
+| WAV encoder                     | `src/wav.ts`               | Mono 16-bit PCM WAV for offline inspection              |
+| Diagnostics report              | `src/diagnostics.ts`       | Structured (.json) + text report of a sample            |
+| MIDI file writer                | `src/midi.ts`              | Standard MIDI File (Type 0), no deps                    |
+| Metronome                       | `src/metronome.ts`         | Count-in + audible click, AudioContext-scheduled        |
+| Tempo quantization              | `src/quantize.ts`          | Snap note start/length to a beat grid                   |
+| Storage codec                   | `src/codec.ts`             | Float32↔Int16, gzip via `CompressionStream`             |
+| IndexedDB library               | `src/db.ts`                | Persisted takes (no deps)                               |
+| Per-take tuning                 | `src/tuning.ts`            | Defaults + last-used persistence                        |
+| Hash router                     | `src/router.ts`            | `#/`, `#/new`, `#/take/:id`                             |
+| Views                           | `src/views/*.ts`           | `library`, `capture`, `editor`                          |
+| Shared UI + entry               | `src/ui.ts`, `src/main.ts` | helpers + router wiring                                 |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a take is opened, so the editor always reflects the
@@ -129,7 +129,7 @@ detectors.
   planned improvement.
 - **Sticky note tracking** tolerates drift/vibrato up to ±0.9 semitone within a
   held note (`hysteresisSemitones`), so wandering tones stay one note. The
-  trade-off: two *intended* notes less than ~1 semitone apart, whistled with
+  trade-off: two _intended_ notes less than ~1 semitone apart, whistled with
   drift, may merge. Tune `hysteresisSemitones` down if you sing very precise,
   closely-spaced intervals.
 - **No rhythm quantization yet** — note lengths are the raw durations you

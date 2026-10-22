@@ -1,14 +1,14 @@
 // Small synthesized instruments for MIDI playback. Pure Web Audio, no samples, so it
 // works offline. Each voice schedules one note and returns its source nodes (for stop()).
 
-export type InstrumentId = 'epiano' | 'pluck' | 'flute' | 'pad' | 'beep';
+export type InstrumentId = "epiano" | "pluck" | "flute" | "pad" | "beep";
 
 export const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
-  { id: 'beep', label: 'Plain beep' },
-  { id: 'epiano', label: 'Electric piano' },
-  { id: 'pluck', label: 'Plucked string' },
-  { id: 'flute', label: 'Flute' },
-  { id: 'pad', label: 'Soft pad' },
+  { id: "beep", label: "Plain beep" },
+  { id: "epiano", label: "Electric piano" },
+  { id: "pluck", label: "Plucked string" },
+  { id: "flute", label: "Flute" },
+  { id: "pad", label: "Soft pad" },
 ];
 
 export interface PlaySettings {
@@ -17,12 +17,25 @@ export interface PlaySettings {
   octave: number;
 }
 
-export const DEFAULT_PLAY: PlaySettings = { instrument: 'beep', octave: 0 };
+export const DEFAULT_PLAY: PlaySettings = { instrument: "beep", octave: 0 };
 
-type Voice = (c: AudioContext, out: AudioNode, freq: number, at: number, dur: number) => AudioScheduledSourceNode[];
+type Voice = (
+  c: AudioContext,
+  out: AudioNode,
+  freq: number,
+  at: number,
+  dur: number,
+) => AudioScheduledSourceNode[];
 
 /** Attack → hold → release envelope on a fresh gain node; returns it and the time it's silent. */
-function envelope(c: AudioContext, at: number, dur: number, attack: number, release: number, peak = 1): [GainNode, number] {
+function envelope(
+  c: AudioContext,
+  at: number,
+  dur: number,
+  attack: number,
+  release: number,
+  peak = 1,
+): [GainNode, number] {
   const g = c.createGain();
   const off = at + Math.max(attack, dur);
   g.gain.setValueAtTime(0, at);
@@ -34,7 +47,7 @@ function envelope(c: AudioContext, at: number, dur: number, attack: number, rele
 
 const beep: Voice = (c, out, freq, at, dur) => {
   const osc = c.createOscillator();
-  osc.type = 'triangle';
+  osc.type = "triangle";
   osc.frequency.value = freq;
   const [env, end] = envelope(c, at, dur, 0.01, 0.03);
   osc.connect(env).connect(out);
@@ -75,7 +88,8 @@ const pluck: Voice = (c, out, freq, at, dur) => {
   const y = buf.getChannelData(0);
   for (let i = 0; i < period; i++) y[i] = Math.random() * 2 - 1;
   // Two-tap average = gentle low-pass in the loop; it adds half a sample of delay.
-  for (let i = period; i < len; i++) y[i] = 0.4995 * (y[i - period]! + y[Math.max(0, i - period - 1)]!);
+  for (let i = period; i < len; i++)
+    y[i] = 0.4995 * (y[i - period]! + y[Math.max(0, i - period - 1)]!);
   const src = c.createBufferSource();
   src.buffer = buf;
   src.playbackRate.value = freq / (sr / (period + 0.5));
@@ -116,7 +130,7 @@ const flute: Voice = (c, out, freq, at, dur) => {
   breath.buffer = noiseBuffer(c);
   breath.loop = true;
   const bp = c.createBiquadFilter();
-  bp.type = 'bandpass';
+  bp.type = "bandpass";
   bp.frequency.value = freq;
   bp.Q.value = 2;
   const bg = c.createGain();
@@ -138,14 +152,14 @@ const flute: Voice = (c, out, freq, at, dur) => {
 /** Two detuned saws through a low-pass, slow attack and release. */
 const pad: Voice = (c, out, freq, at, dur) => {
   const lp = c.createBiquadFilter();
-  lp.type = 'lowpass';
+  lp.type = "lowpass";
   lp.frequency.value = Math.min(4000, freq * 3);
   lp.Q.value = 0.7;
   const [env, end] = envelope(c, at, dur, 0.12, 0.4, 0.5);
   lp.connect(env).connect(out);
   const oscs = [-7, 7].map((cents) => {
     const o = c.createOscillator();
-    o.type = 'sawtooth';
+    o.type = "sawtooth";
     o.frequency.value = freq;
     o.detune.value = cents;
     o.connect(lp);

@@ -20,7 +20,7 @@ const RAW_CONSTRAINTS: MediaTrackConstraints = {
 
 export async function listInputDevices(): Promise<MediaDeviceInfo[]> {
   const devices = await navigator.mediaDevices.enumerateDevices();
-  return devices.filter((d) => d.kind === 'audioinput');
+  return devices.filter((d) => d.kind === "audioinput");
 }
 
 export interface MicHandle {
@@ -45,14 +45,19 @@ export interface OpenMicOptions {
   fftSize?: number;
 }
 
-export async function openMic({ deviceId, fftSize = 2048 }: OpenMicOptions = {}): Promise<MicHandle> {
+export async function openMic({
+  deviceId,
+  fftSize = 2048,
+}: OpenMicOptions = {}): Promise<MicHandle> {
   const audio: MediaTrackConstraints = { ...RAW_CONSTRAINTS };
   if (deviceId) audio.deviceId = { exact: deviceId };
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const Ctx =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const ctx = new Ctx();
-  if (ctx.state === 'suspended') await ctx.resume();
+  if (ctx.state === "suspended") await ctx.resume();
 
   const source = ctx.createMediaStreamSource(stream);
   // source -> gain -> analyser (and recorders tap the gain output), so a boost shows up

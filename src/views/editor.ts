@@ -1,19 +1,19 @@
-import { getRecording, putRecording, deleteRecording, type Recording } from '../db';
-import { decodeAudio } from '../codec';
-import { analyzeBuffer, ANALYZE_DEFAULTS, qualityStats, type QualityStats } from '../recorder';
-import type { Frame, NoteEvent } from '../notes';
-import { PITCH_DEFAULTS } from '../pitch';
-import { drawTrace, autoRange, type TraceView } from '../trace';
-import { takeItems, takeNotes, covers, DEFAULT_QUANTIZE, type NoteItem } from '../take';
-import { notesToMidi } from '../midi';
-import { encodeWav } from '../wav';
-import { buildReport, buildReportData, type ReportInput } from '../diagnostics';
-import { DEFAULT_TUNING, saveLastTuning, type Tuning } from '../tuning';
-import { $, show, downloadBlob } from '../ui';
-import { go } from '../router';
-import { playPcm, playNotes, type Playback } from '../playback';
-import { INSTRUMENTS, DEFAULT_PLAY, type PlaySettings } from '../instruments';
-import { onOutputChange, activeOutput } from '../midiout';
+import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
+import { decodeAudio } from "../codec";
+import { analyzeBuffer, ANALYZE_DEFAULTS, qualityStats, type QualityStats } from "../recorder";
+import type { Frame, NoteEvent } from "../notes";
+import { PITCH_DEFAULTS } from "../pitch";
+import { drawTrace, autoRange, type TraceView } from "../trace";
+import { takeItems, takeNotes, covers, DEFAULT_QUANTIZE, type NoteItem } from "../take";
+import { notesToMidi } from "../midi";
+import { encodeWav } from "../wav";
+import { buildReport, buildReportData, type ReportInput } from "../diagnostics";
+import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
+import { $, show, downloadBlob } from "../ui";
+import { go } from "../router";
+import { playPcm, playNotes, type Playback } from "../playback";
+import { INSTRUMENTS, DEFAULT_PLAY, type PlaySettings } from "../instruments";
+import { onOutputChange, activeOutput } from "../midiout";
 
 let rec: Recording | null = null;
 let pcm = new Float32Array(0);
@@ -34,16 +34,25 @@ interface Slider {
   fromUi: (v: number) => number;
   fmt: (ui: number) => string;
 }
-const ms = { toUi: (v: number) => Math.round(v * 1000), fromUi: (v: number) => v / 1000, fmt: (v: number) => `${v} ms` };
+const ms = {
+  toUi: (v: number) => Math.round(v * 1000),
+  fromUi: (v: number) => v / 1000,
+  fmt: (v: number) => `${v} ms`,
+};
 const same = { toUi: (v: number) => v, fromUi: (v: number) => v };
 const SLIDERS: Slider[] = [
-  { id: 't-sticky', key: 'hysteresisSemitones', ...same, fmt: (v) => `±${(0.5 + v).toFixed(2)} st` },
-  { id: 't-minlen', key: 'minDurationSec', ...ms },
-  { id: 't-silence', key: 'silenceGapSec', ...ms },
-  { id: 't-debounce', key: 'changeDebounceSec', ...ms },
-  { id: 't-smooth', key: 'medianWindow', ...same, fmt: (v) => `${v} fr` },
-  { id: 't-clarity', key: 'clarityThreshold', ...same, fmt: (v) => v.toFixed(3) },
-  { id: 't-gate', key: 'rmsGate', ...same, fmt: (v) => v.toFixed(3) },
+  {
+    id: "t-sticky",
+    key: "hysteresisSemitones",
+    ...same,
+    fmt: (v) => `±${(0.5 + v).toFixed(2)} st`,
+  },
+  { id: "t-minlen", key: "minDurationSec", ...ms },
+  { id: "t-silence", key: "silenceGapSec", ...ms },
+  { id: "t-debounce", key: "changeDebounceSec", ...ms },
+  { id: "t-smooth", key: "medianWindow", ...same, fmt: (v) => `${v} fr` },
+  { id: "t-clarity", key: "clarityThreshold", ...same, fmt: (v) => v.toFixed(3) },
+  { id: "t-gate", key: "rmsGate", ...same, fmt: (v) => v.toFixed(3) },
 ];
 const input = (id: string): HTMLInputElement => $<HTMLInputElement>(id);
 
@@ -109,7 +118,11 @@ function reportInput(): ReportInput {
     durationSec: rec!.durationSec,
     windowSize: ANALYZE_DEFAULTS.windowSize,
     hop: ANALYZE_DEFAULTS.hop,
-    detector: { minFreq: PITCH_DEFAULTS.minFreq, maxFreq: PITCH_DEFAULTS.maxFreq, clarityThreshold: PITCH_DEFAULTS.clarityThreshold },
+    detector: {
+      minFreq: PITCH_DEFAULTS.minFreq,
+      maxFreq: PITCH_DEFAULTS.maxFreq,
+      clarityThreshold: PITCH_DEFAULTS.clarityThreshold,
+    },
     rmsGate: rec!.tuning.rmsGate ?? DEFAULT_TUNING.rmsGate,
     frames,
     stats: stats!,
@@ -121,20 +134,21 @@ function render(): void {
   // Both grids share time axis, pitch range and beat lines so they line up 1:1.
   const view = { tMin: 0, tMax: rec.durationSec, ...autoRange(frames) };
   const beats = { bpm: rec.bpm, beatsPerBar: rec.beatsPerBar };
-  drawTrace($<HTMLCanvasElement>('ed-trace'), frames, { ...view, beats });
+  drawTrace($<HTMLCanvasElement>("ed-trace"), frames, { ...view, beats });
 
   const items = noteItems();
   rollItems = items;
   const notes = items.filter((i) => !i.muted).map((i) => i.note);
   const muted = items.filter((i) => i.muted).map((i) => i.note);
-  const quant = input('ed-quant-on').checked;
-  const sel = $<HTMLSelectElement>('ed-subdiv');
+  const quant = input("ed-quant-on").checked;
+  const sel = $<HTMLSelectElement>("ed-subdiv");
   const sub = Number(sel.value);
   rollView = { ...view, beats: { ...beats, subdivision: quant ? sub : 1 }, notes, muted };
-  drawTrace($<HTMLCanvasElement>('ed-roll'), frames, rollView);
+  drawTrace($<HTMLCanvasElement>("ed-roll"), frames, rollView);
   sel.disabled = !quant;
-  const grid = quant ? sel.selectedOptions[0]!.text : 'not quantized';
-  $('ed-notes').textContent = `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ''} · ${grid}`;
+  const grid = quant ? sel.selectedOptions[0]!.text : "not quantized";
+  $("ed-notes").textContent =
+    `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${grid}`;
 }
 
 function stopPlayback(): void {
@@ -143,7 +157,8 @@ function stopPlayback(): void {
   if (playingBtn) playingBtn.textContent = playingBtn.dataset.label!;
   playingBtn = null;
   cancelAnimationFrame(rafId);
-  for (const ph of document.querySelectorAll<HTMLElement>('#view-editor .playhead')) ph.hidden = true;
+  for (const ph of document.querySelectorAll<HTMLElement>("#view-editor .playhead"))
+    ph.hidden = true;
 }
 
 /** Toggle playback from `btn`; the playhead sweeps both grids since they share a time axis. */
@@ -152,10 +167,10 @@ function togglePlayback(btn: HTMLButtonElement, start: () => Playback): void {
   stopPlayback();
   if (wasThis || !rec) return;
   btn.dataset.label ??= btn.textContent!;
-  btn.textContent = '■ Stop';
+  btn.textContent = "■ Stop";
   playingBtn = btn;
   playback = start();
-  const heads = document.querySelectorAll<HTMLElement>('#view-editor .playhead');
+  const heads = document.querySelectorAll<HTMLElement>("#view-editor .playhead");
   const dur = rec.durationSec;
   const tick = (): void => {
     const p = playback?.position();
@@ -186,7 +201,7 @@ function onTuneChange(): void {
 async function load(id: string): Promise<void> {
   const r = await getRecording(id);
   if (!r) {
-    go('#/');
+    go("#/");
     return;
   }
   stopPlayback();
@@ -195,28 +210,29 @@ async function load(id: string): Promise<void> {
   frames = analyzeBuffer(pcm, r.sampleRate, { maskBpm: r.bpm });
   stats = qualityStats(frames, pcm);
 
-  ($('ed-name') as HTMLInputElement).value = r.name;
-  $('ed-meta').textContent = `${r.bpm} BPM · ${r.beatsPerBar}/4 · ${r.durationSec.toFixed(1)}s · ${r.sampleRate} Hz${r.capture.dspOff ? '' : ' · ⚠ DSP was on'}`;
+  ($("ed-name") as HTMLInputElement).value = r.name;
+  $("ed-meta").textContent =
+    `${r.bpm} BPM · ${r.beatsPerBar}/4 · ${r.durationSec.toFixed(1)}s · ${r.sampleRate} Hz${r.capture.dspOff ? "" : " · ⚠ DSP was on"}`;
   writeSliders({ ...DEFAULT_TUNING, ...r.tuning });
   const q = r.quantize ?? DEFAULT_QUANTIZE;
-  input('ed-quant-on').checked = q.on;
+  input("ed-quant-on").checked = q.on;
   const play = r.play ?? DEFAULT_PLAY;
-  $<HTMLSelectElement>('ed-instrument').value = play.instrument;
-  $<HTMLSelectElement>('ed-octave').value = String(play.octave);
-  $<HTMLSelectElement>('ed-subdiv').value = String(q.subdivision);
+  $<HTMLSelectElement>("ed-instrument").value = play.instrument;
+  $<HTMLSelectElement>("ed-octave").value = String(play.octave);
+  $<HTMLSelectElement>("ed-subdiv").value = String(q.subdivision);
   refreshLabels();
-  const log = $<HTMLTextAreaElement>('ed-log-out');
-  log.value = '';
+  const log = $<HTMLTextAreaElement>("ed-log-out");
+  log.value = "";
   log.hidden = true;
-  $('ed-copy-status').textContent = '';
+  $("ed-copy-status").textContent = "";
   render();
 }
 
 export function activateEditor(id: string): void {
-  show('view-editor', true);
-  document.body.classList.add('wide');
-  window.addEventListener('resize', render);
-  $('ed-back').onclick = (): void => go('#/');
+  show("view-editor", true);
+  document.body.classList.add("wide");
+  window.addEventListener("resize", render);
+  $("ed-back").onclick = (): void => go("#/");
 
   for (const s of SLIDERS) {
     input(s.id).oninput = onTuneChange;
@@ -227,36 +243,44 @@ export function activateEditor(id: string): void {
       onTuneChange();
     };
   }
-  $('ed-reset-tuning').onclick = (): void => {
+  $("ed-reset-tuning").onclick = (): void => {
     writeSliders(DEFAULT_TUNING);
     onTuneChange();
   };
-  $('ed-quant-on').onchange = $('ed-subdiv').onchange = (): void => {
+  $("ed-quant-on").onchange = $("ed-subdiv").onchange = (): void => {
     if (!rec) return;
-    rec.quantize = { on: input('ed-quant-on').checked, subdivision: Number($<HTMLSelectElement>('ed-subdiv').value) };
+    rec.quantize = {
+      on: input("ed-quant-on").checked,
+      subdivision: Number($<HTMLSelectElement>("ed-subdiv").value),
+    };
     void putRecording(rec);
     render();
   };
 
-  ($('ed-name') as HTMLInputElement).onchange = (e): void => {
+  ($("ed-name") as HTMLInputElement).onchange = (e): void => {
     if (!rec) return;
-    rec.name = (e.target as HTMLInputElement).value.trim() || 'Untitled';
+    rec.name = (e.target as HTMLInputElement).value.trim() || "Untitled";
     void putRecording(rec);
   };
 
-  $('ed-duplicate').onclick = async (): Promise<void> => {
+  $("ed-duplicate").onclick = async (): Promise<void> => {
     if (!rec) return;
-    const copy: Recording = { ...rec, id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, name: `${rec.name} (copy)`, createdAt: Date.now() };
+    const copy: Recording = {
+      ...rec,
+      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+      name: `${rec.name} (copy)`,
+      createdAt: Date.now(),
+    };
     await putRecording(copy);
     go(`#/take/${copy.id}`);
   };
-  $('ed-delete').onclick = async (): Promise<void> => {
+  $("ed-delete").onclick = async (): Promise<void> => {
     if (!rec || !confirm(`Delete “${rec.name}”?`)) return;
     await deleteRecording(rec.id);
-    go('#/');
+    go("#/");
   };
 
-  const roll = $<HTMLCanvasElement>('ed-roll');
+  const roll = $<HTMLCanvasElement>("ed-roll");
   // Plain click auditions a note (muted ones too); Ctrl/Cmd+click mutes or unmutes it.
   roll.onclick = (e): void => {
     const it = noteAt(e);
@@ -266,16 +290,21 @@ export function activateEditor(id: string): void {
     preview = playNotes([{ ...it.note, start: 0 }], it.note.duration, rec?.play);
   };
   roll.onmousemove = (e): void => {
-    roll.style.cursor = noteAt(e) ? 'pointer' : '';
+    roll.style.cursor = noteAt(e) ? "pointer" : "";
   };
 
   // Playback instrument/octave, saved with the take.
-  const instSel = $<HTMLSelectElement>('ed-instrument');
-  const octSel = $<HTMLSelectElement>('ed-octave');
-  instSel.innerHTML = INSTRUMENTS.map((i) => `<option value="${i.id}">${i.label}</option>`).join('');
+  const instSel = $<HTMLSelectElement>("ed-instrument");
+  const octSel = $<HTMLSelectElement>("ed-octave");
+  instSel.innerHTML = INSTRUMENTS.map((i) => `<option value="${i.id}">${i.label}</option>`).join(
+    "",
+  );
   instSel.onchange = octSel.onchange = (): void => {
     if (!rec) return;
-    rec.play = { instrument: instSel.value as PlaySettings['instrument'], octave: Number(octSel.value) };
+    rec.play = {
+      instrument: instSel.value as PlaySettings["instrument"],
+      octave: Number(octSel.value),
+    };
     void putRecording(rec);
   };
 
@@ -283,7 +312,9 @@ export function activateEditor(id: string): void {
   // so only the octave applies then.
   const syncInstrument = (): void => {
     instSel.disabled = !!activeOutput();
-    instSel.title = instSel.disabled ? 'Playing through a MIDI device — it picks the sound.' : 'Instrument for playback (the .mid has no instrument).';
+    instSel.title = instSel.disabled
+      ? "Playing through a MIDI device — it picks the sound."
+      : "Instrument for playback (the .mid has no instrument).";
   };
   syncInstrument();
   offOutput?.();
@@ -292,34 +323,36 @@ export function activateEditor(id: string): void {
     syncInstrument();
   });
 
-  $('ed-play-audio').onclick = (e): void =>
+  $("ed-play-audio").onclick = (e): void =>
     togglePlayback(e.currentTarget as HTMLButtonElement, () => playPcm(pcm, rec!.sampleRate));
-  $('ed-play-midi').onclick = (e): void =>
-    togglePlayback(e.currentTarget as HTMLButtonElement, () => playNotes(currentNotes(), rec!.durationSec, rec!.play));
+  $("ed-play-midi").onclick = (e): void =>
+    togglePlayback(e.currentTarget as HTMLButtonElement, () =>
+      playNotes(currentNotes(), rec!.durationSec, rec!.play),
+    );
 
-  $('ed-dl-midi').onclick = (): void => {
+  $("ed-dl-midi").onclick = (): void => {
     if (!rec) return;
     downloadBlob(notesToMidi(currentNotes(), { bpm: rec.bpm }), `${slug()}.mid`);
   };
-  $('ed-dl-wav').onclick = (): void => {
+  $("ed-dl-wav").onclick = (): void => {
     if (!rec) return;
     downloadBlob(encodeWav(pcm, rec.sampleRate), `${slug()}.wav`);
   };
-  $('ed-dl-json').onclick = (): void => {
+  $("ed-dl-json").onclick = (): void => {
     const json = JSON.stringify(buildReportData(reportInput()), null, 2);
-    downloadBlob(new Blob([json], { type: 'application/json' }), `${slug()}.json`);
+    downloadBlob(new Blob([json], { type: "application/json" }), `${slug()}.json`);
   };
-  $('ed-copy-log').onclick = async (): Promise<void> => {
+  $("ed-copy-log").onclick = async (): Promise<void> => {
     const report = buildReport(reportInput());
-    const log = $<HTMLTextAreaElement>('ed-log-out');
+    const log = $<HTMLTextAreaElement>("ed-log-out");
     log.value = report;
     log.hidden = false;
     try {
       await navigator.clipboard.writeText(report);
-      $('ed-copy-status').textContent = 'copied ✓';
+      $("ed-copy-status").textContent = "copied ✓";
     } catch {
       log.select();
-      $('ed-copy-status').textContent = 'select the text above to copy';
+      $("ed-copy-status").textContent = "select the text above to copy";
     }
   };
 
@@ -327,8 +360,11 @@ export function activateEditor(id: string): void {
 }
 
 function slug(): string {
-  const base = (rec?.name ?? 'take').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return `diapason-${base || 'take'}-${Date.now()}`;
+  const base = (rec?.name ?? "take")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `diapason-${base || "take"}-${Date.now()}`;
 }
 
 export function deactivateEditor(): void {
@@ -337,7 +373,7 @@ export function deactivateEditor(): void {
   preview?.stop();
   offOutput?.();
   offOutput = null;
-  document.body.classList.remove('wide');
-  window.removeEventListener('resize', render);
-  show('view-editor', false);
+  document.body.classList.remove("wide");
+  window.removeEventListener("resize", render);
+  show("view-editor", false);
 }

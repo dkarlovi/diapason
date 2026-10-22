@@ -1,9 +1,9 @@
 // Editor playback: the recorded audio, or the detected notes through a tiny synth.
 // One thing plays at a time; starting a new playback stops the previous one.
 
-import type { NoteEvent } from './notes';
-import { VOICES, DEFAULT_PLAY, type PlaySettings } from './instruments';
-import { activeOutput, playNotesMidi } from './midiout';
+import type { NoteEvent } from "./notes";
+import { VOICES, DEFAULT_PLAY, type PlaySettings } from "./instruments";
+import { activeOutput, playNotesMidi } from "./midiout";
 
 export interface Playback {
   /** Seconds into the take, or null once finished/stopped. */
@@ -15,7 +15,7 @@ let ctx: AudioContext | null = null;
 
 function context(): AudioContext {
   ctx ??= new AudioContext();
-  if (ctx.state === 'suspended') void ctx.resume();
+  if (ctx.state === "suspended") void ctx.resume();
   return ctx;
 }
 
@@ -54,7 +54,11 @@ export function playPcm(pcm: Float32Array, sampleRate: number): Playback {
 }
 
 /** Play notes on the selected MIDI port if one is connected, else through the browser synth. */
-export function playNotes(notes: NoteEvent[], duration: number, settings: PlaySettings = DEFAULT_PLAY): Playback {
+export function playNotes(
+  notes: NoteEvent[],
+  duration: number,
+  settings: PlaySettings = DEFAULT_PLAY,
+): Playback {
   const { instrument, octave } = settings;
   const port = activeOutput();
   if (port) return playNotesMidi(port, notes, duration, octave);

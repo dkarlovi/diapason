@@ -1,6 +1,6 @@
 // Shared DOM helpers used across views.
 
-import type { QualityStats } from './recorder';
+import type { QualityStats } from "./recorder";
 
 export const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
   const el = document.getElementById(id);
@@ -14,7 +14,7 @@ export const show = (id: string, visible: boolean): void => {
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
@@ -29,23 +29,40 @@ export interface Check {
 
 export function checksFor(stats: QualityStats): Check[] {
   return [
-    { label: 'Signal detected', pass: stats.voicedRatio >= 0.25, detail: `${Math.round(stats.voicedRatio * 100)}% voiced` },
-    { label: 'Clear tone', pass: stats.medianClarity >= 0.9, detail: `clarity ${stats.medianClarity.toFixed(2)}` },
-    { label: 'No clipping', pass: !stats.clipped, detail: `peak ${stats.peak.toFixed(2)}` },
-    { label: 'Steady pitch', pass: stats.centsStd <= 20 && stats.voicedRatio >= 0.25, detail: `±${stats.centsStd.toFixed(0)}¢` },
+    {
+      label: "Signal detected",
+      pass: stats.voicedRatio >= 0.25,
+      detail: `${Math.round(stats.voicedRatio * 100)}% voiced`,
+    },
+    {
+      label: "Clear tone",
+      pass: stats.medianClarity >= 0.9,
+      detail: `clarity ${stats.medianClarity.toFixed(2)}`,
+    },
+    { label: "No clipping", pass: !stats.clipped, detail: `peak ${stats.peak.toFixed(2)}` },
+    {
+      label: "Steady pitch",
+      pass: stats.centsStd <= 20 && stats.voicedRatio >= 0.25,
+      detail: `±${stats.centsStd.toFixed(0)}¢`,
+    },
   ];
 }
 
 export function renderChecklist(id: string, checks: Check[]): void {
   const ul = $(id);
-  ul.innerHTML = '';
+  ul.innerHTML = "";
   for (const c of checks) {
-    const li = document.createElement('li');
-    li.className = c.pass ? 'pass' : c.detail ? 'fail' : '';
+    const li = document.createElement("li");
+    li.className = c.pass ? "pass" : c.detail ? "fail" : "";
     li.innerHTML = `<span class="dot"></span><span>${c.label}</span><span class="detail">${c.detail}</span>`;
     ul.appendChild(li);
   }
 }
 
 export const fmtDate = (ms: number): string =>
-  new Date(ms).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  new Date(ms).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });

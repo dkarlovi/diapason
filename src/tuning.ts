@@ -1,11 +1,17 @@
 // Per-recording tuning: defaults + last-used persistence so new takes inherit it.
 
-import type { SegmentOptions } from './notes';
+import type { SegmentOptions } from "./notes";
 
 export type Tuning = Required<
   Pick<
     SegmentOptions,
-    'hysteresisSemitones' | 'minDurationSec' | 'silenceGapSec' | 'changeDebounceSec' | 'medianWindow' | 'clarityThreshold' | 'rmsGate'
+    | "hysteresisSemitones"
+    | "minDurationSec"
+    | "silenceGapSec"
+    | "changeDebounceSec"
+    | "medianWindow"
+    | "clarityThreshold"
+    | "rmsGate"
   >
 >;
 
@@ -19,11 +25,14 @@ export const DEFAULT_TUNING: Tuning = {
   rmsGate: 0.003,
 };
 
-const KEY = 'diapason.lastTuning';
+const KEY = "diapason.lastTuning";
 
 export function loadLastTuning(): Tuning {
   try {
-    return { ...DEFAULT_TUNING, ...(JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<Tuning>) };
+    return {
+      ...DEFAULT_TUNING,
+      ...(JSON.parse(localStorage.getItem(KEY) ?? "{}") as Partial<Tuning>),
+    };
   } catch {
     return { ...DEFAULT_TUNING };
   }

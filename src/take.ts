@@ -1,9 +1,9 @@
 // A take's notes as the user hears/exports them: segmented with its tuning, quantized
 // with its grid setting, minus the notes the user muted. Shared by editor and library.
 
-import type { MutedNote, QuantizeSetting, Recording } from './db';
-import { segmentNotes, type Frame, type NoteEvent } from './notes';
-import { quantizeNotes } from './quantize';
+import type { MutedNote, QuantizeSetting, Recording } from "./db";
+import { segmentNotes, type Frame, type NoteEvent } from "./notes";
+import { quantizeNotes } from "./quantize";
 
 export const DEFAULT_QUANTIZE: QuantizeSetting = { on: true, subdivision: 2 };
 
@@ -27,5 +27,7 @@ export function takeItems(rec: Recording, frames: Frame[]): NoteItem[] {
 
 /** Notes that are switched on — what gets played and exported. */
 export function takeNotes(rec: Recording, frames: Frame[]): NoteEvent[] {
-  return takeItems(rec, frames).filter((i) => !i.muted).map((i) => i.note);
+  return takeItems(rec, frames)
+    .filter((i) => !i.muted)
+    .map((i) => i.note);
 }

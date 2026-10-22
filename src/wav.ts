@@ -14,11 +14,11 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   };
 
   // RIFF header
-  writeStr(0, 'RIFF');
+  writeStr(0, "RIFF");
   view.setUint32(4, 36 + dataSize, true);
-  writeStr(8, 'WAVE');
+  writeStr(8, "WAVE");
   // fmt chunk
-  writeStr(12, 'fmt ');
+  writeStr(12, "fmt ");
   view.setUint32(16, 16, true); // chunk size
   view.setUint16(20, 1, true); // PCM
   view.setUint16(22, 1, true); // mono
@@ -27,7 +27,7 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   view.setUint16(32, bytesPerSample, true); // block align
   view.setUint16(34, 16, true); // bits per sample
   // data chunk
-  writeStr(36, 'data');
+  writeStr(36, "data");
   view.setUint32(40, dataSize, true);
 
   let offset = 44;
@@ -37,5 +37,5 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
     offset += 2;
   }
 
-  return new Blob([buffer], { type: 'audio/wav' });
+  return new Blob([buffer], { type: "audio/wav" });
 }

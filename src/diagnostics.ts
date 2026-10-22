@@ -2,8 +2,8 @@
 // offline. Produces a structured object (for a .json sidecar) and a compact text
 // report (for pasting inline). Both share one source of truth: buildReportData().
 
-import { freqToMidi, midiToName, segmentNotes, type Frame, type NoteEvent } from './notes';
-import type { QualityStats } from './recorder';
+import { freqToMidi, midiToName, segmentNotes, type Frame, type NoteEvent } from "./notes";
+import type { QualityStats } from "./recorder";
 
 export interface ReportInput {
   title: string;
@@ -27,7 +27,7 @@ export interface FrameRow {
 }
 
 export interface ReportData {
-  app: 'diapason';
+  app: "diapason";
   title: string;
   generated: string;
   config: {
@@ -49,7 +49,14 @@ export function buildReportData(input: ReportInput): ReportData {
   const notes = segmentNotes(input.frames, { rmsGate: input.rmsGate });
   const frames: FrameRow[] = input.frames.map((f) => {
     if (f.freq === null) {
-      return { tMs: Math.round(f.t * 1000), freq: null, midi: null, cents: null, clarity: f.clarity, rms: f.rms };
+      return {
+        tMs: Math.round(f.t * 1000),
+        freq: null,
+        midi: null,
+        cents: null,
+        clarity: f.clarity,
+        rms: f.rms,
+      };
     }
     const midi = freqToMidi(f.freq);
     return {
@@ -63,7 +70,7 @@ export function buildReportData(input: ReportInput): ReportData {
   });
 
   return {
-    app: 'diapason',
+    app: "diapason",
     title: input.title,
     generated: new Date().toISOString(),
     config: {
@@ -82,7 +89,7 @@ export function buildReportData(input: ReportInput): ReportData {
   };
 }
 
-const f = (n: number, d = 2): string => (Number.isFinite(n) ? n.toFixed(d) : '—');
+const f = (n: number, d = 2): string => (Number.isFinite(n) ? n.toFixed(d) : "—");
 
 export function buildReport(input: ReportInput): string {
   const d = buildReportData(input);
@@ -92,34 +99,42 @@ export function buildReport(input: ReportInput): string {
 
   lines.push(`=== diapason diagnostics: ${d.title} ===`);
   lines.push(`generated: ${d.generated}`);
-  lines.push('');
-  lines.push('[config]');
-  lines.push(`sampleRate=${c.sampleRate}Hz  duration=${f(c.durationSec)}s  frames=${d.frames.length}`);
-  lines.push(`window=${c.windowSize}  hop=${c.hop}`);
-  lines.push(`band=${c.minFreq}-${c.maxFreq}Hz  clarityThreshold=${f(c.clarityThreshold, 2)}  rmsGate=${f(c.rmsGate, 4)}`);
-  lines.push('');
-  lines.push('[quality]');
+  lines.push("");
+  lines.push("[config]");
   lines.push(
-    `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? ' CLIPPING!' : ''}`,
+    `sampleRate=${c.sampleRate}Hz  duration=${f(c.durationSec)}s  frames=${d.frames.length}`,
   );
-  lines.push('');
+  lines.push(`window=${c.windowSize}  hop=${c.hop}`);
+  lines.push(
+    `band=${c.minFreq}-${c.maxFreq}Hz  clarityThreshold=${f(c.clarityThreshold, 2)}  rmsGate=${f(c.rmsGate, 4)}`,
+  );
+  lines.push("");
+  lines.push("[quality]");
+  lines.push(
+    `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? " CLIPPING!" : ""}`,
+  );
+  lines.push("");
   lines.push(`[segmented notes]  (${d.notes.length})`);
   if (d.notes.length) {
     d.notes.forEach((n, i) =>
-      lines.push(`  ${String(i + 1).padStart(2)}  ${n.name.padEnd(4)} start=${f(n.start)}s  len=${f(n.duration)}s`),
+      lines.push(
+        `  ${String(i + 1).padStart(2)}  ${n.name.padEnd(4)} start=${f(n.start)}s  len=${f(n.duration)}s`,
+      ),
     );
   } else {
-    lines.push('  (none)');
+    lines.push("  (none)");
   }
-  lines.push('');
-  lines.push('[frames]  t_ms,freq_hz,midi,note,cents,clarity,rms  (freq blank = unvoiced)');
+  lines.push("");
+  lines.push("[frames]  t_ms,freq_hz,midi,note,cents,clarity,rms  (freq blank = unvoiced)");
   for (const fr of d.frames) {
     if (fr.freq === null) {
       lines.push(`${fr.tMs},,,,,,${f(fr.rms, 4)}`);
     } else {
-      lines.push(`${fr.tMs},${f(fr.freq, 1)},${f(fr.midi!, 2)},${midiToName(fr.midi!)},${fr.cents},${f(fr.clarity, 3)},${f(fr.rms, 4)}`);
+      lines.push(
+        `${fr.tMs},${f(fr.freq, 1)},${f(fr.midi!, 2)},${midiToName(fr.midi!)},${fr.cents},${f(fr.clarity, 3)},${f(fr.rms, 4)}`,
+      );
     }
   }
-  lines.push('=== end ===');
-  return lines.join('\n');
+  lines.push("=== end ===");
+  return lines.join("\n");
 }
