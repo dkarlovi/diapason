@@ -10,8 +10,8 @@ describe("path navigation", () => {
     expect(location.hash).toBe("");
   });
 
-  it("accepts a legacy hash destination without leaving a hash in the URL", () => {
-    go("#/new");
+  it("navigates to the capture path", () => {
+    go("/new");
     expect(location.pathname).toBe("/diapason/new");
     expect(location.hash).toBe("");
   });

@@ -73,7 +73,7 @@ repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
 the committed lockfile; no deployment secrets are needed.
 
 Vite's base path is `/diapason/` so built assets load from the project URL.
-The build copies `index.html` to `404.html` so direct links to capture and editor routes work on GitHub Pages. Existing hash bookmarks are redirected to path URLs.
+The build copies `index.html` to `404.html` so direct links to capture and editor routes work on GitHub Pages.
 
 ## How it works
 

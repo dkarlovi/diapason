@@ -56,9 +56,4 @@ function App() {
   );
 }
 
-// Preserve links made with the old hash router, including existing bookmarks.
-if (location.hash.startsWith("#/")) {
-  history.replaceState(null, "", `${BASE}${location.hash.slice(1)}`);
-}
-
 createRoot(document.getElementById("root")!).render(<App />);
