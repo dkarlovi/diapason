@@ -8,18 +8,24 @@ instrument but can carry a tune by whistling.
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
-## Status: proof of concept
+## A takes studio
 
-The POC proves the full chain works end to end:
+diapason is organized as a **library of takes**, persisted in your browser
+(IndexedDB) so a refresh never loses them. Three views, hash-routed:
 
-1. **Calibrate** — pick a mic, confirm the signal is clean, measure the noise
-   floor, and watch a **live scrolling pitch trace** with a pass/fail quality
-   checklist so you know what "good" looks like. You can also record a few short
-   **samples** and re-run detection on them (with replay) to tune without
-   whistling continuously.
-2. **Capture** — record a whistled melody with live note feedback.
-3. **Export** — review the detected notes and download a `.mid` you can import
-   into [BandLab](https://bandlab.com) or any DAW.
+1. **Library** (`#/`) — your recordings. Open / duplicate / delete.
+2. **Capture** (`#/new`) — full signal calibration (device, gain, raw-audio
+   check, record the room) → set **tempo**, get a **count-in + audible
+   metronome**, and record on the downbeat. The take is saved and opens in the
+   editor. The metronome click is removed from pitch detection automatically
+   (its beat times are known, so those windows are skipped — the stored audio
+   stays untouched).
+3. **Editor** (`#/take/:id`) — all post-processing on a take: pitch trace,
+   **per-recording tuning** sliders (saved with the take), live note list,
+   **tempo-aware quantization**, and exports (`.mid` / `.wav` / `.json` / log).
+
+Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
+`CompressionStream`, no dependencies). Downloads are lossless WAV.
 
 ## Why calibration comes first
 
@@ -66,11 +72,18 @@ npm run typecheck # tsc --noEmit only
 | WAV encoder | `src/wav.ts` | Mono 16-bit PCM WAV for offline inspection |
 | Diagnostics report | `src/diagnostics.ts` | Structured (.json) + text report of a sample |
 | MIDI file writer | `src/midi.ts` | Standard MIDI File (Type 0), no deps |
-| UI / state machine | `src/main.ts` | calibrate → capture → export |
+| Metronome | `src/metronome.ts` | Count-in + audible click, AudioContext-scheduled |
+| Tempo quantization | `src/quantize.ts` | Snap note start/length to a beat grid |
+| Storage codec | `src/codec.ts` | Float32↔Int16, gzip via `CompressionStream` |
+| IndexedDB library | `src/db.ts` | Persisted takes (no deps) |
+| Per-take tuning | `src/tuning.ts` | Defaults + last-used persistence |
+| Hash router | `src/router.ts` | `#/`, `#/new`, `#/take/:id` |
+| Views | `src/views/*.ts` | `library`, `capture`, `editor` |
+| Shared UI + entry | `src/ui.ts`, `src/main.ts` | helpers + router wiring |
 
-The sample recorder captures contiguous raw PCM (not compressed audio), which
-is why detection on a recorded sample matches live detection exactly — and it's
-the foundation for future WAV/MP3 file input.
+The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
+deterministically when a take is opened, so the editor always reflects the
+current code and tuning.
 
 ### Inspecting / tuning detection
 

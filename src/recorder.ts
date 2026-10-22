@@ -87,6 +87,10 @@ export interface AnalyzeOptions {
   minFreq?: number;
   maxFreq?: number;
   clarityThreshold?: number;
+  /** If set, blank frames whose window falls near a metronome beat (t = k·60/bpm). */
+  maskBpm?: number;
+  /** Guard (s) each side of a beat to blank. Default 0.04. */
+  maskGuardSec?: number;
 }
 
 // Slide the pitch detector across a recorded buffer, producing the same Frame
@@ -104,12 +108,26 @@ export function analyzeBuffer(
     ...(opts.clarityThreshold !== undefined ? { clarityThreshold: opts.clarityThreshold } : {}),
   });
 
+  const winDur = windowSize / sampleRate;
+  const beat = opts.maskBpm ? 60 / opts.maskBpm : 0;
+  const guard = opts.maskGuardSec ?? 0.04;
+
+  // True if the window [t, t+winDur] (±guard) contains a metronome beat → click-contaminated.
+  const nearBeat = (t: number): boolean => {
+    if (!beat) return false;
+    const lo = t - guard;
+    const hi = t + winDur + guard;
+    const k = Math.ceil(lo / beat);
+    return k * beat <= hi;
+  };
+
   const frames: Frame[] = [];
   const win = new Float32Array(windowSize);
   for (let start = 0; start + windowSize <= samples.length; start += hop) {
     win.set(samples.subarray(start, start + windowSize));
+    const t = start / sampleRate;
     const { freq, clarity, rms } = detect(win);
-    frames.push({ t: start / sampleRate, freq, clarity, rms });
+    frames.push({ t, freq: nearBeat(t) ? null : freq, clarity, rms });
   }
   return frames;
 }
