@@ -75,9 +75,10 @@ suggest functions with different structures for manual review, but is not a CI g
 The audit also blocks new dead code and complexity findings. Its health baseline
 records nine existing complexity hotspots for later refactoring; CSS findings
 are advisory while styling work is pending. The metrics report remains visible
-in local checks and CI without blocking on existing hotspots. Fallow audit
-compares against the base branch, so run it from a Git checkout with the base
-branch available.
+in local checks and CI without blocking on existing hotspots. Fallow compares
+baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
+GitHub's pull request merge commit and the previous `main` commit after merge.
+Run checks from a Git checkout with both refs available.
 
 ## Deployment
 
