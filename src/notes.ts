@@ -1,6 +1,6 @@
 // Frequency <-> MIDI note helpers, and segmentation of a frame stream into note events.
 
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
 
 export function freqToMidi(freq: number): number {
   return 69 + 12 * Math.log2(freq / 440);
@@ -11,12 +11,6 @@ export function midiToName(midi: number): string {
   const name = NOTE_NAMES[((m % 12) + 12) % 12];
   const octave = Math.floor(m / 12) - 1;
   return `${name}${octave}`;
-}
-
-/** Cents away from the nearest semitone (-50..+50), for the calibration stability meter. */
-export function centsOff(freq: number): number {
-  const midi = freqToMidi(freq);
-  return Math.round((midi - Math.round(midi)) * 100);
 }
 
 /** A single captured analysis frame. `t` is seconds from capture start. */
@@ -167,7 +161,11 @@ export function segmentNotes(frames: Frame[], opts: SegmentOptions = {}): NoteEv
   const merged: NoteEvent[] = [];
   for (const e of events) {
     const prev = merged[merged.length - 1];
-    if (prev && prev.midi === e.midi && e.start - (prev.start + prev.duration) < cfg.silenceGapSec) {
+    if (
+      prev &&
+      prev.midi === e.midi &&
+      e.start - (prev.start + prev.duration) < cfg.silenceGapSec
+    ) {
       prev.duration = e.start + e.duration - prev.start;
     } else {
       merged.push({ ...e });

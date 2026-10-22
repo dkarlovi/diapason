@@ -1,0 +1,9 @@
+{
+  "kind": "dupes",
+  "clone_groups": [
+    "src/hooks/useCapture.ts:45-54|src/hooks/useEditor.ts:48-56",
+    "src/hooks/useCapture.ts:45-52|src/hooks/useEditor.ts:47-53"
+  ],
+  "clone_fingerprints": ["dup:210ef0f6:2", "dup:297fb523:2"],
+  "normalized_clone_fingerprints": ["dup:7215d27e:2", "dup:e3960f3f:2"]
+}

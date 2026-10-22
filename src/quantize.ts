@@ -1,6 +1,6 @@
 // Snap note events to a tempo grid so exported MIDI has clean rhythm.
 
-import type { NoteEvent } from './notes';
+import type { NoteEvent } from "./notes";
 
 export interface QuantizeOptions {
   bpm: number;

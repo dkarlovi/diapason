@@ -1,7 +1,7 @@
 // Minimal Standard MIDI File (Type 0) writer — no dependencies.
 // Takes note events { midi, start (s), duration (s) } and returns a Blob you can download.
 
-import type { NoteEvent } from './notes';
+import type { NoteEvent } from "./notes";
 
 export interface MidiOptions {
   /** Ticks per quarter note. Default 480. */
@@ -25,13 +25,18 @@ function varLen(value: number): number[] {
 
 const str = (s: string): number[] => Array.from(s, (c) => c.charCodeAt(0));
 
-const u32 = (n: number): number[] => [(n >> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+const u32 = (n: number): number[] => [
+  (n >> 24) & 0xff,
+  (n >> 16) & 0xff,
+  (n >> 8) & 0xff,
+  n & 0xff,
+];
 
 const u16 = (n: number): number[] => [(n >> 8) & 0xff, n & 0xff];
 
 interface RawEvent {
   tick: number;
-  type: 'on' | 'off';
+  type: "on" | "off";
   midi: number;
 }
 
@@ -47,11 +52,11 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
   for (const e of events) {
     const on = secToTicks(e.start);
     const off = secToTicks(e.start + e.duration);
-    abs.push({ tick: on, type: 'on', midi: e.midi });
-    abs.push({ tick: Math.max(off, on + 1), type: 'off', midi: e.midi });
+    abs.push({ tick: on, type: "on", midi: e.midi });
+    abs.push({ tick: Math.max(off, on + 1), type: "off", midi: e.midi });
   }
   // Sort by tick; note-off before note-on at the same tick to free the pitch.
-  abs.sort((a, b) => a.tick - b.tick || (a.type === 'off' ? -1 : 1));
+  abs.sort((a, b) => a.tick - b.tick || (a.type === "off" ? -1 : 1));
 
   const track: number[] = [];
   // Tempo meta event.
@@ -61,15 +66,15 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
   for (const ev of abs) {
     const delta = ev.tick - prev;
     prev = ev.tick;
-    const status = ev.type === 'on' ? 0x90 : 0x80;
-    const vel = ev.type === 'on' ? velocity : 0;
+    const status = ev.type === "on" ? 0x90 : 0x80;
+    const vel = ev.type === "on" ? velocity : 0;
     track.push(...varLen(delta), status, ev.midi & 0x7f, vel);
   }
   // End of track.
   track.push(...varLen(0), 0xff, 0x2f, 0x00);
 
-  const header = [...str('MThd'), ...u32(6), ...u16(0), ...u16(1), ...u16(ppq)];
-  const trackChunk = [...str('MTrk'), ...u32(track.length), ...track];
+  const header = [...str("MThd"), ...u32(6), ...u16(0), ...u16(1), ...u16(ppq)];
+  const trackChunk = [...str("MTrk"), ...u32(track.length), ...track];
 
-  return new Blob([new Uint8Array([...header, ...trackChunk])], { type: 'audio/midi' });
+  return new Blob([new Uint8Array([...header, ...trackChunk])], { type: "audio/midi" });
 }

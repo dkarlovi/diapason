@@ -1,11 +1,11 @@
 // Minimal IndexedDB wrapper for the takes library. No dependencies.
 
-import type { SegmentOptions } from './notes';
-import type { PlaySettings } from './instruments';
+import type { SegmentOptions } from "./notes";
+import type { PlaySettings } from "./instruments";
 
-const DB_NAME = 'diapason';
+const DB_NAME = "diapason";
 const DB_VERSION = 1;
-const STORE = 'recordings';
+const STORE = "recordings";
 
 export interface CaptureMeta {
   gain: number;
@@ -54,7 +54,7 @@ function openDb(): Promise<IDBDatabase> {
       req.onupgradeneeded = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE)) {
-          db.createObjectStore(STORE, { keyPath: 'id' });
+          db.createObjectStore(STORE, { keyPath: "id" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -77,21 +77,24 @@ function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBReque
 }
 
 export function allRecordings(): Promise<Recording[]> {
-  return tx<Recording[]>('readonly', (s) => s.getAll() as IDBRequest<Recording[]>).then((rs) =>
+  return tx<Recording[]>("readonly", (s) => s.getAll() as IDBRequest<Recording[]>).then((rs) =>
     rs.sort((a, b) => b.createdAt - a.createdAt),
   );
 }
 
 export function getRecording(id: string): Promise<Recording | undefined> {
-  return tx<Recording | undefined>('readonly', (s) => s.get(id) as IDBRequest<Recording | undefined>);
+  return tx<Recording | undefined>(
+    "readonly",
+    (s) => s.get(id) as IDBRequest<Recording | undefined>,
+  );
 }
 
 export function putRecording(r: Recording): Promise<unknown> {
-  return tx('readwrite', (s) => s.put(r));
+  return tx("readwrite", (s) => s.put(r));
 }
 
 export function deleteRecording(id: string): Promise<unknown> {
-  return tx('readwrite', (s) => s.delete(id));
+  return tx("readwrite", (s) => s.delete(id));
 }
 
 /** Best-effort storage usage, for a usage indicator. */

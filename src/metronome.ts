@@ -54,15 +54,26 @@ export function startMetronome(ctx: AudioContext, opts: MetronomeOptions): Metro
     while (t0 + next * beat < ctx.currentTime + AHEAD) {
       const at = t0 + next * beat;
       const beatIndex = next - countInBeats; // 0 == downbeat
-      const accent = (((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar) === 0;
+      const accent = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
       click(ctx, at, accent);
-      if (opts.onBeat) timers.push(window.setTimeout(() => opts.onBeat!(beatIndex), Math.max(0, (at - ctx.currentTime) * 1000)));
+      if (opts.onBeat)
+        timers.push(
+          window.setTimeout(
+            () => opts.onBeat!(beatIndex),
+            Math.max(0, (at - ctx.currentTime) * 1000),
+          ),
+        );
       next++;
     }
   }, 25);
 
   if (opts.onDownbeat) {
-    timers.push(window.setTimeout(() => !stopped && opts.onDownbeat!(), Math.max(0, (downbeatTime - ctx.currentTime) * 1000)));
+    timers.push(
+      window.setTimeout(
+        () => !stopped && opts.onDownbeat!(),
+        Math.max(0, (downbeatTime - ctx.currentTime) * 1000),
+      ),
+    );
   }
 
   return {

@@ -4,23 +4,23 @@ Whistle into your microphone and get a MIDI file out. Browser-based, fully
 client-side monophonic **pitch → MIDI** — built for people who can't play an
 instrument but can carry a tune by whistling.
 
-> A *diapason* is the full tonal compass of a voice or instrument, and the
+> A _diapason_ is the full tonal compass of a voice or instrument, and the
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
 ## A takes studio
 
 diapason is organized as a **library of takes**, persisted in your browser
-(IndexedDB) so a refresh never loses them. Three views, hash-routed:
+(IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
-1. **Library** (`#/`) — your recordings. Open / duplicate / delete.
-2. **Capture** (`#/new`) — full signal calibration (device, gain, raw-audio
+1. **Library** (`/diapason/`) — your recordings. Open / duplicate / delete.
+2. **Capture** (`/diapason/new`) — full signal calibration (device, gain, raw-audio
    check, record the room) → set **tempo**, get a **count-in + audible
    metronome**, and record on the downbeat. The take is saved and opens in the
    editor. The metronome click is removed from pitch detection automatically
    (its beat times are known, so those windows are skipped — the stored audio
    stays untouched).
-3. **Editor** (`#/take/:id`) — all post-processing on a take: pitch trace,
+3. **Editor** (`/diapason/take/:id`) — all post-processing on a take: pitch trace,
    **per-recording tuning** sliders (saved with the take), live note list,
    **tempo-aware quantization**, and exports (`.mid` / `.wav` / `.json` / log).
 
@@ -38,7 +38,7 @@ auto-gain pumps the level up and down. That's the "distortion."
 diapason requests a **raw** audio stream with all three disabled, and the
 calibration screen shows you their actual state (`OFF ✓`) plus a live level
 meter, a clipping warning, and a live pitch test, so you can confirm the signal
-is good *before* recording.
+is good _before_ recording.
 
 ## Running it
 
@@ -58,39 +58,60 @@ Other scripts:
 npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
+npm test          # Vitest regression tests
+npm run lint      # oxlint
+npm run dupes     # Fallow semantic/near-miss duplicate check
+npm run audit     # Fallow dead code, complexity, duplication, and styling review
+npm run metrics   # advisory health scores, hotspots, and refactoring targets
+npm run format    # oxfmt
+npm run format:check # verify formatting
+npm run check     # typecheck + lint + format check + Fallow + tests + build
 ```
+
+The duplication check normalizes renamed variables and changed literals. Its baseline
+contains two overlapping matches between unrelated hook state declarations; new
+matches fail the check. Fallow's separate model-backed `similar-code` command can
+suggest functions with different structures for manual review, but is not a CI gate.
+The audit also blocks new dead code and complexity findings. Its health baseline
+records nine existing complexity hotspots for later refactoring; CSS findings
+are advisory while styling work is pending. The metrics report remains visible
+in local checks and CI without blocking on existing hotspots. Fallow audit
+compares against the base branch, so run it from a Git checkout with the base
+branch available.
 
 ## Deployment
 
-GitHub Actions builds and typechecks pull requests. Pushes to `main` (or a manual
+GitHub Actions runs `npm run check` on pull requests. Pushes to `main` (or a manual
 workflow run) also deploy `dist/` to <https://dkarlovi.github.io/diapason/>.
 GitHub Pages must use **GitHub Actions** as its publishing source in the
 repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
 the committed lockfile; no deployment secrets are needed.
+To block merges until checks pass, require the `build` job in the `main` branch protection rule.
 
 Vite's base path is `/diapason/` so built assets load from the project URL.
-The app uses hash routing, so editor and capture links also work on Pages.
+The build copies `index.html` to `404.html` so direct links to capture and editor routes work on GitHub Pages.
 
 ## How it works
 
-| Stage | File | Notes |
-|-------|------|-------|
-| Mic capture (raw, DSP off) | `src/audio.ts` | `getUserMedia` + `AnalyserNode` |
-| Pitch detection | `src/pitch.ts` | McLeod / NSDF, band-limited to whistle range |
-| Note mapping + segmentation | `src/notes.ts` | Hz→MIDI, median-filter, onset/offset heuristics |
-| PCM recorder + offline analysis | `src/recorder.ts` | AudioWorklet capture, re-analyze buffers, quality stats |
-| Pitch-trace visualization | `src/trace.ts` | Canvas 2D pitch-over-time renderer |
-| WAV encoder | `src/wav.ts` | Mono 16-bit PCM WAV for offline inspection |
-| Diagnostics report | `src/diagnostics.ts` | Structured (.json) + text report of a sample |
-| MIDI file writer | `src/midi.ts` | Standard MIDI File (Type 0), no deps |
-| Metronome | `src/metronome.ts` | Count-in + audible click, AudioContext-scheduled |
-| Tempo quantization | `src/quantize.ts` | Snap note start/length to a beat grid |
-| Storage codec | `src/codec.ts` | Float32↔Int16, gzip via `CompressionStream` |
-| IndexedDB library | `src/db.ts` | Persisted takes (no deps) |
-| Per-take tuning | `src/tuning.ts` | Defaults + last-used persistence |
-| Hash router | `src/router.ts` | `#/`, `#/new`, `#/take/:id` |
-| Views | `src/views/*.ts` | `library`, `capture`, `editor` |
-| Shared UI + entry | `src/ui.ts`, `src/main.ts` | helpers + router wiring |
+| Stage                           | File                                            | Notes                                                   |
+| ------------------------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| Mic capture (raw, DSP off)      | `src/audio.ts`                                  | `getUserMedia` + `AnalyserNode`                         |
+| Pitch detection                 | `src/pitch.ts`                                  | McLeod / NSDF, band-limited to whistle range            |
+| Note mapping + segmentation     | `src/notes.ts`                                  | Hz→MIDI, median-filter, onset/offset heuristics         |
+| PCM recorder + offline analysis | `src/recorder.ts`                               | AudioWorklet capture, re-analyze buffers, quality stats |
+| Pitch-trace visualization       | `src/trace.ts`                                  | Canvas 2D pitch-over-time renderer                      |
+| WAV encoder                     | `src/wav.ts`                                    | Mono 16-bit PCM WAV for offline inspection              |
+| Diagnostics report              | `src/diagnostics.ts`                            | Structured (.json) + text report of a sample            |
+| MIDI file writer                | `src/midi.ts`                                   | Standard MIDI File (Type 0), no deps                    |
+| Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled        |
+| Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                   |
+| Storage codec                   | `src/codec.ts`                                  | Float32↔Int16, gzip via `CompressionStream`             |
+| IndexedDB library               | `src/db.ts`                                     | Persisted takes (no deps)                               |
+| Per-take tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
+| Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                          |
+| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and browser effects                     |
+| Screen models                   | `src/capture-model.ts`, `src/editor-model.ts`   | Pure calculations shared by hooks and tests             |
+| Shared UI + entry               | `src/components/primitives.tsx`, `src/main.tsx` | controls and app root                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a take is opened, so the editor always reflects the
@@ -129,7 +150,7 @@ detectors.
   planned improvement.
 - **Sticky note tracking** tolerates drift/vibrato up to ±0.9 semitone within a
   held note (`hysteresisSemitones`), so wandering tones stay one note. The
-  trade-off: two *intended* notes less than ~1 semitone apart, whistled with
+  trade-off: two _intended_ notes less than ~1 semitone apart, whistled with
   drift, may merge. Tune `hysteresisSemitones` down if you sing very precise,
   closely-spaced intervals.
 - **No rhythm quantization yet** — note lengths are the raw durations you

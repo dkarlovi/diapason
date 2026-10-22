@@ -2,8 +2,8 @@
 // (tune detection without whistling live) and replay it. Uses an AudioWorklet,
 // whose processor source is inlined via a Blob URL so there's no extra build step.
 
-import { createPitchDetector } from './pitch';
-import { freqToMidi, type Frame } from './notes';
+import { createPitchDetector } from "./pitch";
+import { freqToMidi, type Frame } from "./notes";
 
 const WORKLET_SRC = `
 class RecorderProcessor extends AudioWorkletProcessor {
@@ -21,7 +21,7 @@ let workletReady: Promise<void> | null = null;
 
 async function ensureWorklet(ctx: AudioContext): Promise<void> {
   if (!workletReady) {
-    const blob = new Blob([WORKLET_SRC], { type: 'application/javascript' });
+    const blob = new Blob([WORKLET_SRC], { type: "application/javascript" });
     const url = URL.createObjectURL(blob);
     workletReady = ctx.audioWorklet.addModule(url).finally(() => URL.revokeObjectURL(url));
   }
@@ -35,12 +35,9 @@ export interface Recorder {
   dispose(): void;
 }
 
-export async function createRecorder(
-  ctx: AudioContext,
-  source: AudioNode,
-): Promise<Recorder> {
+export async function createRecorder(ctx: AudioContext, source: AudioNode): Promise<Recorder> {
   await ensureWorklet(ctx);
-  const node = new AudioWorkletNode(ctx, 'diapason-recorder', {
+  const node = new AudioWorkletNode(ctx, "diapason-recorder", {
     numberOfInputs: 1,
     numberOfOutputs: 0,
   });

@@ -2,17 +2,17 @@
 // browser synth. The chosen port is a per-machine preference (port ids are device-specific),
 // unlike instrument/octave which belong to the take.
 
-import type { NoteEvent } from './notes';
-import type { Playback } from './playback';
+import type { NoteEvent } from "./notes";
+import type { Playback } from "./playback";
 
-const KEY = 'diapason.midiOutput';
+const KEY = "diapason.midiOutput";
 const CHANNEL = 0; // MIDI channel 1
 
 let access: MIDIAccess | null = null;
 const listeners = new Set<() => void>();
 const notify = (): void => listeners.forEach((cb) => cb());
 
-export const midiSupported = (): boolean => typeof navigator.requestMIDIAccess === 'function';
+export const midiSupported = (): boolean => typeof navigator.requestMIDIAccess === "function";
 
 /** Ask for MIDI access. With `prompt: false` only succeeds if permission was already granted. */
 export async function connectMidi(prompt: boolean): Promise<boolean> {
@@ -20,8 +20,8 @@ export async function connectMidi(prompt: boolean): Promise<boolean> {
   if (!midiSupported()) return false;
   if (!prompt) {
     try {
-      const st = await navigator.permissions.query({ name: 'midi' as PermissionName });
-      if (st.state !== 'granted') return false;
+      const st = await navigator.permissions.query({ name: "midi" as PermissionName });
+      if (st.state !== "granted") return false;
     } catch {
       return false; // permission can't be queried — wait for an explicit request
     }
@@ -49,9 +49,9 @@ export function midiOutputs(): MIDIOutput[] {
 /** Selected output id, or '' for the browser synth. */
 export function selectedOutputId(): string {
   try {
-    return localStorage.getItem(KEY) ?? '';
+    return localStorage.getItem(KEY) ?? "";
   } catch {
-    return '';
+    return "";
   }
 }
 
@@ -71,7 +71,12 @@ export function activeOutput(): MIDIOutput | null {
 }
 
 /** Schedule notes on a MIDI port with timestamps, so timing doesn't depend on JS timers. */
-export function playNotesMidi(out: MIDIOutput, notes: NoteEvent[], duration: number, octave: number): Playback {
+export function playNotesMidi(
+  out: MIDIOutput,
+  notes: NoteEvent[],
+  duration: number,
+  octave: number,
+): Playback {
   const t0 = performance.now() + 50;
   const keys = new Set<number>();
   for (const n of notes) {
@@ -84,7 +89,10 @@ export function playNotesMidi(out: MIDIOutput, notes: NoteEvent[], duration: num
     out.send([0x90 | CHANNEL, key, 100], on);
     out.send([0x80 | CHANNEL, key, 0], off);
   }
-  const end = Math.max(duration, notes.reduce((m, n) => Math.max(m, n.start + n.duration), 0));
+  const end = Math.max(
+    duration,
+    notes.reduce((m, n) => Math.max(m, n.start + n.duration), 0),
+  );
   let stopped = false;
   return {
     position: () => {
@@ -99,33 +107,4 @@ export function playNotesMidi(out: MIDIOutput, notes: NoteEvent[], duration: num
       out.send([0xb0 | CHANNEL, 123, 0]); // all notes off
     },
   };
-}
-
-const CONNECT = '__connect';
-
-/** Wire the (global, always-present) output picker: browser synth, connected ports,
- *  or a "connect" entry. Call once at startup. */
-export function bindOutputSelect(sel: HTMLSelectElement): void {
-  const render = (): void => {
-    sel.hidden = !midiSupported();
-    const ports = midiOutputs();
-    const opts = [`<option value="">Browser synth</option>`];
-    for (const p of ports) opts.push(`<option value="${p.id}"></option>`);
-    if (!ports.length) opts.push(`<option value="${CONNECT}">MIDI device…</option>`);
-    sel.innerHTML = opts.join('');
-    ports.forEach((p, i) => (sel.options[i + 1]!.textContent = `MIDI: ${p.name ?? p.id}`));
-    sel.value = activeOutput() ? selectedOutputId() : '';
-  };
-  sel.onchange = async (): Promise<void> => {
-    if (sel.value !== CONNECT) return selectOutput(sel.value);
-    if (!(await connectMidi(true))) alert('MIDI access was denied or is unavailable.');
-    else if (!midiOutputs().length) alert('MIDI is enabled, but no output devices were found. Start a synth or create a virtual MIDI port.');
-    // Auto-select the first port after connecting, that's what the user was after.
-    const first = midiOutputs()[0];
-    if (first) selectOutput(first.id);
-    else render();
-  };
-  onOutputChange(render);
-  render();
-  void connectMidi(false); // reconnect silently if already permitted
 }

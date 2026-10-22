@@ -1,7 +1,7 @@
 // Canvas renderer for a pitch-over-time trace. Used both for the live scrolling
 // calibration view and for inspecting recorded samples. Dependency-free 2D canvas.
 
-import { midiToName, freqToMidi, type Frame, type NoteEvent } from './notes';
+import { midiToName, freqToMidi, type Frame, type NoteEvent } from "./notes";
 
 export interface TraceView {
   /** Time window shown, in seconds. */
@@ -19,17 +19,17 @@ export interface TraceView {
 }
 
 const COLORS = {
-  bg: '#0a0d11',
-  grid: '#222a34',
-  gridOctave: '#2f3a47',
-  label: '#8a94a3',
-  line: '#5ad1a8',
-  faint: '#355f52',
-  sub: '#161c24',
-  beat: '#2a3441',
-  bar: '#45536a',
-  note: '#5ad1a8',
-  noteEdge: '#b6f2dd',
+  bg: "#0a0d11",
+  grid: "#222a34",
+  gridOctave: "#2f3a47",
+  label: "#8a94a3",
+  line: "#5ad1a8",
+  faint: "#355f52",
+  sub: "#161c24",
+  beat: "#2a3441",
+  bar: "#45536a",
+  note: "#5ad1a8",
+  noteEdge: "#b6f2dd",
 };
 
 /** Pick a y-axis range that fits the voiced frames, padded and clamped to sane whistle bounds. */
@@ -49,7 +49,7 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
     canvas.width = w * dpr;
     canvas.height = h * dpr;
   }
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext("2d")!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
@@ -61,8 +61,8 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   const yOf = (midi: number): number => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h;
 
   // Horizontal gridlines + note labels at each semitone (octaves emphasized).
-  ctx.textBaseline = 'middle';
-  ctx.font = '10px system-ui, sans-serif';
+  ctx.textBaseline = "middle";
+  ctx.font = "10px system-ui, sans-serif";
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
     const isC = m % 12 === 0;
     const y = yOf(m);
@@ -94,7 +94,7 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       ctx.stroke();
       if (isBar) {
         ctx.fillStyle = COLORS.label;
-        ctx.textBaseline = 'top';
+        ctx.textBaseline = "top";
         ctx.fillText(String(i / perBar + 1), x + 3, 2);
       }
     }
@@ -158,8 +158,8 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       ctx.strokeStyle = COLORS.noteEdge;
       ctx.strokeRect(x0 + 0.5, y + 0.5, Math.max(2, x1 - x0) - 1, semi - 1);
       if (x1 - x0 > 22 && semi >= 9) {
-        ctx.fillStyle = '#06231a';
-        ctx.textBaseline = 'middle';
+        ctx.fillStyle = "#06231a";
+        ctx.textBaseline = "middle";
         ctx.fillText(n.name, x0 + 3, y + semi / 2);
       }
     }
