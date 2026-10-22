@@ -42,6 +42,28 @@ function Slider({
   );
 }
 
+function Playhead({ left }: { left: string | null }) {
+  return <div className="playhead" hidden={left === null} style={{ left: left ?? undefined }} />;
+}
+
+function PlaybackButton({
+  kind,
+  playing,
+  disabled,
+  onClick,
+}: {
+  kind: "audio" | "midi";
+  playing: "audio" | "midi" | null;
+  disabled: boolean;
+  onClick: (kind: "audio" | "midi") => void;
+}) {
+  return (
+    <Button className="play" disabled={disabled} onClick={() => onClick(kind)}>
+      {playing === kind ? "■ Stop" : `▶ Play ${kind === "midi" ? "MIDI" : "audio"}`}
+    </Button>
+  );
+}
+
 export function Editor({ id }: { id: string }) {
   const state = useEditor(id);
   const playhead =
@@ -59,20 +81,15 @@ export function Editor({ id }: { id: string }) {
           </div>
           <div className="grid-wrap">
             <canvas className="trace roll" ref={state.traceRef} />
-            <div
-              className="playhead"
-              hidden={playhead === null}
-              style={{ left: playhead ?? undefined }}
-            />
+            <Playhead left={playhead} />
           </div>
           <div className="row actions">
-            <Button
-              className="play"
+            <PlaybackButton
+              kind="audio"
+              playing={state.playing}
               disabled={!state.record}
-              onClick={() => state.togglePlayback("audio")}
-            >
-              {state.playing === "audio" ? "■ Stop" : "▶ Play audio"}
-            </Button>
+              onClick={state.togglePlayback}
+            />
             <Button
               className="export"
               disabled={!state.record}
@@ -137,20 +154,15 @@ export function Editor({ id }: { id: string }) {
               style={{ cursor: state.rollHover ? "pointer" : undefined }}
               title="Click a note to hear it, Ctrl+click to mute or unmute it."
             />
-            <div
-              className="playhead"
-              hidden={playhead === null}
-              style={{ left: playhead ?? undefined }}
-            />
+            <Playhead left={playhead} />
           </div>
           <div className="row actions">
-            <Button
-              className="play"
+            <PlaybackButton
+              kind="midi"
+              playing={state.playing}
               disabled={!state.record}
-              onClick={() => state.togglePlayback("midi")}
-            >
-              {state.playing === "midi" ? "■ Stop" : "▶ Play MIDI"}
-            </Button>
+              onClick={state.togglePlayback}
+            />
             <Button
               variant="primary"
               className="export"

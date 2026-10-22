@@ -60,10 +60,16 @@ npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
 npm run lint      # oxlint
+npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run format    # oxfmt
 npm run format:check # verify formatting
-npm run check     # typecheck + lint + format check + tests + build
+npm run check     # typecheck + lint + format check + dupes + tests + build
 ```
+
+The duplication check normalizes renamed variables and changed literals. Its baseline
+contains two overlapping matches between unrelated hook state declarations; new
+matches fail the check. Fallow's separate model-backed `similar-code` command can
+suggest functions with different structures for manual review, but is not a CI gate.
 
 ## Deployment
 

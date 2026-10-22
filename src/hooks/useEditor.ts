@@ -171,6 +171,15 @@ export function useEditor(id: string) {
   const persist = useCallback((next: Recording) => {
     void putRecording(next);
   }, []);
+  const scheduleTuning = useCallback(
+    (next: Recording) => {
+      replaceRecord(next);
+      tuningDirty.current = true;
+      window.clearTimeout(persistTimer.current);
+      persistTimer.current = window.setTimeout(flushTuning, 300);
+    },
+    [flushTuning, replaceRecord],
+  );
   const changeTuning = useCallback(
     (key: keyof Tuning, value: number) => {
       const current = recordRef.current;
@@ -179,12 +188,9 @@ export function useEditor(id: string) {
         ...current,
         tuning: updateTuning({ ...DEFAULT_TUNING, ...current.tuning }, key, value),
       };
-      replaceRecord(next);
-      tuningDirty.current = true;
-      window.clearTimeout(persistTimer.current);
-      persistTimer.current = window.setTimeout(flushTuning, 300);
+      scheduleTuning(next);
     },
-    [flushTuning, replaceRecord],
+    [scheduleTuning],
   );
 
   const resetTuning = useCallback(
@@ -197,12 +203,9 @@ export function useEditor(id: string) {
           ? { ...DEFAULT_TUNING, ...current.tuning, [key]: DEFAULT_TUNING[key] }
           : { ...DEFAULT_TUNING },
       };
-      replaceRecord(next);
-      tuningDirty.current = true;
-      window.clearTimeout(persistTimer.current);
-      persistTimer.current = window.setTimeout(flushTuning, 300);
+      scheduleTuning(next);
     },
-    [flushTuning, replaceRecord],
+    [scheduleTuning],
   );
 
   const changeQuantize = useCallback(
