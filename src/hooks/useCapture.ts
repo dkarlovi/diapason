@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { openMic, listInputDevices, type MicHandle } from "../audio";
 import { createPitchDetector, type PitchDetector } from "../pitch";
 import { type Frame } from "../notes";
@@ -7,8 +8,8 @@ import { startMetronome, type MetronomeHandle } from "../metronome";
 import { encodeAudio } from "../codec";
 import { putRecording, type Recording } from "../db";
 import { loadLastTuning } from "../tuning";
-import { $, show, renderChecklist, checksFor, fmtDate } from "../ui";
-import { go } from "../router";
+import { $, renderChecklist, checksFor, fmtDate } from "../ui";
+import { go, takePath } from "../router";
 
 const LIVE_WINDOW_SEC = 5;
 
@@ -18,6 +19,9 @@ let recorder: Recorder | null = null;
 let metro: MetronomeHandle | null = null;
 let rafId = 0;
 let active = false;
+let noiseTimer = 0;
+let beatTimer = 0;
+let micGeneration = 0;
 
 let micStart = 0;
 let liveFrames: Frame[] = [];
@@ -36,6 +40,7 @@ const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(3
 async function refreshDevices(): Promise<void> {
   try {
     const devices = await listInputDevices();
+    if (!active) return;
     const sel = $<HTMLSelectElement>("cap-device");
     const prev = sel.value;
     sel.innerHTML = "";
@@ -52,9 +57,15 @@ async function refreshDevices(): Promise<void> {
 }
 
 async function openCaptureMic(): Promise<void> {
+  const generation = ++micGeneration;
   closeMic();
   const deviceId = $<HTMLSelectElement>("cap-device").value;
-  mic = await openMic(deviceId ? { deviceId } : {});
+  const opened = await openMic(deviceId ? { deviceId } : {});
+  if (!active || generation !== micGeneration) {
+    opened.close();
+    return;
+  }
+  mic = opened;
   detector = createPitchDetector(mic.sampleRate);
   mic.setGain(num("cap-gain"));
   micStart = performance.now();
@@ -157,7 +168,8 @@ function measureRoom(): void {
   measuringNoise = true;
   noiseSamples = [];
   $("cap-noise-readout").textContent = "measuring… stay silent";
-  window.setTimeout(() => {
+  noiseTimer = window.setTimeout(() => {
+    if (!active) return;
     measuringNoise = false;
     noiseSamples.sort((a, b) => a - b);
     const p95 = noiseSamples[Math.floor(noiseSamples.length * 0.95)] ?? 0;
@@ -173,7 +185,8 @@ function flashBeat(beatIndex: number, beatsPerBar: number): void {
   const accent = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
   dot.classList.toggle("accent", accent);
   dot.classList.add("on");
-  window.setTimeout(() => dot.classList.remove("on"), 90);
+  window.clearTimeout(beatTimer);
+  beatTimer = window.setTimeout(() => dot.classList.remove("on"), 90);
   $("cap-count").textContent = beatIndex < 0 ? String(-beatIndex) : "";
 }
 
@@ -181,7 +194,12 @@ async function startRecording(): Promise<void> {
   if (!mic) return;
   const ctx = mic.context;
   await ctx.resume();
+  if (!active || !mic) return;
   if (!recorder) recorder = await createRecorder(ctx, mic.tap);
+  if (!active) {
+    closeMic();
+    return;
+  }
   const beatsPerBar = Math.max(1, Math.round(num("cap-beats")));
   const bpm = Math.max(40, Math.round(num("cap-bpm")));
 
@@ -238,11 +256,10 @@ async function stopRecording(): Promise<void> {
     tuning: loadLastTuning(),
   };
   await putRecording(rec);
-  go(`#/take/${rec.id}`);
+  if (active) go(takePath(rec.id));
 }
 
-export function activateCapture(): void {
-  show("view-capture", true);
+function activateCapture(): void {
   active = true;
   noiseMeasured = false;
   recording = false;
@@ -256,7 +273,6 @@ export function activateCapture(): void {
   // the first interaction so the live meter/trace actually run.
   $("view-capture").onpointerdown = (): void => void mic?.context.resume();
 
-  $("cap-back").onclick = (): void => go("#/");
   $("cap-refresh").onclick = (): void => void refreshDevices();
   $<HTMLSelectElement>("cap-device").onchange = (): void => void openCaptureMic();
   $("cap-gain").oninput = (e): void => {
@@ -275,17 +291,26 @@ export function activateCapture(): void {
   openCaptureMic()
     .then(() => active && loop())
     .catch((err) => {
-      $("cap-status").textContent = `Mic error: ${(err as Error).message}`;
+      if (active) $("cap-status").textContent = `Mic error: ${(err as Error).message}`;
     });
 }
 
-export function deactivateCapture(): void {
+function deactivateCapture(): void {
   active = false;
+  micGeneration++;
+  window.clearTimeout(noiseTimer);
+  window.clearTimeout(beatTimer);
   cancelAnimationFrame(rafId);
   rafId = 0;
   metro?.stop();
   metro = null;
   recording = false;
   closeMic();
-  show("view-capture", false);
+}
+
+export function useCapture(): void {
+  useEffect(() => {
+    activateCapture();
+    return deactivateCapture;
+  }, []);
 }

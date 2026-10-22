@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
 import { decodeAudio } from "../codec";
 import { analyzeBuffer, ANALYZE_DEFAULTS, qualityStats, type QualityStats } from "../recorder";
@@ -9,10 +10,10 @@ import { notesToMidi } from "../midi";
 import { encodeWav } from "../wav";
 import { buildReport, buildReportData, type ReportInput } from "../diagnostics";
 import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
-import { $, show, downloadBlob } from "../ui";
-import { go } from "../router";
+import { $, downloadBlob } from "../ui";
+import { go, takePath } from "../router";
 import { playPcm, playNotes, type Playback } from "../playback";
-import { INSTRUMENTS, DEFAULT_PLAY, type PlaySettings } from "../instruments";
+import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import { onOutputChange, activeOutput } from "../midiout";
 
 let rec: Recording | null = null;
@@ -25,6 +26,7 @@ let playingBtn: HTMLButtonElement | null = null;
 let rafId = 0;
 let preview: Playback | null = null;
 let offOutput: (() => void) | null = null;
+let loadGeneration = 0;
 
 /** Slider id ↔ tuning key, with the slider's unit conversion and value label. */
 interface Slider {
@@ -198,15 +200,18 @@ function onTuneChange(): void {
   }, 300);
 }
 
-async function load(id: string): Promise<void> {
+async function load(id: string, generation: number): Promise<void> {
   const r = await getRecording(id);
+  if (generation !== loadGeneration) return;
   if (!r) {
-    go("#/");
+    go("/");
     return;
   }
   stopPlayback();
+  const decoded = await decodeAudio(r.audio);
+  if (generation !== loadGeneration) return;
   rec = r;
-  pcm = await decodeAudio(r.audio);
+  pcm = decoded;
   frames = analyzeBuffer(pcm, r.sampleRate, { maskBpm: r.bpm });
   stats = qualityStats(frames, pcm);
 
@@ -228,11 +233,10 @@ async function load(id: string): Promise<void> {
   render();
 }
 
-export function activateEditor(id: string): void {
-  show("view-editor", true);
+function activateEditor(id: string): void {
+  rec = null;
   document.body.classList.add("wide");
   window.addEventListener("resize", render);
-  $("ed-back").onclick = (): void => go("#/");
 
   for (const s of SLIDERS) {
     input(s.id).oninput = onTuneChange;
@@ -272,12 +276,12 @@ export function activateEditor(id: string): void {
       createdAt: Date.now(),
     };
     await putRecording(copy);
-    go(`#/take/${copy.id}`);
+    go(takePath(copy.id));
   };
   $("ed-delete").onclick = async (): Promise<void> => {
     if (!rec || !confirm(`Delete “${rec.name}”?`)) return;
     await deleteRecording(rec.id);
-    go("#/");
+    go("/");
   };
 
   const roll = $<HTMLCanvasElement>("ed-roll");
@@ -296,9 +300,6 @@ export function activateEditor(id: string): void {
   // Playback instrument/octave, saved with the take.
   const instSel = $<HTMLSelectElement>("ed-instrument");
   const octSel = $<HTMLSelectElement>("ed-octave");
-  instSel.innerHTML = INSTRUMENTS.map((i) => `<option value="${i.id}">${i.label}</option>`).join(
-    "",
-  );
   instSel.onchange = octSel.onchange = (): void => {
     if (!rec) return;
     rec.play = {
@@ -356,7 +357,7 @@ export function activateEditor(id: string): void {
     }
   };
 
-  void load(id);
+  void load(id, ++loadGeneration);
 }
 
 function slug(): string {
@@ -367,7 +368,8 @@ function slug(): string {
   return `diapason-${base || "take"}-${Date.now()}`;
 }
 
-export function deactivateEditor(): void {
+function deactivateEditor(): void {
+  loadGeneration++;
   window.clearTimeout(persistTimer);
   stopPlayback();
   preview?.stop();
@@ -375,5 +377,11 @@ export function deactivateEditor(): void {
   offOutput = null;
   document.body.classList.remove("wide");
   window.removeEventListener("resize", render);
-  show("view-editor", false);
+}
+
+export function useEditor(id: string): void {
+  useEffect(() => {
+    activateEditor(id);
+    return deactivateEditor;
+  }, [id]);
 }

@@ -1,0 +1,20 @@
+import { render, screen } from "@testing-library/react";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { beforeEach, expect, it, vi } from "vitest";
+import { Editor } from "./Editor";
+
+vi.mock("../db", () => ({ getRecording: async () => undefined }));
+beforeEach(() => history.replaceState(null, "", "/diapason/take/missing"));
+
+it("returns to the library when a take in the URL no longer exists", async () => {
+  render(
+    <BrowserRouter basename="/diapason">
+      <Routes>
+        <Route path="/take/:id" element={<Editor id="missing" />} />
+        <Route path="/" element={<div>Library route</div>} />
+      </Routes>
+    </BrowserRouter>,
+  );
+  expect(await screen.findByText("Library route")).toBeTruthy();
+  expect(location.pathname).toBe("/diapason/");
+});

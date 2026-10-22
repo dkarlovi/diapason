@@ -11,16 +11,16 @@ instrument but can carry a tune by whistling.
 ## A takes studio
 
 diapason is organized as a **library of takes**, persisted in your browser
-(IndexedDB) so a refresh never loses them. Three views, hash-routed:
+(IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
-1. **Library** (`#/`) — your recordings. Open / duplicate / delete.
-2. **Capture** (`#/new`) — full signal calibration (device, gain, raw-audio
+1. **Library** (`/diapason/`) — your recordings. Open / duplicate / delete.
+2. **Capture** (`/diapason/new`) — full signal calibration (device, gain, raw-audio
    check, record the room) → set **tempo**, get a **count-in + audible
    metronome**, and record on the downbeat. The take is saved and opens in the
    editor. The metronome click is removed from pitch detection automatically
    (its beat times are known, so those windows are skipped — the stored audio
    stays untouched).
-3. **Editor** (`#/take/:id`) — all post-processing on a take: pitch trace,
+3. **Editor** (`/diapason/take/:id`) — all post-processing on a take: pitch trace,
    **per-recording tuning** sliders (saved with the take), live note list,
    **tempo-aware quantization**, and exports (`.mid` / `.wav` / `.json` / log).
 
@@ -58,6 +58,10 @@ Other scripts:
 npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
+npm test          # Vitest regression tests
+npm run lint      # oxlint
+npm run format    # oxfmt
+npm run format:check # verify formatting
 ```
 
 ## Deployment
@@ -69,28 +73,28 @@ repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
 the committed lockfile; no deployment secrets are needed.
 
 Vite's base path is `/diapason/` so built assets load from the project URL.
-The app uses hash routing, so editor and capture links also work on Pages.
+The build copies `index.html` to `404.html` so direct links to capture and editor routes work on GitHub Pages. Existing hash bookmarks are redirected to path URLs.
 
 ## How it works
 
-| Stage                           | File                       | Notes                                                   |
-| ------------------------------- | -------------------------- | ------------------------------------------------------- |
-| Mic capture (raw, DSP off)      | `src/audio.ts`             | `getUserMedia` + `AnalyserNode`                         |
-| Pitch detection                 | `src/pitch.ts`             | McLeod / NSDF, band-limited to whistle range            |
-| Note mapping + segmentation     | `src/notes.ts`             | Hz→MIDI, median-filter, onset/offset heuristics         |
-| PCM recorder + offline analysis | `src/recorder.ts`          | AudioWorklet capture, re-analyze buffers, quality stats |
-| Pitch-trace visualization       | `src/trace.ts`             | Canvas 2D pitch-over-time renderer                      |
-| WAV encoder                     | `src/wav.ts`               | Mono 16-bit PCM WAV for offline inspection              |
-| Diagnostics report              | `src/diagnostics.ts`       | Structured (.json) + text report of a sample            |
-| MIDI file writer                | `src/midi.ts`              | Standard MIDI File (Type 0), no deps                    |
-| Metronome                       | `src/metronome.ts`         | Count-in + audible click, AudioContext-scheduled        |
-| Tempo quantization              | `src/quantize.ts`          | Snap note start/length to a beat grid                   |
-| Storage codec                   | `src/codec.ts`             | Float32↔Int16, gzip via `CompressionStream`             |
-| IndexedDB library               | `src/db.ts`                | Persisted takes (no deps)                               |
-| Per-take tuning                 | `src/tuning.ts`            | Defaults + last-used persistence                        |
-| Hash router                     | `src/router.ts`            | `#/`, `#/new`, `#/take/:id`                             |
-| Views                           | `src/views/*.ts`           | `library`, `capture`, `editor`                          |
-| Shared UI + entry               | `src/ui.ts`, `src/main.ts` | helpers + router wiring                                 |
+| Stage                           | File                                            | Notes                                                   |
+| ------------------------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| Mic capture (raw, DSP off)      | `src/audio.ts`                                  | `getUserMedia` + `AnalyserNode`                         |
+| Pitch detection                 | `src/pitch.ts`                                  | McLeod / NSDF, band-limited to whistle range            |
+| Note mapping + segmentation     | `src/notes.ts`                                  | Hz→MIDI, median-filter, onset/offset heuristics         |
+| PCM recorder + offline analysis | `src/recorder.ts`                               | AudioWorklet capture, re-analyze buffers, quality stats |
+| Pitch-trace visualization       | `src/trace.ts`                                  | Canvas 2D pitch-over-time renderer                      |
+| WAV encoder                     | `src/wav.ts`                                    | Mono 16-bit PCM WAV for offline inspection              |
+| Diagnostics report              | `src/diagnostics.ts`                            | Structured (.json) + text report of a sample            |
+| MIDI file writer                | `src/midi.ts`                                   | Standard MIDI File (Type 0), no deps                    |
+| Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled        |
+| Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                   |
+| Storage codec                   | `src/codec.ts`                                  | Float32↔Int16, gzip via `CompressionStream`             |
+| IndexedDB library               | `src/db.ts`                                     | Persisted takes (no deps)                               |
+| Per-take tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
+| Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                          |
+| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and screen behavior                     |
+| Shared UI + entry               | `src/components/primitives.tsx`, `src/main.tsx` | controls and app root                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a take is opened, so the editor always reflects the
