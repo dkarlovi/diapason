@@ -1,0 +1,49 @@
+{
+  "kind": "health",
+  "finding_counts": {
+    "src/hooks/useCapture.ts": {
+      "complexity_critical": {
+        "count": 1
+      },
+      "crap_high": {
+        "count": 1
+      },
+      "crap_moderate": {
+        "count": 2
+      }
+    },
+    "src/hooks/useEditor.ts": {
+      "complexity_critical": {
+        "count": 1
+      }
+    },
+    "src/hooks/useLibrary.ts": {
+      "crap_moderate": {
+        "count": 1
+      }
+    },
+    "src/notes.ts": {
+      "complexity_high": {
+        "count": 1
+      }
+    },
+    "src/pitch.ts": {
+      "complexity_high": {
+        "count": 1
+      },
+      "crap_high": {
+        "count": 1
+      }
+    },
+    "src/trace.ts": {
+      "complexity_critical": {
+        "count": 1
+      },
+      "crap_critical": {
+        "count": 1
+      }
+    }
+  },
+  "runtime_coverage_findings": [],
+  "target_keys": []
+}

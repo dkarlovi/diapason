@@ -61,15 +61,23 @@ npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
 npm run lint      # oxlint
 npm run dupes     # Fallow semantic/near-miss duplicate check
+npm run audit     # Fallow dead code, complexity, duplication, and styling review
+npm run metrics   # advisory health scores, hotspots, and refactoring targets
 npm run format    # oxfmt
 npm run format:check # verify formatting
-npm run check     # typecheck + lint + format check + dupes + tests + build
+npm run check     # typecheck + lint + format check + Fallow + tests + build
 ```
 
 The duplication check normalizes renamed variables and changed literals. Its baseline
 contains two overlapping matches between unrelated hook state declarations; new
 matches fail the check. Fallow's separate model-backed `similar-code` command can
 suggest functions with different structures for manual review, but is not a CI gate.
+The audit also blocks new dead code and complexity findings. Its health baseline
+records nine existing complexity hotspots for later refactoring; CSS findings
+are advisory while styling work is pending. The metrics report remains visible
+in local checks and CI without blocking on existing hotspots. Fallow audit
+compares against the base branch, so run it from a Git checkout with the base
+branch available.
 
 ## Deployment
 

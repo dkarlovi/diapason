@@ -13,12 +13,6 @@ export function midiToName(midi: number): string {
   return `${name}${octave}`;
 }
 
-/** Cents away from the nearest semitone (-50..+50), for the calibration stability meter. */
-export function centsOff(freq: number): number {
-  const midi = freqToMidi(freq);
-  return Math.round((midi - Math.round(midi)) * 100);
-}
-
 /** A single captured analysis frame. `t` is seconds from capture start. */
 export interface Frame {
   t: number;
