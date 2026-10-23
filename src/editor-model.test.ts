@@ -1,3 +1,4 @@
+import { recording } from "./test-support/recording";
 import { describe, expect, it } from "vitest";
 import {
   sliderValue,
@@ -36,7 +37,7 @@ describe("editor calculations", () => {
   });
 
   it("builds diagnostics input from a recording without UI state", () => {
-    const rec = { name: "Melody", sampleRate: 48000, durationSec: 2, tuning: {} };
+    const rec = recording({ name: "Melody", durationSec: 2 });
     const stats = { voicedRatio: 1, medianClarity: 0.99, centsStd: 0, clipped: false, peak: 0.2 };
     expect(makeReportInput(rec, [], stats)).toMatchObject({
       title: "Melody",

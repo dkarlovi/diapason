@@ -174,6 +174,7 @@ export function useCapture() {
           dspOff: dspStatus(opened.getSettings()).every((check) => check.off),
         },
         tuning: { ...loadLastTuning(), rmsGate: settings.room.gate },
+        quantize: { on: false, subdivision: 2 },
       };
       if (!isCurrentMic(opened)) return;
       await putRecording(record);

@@ -1,6 +1,5 @@
 // Audible metronome with a count-in, scheduled on the AudioContext clock for timing
-// accuracy. The click bleeds into the raw mic, but because every beat is at a known
-// time it's masked at detection time (see analyzeBuffer `maskBpm`) — not cancelled.
+// accuracy. It guides the performer; its schedule must not erase captured audio.
 
 export interface TransportState {
   bpm: number;

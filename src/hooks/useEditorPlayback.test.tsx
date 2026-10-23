@@ -1,3 +1,4 @@
+import { webcrypto } from "node:crypto";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -73,6 +74,7 @@ function wrapper({ children }: { children: ReactNode }) {
 let callbacks: Map<number, FrameRequestCallback>;
 let nextId: number;
 beforeEach(() => {
+  vi.stubGlobal("crypto", webcrypto);
   state.saves = [];
   state.downloads = [];
   state.handles = [];
@@ -163,10 +165,10 @@ function read(blob: Blob): Promise<ArrayBuffer> {
 }
 it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", async () => {
   const { result } = await editor();
-  act(() => {
+  await act(async () => {
     result.current.downloadMidi();
     result.current.downloadWav();
-    result.current.downloadJson();
+    await result.current.downloadJson();
   });
   const [midi, wav, json] = state.downloads;
   expect(midi?.name).toMatch(/\.mid$/);
@@ -314,4 +316,49 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
     { tick: 605, status: 0x90, key: 72, velocity: 96 },
     { tick: 941, status: 0x80, key: 72, velocity: 0 },
   ]);
+});
+
+it("pairs diagnostic JSON with the exact downloaded WAV and includes the export state", async () => {
+  const { result } = await editor();
+  act(() => result.current.changeQuantize(false, 4));
+  await act(async () => {
+    await result.current.downloadJson();
+    result.current.downloadWav();
+  });
+  const json = state.downloads.find((item) => item.name.endsWith(".json"))!;
+  const wav = state.downloads.find((item) => item.name.endsWith(".wav"))!;
+  const report = JSON.parse(new TextDecoder().decode(await read(json.blob)));
+  expect(report.audio).toMatchObject({
+    sampleCount: 48000,
+    sampleRate: 48000,
+    format: "pcm16-mono",
+    timelineOrigin: "recording-downbeat",
+  });
+  const digest = await crypto.subtle.digest("SHA-256", await read(wav.blob));
+  const hash = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+  expect(report.audio.sha256).toBe(hash);
+  expect(report.settings.quantize).toEqual({ on: false, subdivision: 4 });
+});
+
+it("does not download an obsolete JSON snapshot after navigating to another recording", async () => {
+  const hook = await editor();
+  let release!: (bytes: ArrayBuffer) => void;
+  const pendingDigest = new Promise<ArrayBuffer>((resolve) => {
+    release = resolve;
+  });
+  const digest = vi.spyOn(crypto.subtle, "digest").mockReturnValueOnce(pendingDigest);
+  let exporting!: Promise<void>;
+  act(() => {
+    exporting = hook.result.current.downloadJson();
+  });
+  hook.rerender({ id: "two" });
+  await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
+  await act(async () => {
+    release(new ArrayBuffer(32));
+    await exporting;
+  });
+  expect(state.downloads).toHaveLength(0);
+  digest.mockRestore();
 });

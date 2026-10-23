@@ -1,10 +1,12 @@
+import { activeOutput } from "../midiout";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { Recording } from "../db";
 import type { Frame } from "../notes";
 import type { QualityStats } from "../recorder";
 import { notesToMidi } from "../midi";
 import { encodeWav } from "../wav";
-import { buildReport, buildReportData } from "../diagnostics";
+import { buildReport } from "../diagnostics";
+import { diagnosticSnapshot } from "../diagnostic-snapshot";
 import { downloadBlob } from "../ui";
 import { exportSlug, makeReportInput } from "../editor-model";
 import { recordingNotes } from "../recording";
@@ -35,6 +37,17 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
       `${exportSlug(recordRef.current?.name ?? "recording", Date.now())}.${extension}`,
     [recordRef],
   );
+  const reportInput = useCallback(
+    (current: Recording, stats: QualityStats) => ({
+      ...makeReportInput(current, frames, stats),
+      context: {
+        browser: navigator.userAgent,
+        audioOutput: "unknown",
+        midiOutput: activeOutput()?.name ?? "Browser synth",
+      },
+    }),
+    [frames],
+  );
   const downloadMidi = useCallback(() => {
     const current = recordRef.current;
     if (current)
@@ -47,21 +60,27 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
     const current = recordRef.current;
     if (current) downloadBlob(encodeWav(pcmRef.current, current.sampleRate), filename("wav"));
   }, [filename, recordRef, pcmRef]);
-  const downloadJson = useCallback(() => {
+  const downloadJson = useCallback(async () => {
     const current = recordRef.current;
     if (!current || !statsRef.current) return;
-    const json = JSON.stringify(
-      buildReportData(makeReportInput(current, frames, statsRef.current)),
-      null,
-      2,
-    );
-    downloadBlob(new Blob([json], { type: "application/json" }), filename("json"));
-  }, [filename, frames, recordRef, statsRef]);
+    const token = generation.current;
+    const name = filename("json");
+    try {
+      const { report } = await diagnosticSnapshot(
+        reportInput(current, statsRef.current),
+        pcmRef.current,
+      );
+      if (token !== generation.current) return;
+      downloadBlob(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), name);
+    } catch {
+      if (token === generation.current) setCopyStatus("Diagnostics export failed; please retry.");
+    }
+  }, [filename, reportInput, recordRef, statsRef, pcmRef]);
   const copyLog = useCallback(async () => {
     const current = recordRef.current;
     if (!current || !statsRef.current) return;
     const token = generation.current;
-    const report = buildReport(makeReportInput(current, frames, statsRef.current));
+    const report = buildReport(reportInput(current, statsRef.current));
     setReportText(report);
     try {
       await navigator.clipboard.writeText(report);
@@ -69,7 +88,7 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
     } catch {
       if (token === generation.current) setCopyStatus("select the text above to copy");
     }
-  }, [frames, recordRef, statsRef]);
+  }, [reportInput, recordRef, statsRef]);
   useEffect(() => {
     if (copyStatus.startsWith("select")) logRef.current?.select();
   }, [copyStatus]);

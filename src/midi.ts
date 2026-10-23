@@ -34,10 +34,33 @@ const u32 = (n: number): number[] => [
 
 const u16 = (n: number): number[] => [(n >> 8) & 0xff, n & 0xff];
 
-interface RawEvent {
+export interface MidiEvent {
   tick: number;
   type: "on" | "off";
   midi: number;
+}
+
+/** Absolute events shared by diagnostic evidence and the file writer. */
+export function midiEvents(events: NoteEvent[], opts: MidiOptions = {}): MidiEvent[] {
+  const bpm = opts.bpm ?? 120;
+  const ppq = opts.ppq ?? 480;
+  const secToTicks = (sec: number) => Math.round((sec * bpm * ppq) / 60);
+  // Build an absolute-time list of note-on / note-off events.
+  const abs: MidiEvent[] = [];
+  let previousOff = -1;
+  for (const e of events) {
+    const on = secToTicks(e.start);
+    const off = secToTicks(e.start + e.duration);
+    if (on < previousOff)
+      throw new Error("MIDI resolution cannot preserve distinct monophonic notes at this PPQ.");
+    previousOff = Math.max(off, on + 1);
+    abs.push({ tick: on, type: "on", midi: e.midi });
+    abs.push({ tick: Math.max(off, on + 1), type: "off", midi: e.midi });
+  }
+  // Sort by tick; note-off before note-on at the same tick to free the pitch.
+  abs.sort((a, b) => a.tick - b.tick || (a.type === "off" ? -1 : 1));
+
+  return abs;
 }
 
 export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
@@ -45,18 +68,8 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
   const bpm = opts.bpm ?? 120;
   const velocity = opts.velocity ?? 96;
   const usPerQuarter = Math.round(60000000 / bpm);
-  const secToTicks = (sec: number): number => Math.round((sec * bpm * ppq) / 60);
 
-  // Build an absolute-time list of note-on / note-off events.
-  const abs: RawEvent[] = [];
-  for (const e of events) {
-    const on = secToTicks(e.start);
-    const off = secToTicks(e.start + e.duration);
-    abs.push({ tick: on, type: "on", midi: e.midi });
-    abs.push({ tick: Math.max(off, on + 1), type: "off", midi: e.midi });
-  }
-  // Sort by tick; note-off before note-on at the same tick to free the pitch.
-  abs.sort((a, b) => a.tick - b.tick || (a.type === "off" ? -1 : 1));
+  const abs = midiEvents(events, opts);
 
   const track: number[] = [];
   // Tempo meta event.

@@ -1,11 +1,11 @@
 // A recording's notes as the user hears/exports them: segmented with its tuning, quantized
 // with its grid setting, minus the notes the user muted. Shared by editor and library.
 
-import type { MutedNote, QuantizeSetting, Recording } from "./db";
+import type { MutedNote, Recording } from "./db";
 import { segmentNotes, type Frame, type NoteEvent } from "./notes";
-import { quantizeNotes } from "./quantize";
-
-export const DEFAULT_QUANTIZE: QuantizeSetting = { on: true, subdivision: 2 };
+import { quantizeSequence } from "./quantize";
+import { resolveRecordingSettings } from "./recording-settings";
+export { DEFAULT_QUANTIZE } from "./recording-settings";
 
 /** A detected note: `raw` as segmented, `note` as shown/exported (maybe quantized). */
 export interface NoteItem {
@@ -17,17 +17,33 @@ export interface NoteItem {
 export const covers = (m: MutedNote, raw: NoteEvent): boolean =>
   m.t >= raw.start && m.t <= raw.start + raw.duration && Math.abs(m.midi - raw.midi) <= 1;
 
-export function recordingItems(rec: Recording, frames: Frame[]): NoteItem[] {
-  const seg = segmentNotes(frames, rec.tuning);
-  const q = rec.quantize ?? DEFAULT_QUANTIZE;
-  const shown = q.on ? quantizeNotes(seg, { bpm: rec.bpm, subdivision: q.subdivision }) : seg;
+export function processRecording(rec: Recording, frames: Frame[]) {
+  const settings = resolveRecordingSettings(rec);
+  const segmented = segmentNotes(frames, settings.tuning);
+  const quantized = settings.quantize.on
+    ? quantizeSequence(segmented, { bpm: rec.bpm, subdivision: settings.quantize.subdivision })
+    : { notes: segmented, adjustments: [] };
   const muted = rec.muted ?? [];
-  return seg.map((raw, i) => ({ raw, note: shown[i]!, muted: muted.some((m) => covers(m, raw)) }));
+  const items = segmented.map((raw, i) => ({
+    raw,
+    note: quantized.notes[i]!,
+    muted: muted.some((m) => covers(m, raw)),
+  }));
+  return {
+    settings,
+    segmented,
+    quantized: quantized.notes,
+    adjustments: quantized.adjustments,
+    items,
+    notes: items.filter((item) => !item.muted).map((item) => item.note),
+  };
+}
+
+export function recordingItems(rec: Recording, frames: Frame[]): NoteItem[] {
+  return processRecording(rec, frames).items;
 }
 
 /** Notes that are switched on — what gets played and exported. */
 export function recordingNotes(rec: Recording, frames: Frame[]): NoteEvent[] {
-  return recordingItems(rec, frames)
-    .filter((i) => !i.muted)
-    .map((i) => i.note);
+  return processRecording(rec, frames).notes;
 }

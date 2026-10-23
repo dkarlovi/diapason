@@ -20,17 +20,21 @@ diapason is organized as a **library of recordings**, persisted in your browser
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
    the microphone, or entering BPM. Preview the metronome and choose beats per
    bar, then confirm. One bar counts you in before recording starts on the downbeat.
-   The saved recording opens in the editor. Known metronome beat windows are
-   skipped during pitch detection; stored audio stays untouched.
+   The saved recording opens in the editor. The metronome guides your timing; its beat schedule never blanks captured
+   pitches. Stored audio stays untouched.
 3. **Editor** (`/diapason/recording/:id`) — all post-processing on a recording: pitch trace,
    **per-recording tuning** sliders (saved with the recording), an interactive
    MIDI piano roll, audio/MIDI playback, **tempo-aware quantization**, and
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
 
-Quantization defaults to eighth notes, with quarter notes, sixteenth notes, and
-eighth-note triplets also available. It snaps note starts and ends to the
-recording's tempo grid and can be disabled to preserve the detected timing.
+New recordings preserve detected timing by default. Optional quantization offers
+quarter notes, eighth notes, sixteenth notes, and eighth-note triplets. It snaps
+notes where possible while preserving their order: when a grid would collapse
+distinct onsets, the affected notes keep their original onsets. Short notes retain
+their length, and note ends are limited by the next onset to prevent overlaps.
+Existing saved grid settings remain in effect; legacy recordings without an
+explicit setting retain their eighth-note default.
 The header's **MIDI out** picker routes note playback to the browser synth or an
 external synth/DAW via Web MIDI when supported and permitted. Browser playback
 offers instrument sounds and an octave shift; these playback settings do not
@@ -158,8 +162,26 @@ Each recording can be exported from the editor's **Recording** panel:
   quality stats, the segmented notes, and the full per-frame pitch track.
 - **Copy log** — the same report as compact text, for pasting inline.
 
-Diagnostic notes use default segmentation with the recording's level gate;
-they do not include the editor's other tuning changes, quantization, or muting.
+Schema-2 JSON includes complete saved and effective analysis/tuning settings, BPM,
+grid, muted anchors, playback settings, build identity, full-precision pitch frames,
+segmented and quantized notes, collision adjustments, final enabled notes, and
+absolute MIDI tick events. The top-level `notes` are the notes exported to MIDI.
+Playback octave/instrument settings are recorded separately and do not change MIDI export.
+
+Export JSON and WAV from the same recording. JSON identifies the exact mono PCM16
+WAV with its SHA-256, sample count, and sample rate. WAV export preserves the PCM
+samples used for analysis. A local developer replay command checks the pair and
+reports the first differing processing field:
+
+```bash
+npm run debug:recording -- --json recording.json --wav recording.wav --out /tmp/diapason-replay
+```
+
+It writes a replay summary and regenerated MIDI; mismatched audio is rejected, and
+a processing mismatch exits unsuccessfully. Older JSON exports are reported as
+incomplete because their missing settings cannot be recovered reliably. Browser
+and output descriptions are diagnostic context, not a snapshot of an external
+synth's sound or hardware configuration.
 
 Together these let detection be debugged without being at the mic.
 

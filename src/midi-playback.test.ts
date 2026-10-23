@@ -17,7 +17,7 @@ it("schedules timestamped notes with lead-in, octave shift and early note-offs",
     [[0x90, 81, 100], 1250],
     [[0x80, 81, 0], 1345],
     [[0x90, 82, 100], 1350],
-    [[0x80, 82, 0], 1370],
+    [[0x80, 82, 0], 1350.5],
   ]);
 });
 it("clamps position before playback and lasts through the longer of notes or requested duration", () => {
@@ -86,3 +86,10 @@ it.each([true, false])(
     expect(queue.filter((event) => event.message[0] === 0x90)).toHaveLength(supportsClear ? 0 : 1);
   },
 );
+
+it("ends short notes before a following note instead of enforcing a 20ms overlap", () => {
+  vi.spyOn(performance, "now").mockReturnValue(0);
+  const send = vi.fn();
+  playNotesMidi({ send } as unknown as MIDIOutput, [note(69, 0, 0.01), note(70, 0.01, 0.01)], 1, 0);
+  expect(send.mock.calls[1]![1]).toBeLessThanOrEqual(send.mock.calls[2]![1]);
+});
