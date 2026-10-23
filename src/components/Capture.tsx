@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useCapture } from "../hooks/useCapture";
-import { nextSetupStep, type SetupStep } from "../recording-setup";
+import { nextSetupStep, validTempo, type SetupStep } from "../recording-setup";
 import { Breadcrumb, Button } from "./primitives";
 import { LiveMonitor } from "./LiveMonitor";
 import { CaptureControls } from "./CaptureControls";
@@ -48,55 +48,58 @@ export function Capture() {
   return (
     <div id="view-capture" onPointerDown={state.resume}>
       <Breadcrumb current="New recording" />
-      <LiveMonitor
-        level={state.level}
-        traceRef={state.traceRef}
-        mode={mode}
-        bpm={state.setup.bpm}
-        beatsPerBar={state.setup.beatsPerBar}
-        confirmed={state.setup.tempoConfirmed}
-        connected={state.sampleRate > 0}
-        gain={state.gain}
-        onGainChange={state.changeGain}
-        locked={locked}
-      />
-      <p role="status">{state.status}</p>
-      {STEPS.filter((_, index) => index <= nextIndex).map((step, index) => (
-        <section
-          key={step.id}
-          className={`setup-step ${active === step.id ? "active" : "completed"}`}
-        >
-          <div className="step-heading">
-            <h2 ref={active === step.id ? heading : undefined} tabIndex={-1}>
-              {index + 1} — {step.title}
-            </h2>
-            {active !== step.id && (
-              <Button
-                disabled={locked}
-                aria-label={`Edit ${step.title}`}
-                onClick={() => {
-                  state.tempo.stop();
-                  setEditing(step.id);
-                }}
-              >
-                Edit
-              </Button>
-            )}
-          </div>
-          {active !== step.id ? (
-            <p className="hint">
-              {index < nextIndex ? `✓ ${summaries[step.id]}` : "Not checked yet"}
-            </p>
-          ) : (
-            <fieldset disabled={locked && step.id !== "record"} className="setup-controls">
-              <CaptureControls step={step.id} state={state} advance={advance} />
-              {editing === step.id && step.id !== "sound" && (
-                <Button onClick={() => setEditing(null)}>Done editing</Button>
+      <div className="pair capture-layout">
+        <div className="capture-monitor">
+          <LiveMonitor
+            level={state.level}
+            traceRef={state.traceRef}
+            mode={mode}
+            bpm={validTempo(state.setup.bpm, state.setup.beatsPerBar) ? state.setup.bpm : null}
+            beatsPerBar={state.setup.beatsPerBar}
+            confirmed={state.setup.tempoConfirmed}
+            connected={state.sampleRate > 0}
+          />
+        </div>
+        <div className="capture-wizard">
+          <p role="status">{state.status}</p>
+          {STEPS.filter((_, index) => index <= nextIndex).map((step, index) => (
+            <section
+              key={step.id}
+              className={`setup-step ${active === step.id ? "active" : "completed"}`}
+            >
+              <div className="step-heading">
+                <h2 ref={active === step.id ? heading : undefined} tabIndex={-1}>
+                  {index + 1} — {step.title}
+                </h2>
+                {active !== step.id && (
+                  <Button
+                    disabled={locked}
+                    aria-label={`Edit ${step.title}`}
+                    onClick={() => {
+                      state.tempo.stop();
+                      setEditing(step.id);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                )}
+              </div>
+              {active !== step.id ? (
+                <p className="hint">
+                  {index < nextIndex ? `✓ ${summaries[step.id]}` : "Not checked yet"}
+                </p>
+              ) : (
+                <fieldset disabled={locked && step.id !== "record"} className="setup-controls">
+                  <CaptureControls step={step.id} state={state} advance={advance} />
+                  {editing === step.id && step.id !== "sound" && (
+                    <Button onClick={() => setEditing(null)}>Done editing</Button>
+                  )}
+                </fieldset>
               )}
-            </fieldset>
-          )}
-        </section>
-      ))}
+            </section>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

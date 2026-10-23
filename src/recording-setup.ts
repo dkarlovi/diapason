@@ -39,7 +39,7 @@ export const initialSetup: SetupState = {
   room: null,
   sound: null,
   measuring: null,
-  bpm: 90,
+  bpm: NaN,
   beatsPerBar: 4,
   tempoConfirmed: false,
   busy: false,

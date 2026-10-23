@@ -5,7 +5,13 @@ import { useTempo } from "./useTempo";
 import { setupCheck } from "../capture-model";
 import { getSoundProfile } from "../recording-profiles";
 import type { TransportState } from "../metronome";
-import { canRecord, initialSetup, setupReducer, type SetupAction } from "../recording-setup";
+import {
+  canRecord,
+  initialSetup,
+  setupReducer,
+  validTempo,
+  type SetupAction,
+} from "../recording-setup";
 export function useRecordingSetup({
   isBusy,
   onBeforeClose,
@@ -57,14 +63,14 @@ export function useRecordingSetup({
   }, [microphone.profile, microphone.gate, setup.profileId, setup.room]);
   useEffect(() => {
     const clock = transport ?? tempo.transport;
-    microphone.monitor.current =
-      Number.isFinite(setup.bpm) && setup.bpm > 0
-        ? {
-            bpm: clock?.bpm ?? setup.bpm,
-            beatsPerBar: clock?.beatsPerBar ?? setup.beatsPerBar,
-            origin: clock?.downbeatTime ?? currentMic()?.context.currentTime ?? 0,
-          }
-        : null;
+    microphone.monitor.current = validTempo(setup.bpm, setup.beatsPerBar)
+      ? {
+          bpm: clock?.bpm ?? setup.bpm,
+          beatsPerBar: clock?.beatsPerBar ?? setup.beatsPerBar,
+          origin: clock?.downbeatTime ?? currentMic()?.context.currentTime ?? 0,
+          showTimeLabels: transport !== null && transport.running,
+        }
+      : null;
   }, [
     currentMic,
     microphone.monitor,
@@ -91,7 +97,7 @@ export function useRecordingSetup({
     tempo.stop();
     microphone.changeGain(gain);
     update({ type: "gain", value: gain });
-    setStatus("Gain changed — measure room noise and check your sound again.");
+    setStatus("");
   };
   const micChecks = microphone.dsp.map((check) =>
     setupCheck(

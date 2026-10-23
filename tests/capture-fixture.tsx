@@ -155,6 +155,7 @@ export async function calibratedCapture() {
   advance(1500);
   await click("Check my sound");
   advance(2000, true);
+  fireEvent.change(screen.getByLabelText("Tempo (BPM)"), { target: { value: "90" } });
   await click("Confirm tempo");
   return view;
 }

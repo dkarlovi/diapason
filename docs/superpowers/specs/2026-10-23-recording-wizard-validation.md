@@ -34,3 +34,9 @@ No deferred Minor review findings.
 Real microphone checks remain necessary: laptop/external inputs, quiet/noisy rooms, actual whistles/claps, physical clipping, room/sound threshold tuning, permission UX, unplug/reconnect, and real speaker bleed. Full keyboard/screen-reader and visual moving-grid/audio synchronization checks across supported browsers also remain manual. Synthetic tests must not be presented as proving acoustic accuracy or cross-browser hardware behavior.
 
 Humming and instruments remain future capabilities. Whistling is the only exposed profile; no take URL aliases or redirects were retained. Existing stored recording audio and user-authored names are preserved.
+
+## UX follow-up
+
+The live monitor now uses the editor’s responsive two-column layout, on the left of the wizard, with a chart overlay before microphone connection. BPM starts empty and no vertical tempo/time lines are drawn until a valid tempo is selected or detected. Preview beat lines are unnumbered; count-in and recording show bar numbers. Gain is shared between microphone setup and room-noise recovery, rather than the live monitor. The bar-line caption was removed.
+
+Chrome checked the side-by-side desktop geometry, chart overlay, blank initial tempo, unnumbered preview, recording bar numbers, mobile overflow, clap detection, and saving. No runtime exceptions. Follow-up screenshots: `/tmp/diapason-ux-disconnected.png`, `/tmp/diapason-ux-desktop.png`, `/tmp/diapason-ux-mobile.png`, `/tmp/diapason-ux-recording.png`. Acoustic validation remains a separate manual task.

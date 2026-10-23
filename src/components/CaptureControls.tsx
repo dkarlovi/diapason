@@ -26,6 +26,24 @@ function SoundChoice({ state, advance }: { state: CaptureState; advance: Advance
   );
 }
 
+function InputGain({ state }: { state: CaptureState }) {
+  return (
+    <div className="field">
+      <label htmlFor="cap-gain">Input gain — {state.gain.toFixed(1)}×</label>
+      <input
+        id="cap-gain"
+        type="range"
+        min="1"
+        max="20"
+        step="0.5"
+        value={state.gain}
+        disabled={!!state.measuring}
+        onChange={(event) => state.changeGain(Number(event.target.value))}
+      />
+    </div>
+  );
+}
+
 function MicrophoneSetup({ state, advance }: { state: CaptureState; advance: Advance }) {
   return (
     <>
@@ -58,6 +76,7 @@ function MicrophoneSetup({ state, advance }: { state: CaptureState; advance: Adv
               Reconnect microphone
             </Button>
           </div>
+          <InputGain state={state} />
           <StatusChecklist checks={state.micChecks} />
           {state.dsp.some((check) => !check.known) && (
             <label className="acknowledgment">
@@ -120,6 +139,7 @@ function AcousticSetup({ state, room }: { state: CaptureState; room: boolean }) 
           ? "Stay silent for about 1.5 seconds while we measure the background noise."
           : state.profile.instruction}
       </p>
+      {room && <InputGain state={state} />}
       <MeasurementControl
         label={room ? "Measure room noise" : "Check my sound"}
         pendingLabel={room ? "Measuring… stay silent" : "Checking… keep sounding"}

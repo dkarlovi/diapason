@@ -13,6 +13,8 @@ export interface TraceView {
   /** Tempo grid: vertical lines at each beat (bars emphasized), optional subdivisions. Beat 0 is t=0. */
   beatOrigin?: number;
   playheadTime?: number;
+  /** Hide time/bar numbers for a live preview with no recording start. */
+  showTimeLabels?: boolean;
   beats?: { bpm: number; beatsPerBar: number; subdivision?: number };
   /** Note events drawn as piano-roll bars; the pitch trace is then drawn faintly behind them. */
   notes?: NoteEvent[];
@@ -136,9 +138,9 @@ function drawBeatGrid(
       origin + i * step <= tMax;
       i++
     ) {
-      drawBeatLine(ctx, xOf(origin + i * step), i, perBar, sub, h);
+      drawBeatLine(ctx, xOf(origin + i * step), i, perBar, sub, h, view.showTimeLabels !== false);
     }
-  } else {
+  } else if (view.showTimeLabels !== false) {
     ctx.fillStyle = COLORS.label;
     ctx.strokeStyle = COLORS.grid;
     for (let second = Math.ceil(tMin); second <= tMax; second++) {
@@ -241,6 +243,7 @@ function drawBeatLine(
   perBar: number,
   sub: number,
   height: number,
+  showLabel: boolean,
 ): void {
   const isBar = index % perBar === 0;
   ctx.strokeStyle = isBar ? COLORS.bar : index % sub === 0 ? COLORS.beat : COLORS.sub;
@@ -249,7 +252,7 @@ function drawBeatLine(
   ctx.moveTo(x, 0);
   ctx.lineTo(x, height);
   ctx.stroke();
-  if (isBar) {
+  if (isBar && showLabel) {
     ctx.fillStyle = COLORS.label;
     ctx.textBaseline = "top";
     ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, 2);

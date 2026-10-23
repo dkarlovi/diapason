@@ -21,6 +21,7 @@ interface MonitorGrid {
   bpm: number;
   beatsPerBar: number;
   origin: number;
+  showTimeLabels: boolean;
 }
 export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -126,6 +127,7 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
             tMax: t + 0.2,
             ...autoRange(frames),
             playheadTime: t,
+            showTimeLabels: monitor.current?.showTimeLabels ?? false,
             ...(monitor.current
               ? { beats: monitor.current, beatOrigin: monitor.current.origin }
               : {}),

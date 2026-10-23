@@ -234,7 +234,7 @@ canvas.trace {
 }
 
 /* editor: recording (left) vs. MIDI result (right), mirrored */
-main:has(#view-editor) {
+main:has(#view-editor, #view-capture) {
   max-width: 1280px;
 }
 .pair {
@@ -476,5 +476,40 @@ select:focus-visible {
   }
   .tempo-fields {
     grid-template-columns: 1fr;
+  }
+}
+
+.capture-monitor,
+.capture-wizard {
+  min-width: 0;
+}
+.capture-monitor {
+  position: sticky;
+  top: 1rem;
+}
+.capture-wizard > [role="status"]:empty {
+  display: none;
+}
+.live-chart {
+  position: relative;
+}
+.live-chart canvas {
+  display: block;
+  background: #0a0d11;
+}
+.live-chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  margin: 0;
+  color: var(--muted);
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .capture-monitor {
+    position: static;
   }
 }

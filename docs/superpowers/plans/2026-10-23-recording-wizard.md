@@ -50,7 +50,7 @@
 
 Implemented Tasks 1–8 on `recording-wizard`. Task 9 automated checks and synthetic browser validation pass; physical microphone/acoustic validation remains pending. See [validation and implementation decisions](../specs/2026-10-23-recording-wizard-validation.md).
 
-Implementation refinements: `useMeasurements` shares the bounded room/sound lifecycle; `useRecordingSetup` separates prerequisites from recording resources; `CaptureControls` separates step presentation; `useTempoEstimate` owns event estimates; worklet registration is shared per AudioContext. Gain lives in the persistent monitor so failed room checks remain recoverable.
+Implementation refinements: `useMeasurements` shares the bounded room/sound lifecycle; `useRecordingSetup` separates prerequisites from recording resources; `CaptureControls` separates step presentation; `useTempoEstimate` owns event estimates; worklet registration is shared per AudioContext. After UX review, gain lives in microphone setup and room-noise recovery. The monitor sits left of the wizard, overlays the disconnected label on its chart, omits tempo lines until a valid BPM is chosen, and numbers bars only during count-in/recording.
 
 ## Execution order
 
@@ -110,7 +110,7 @@ Tasks are sequential integration slices. Each task uses its listed tests: add re
 
 - [x] Test identical status semantics across raw settings and acoustic checks, textual unknown states, sound-without-pitch messaging, room/clap instructions, and retained passed rows during silence. Verify failures.
 - [x] Extend trace tests for beat spacing at 60/120 BPM, emphasized bars, shifted origins, negative count-in beats, playhead, and unchanged static editor output. Verify failures using canvas call assertions, not raster snapshots.
-- [x] Implement shared presentation, accessible canvas description/readouts, and grid drawing. Time frames from the opened AudioContext; only convert coordinates once. Scrolling history remains bounded. Seconds scale before a tempo exists; draft/default grid explicitly says Preview until confirmed. Silence must not disable grid animation.
+- [x] Implement shared presentation, accessible canvas description/readouts, and grid drawing. Time frames from the opened AudioContext; only convert coordinates once. Scrolling history remains bounded. Pitch-only chart before a tempo exists; selected/estimated tempo grid explicitly says Preview until confirmed. Live grid time/bar labels appear only during count-in and recording. Silence must not disable grid animation.
 - [x] Run `npm test -- src/trace.test.ts src/components/StatusChecklist.test.tsx src/components/LiveMonitor.test.tsx src/components/Checklist.test.tsx`; expect passes.
 - [ ] Commit shared monitor/grid UI.
 

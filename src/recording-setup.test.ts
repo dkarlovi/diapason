@@ -17,6 +17,7 @@ it("unlocks in order and retains successful checks until their dependencies chan
   s = setupReducer(s, { type: "sound-start" });
   s = setupReducer(s, { type: "sound-result", revision: s.revision, result: pass });
   expect(nextSetupStep(s)).toBe("tempo");
+  s = setupReducer(s, { type: "tempo", bpm: 90, beatsPerBar: 4 });
   s = setupReducer(s, { type: "tempo-confirm" });
   expect(canRecord(s)).toBe(true);
   expect(setupReducer(s, { type: "gain", value: 1 })).toEqual(s);
