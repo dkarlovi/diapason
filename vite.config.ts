@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { PIPELINE_VERSION } from "./src/build-info";
+import { PIPELINE_VERSION } from "./src/build-info.ts";
 
 let revision = "unknown";
 try {

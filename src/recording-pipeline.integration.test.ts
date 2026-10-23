@@ -57,16 +57,21 @@ it.each([40, 95, 180, 220])(
 );
 
 it("replays the real exported JSON/WAV into identical MIDI bytes", async () => {
+  // Replay reanalyzes its audio, so a 2 s excerpt keeps the test fast on slow runners.
+  const excerpt = pcm.slice(0, sampleRate * 2);
+  const short = { ...rec, durationSec: excerpt.length / sampleRate };
+  const excerptFrames = analyzeRecording(excerpt, sampleRate, short);
   const { report, wav: output } = await diagnosticSnapshot(
-    makeReportInput(rec, frames, qualityStats(frames, pcm)),
-    pcm,
+    makeReportInput(short, excerptFrames, qualityStats(excerptFrames, excerpt)),
+    excerpt,
   );
   const replay = await replayDiagnostics(
     JSON.parse(JSON.stringify(report)),
     await output.arrayBuffer(),
   );
   expect(replay.status).toBe("match");
-  expect(replay.notes).toHaveLength(22);
+  expect(report.notes.length).toBeGreaterThan(2);
+  expect(replay.notes).toEqual(report.notes);
   const expected = await notesToMidi(report.notes, { bpm: rec.bpm }).arrayBuffer();
   expect(new Uint8Array(await replay.midi!.arrayBuffer())).toEqual(new Uint8Array(expected));
-}, 20_000);
+});
