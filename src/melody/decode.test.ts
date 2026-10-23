@@ -11,10 +11,11 @@ const context: PitchContext = {
   key: null,
   harmony: [],
   range: { minMidi: freqToMidi(250), maxMidi: freqToMidi(3000) },
+  tuning: 0,
 };
 const gentle = PRESETS.gentle.knobs;
 function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
-  return notesFromSegments(segmentMelody(frames, knobs), frames, knobs, context);
+  return notesFromSegments(segmentMelody(frames, knobs), knobs, context);
 }
 function frames(parts: [number, number | null][]): Frame[] {
   const result: Frame[] = [];

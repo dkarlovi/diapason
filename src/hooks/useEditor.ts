@@ -9,13 +9,14 @@ import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange, type TraceView } from "../trace";
 import { processRecording, previewNotes, covers, type NoteItem } from "../recording";
-import { melodySettingFor, type MelodySetting } from "../melody/settings";
-import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
+import type { MelodySetting } from "../melody/settings";
+import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import { noteAtPoint, toggleMuted } from "../editor-model";
 
+const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useEditor(id: string) {
   const navigate = useNavigate();
@@ -75,10 +76,6 @@ export function useEditor(id: string) {
   }, [flushMelody, id, navigate, replaceRecord]);
 
   const play = record?.play ?? DEFAULT_PLAY;
-  const melody = record
-    ? melodySettingFor(record)
-    : { preset: DEFAULT_PRESET, overrides: {}, key: "auto" as const };
-  const knobs = resolveKnobs(melody.preset, melody.overrides);
   const processed = useMemo(
     () => (record ? processRecording(record, frames) : null),
     [record, frames],
@@ -86,6 +83,8 @@ export function useEditor(id: string) {
   const items = processed?.items ?? [];
   const notes = useMemo(() => processed?.notes ?? [], [processed]);
   const interpretation = processed?.interpretation ?? null;
+  const melody = processed?.settings.melody ?? NO_MELODY;
+  const grid = interpretation?.knobs.grid ?? 0;
   const selectedItem = selected ? items.find((item) => covers(selected, item.raw)) : undefined;
   const {
     playing,
@@ -143,12 +142,12 @@ export function useEditor(id: string) {
       baseView && beats
         ? {
             ...baseView,
-            beats: { ...beats, subdivision: knobs.grid || 1 },
+            beats: { ...beats, subdivision: grid || 1 },
             notes,
             muted,
           }
         : null,
-    [baseView, beats, knobs.grid, notes, muted],
+    [baseView, beats, grid, notes, muted],
   );
 
   useEffect(() => {
@@ -255,7 +254,7 @@ export function useEditor(id: string) {
     selectNote,
     items,
     play,
-    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${PRESETS[melody.preset].label}${knobs.grid ? " · grid on" : " · performed timing"}`,
+    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${PRESETS[melody.preset].label}${grid ? " · grid on" : " · performed timing"}`,
     meta: record
       ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
       : "",

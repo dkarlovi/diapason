@@ -63,6 +63,7 @@ export function makeReportInput(
   stats: QualityStats,
 ): ReportInput {
   const analysis = analysisOptionsFor(record);
+  const melody = melodySettingFor(record);
   return {
     recording: record,
     title: record.name,
@@ -75,8 +76,7 @@ export function makeReportInput(
       maxFreq: analysis.maxFreq,
       clarityThreshold: analysis.clarityThreshold,
     },
-    rmsGate: resolveKnobs(melodySettingFor(record).preset, melodySettingFor(record).overrides)
-      .levelGate,
+    rmsGate: resolveKnobs(melody.preset, melody.overrides).levelGate,
     frames,
     stats,
   };

@@ -1,5 +1,5 @@
 import type { Frame, NoteEvent } from "../notes";
-import { notesFromSegments, segmentMelody } from "./decode";
+import { nearestNotes, notesFromSegments, segmentMelody } from "./decode";
 import { inferHarmony, type ChordSpan } from "./harmony";
 import {
   fitTuning,
@@ -33,18 +33,8 @@ export function interpretMelody(
 ): Interpretation {
   const { knobs, range, timing } = input;
   const segments = segmentMelody(frames, knobs);
-  const hop = frames.length > 1 ? frames[1]!.t - frames[0]!.t : 0;
-  const performed = segments.map((segment) => ({
-    pitch: segment.pitch,
-    duration: (segment.end - segment.start) * hop,
-  }));
-  const performedTuning = fitTuning(performed);
-  const faithful = notesFromSegments(
-    segments,
-    frames,
-    { ...knobs, pitchTrust: 1, keyPull: 0, harmonyPull: 0, leapPenalty: 0, maxMoveSemitones: 0 },
-    { key: null, harmony: [], range, tuning: performedTuning },
-  );
+  const performedTuning = fitTuning(segments);
+  const faithful = nearestNotes(segments, performedTuning);
   const ranked = rankKeys(faithful);
   let chosen: Key | null = faithful.length
     ? input.key === "auto"
@@ -55,12 +45,12 @@ export function interpretMelody(
   // that change the mode afterwards keep the tuning that was performed.
   const tuning =
     chosen && input.key !== "auto"
-      ? fitTuning(performed, scalePitchClasses(chosen))
+      ? fitTuning(segments, scalePitchClasses(chosen))
       : performedTuning;
   if (chosen && Math.abs(knobs.modeBias) >= 0.5)
     chosen = parallelKey(chosen, knobs.modeBias > 0 ? "major" : "minor");
   const harmony = chosen ? inferHarmony(faithful, chosen, timing, knobs.harmonyRate) : [];
-  const decoded = notesFromSegments(segments, frames, knobs, {
+  const decoded = notesFromSegments(segments, knobs, {
     key: chosen,
     harmony,
     range,

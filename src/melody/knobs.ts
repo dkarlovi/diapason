@@ -148,7 +148,8 @@ function preset(
 ): Preset {
   return { id, label, kind, blurb, knobs: { ...BASE, ...overrides } };
 }
-// Initial weights; listening gates determine the final defaults and mood settings.
+// Held notes stay whole and short slips are absorbed: Clean and every mood.
+const STEADY = { pitchTrust: 0.4, stickiness: 1, slipMs: 250 } satisfies Partial<Knobs>;
 export const PRESETS: Record<PresetId, Preset> = {
   "as-played": preset("as-played", "As played", "intent", "Keep my pitches and timing.", {
     pitchTrust: 1,
@@ -160,11 +161,9 @@ export const PRESETS: Record<PresetId, Preset> = {
   }),
   gentle: preset("gentle", "Gentle fix", "intent", "Steady held notes and soften slips.", {}),
   clean: preset("clean", "Clean", "intent", "Use stronger musical guidance.", {
-    pitchTrust: 0.4,
-    stickiness: 1,
+    ...STEADY,
     keyPull: 1,
     harmonyPull: 0.4,
-    slipMs: 250,
     grid: 2,
   }),
   "keep-odd": preset(
@@ -175,21 +174,16 @@ export const PRESETS: Record<PresetId, Preset> = {
     { pitchTrust: 0.8, keepOddNotes: 1, keyPull: 0.3 },
   ),
   happy: preset("happy", "Happy", "mood", "A brighter version of the tune.", {
+    ...STEADY,
     modeBias: 1,
-    pitchTrust: 0.4,
-    stickiness: 1,
-    slipMs: 250,
   }),
   sad: preset("sad", "Sad", "mood", "A darker version of the tune.", {
+    ...STEADY,
     modeBias: -1,
-    pitchTrust: 0.4,
-    stickiness: 1,
-    slipMs: 250,
   }),
   dreamy: preset("dreamy", "Dreamy", "mood", "Smooth movement and flowing notes.", {
+    ...STEADY,
     pitchTrust: 0.3,
-    stickiness: 1,
-    slipMs: 250,
     leapPenalty: 1,
     articulation: 1.2,
     gridPull: 0.1,
@@ -199,7 +193,7 @@ export const PRESETS: Record<PresetId, Preset> = {
     "Syncopated",
     "mood",
     "Anticipated beats with a rhythmic lift.",
-    { pitchTrust: 0.4, stickiness: 1, slipMs: 250, grid: 2, gridPull: 1, syncopation: 1 },
+    { ...STEADY, grid: 2, gridPull: 1, syncopation: 1 },
   ),
 };
 function validValue(def: KnobDef, value: unknown): boolean {

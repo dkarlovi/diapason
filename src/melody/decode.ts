@@ -6,12 +6,12 @@ export interface PitchContext {
   harmony: { start: number; end: number; pitchClasses: ReadonlySet<number> }[];
   range: { minMidi: number; maxMidi: number };
   /** Performer's tuning relative to A440, in semitones; subtracted before labelling. */
-  tuning?: number;
+  tuning: number;
 }
-/** One performed note: frame span plus a single continuous pitch. */
+/** One performed note, in seconds, with a single continuous pitch. */
 export interface Segment {
   start: number;
-  end: number;
+  duration: number;
   pitch: number;
 }
 interface Span {
@@ -171,6 +171,14 @@ function segmentPiece(frames: Frame[], piece: Span, knobs: Knobs, options: Piece
     pitch: notePitch(raw.slice(part.start, part.end)),
   }));
 }
+function inSeconds(frames: Frame[], piece: Span & { pitch: number }): Segment {
+  const time = (index: number) => frames[index]?.t ?? frames.at(-1)!.t + hopOf(frames);
+  return {
+    start: time(piece.start),
+    duration: time(piece.end) - time(piece.start),
+    pitch: piece.pitch,
+  };
+}
 export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
   const hop = hopOf(frames);
   const stickiness = Math.min(1, Math.max(0, knobs.stickiness));
@@ -182,7 +190,8 @@ export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
   return voicedSpans(frames, knobs)
     .flatMap((span) => articulations(frames, span))
     .flatMap((piece) => segmentPiece(frames, piece, knobs, options))
-    .filter((segment) => (segment.end - segment.start) * hop >= knobs.minNoteMs / 1000);
+    .map((piece) => inSeconds(frames, piece))
+    .filter((segment) => segment.duration >= knobs.minNoteMs / 1000);
 }
 function pitchScore(
   pitch: number,
@@ -216,13 +225,9 @@ function emissions(
   space: LabelSpace,
 ) {
   const pitch = segment.pitch - space.tuning;
-  const scores = Float64Array.from({ length: space.count }, (_, s) =>
+  return Float64Array.from({ length: space.count }, (_, s) =>
     pitchScore(pitch, space.low + s, knobs, space.scale, chord),
   );
-  // A pitch outside every state's reach keeps its nearest in-range label.
-  if (scores.every((score) => score === -Infinity))
-    scores[Math.min(space.count - 1, Math.max(0, Math.round(pitch) - space.low))] = 0;
-  return scores;
 }
 function bestPredecessor(previous: Float64Array, state: number, leapPenalty: number) {
   let best = -Infinity,
@@ -238,23 +243,18 @@ function bestPredecessor(previous: Float64Array, state: number, leapPenalty: num
 }
 // Note-level Viterbi: each performed note gets one pitch, chosen from its
 // tuned pitch, the key, the implied chord and the size of the melodic step.
-function labelSegments(
-  segments: Segment[],
-  frames: Frame[],
-  knobs: Knobs,
-  context: PitchContext,
-): number[] {
+function labelSegments(segments: Segment[], knobs: Knobs, context: PitchContext): number[] {
   const low = Math.round(context.range.minMidi);
   const space: LabelSpace = {
     low,
     count: Math.round(context.range.maxMidi) - low + 1,
     scale: context.key ? scalePitchClasses(context.key) : null,
-    tuning: context.tuning ?? 0,
+    tuning: context.tuning,
   };
   let previous = new Float64Array(space.count);
   const back: Int32Array[] = [];
   for (const segment of segments) {
-    const time = (frames[segment.start]!.t + (frames[segment.end - 1] ?? frames.at(-1)!).t) / 2;
+    const time = segment.start + segment.duration / 2;
     const chord = context.harmony.find((span) => span.start <= time && time < span.end);
     const scores = emissions(segment, chord?.pitchClasses, knobs, space);
     const leap = back.length ? knobs.leapPenalty : 0;
@@ -275,23 +275,18 @@ function labelSegments(
   }
   return labels;
 }
+function toNote(segment: Segment, midi: number): NoteEvent {
+  return { midi, name: midiToName(midi), start: segment.start, duration: segment.duration };
+}
 export function notesFromSegments(
   segments: Segment[],
-  frames: Frame[],
   knobs: Knobs,
   context: PitchContext,
 ): NoteEvent[] {
-  if (!segments.length) return [];
-  const end = frames[frames.length - 1]!.t + hopOf(frames);
-  const labels = labelSegments(segments, frames, knobs, context);
-  return segments.map((segment, i) => {
-    const start = frames[segment.start]!.t;
-    const midi = labels[i]!;
-    return {
-      midi,
-      name: midiToName(midi),
-      start,
-      duration: (frames[segment.end]?.t ?? end) - start,
-    };
-  });
+  const labels = labelSegments(segments, knobs, context);
+  return segments.map((segment, i) => toNote(segment, labels[i]!));
+}
+/** The nearest tuned semitone for every note, with no musical context. */
+export function nearestNotes(segments: Segment[], tuning: number): NoteEvent[] {
+  return segments.map((segment) => toNote(segment, Math.round(segment.pitch - tuning)));
 }
