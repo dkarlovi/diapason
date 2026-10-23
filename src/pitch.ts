@@ -22,12 +22,11 @@ export interface PitchOptions {
   clarityThreshold?: number;
 }
 
-export const PITCH_DEFAULTS: Required<PitchOptions> = {
+const DEFAULTS: Required<PitchOptions> = {
   minFreq: 250,
   maxFreq: 3000, // human whistling tops out well below this; capping rejects HF noise latching
   clarityThreshold: 0.9,
 };
-const DEFAULTS = PITCH_DEFAULTS;
 
 // MPM: accept the first key maximum whose NSDF value is at least this fraction of the
 // largest key maximum. Picking the FIRST (shortest period) such peak — not the global

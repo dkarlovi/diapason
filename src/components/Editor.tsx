@@ -1,46 +1,7 @@
 import { INSTRUMENTS } from "../instruments";
 import { useEditor } from "../hooks/useEditor";
-import { SLIDERS, sliderLabel, sliderValue, type SliderDef } from "../editor-model";
-import type { Tuning } from "../tuning";
+import { MelodyPanel } from "./MelodyPanel";
 import { Breadcrumb, Button, Field } from "./primitives";
-
-function Slider({
-  item,
-  tuning,
-  onChange,
-  onReset,
-}: {
-  item: SliderDef;
-  tuning: Tuning;
-  onChange: (key: keyof Tuning, value: number) => void;
-  onReset: (key: keyof Tuning) => void;
-}) {
-  const value = sliderValue(item.key, tuning);
-  return (
-    <div className="ctl">
-      <label
-        htmlFor={item.id}
-        title={`${item.tip}\nDouble-click to reset.`}
-        onDoubleClick={(event) => {
-          event.preventDefault();
-          onReset(item.key);
-        }}
-      >
-        {item.label}
-      </label>
-      <input
-        id={item.id}
-        type="range"
-        min={item.min}
-        max={item.max}
-        step={item.step}
-        value={value}
-        onChange={(event) => onChange(item.key, Number(event.target.value))}
-      />
-      <span className="val">{sliderLabel(item.key, value)}</span>
-    </div>
-  );
-}
 
 function Playhead({ left }: { left: string | null }) {
   return <div className="playhead" hidden={left === null} style={{ left: left ?? undefined }} />;
@@ -209,67 +170,42 @@ export function Editor({ id }: { id: string }) {
               <option value="-3">−3 oct</option>
             </select>
           </div>
-          <div className="row" style={{ marginTop: "1.1rem" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: ".4rem", margin: 0 }}>
-              <input
-                type="checkbox"
-                style={{ width: "auto" }}
-                checked={state.quantize.on}
-                disabled={!state.record}
-                onChange={(event) =>
-                  state.changeQuantize(event.target.checked, state.quantize.subdivision)
-                }
-              />{" "}
-              Quantize to
-            </label>
-            <div style={{ width: 140 }}>
-              <select
-                value={state.quantize.subdivision}
-                disabled={!state.record || !state.quantize.on}
-                onChange={(event) =>
-                  state.changeQuantize(state.quantize.on, Number(event.target.value))
-                }
-              >
-                <option value="1">1/4 notes</option>
-                <option value="2">1/8 notes</option>
-                <option value="4">1/16 notes</option>
-                <option value="3">1/8 triplets</option>
-              </select>
-            </div>
-          </div>
-          <div className="tune" style={{ marginTop: "1rem" }}>
-            {SLIDERS.slice(0, 2).map((item) => (
-              <Slider
-                key={item.id}
-                item={item}
-                tuning={state.tuning}
-                onChange={state.changeTuning}
-                onReset={state.resetTuning}
-              />
-            ))}
-          </div>
+          <p className="selected-note" aria-live="polite">
+            {state.selectedNote
+              ? `Selected: ${state.selectedNote.name} · ${state.selectedNote.start.toFixed(2)}s · ${state.selectedNote.duration.toFixed(2)}s long`
+              : "Click a note to see its name and hear it."}
+          </p>
+          {state.selectedNote ? (
+            <Button onClick={state.previewContext}>Hear in context</Button>
+          ) : null}
           <details className="more">
-            <summary>More</summary>
-            <div className="tune">
-              {SLIDERS.slice(2).map((item) => (
-                <Slider
-                  key={item.id}
-                  item={item}
-                  tuning={state.tuning}
-                  onChange={state.changeTuning}
-                  onReset={state.resetTuning}
-                />
+            <summary>Notes</summary>
+            <div className="note-list">
+              {state.items.map((item, index) => (
+                <Button
+                  key={`${item.raw.start}-${index}`}
+                  aria-label={`${item.note.name} at ${item.note.start.toFixed(2)} seconds${item.muted ? ", muted" : ""}`}
+                  onClick={() => state.selectNote(item)}
+                >
+                  {item.note.name} · {item.note.start.toFixed(2)}s{item.muted ? " · muted" : ""}
+                </Button>
               ))}
             </div>
-            <div className="row" style={{ marginTop: ".8rem" }}>
-              <Button disabled={!state.record} onClick={() => state.resetTuning()}>
-                Reset all
-              </Button>
-            </div>
           </details>
+          <MelodyPanel
+            melody={state.melody}
+            interpretation={state.interpretation}
+            disabled={!state.record}
+            previewId={state.previewId}
+            applyPreset={state.applyPreset}
+            changeKnob={state.changeKnob}
+            resetKnob={state.resetKnob}
+            changeKey={state.changeKey}
+            previewMelody={state.previewMelody}
+          />
           <p className="hint">
-            Click a note on the grid to hear it, Ctrl+click to mute it. Tuning is saved with this
-            recording; hover a label for what it does, double-click it to reset.
+            Click a note to hear it, Ctrl/Cmd+click to mute or unmute it. Melody settings are saved
+            with this recording. Double-click a control label to reset it.
           </p>
         </section>
       </div>

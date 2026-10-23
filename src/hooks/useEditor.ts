@@ -8,20 +8,16 @@ import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange, type TraceView } from "../trace";
-import { recordingItems, DEFAULT_QUANTIZE } from "../recording";
-import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
+import { processRecording, previewNotes, covers, type NoteItem } from "../recording";
+import type { MelodySetting } from "../melody/settings";
+import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
+import { useMelodySettings } from "./useMelodySettings";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
-import { noteAtPoint, toggleMuted, updateTuning } from "../editor-model";
+import { noteAtPoint, toggleMuted } from "../editor-model";
 
+const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-const gridLabels: Record<number, string> = {
-  1: "1/4 notes",
-  2: "1/8 notes",
-  4: "1/16 notes",
-  3: "1/8 triplets",
-};
-
 export function useEditor(id: string) {
   const navigate = useNavigate();
   const [record, setRecord] = useState<Recording | null>(null);
@@ -34,8 +30,7 @@ export function useEditor(id: string) {
   const stats = useRef<QualityStats | null>(null);
   const traceRef = useRef<HTMLCanvasElement>(null);
   const rollRef = useRef<HTMLCanvasElement>(null);
-  const persistTimer = useRef(0);
-  const tuningDirty = useRef(false);
+  const [selected, setSelected] = useState<{ t: number; midi: number } | null>(null);
   const mounted = useRef(false);
 
   const replaceRecord = useCallback((next: Recording) => {
@@ -43,22 +38,20 @@ export function useEditor(id: string) {
     setRecord(next);
   }, []);
 
-  const flushTuning = useCallback(() => {
-    if (!tuningDirty.current) return;
-    tuningDirty.current = false;
-    persistTimer.current = 0;
-    const latest = recordRef.current;
-    if (!latest) return;
-    void putRecording(latest);
-    saveLastTuning(latest.tuning as Tuning);
-  }, []);
-
+  const {
+    flush: flushMelody,
+    applyPreset,
+    changeKnob,
+    resetKnob,
+    changeKey,
+  } = useMelodySettings(recordRef, replaceRecord);
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
     recordRef.current = null;
     setRecord(null);
     setFrames([]);
+    setSelected(null);
     void (async () => {
       const found = await getRecording(id);
       if (cancelled) return;
@@ -78,25 +71,60 @@ export function useEditor(id: string) {
     return () => {
       cancelled = true;
       mounted.current = false;
-      window.clearTimeout(persistTimer.current);
-      flushTuning();
+      flushMelody();
     };
-  }, [flushTuning, id, navigate, replaceRecord]);
+  }, [flushMelody, id, navigate, replaceRecord]);
 
-  const quantize = record?.quantize ?? DEFAULT_QUANTIZE;
   const play = record?.play ?? DEFAULT_PLAY;
-  const tuning = { ...DEFAULT_TUNING, ...record?.tuning };
-  const items = useMemo(() => (record ? recordingItems(record, frames) : []), [record, frames]);
-  const notes = useMemo(
-    () => items.filter((item) => !item.muted).map((item) => item.note),
-    [items],
+  const processed = useMemo(
+    () => (record ? processRecording(record, frames) : null),
+    [record, frames],
   );
-  const { playing, position, externalOutput, togglePlayback, previewNote } = useEditorPlayback({
-    recordingId: id,
-    recordRef,
-    pcmRef: pcm,
-    notes,
-  });
+  const items = processed?.items ?? [];
+  const notes = useMemo(() => processed?.notes ?? [], [processed]);
+  const interpretation = processed?.interpretation ?? null;
+  const melody = processed?.settings.melody ?? NO_MELODY;
+  const grid = interpretation?.knobs.grid ?? 0;
+  const selectedItem = selected ? items.find((item) => covers(selected, item.raw)) : undefined;
+  const {
+    playing,
+    position,
+    externalOutput,
+    togglePlayback,
+    previewNote,
+    previewSequence,
+    previewId,
+  } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
+  const previewMelody = useCallback(
+    (change: Partial<MelodySetting>, previewId: string) => {
+      const current = recordRef.current;
+      if (current) previewSequence(previewNotes(current, frames, change), previewId);
+    },
+    [frames, previewSequence],
+  );
+  const selectNote = useCallback(
+    (item: NoteItem) => {
+      setSelected({ t: item.raw.start + item.raw.duration / 2, midi: item.raw.midi });
+      previewNote(item.note);
+    },
+    [previewNote],
+  );
+  const previewContext = () => {
+    if (!selectedItem) return;
+    const index = items.indexOf(selectedItem);
+    const phrase = items
+      .slice(Math.max(0, index - 1), index + 3)
+      .filter((item) => !item.muted)
+      .map((item) => item.note);
+    if (!phrase.length) return;
+    const start = phrase[0]!.start;
+    previewSequence(
+      phrase.map((note) => ({ ...note, start: note.start - start })),
+      `note-${selectedItem.note.start}`,
+      phrase.at(-1)!.start + phrase.at(-1)!.duration - start,
+      start,
+    );
+  };
   const { logRef, reportText, copyStatus, downloadMidi, downloadWav, downloadJson, copyLog } =
     useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
 
@@ -114,12 +142,12 @@ export function useEditor(id: string) {
       baseView && beats
         ? {
             ...baseView,
-            beats: { ...beats, subdivision: quantize.on ? quantize.subdivision : 1 },
+            beats: { ...beats, subdivision: grid || 1 },
             notes,
             muted,
           }
         : null,
-    [baseView, beats, quantize.on, quantize.subdivision, notes, muted],
+    [baseView, beats, grid, notes, muted],
   );
 
   useEffect(() => {
@@ -136,54 +164,6 @@ export function useEditor(id: string) {
   const persist = useCallback((next: Recording) => {
     void putRecording(next);
   }, []);
-  const scheduleTuning = useCallback(
-    (next: Recording) => {
-      replaceRecord(next);
-      tuningDirty.current = true;
-      window.clearTimeout(persistTimer.current);
-      persistTimer.current = window.setTimeout(flushTuning, 300);
-    },
-    [flushTuning, replaceRecord],
-  );
-  const changeTuning = useCallback(
-    (key: keyof Tuning, value: number) => {
-      const current = recordRef.current;
-      if (!current) return;
-      const next = {
-        ...current,
-        tuning: updateTuning({ ...DEFAULT_TUNING, ...current.tuning }, key, value),
-      };
-      scheduleTuning(next);
-    },
-    [scheduleTuning],
-  );
-
-  const resetTuning = useCallback(
-    (key?: keyof Tuning) => {
-      const current = recordRef.current;
-      if (!current) return;
-      const next = {
-        ...current,
-        tuning: key
-          ? { ...DEFAULT_TUNING, ...current.tuning, [key]: DEFAULT_TUNING[key] }
-          : { ...DEFAULT_TUNING },
-      };
-      scheduleTuning(next);
-    },
-    [scheduleTuning],
-  );
-
-  const changeQuantize = useCallback(
-    (on: boolean, subdivision: number) => {
-      const current = recordRef.current;
-      if (!current) return;
-      const next = { ...current, quantize: { on, subdivision } };
-      replaceRecord(next);
-      persist(next);
-    },
-    [replaceRecord, persist],
-  );
-
   const changePlay = useCallback(
     (settings: PlaySettings) => {
       const current = recordRef.current;
@@ -245,9 +225,9 @@ export function useEditor(id: string) {
         persist(next);
         return;
       }
-      previewNote(item.note);
+      selectNote(item);
     },
-    [noteAt, persist, replaceRecord, previewNote],
+    [noteAt, persist, replaceRecord, selectNote],
   );
 
   const moveRoll = useCallback(
@@ -265,10 +245,16 @@ export function useEditor(id: string) {
     logRef,
     reportText,
     copyStatus,
-    quantize,
+    melody,
+    interpretation,
+    previewId,
+    previewMelody,
+    selectedNote: selectedItem?.note ?? null,
+    previewContext,
+    selectNote,
+    items,
     play,
-    tuning,
-    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${quantize.on ? (gridLabels[quantize.subdivision] ?? "grid") : "not quantized"}`,
+    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${PRESETS[melody.preset].label}${grid ? " · grid on" : " · performed timing"}`,
     meta: record
       ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
       : "",
@@ -276,9 +262,10 @@ export function useEditor(id: string) {
     position,
     rollHover,
     externalOutput,
-    changeTuning,
-    resetTuning,
-    changeQuantize,
+    applyPreset,
+    changeKnob,
+    resetKnob,
+    changeKey,
     changePlay,
     duplicate,
     remove,

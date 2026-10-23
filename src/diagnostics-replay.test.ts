@@ -54,10 +54,10 @@ it("reports legacy evidence as incomplete and rejects malformed current schemas"
     readFileSync(new URL("./fixtures/whistle-regression/original.json", import.meta.url), "utf8"),
   );
   expect((await replayDiagnostics(old, new ArrayBuffer(0))).status).toBe("incomplete");
-  await expect(replayDiagnostics({ schemaVersion: 3 }, new ArrayBuffer(0))).rejects.toThrow(
+  await expect(replayDiagnostics({ schemaVersion: 4 }, new ArrayBuffer(0))).rejects.toThrow(
     /schema/i,
   );
-  await expect(replayDiagnostics({ schemaVersion: 2 }, new ArrayBuffer(0))).rejects.toThrow(
+  await expect(replayDiagnostics({ schemaVersion: 3 }, new ArrayBuffer(0))).rejects.toThrow(
     /invalid/i,
   );
 });
@@ -68,8 +68,19 @@ it("captures settings before hashing so later edits cannot change an export", as
     makeReportInput(rec, [], qualityStats([])),
     new Float32Array(0),
   );
-  rec.tuning.rmsGate = 0.09;
+  rec.tuning!.rmsGate = 0.09;
   const { report } = await pending;
-  expect(report.saved.tuning.rmsGate).toBe(0.004);
-  expect(report.settings.tuning.rmsGate).toBe(0.004);
+  expect(report.saved.tuning!.rmsGate).toBe(0.004);
+  expect(report.settings.melody.overrides.levelGate).toBe(0.004);
+});
+it("reports schema-2 evidence as produced by an older pipeline", async () => {
+  const result = await replayDiagnostics({ app: "diapason", schemaVersion: 2 }, new ArrayBuffer(0));
+  expect(result.status).toBe("incomplete");
+  expect(result.difference).toMatch(/pipeline/i);
+});
+it("rejects malformed saved melody choices before replaying", async () => {
+  const { report, wav } = await sample();
+  const invalid = JSON.parse(JSON.stringify(report));
+  invalid.saved.melody = { preset: "clean", overrides: { keyPull: 2 }, key: "auto" };
+  await expect(replayDiagnostics(invalid, await wav.arrayBuffer())).rejects.toThrow(/settings/i);
 });

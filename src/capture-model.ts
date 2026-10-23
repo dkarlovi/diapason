@@ -17,6 +17,24 @@ export function dspStatus(settings: MediaTrackSettings): DspCheck[] {
   }));
 }
 
+/**
+ * Seconds between a click being scheduled and the performer's answer to it
+ * arriving in the recording: output (click to ears) plus input (mic to us), as
+ * far as the browser reports them. Missing figures count as zero.
+ */
+export function roundTripLatency(
+  context: { baseLatency?: number; outputLatency?: number },
+  track: MediaTrackSettings & { latency?: number },
+): number {
+  const seconds = [context.baseLatency, context.outputLatency, track.latency].filter(
+    (value): value is number => typeof value === "number" && Number.isFinite(value) && value > 0,
+  );
+  return Math.min(
+    1,
+    seconds.reduce((sum, value) => sum + value, 0),
+  );
+}
+
 export function peakLevel(samples: Float32Array): number {
   let peak = 0;
   for (const sample of samples) peak = Math.max(peak, Math.abs(sample));

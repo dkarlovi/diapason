@@ -1,3 +1,4 @@
+import { isMelodySetting } from "./melody/settings";
 import type { DiagnosticSnapshot } from "./diagnostic-snapshot";
 
 type JsonObject = Record<string, unknown>;
@@ -32,7 +33,7 @@ function validateRecording(record: JsonObject, pair: JsonObject, configured: Jso
   if (
     typeof record.id !== "string" ||
     typeof record.name !== "string" ||
-    !isObject(record.tuning) ||
+    (record.melody !== undefined && !isMelodySetting(record.melody)) ||
     !isObject(record.capture) ||
     !(Number(record.bpm) > 0)
   ) {
@@ -43,13 +44,15 @@ function validateRecording(record: JsonObject, pair: JsonObject, configured: Jso
   }
 }
 
-/** Fail closed on incomplete schema-2 evidence; legacy reports are handled separately. */
+/** Fail closed on incomplete schema-3 evidence; legacy reports are handled separately. */
 export function validateDiagnostics(value: unknown): asserts value is DiagnosticSnapshot["report"] {
   if (!isObject(value) || !finiteJson(value)) throw new Error("Invalid diagnostic report.");
   const { audio, saved, build, config, settings, analysis, stages } = value;
   if (![audio, saved, build, config, settings, analysis, stages].every(isObject)) {
     throw new Error("Invalid diagnostic report: missing processing evidence.");
   }
+  if (!isMelodySetting((settings as JsonObject).melody))
+    throw new Error("Invalid diagnostic melody settings.");
   validatePair(audio as JsonObject);
   validateRecording(saved as JsonObject, audio as JsonObject, config as JsonObject);
   if (
@@ -57,7 +60,7 @@ export function validateDiagnostics(value: unknown): asserts value is Diagnostic
       value.frames,
       value.notes,
       value.midiEvents,
-      (stages as JsonObject).segmented,
+      (stages as JsonObject).decoded,
       (stages as JsonObject).items,
     ].every(Array.isArray)
   ) {

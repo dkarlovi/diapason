@@ -46,17 +46,18 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("loads a recording and saves quantization changes through React controls", async () => {
+it("loads a recording and applies a melody preset through React controls", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
     </MemoryRouter>,
   );
-  expect(await screen.findByDisplayValue("Melody")).toBeTruthy();
+  await screen.findByDisplayValue("Melody");
   expect(screen.getByText(/1 notes/)).toBeTruthy();
-  fireEvent.click(screen.getByRole("checkbox"));
-  await waitFor(() => expect(saved?.quantize).toEqual({ on: false, subdivision: 2 }));
-  expect(screen.getByText(/not quantized/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Use Gentle fix" }));
+  await waitFor(() =>
+    expect(saved?.melody).toEqual({ preset: "gentle", overrides: {}, key: "auto" }),
+  );
 });
 
 it("saves a renamed recording on blur", async () => {
@@ -79,13 +80,13 @@ it("keeps a new name when the tuning save fires later", async () => {
   );
   const name = await screen.findByDisplayValue("Melody");
   vi.useFakeTimers();
-  fireEvent.change(screen.getByLabelText("Min note length"), { target: { value: "120" } });
+  fireEvent.change(screen.getByLabelText("Minimum note length"), { target: { value: "120" } });
   fireEvent.change(name, { target: { value: "Renamed" } });
   fireEvent.blur(name);
   expect(saved?.name).toBe("Renamed");
   act(() => vi.advanceTimersByTime(300));
   expect(saved?.name).toBe("Renamed");
-  expect(saved?.tuning.minDurationSec).toBe(0.12);
+  expect(saved?.melody?.overrides.minNoteMs).toBe(120);
 });
 
 it("saves a tuning change when leaving before the debounce delay", async () => {
@@ -98,10 +99,10 @@ it("saves a tuning change when leaving before the debounce delay", async () => {
     </MemoryRouter>,
   );
   await screen.findByDisplayValue("Melody");
-  fireEvent.change(screen.getByLabelText("Min note length"), { target: { value: "120" } });
+  fireEvent.change(screen.getByLabelText("Minimum note length"), { target: { value: "120" } });
   fireEvent.click(screen.getByRole("link", { name: /Library/ }));
   expect(screen.getByText("Library route")).toBeTruthy();
-  expect(saved?.tuning.minDurationSec).toBe(0.12);
+  expect(saved?.melody?.overrides.minNoteMs).toBe(120);
 });
 
 it("mutes a note through the MIDI roll", async () => {

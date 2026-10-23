@@ -5,9 +5,9 @@ import { createRecorder, type Recorder } from "../recorder";
 import { startMetronome, type MetronomeHandle, type TransportState } from "../metronome";
 import { encodeAudio } from "../codec";
 import { putRecording, type Recording } from "../db";
-import { loadLastTuning } from "../tuning";
+import { newRecordingMelody } from "../melody/settings";
 import { fmtDate } from "../ui";
-import { dspStatus, peakLevel, trimCountIn } from "../capture-model";
+import { dspStatus, peakLevel, roundTripLatency, trimCountIn } from "../capture-model";
 import { recordingPath } from "../router";
 import { getSoundProfile } from "../recording-profiles";
 import { canRecord, type SetupState } from "../recording-setup";
@@ -139,9 +139,10 @@ export function useCapture() {
     setRecording(false);
     setTransport(null);
     setBeat("");
+    // The performer answers the click they hear, which the mic delivers late.
     const trimmed = trimCountIn(
       pcm,
-      metronome.downbeatTime,
+      metronome.downbeatTime + roundTripLatency(opened.context, opened.getSettings()),
       captureStart.current,
       opened.sampleRate,
     );
@@ -173,8 +174,7 @@ export function useCapture() {
           peak: peakLevel(trimmed),
           dspOff: dspStatus(opened.getSettings()).every((check) => check.off),
         },
-        tuning: { ...loadLastTuning(), rmsGate: settings.room.gate },
-        quantize: { on: false, subdivision: 2 },
+        melody: newRecordingMelody(settings.room.gate),
       };
       if (!isCurrentMic(opened)) return;
       await putRecording(record);

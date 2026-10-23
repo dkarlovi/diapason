@@ -16,6 +16,8 @@ const state = vi.hoisted(() => ({
   external: false,
   frames: null as Frame[] | null,
   midiError: false,
+  events: [] as string[],
+  duration: 1,
 }));
 vi.mock("../midi", async (original) => {
   const midi = await original<typeof import("../midi")>();
@@ -33,7 +35,7 @@ vi.mock("../db", () => ({
     name: id,
     createdAt: 1,
     sampleRate: 48000,
-    durationSec: 1,
+    durationSec: state.duration,
     bpm: 120,
     beatsPerBar: 4,
     audio: new Blob(),
@@ -54,13 +56,19 @@ vi.mock("../recorder", async (original) => ({
 }));
 vi.mock("../playback", () => {
   const handle = () => {
-    const h = { position: vi.fn((): number | null => 0.25), stop: vi.fn() };
+    const h = {
+      position: vi.fn((): number | null => 0.25),
+      stop: vi.fn(() => {
+        state.events.push("stop");
+      }),
+    };
     state.handles.push(h);
     return h;
   };
   return {
     playPcm: handle,
     playNotes: (...args: unknown[]) => {
+      state.events.push("start");
       state.notes.push(args);
       return handle();
     },
@@ -93,6 +101,8 @@ beforeEach(() => {
   state.external = false;
   state.frames = null;
   state.midiError = false;
+  state.events = [];
+  state.duration = 1;
   callbacks = new Map();
   nextId = 0;
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
@@ -156,9 +166,9 @@ it("stops on output changes, recording changes and unmount and unsubscribes", as
 it("flushes tuning to the old recording before loading another recording", async () => {
   const hook = await editor();
   vi.useFakeTimers();
-  act(() => hook.result.current.changeTuning("minDurationSec", 120));
+  act(() => hook.result.current.changeKnob("minNoteMs", 120));
   hook.rerender({ id: "two" });
-  expect(state.saves).toMatchObject([{ id: "one", tuning: { minDurationSec: 0.12 } }]);
+  expect(state.saves).toMatchObject([{ id: "one", melody: { overrides: { minNoteMs: 120 } } }]);
   await act(async () => {
     await Promise.resolve();
     await Promise.resolve();
@@ -244,6 +254,7 @@ it("replaces note previews and stops the preview on unmount", async () => {
   act(() => hook.result.current.clickRoll(event));
   act(() => hook.result.current.clickRoll(event));
   expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69, start: 0 }]);
+  expect(hook.result.current.selectedNote?.name).toBe("A4");
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   hook.unmount();
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
@@ -332,22 +343,23 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
     } as Parameters<typeof result.current.clickRoll>[0]),
   );
   expect(result.current.notesLabel).toContain("1 notes · 1 muted");
+  act(() => result.current.changeKnob("grid", 2));
   act(() => result.current.downloadMidi());
   expect(midiEvents(new Uint8Array(await read(state.downloads[0]!.blob)))).toEqual([
     { tick: 720, status: 0x90, key: 72, velocity: 96 },
     { tick: 960, status: 0x80, key: 72, velocity: 0 },
   ]);
-  act(() => result.current.changeQuantize(false, 2));
+  act(() => result.current.changeKnob("grid", 0));
   act(() => result.current.downloadMidi());
   expect(midiEvents(new Uint8Array(await read(state.downloads[1]!.blob)))).toEqual([
     { tick: 605, status: 0x90, key: 72, velocity: 96 },
-    { tick: 941, status: 0x80, key: 72, velocity: 0 },
+    { tick: 989, status: 0x80, key: 72, velocity: 0 },
   ]);
 });
 
 it("pairs diagnostic JSON with the exact downloaded WAV and includes the export state", async () => {
   const { result } = await editor();
-  act(() => result.current.changeQuantize(false, 4));
+  act(() => result.current.changeKnob("grid", 0));
   await act(async () => {
     await result.current.downloadJson();
     result.current.downloadWav();
@@ -366,7 +378,7 @@ it("pairs diagnostic JSON with the exact downloaded WAV and includes the export 
     byte.toString(16).padStart(2, "0"),
   ).join("");
   expect(report.audio.sha256).toBe(hash);
-  expect(report.settings.quantize).toEqual({ on: false, subdivision: 4 });
+  expect(report.settings.melody.overrides.grid).toBe(0);
 });
 
 it("does not download an obsolete JSON snapshot after navigating to another recording", async () => {
@@ -388,4 +400,75 @@ it("does not download an obsolete JSON snapshot after navigating to another reco
   });
   expect(state.downloads).toHaveLength(0);
   digest.mockRestore();
+});
+
+it("previews presets without saving and stops on repeat, replacement and unmount", async () => {
+  const hook = await editor();
+  const before = JSON.stringify(hook.result.current.record);
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69 }]);
+  expect(state.saves).toEqual([]);
+  expect(JSON.stringify(hook.result.current.record)).toBe(before);
+  expect(hook.result.current.previewId).toBe("preset-gentle");
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
+  expect(hook.result.current.previewId).toBeNull();
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  act(() => hook.result.current.previewMelody({ preset: "clean", overrides: {} }, "preset-clean"));
+  expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
+  hook.unmount();
+  expect(state.handles[2]?.stop).toHaveBeenCalledOnce();
+});
+it("applying a preset clears custom controls and saves the chosen preset", async () => {
+  const { result } = await editor();
+  act(() => result.current.changeKnob("keyPull", 0.2));
+  act(() => result.current.applyPreset("gentle"));
+  expect(state.saves.at(-1)?.melody).toEqual({ preset: "gentle", key: "auto", overrides: {} });
+});
+
+it("stops a note preview before scheduling a new sequence", async () => {
+  const hook = await editor();
+  act(() => hook.result.current.selectNote(hook.result.current.items[0]!));
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  expect(state.events).toEqual(["start", "stop", "start"]);
+});
+it("clears the pressed preview state when changing recordings", async () => {
+  const hook = await editor();
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  hook.rerender({ id: "two" });
+  await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
+  expect(hook.result.current.previewId).toBeNull();
+});
+it("shows context playback at the selected phrase's recording position", async () => {
+  state.duration = 3;
+  const tone = (t: number, midi: number): Frame => ({
+    t,
+    freq: 440 * 2 ** ((midi - 69) / 12),
+    clarity: 0.99,
+    rms: 0.1,
+  });
+  state.frames = [
+    ...Array.from({ length: 6 }, (_, i) => tone(0.1 + i * 0.05, 69)),
+    { ...tone(0.5, 69), freq: null },
+    { ...tone(0.8, 69), freq: null },
+    ...Array.from({ length: 6 }, (_, i) => tone(1 + i * 0.05, 72)),
+    { ...tone(1.5, 72), freq: null },
+    { ...tone(1.8, 72), freq: null },
+    ...Array.from({ length: 6 }, (_, i) => tone(2 + i * 0.05, 76)),
+  ];
+  const hook = await editor();
+  act(() => hook.result.current.selectNote(hook.result.current.items[2]!));
+  act(() => hook.result.current.previewContext());
+  tick();
+  expect(hook.result.current.position).toBeCloseTo(1.25);
 });

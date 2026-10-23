@@ -1,0 +1,10 @@
+{
+  "provenance": "Take 2 of the same tune as whistle-regression, 2026-10-23, 95 BPM, headphones; schema-2 export; contains a 0.11 s slip (G#6 at 16.01 s, sung \u221249\u00a2, gliding into G6 at 16.12 s).",
+  "files": {
+    "original.json": "9d67e279f3af9a01c48679c099f3d252401b9613c08b464f090193b20538bb42",
+    "original.mid": "a766f32c335e32e0edc2b90a0fe687f507a50f2dd933c50615075abd08d9d8af",
+    "original.wav": "44d64acdc9e9c44a3399e6cd007fc6ccfe10d209a2a13d07478214c8d8cfcb08"
+  },
+  "sampleRate": 48000,
+  "sampleCount": 952881
+}

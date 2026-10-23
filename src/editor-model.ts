@@ -6,103 +6,15 @@ import type { ReportInput } from "./diagnostics";
 import type { NoteItem } from "./recording";
 import { covers } from "./recording";
 import type { TraceView } from "./trace";
-import { DEFAULT_TUNING, type Tuning } from "./tuning";
-
-export interface SliderDef {
-  key: keyof Tuning;
-  id: string;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  tip: string;
-}
-
-export const SLIDERS: SliderDef[] = [
-  {
-    key: "hysteresisSemitones",
-    id: "t-sticky",
-    label: "Stickiness",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    tip: "How far pitch can drift before a new note starts.",
-  },
-  {
-    key: "minDurationSec",
-    id: "t-minlen",
-    label: "Min note length",
-    min: 20,
-    max: 300,
-    step: 10,
-    tip: "Notes shorter than this are dropped.",
-  },
-  {
-    key: "silenceGapSec",
-    id: "t-silence",
-    label: "Silence gap",
-    min: 30,
-    max: 300,
-    step: 10,
-    tip: "A quiet gap this long ends the current note.",
-  },
-  {
-    key: "changeDebounceSec",
-    id: "t-debounce",
-    label: "Change debounce",
-    min: 0,
-    max: 200,
-    step: 10,
-    tip: "A new pitch must hold this long before it splits the note.",
-  },
-  {
-    key: "medianWindow",
-    id: "t-smooth",
-    label: "Smoothing",
-    min: 1,
-    max: 11,
-    step: 2,
-    tip: "Median filter width in frames.",
-  },
-  {
-    key: "clarityThreshold",
-    id: "t-clarity",
-    label: "Clarity gate",
-    min: 0.85,
-    max: 0.999,
-    step: 0.005,
-    tip: "Minimum detection confidence per frame.",
-  },
-  {
-    key: "rmsGate",
-    id: "t-gate",
-    label: "Level gate",
-    min: 0.001,
-    max: 0.1,
-    step: 0.001,
-    tip: "Frames quieter than this are silence.",
-  },
-];
-
-const milliseconds = new Set<keyof Tuning>([
-  "minDurationSec",
-  "silenceGapSec",
-  "changeDebounceSec",
-]);
-
-export function sliderValue(key: keyof Tuning, tuning: Tuning): number {
-  return milliseconds.has(key) ? Math.round(tuning[key] * 1000) : tuning[key];
-}
-
-export function updateTuning(tuning: Tuning, key: keyof Tuning, value: number): Tuning {
-  return { ...tuning, [key]: milliseconds.has(key) ? value / 1000 : value };
-}
-
-export function sliderLabel(key: keyof Tuning, value: number): string {
-  if (key === "hysteresisSemitones") return `±${(0.5 + value).toFixed(2)} st`;
-  if (milliseconds.has(key)) return `${value} ms`;
-  if (key === "medianWindow") return `${value} fr`;
-  return value.toFixed(3);
+import type { KnobDef, Knobs } from "./melody/knobs";
+import { melodySettingFor } from "./melody/settings";
+import { resolveKnobs } from "./melody/knobs";
+export function knobValueLabel(def: KnobDef, value: Knobs[keyof Knobs]): string {
+  if (def.kind === "select")
+    return def.options.find((option) => option.value === value)?.label ?? String(value);
+  if (def.key.endsWith("Ms")) return `${value} ms`;
+  if (def.key === "maxMoveSemitones") return `${value} st`;
+  return typeof value === "number" ? String(Number(value.toFixed(3))) : value;
 }
 
 export interface RollPoint {
@@ -151,6 +63,7 @@ export function makeReportInput(
   stats: QualityStats,
 ): ReportInput {
   const analysis = analysisOptionsFor(record);
+  const melody = melodySettingFor(record);
   return {
     recording: record,
     title: record.name,
@@ -163,7 +76,7 @@ export function makeReportInput(
       maxFreq: analysis.maxFreq,
       clarityThreshold: analysis.clarityThreshold,
     },
-    rmsGate: record.tuning.rmsGate ?? DEFAULT_TUNING.rmsGate,
+    rmsGate: resolveKnobs(melody.preset, melody.overrides).levelGate,
     frames,
     stats,
   };

@@ -21,8 +21,7 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
     beatsPerBar: 4,
     source: { profileId: "whistle", analysis: { minFreq: 250, maxFreq: 3000 } },
     capture: { gain: 1, noiseFloor: 0.001, rmsGate: 0.003, dspOff: true },
-    tuning: { rmsGate: 0.003 },
-    quantize: { on: false, subdivision: 2 },
+    melody: { preset: "clean", key: "auto", overrides: { levelGate: 0.003 } },
   });
   expect(fixture.saved?.name).toMatch(/^Recording /);
 });
