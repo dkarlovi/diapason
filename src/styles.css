@@ -138,28 +138,6 @@ button.danger {
   font-variant-numeric: tabular-nums;
 }
 
-.badges {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin: 0.2rem 0 0.9rem;
-}
-.badge {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 20px;
-  border: 1px solid var(--line);
-  color: var(--muted);
-}
-.badge.ok {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.badge.bad {
-  color: var(--bad);
-  border-color: var(--bad);
-}
-
 .meter {
   height: 14px;
   background: #0a0d11;
@@ -175,16 +153,6 @@ button.danger {
 }
 .meter.clip > div {
   background: var(--bad);
-}
-
-.readout {
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.readout.idle {
-  color: var(--muted);
 }
 
 canvas.trace {
@@ -393,34 +361,6 @@ canvas.roll {
   font-size: 0.8rem;
 }
 
-/* big beat indicator */
-.beatbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  margin: 0.6rem 0;
-}
-.beatdot {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #222a34;
-  border: 2px solid var(--line);
-  transition:
-    transform 0.05s,
-    background 0.05s,
-    border-color 0.05s;
-}
-.beatdot.on {
-  background: var(--accent);
-  border-color: var(--accent);
-  transform: scale(1.15);
-}
-.beatdot.accent.on {
-  background: var(--warn);
-  border-color: var(--warn);
-}
 .count {
   font-size: 2rem;
   font-weight: 700;
@@ -453,4 +393,88 @@ canvas.roll {
 .recording .actions .button {
   padding: 0.35rem 0.6rem;
   font-size: 0.8rem;
+}
+
+/* Recording setup shares one monitor and one status vocabulary. */
+.setup-controls {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+.step-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.step-heading h2:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.setup-step.completed {
+  padding-block: 0.7rem;
+}
+.setup-step.completed h2,
+.setup-step.completed p {
+  margin-block: 0.2rem;
+}
+.setup-step.active {
+  border-color: var(--accent);
+}
+.monitor-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+.live-trace {
+  margin-top: 0.8rem;
+}
+.status-checklist li {
+  flex-wrap: wrap;
+}
+.status-checklist .detail {
+  flex: 1 1 12rem;
+}
+.tempo-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-block: 1rem;
+}
+.tap-tempo {
+  min-height: 4rem;
+  min-width: 9rem;
+}
+.tap-tempo small {
+  display: block;
+}
+.acknowledgment {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-block: 1rem;
+}
+.acknowledgment input {
+  width: auto;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.setup-step select {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 420px) {
+  .status-checklist .detail {
+    margin-inline-start: 1rem;
+  }
+  .tempo-fields {
+    grid-template-columns: 1fr;
+  }
 }

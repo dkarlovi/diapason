@@ -34,6 +34,8 @@ describe("recording notes", () => {
 
   it("quantizes the notes used by playback and export", () => {
     const quantized = { ...recording, quantize: { on: true, subdivision: 2 } };
-    expect(recordingNotes(quantized, frames)).toMatchObject([{ midi: 69, start: 0, duration: 0.5 }]);
+    expect(recordingNotes(quantized, frames)).toMatchObject([
+      { midi: 69, start: 0, duration: 0.5 },
+    ]);
   });
 });

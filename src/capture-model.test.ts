@@ -1,5 +1,13 @@
+import { getSoundProfile } from "./recording-profiles";
 import { describe, expect, it } from "vitest";
-import { noiseCalibration, trimCountIn, peakLevel, dspStatus } from "./capture-model";
+import {
+  noiseCalibration,
+  trimCountIn,
+  peakLevel,
+  dspStatus,
+  evaluateRoom,
+  evaluateSound,
+} from "./capture-model";
 
 describe("capture calculations", () => {
   it("derives the same bounded gate from room samples", () => {
@@ -16,9 +24,52 @@ describe("capture calculations", () => {
 
   it("marks browser DSP settings as on only when explicitly enabled", () => {
     expect(dspStatus({ echoCancellation: true, noiseSuppression: false })).toEqual([
-      { name: "echoCancellation", off: false },
-      { name: "noiseSuppression", off: true },
-      { name: "autoGainControl", off: true },
+      { name: "echoCancellation", off: false, known: true },
+      { name: "noiseSuppression", off: true, known: true },
+      { name: "autoGainControl", off: false, known: false },
     ]);
   });
+});
+
+const roomSamples = (rms: number, peak = rms) =>
+  Array.from({ length: 15 }, (_, i) => ({ t: i / 10, rms, peak }));
+it("requires actual quiet room samples and rejects stalled, noisy or clipping measurement", () => {
+  expect(evaluateRoom([]).pass).toBe(false);
+  expect(evaluateRoom(roomSamples(0.01)).pass).toBe(true);
+  expect(evaluateRoom(roomSamples(0.0101)).pass).toBe(false);
+  expect(evaluateRoom(roomSamples(0.001, 0.98)).pass).toBe(false);
+  expect(evaluateRoom(roomSamples(0.001).map((s) => ({ ...s, t: 0 }))).pass).toBe(false);
+  expect(evaluateRoom(roomSamples(NaN)).pass).toBe(false);
+  expect(evaluateRoom(roomSamples(0.004))).toMatchObject({ floor: 0.004, gate: 0.006 });
+});
+it("requires usable tone above noise without requiring steady musical pitch", () => {
+  const frames = Array.from({ length: 20 }, (_, i) => ({
+    t: i / 10,
+    freq: i % 2 ? 440 : 470,
+    clarity: 0.99,
+    rms: 0.03,
+  }));
+  expect(evaluateSound(frames, 0.2, 0.001, getSoundProfile("whistle")).pass).toBe(true);
+  expect(evaluateSound(frames, 0.98, 0.001, getSoundProfile("whistle")).pass).toBe(false);
+  expect(evaluateSound(frames, 0.2, 0.02, getSoundProfile("whistle")).pass).toBe(false);
+  expect(evaluateSound(frames.slice(0, 3), 0.2, 0.001, getSoundProfile("whistle")).pass).toBe(
+    false,
+  );
+  expect(
+    evaluateSound(
+      frames.map((f) => ({ ...f, freq: null })),
+      0.2,
+      0.001,
+      getSoundProfile("whistle"),
+    ).pass,
+  ).toBe(false);
+});
+
+it("rejects measurements with long gaps even if first/last timestamps span the test", () => {
+  const samples = [0, 0.01, 0.02, 0.03, 0.04, 1.3, 1.31, 1.32, 1.33, 1.34].map((t) => ({
+    t,
+    rms: 0.001,
+    peak: 0.002,
+  }));
+  expect(evaluateRoom(samples).pass).toBe(false);
 });

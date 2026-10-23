@@ -69,7 +69,10 @@ export function useEditor(id: string) {
       const decoded = await decodeAudio(found.audio);
       if (cancelled) return;
       pcm.current = decoded;
-      const analyzed = analyzeBuffer(decoded, found.sampleRate, { ...analysisOptionsFor(found), maskBpm: found.bpm });
+      const analyzed = analyzeBuffer(decoded, found.sampleRate, {
+        ...analysisOptionsFor(found),
+        maskBpm: found.bpm,
+      });
       stats.current = qualityStats(analyzed, decoded);
       setFrames(analyzed);
       replaceRecord(found);

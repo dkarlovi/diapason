@@ -1,227 +1,185 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { openMic, listInputDevices, type MicHandle } from "../audio";
 import { createPitchDetector } from "../pitch";
+import { getSoundProfile, type SoundProfile } from "../recording-profiles";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange } from "../trace";
-import { qualityStats } from "../recorder";
-import { checksFor, type Check } from "../ui";
-import { dspStatus, levelHint, noiseCalibration, peakLevel } from "../capture-model";
+import { dspStatus, levelHint, peakLevel } from "../capture-model";
 
-const LIVE_WINDOW_SEC = 5;
+export interface Observation {
+  t: number;
+  frame: Frame;
+  peak: number;
+  samples: Float32Array;
+}
 interface Options {
   isBusy(): boolean;
   onError(message: string): void;
-  /** The capture owner releases its recorder/metronome before the mic closes. */
   onBeforeClose(): void;
 }
-
+interface MonitorGrid {
+  bpm: number;
+  beatsPerBar: number;
+  origin: number;
+}
 export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [device, setDevice] = useState({
     id: "",
     gain: 1,
-    dsp: [] as { name: string; off: boolean }[],
+    dsp: [] as ReturnType<typeof dspStatus>,
     sampleRate: 0,
+    opening: false,
   });
-
-  const mic = useRef<MicHandle | null>(null);
-  const generation = useRef(0);
-  const mounted = useRef(false);
-  const gainRef = useRef(device.gain);
-  const { noiseReadout, noiseMeasured, rmsGate, recordRms, resetCalibration, measureRoom } =
-    useRoomCalibration(mic);
-
-  const { level, checks, traceRef, startMonitor, stopMonitor } = useLiveTrace(rmsGate, recordRms);
-
+  const [level, setLevel] = useState({ rms: 0, peak: 0, freq: null as number | null });
+  const owner = useRef({ mic: null as MicHandle | null, generation: 0, mounted: false, gain: 1 });
+  const profile = useRef<SoundProfile>(getSoundProfile("whistle"));
+  const gate = useRef(0.003);
+  const monitor = useRef<MonitorGrid | null>(null);
+  const traceRef = useRef<HTMLCanvasElement>(null);
+  const listeners = useRef(new Set<(value: Observation) => void>());
+  const raf = useRef(0);
+  const offEnded = useRef<(() => void) | null>(null);
+  const subscribe = (listener: (value: Observation) => void) => {
+    listeners.current.add(listener);
+    return () => {
+      listeners.current.delete(listener);
+    };
+  };
   const closeMic = useCallback(() => {
-    stopMonitor();
+    cancelAnimationFrame(raf.current);
+    offEnded.current?.();
+    offEnded.current = null;
     onBeforeClose();
-    mic.current?.close();
-    mic.current = null;
-  }, [onBeforeClose, stopMonitor]);
-
-  const refreshDevices = useCallback(async () => {
+    owner.current.mic?.close();
+    owner.current.mic = null;
+  }, [onBeforeClose]);
+  const refreshDevices = async () => {
     try {
       const found = await listInputDevices();
-      if (mounted.current) setDevices(found);
+      if (owner.current.mounted) setDevices(found);
     } catch {
-      // Device labels can be unavailable before permission is granted.
+      /* Device labels may be unavailable before permission. */
     }
-  }, []);
-
-  const openDevice = useCallback(
-    async (id: string) => {
-      if (isBusy()) return;
-      const current = ++generation.current;
-      resetCalibration();
-      closeMic();
-      setDevice((previous) => ({ ...previous, id }));
-      onError("");
-      try {
-        const opened = await openMic(id ? { deviceId: id } : {});
-        if (!mounted.current || current !== generation.current) {
-          opened.close();
-          return;
-        }
-        mic.current = opened;
-        opened.setGain(gainRef.current);
-        const startedAt = performance.now();
-        setDevice((previous) => ({
-          ...previous,
-          dsp: dspStatus(opened.getSettings()),
-          sampleRate: opened.sampleRate,
-        }));
-        await refreshDevices();
-        if (mounted.current && current === generation.current) startMonitor(opened, startedAt);
-      } catch (error) {
-        if (mounted.current && current === generation.current)
-          onError(`Mic error: ${(error as Error).message}`);
+  };
+  const openDevice = async (id: string) => {
+    if (isBusy()) return;
+    const current = ++owner.current.generation;
+    closeMic();
+    setDevice((previous) => ({ ...previous, id, dsp: [], sampleRate: 0, opening: true }));
+    setLevel({ rms: 0, peak: 0, freq: null });
+    onError("");
+    try {
+      const opened = await openMic({
+        ...(id ? { deviceId: id } : {}),
+        fftSize: profile.current.analysis.windowSize,
+      });
+      if (!owner.current.mounted || current !== owner.current.generation) {
+        opened.close();
+        return;
       }
-    },
-    [closeMic, startMonitor, refreshDevices, isBusy, onError, resetCalibration],
-  );
-
+      owner.current.mic = opened;
+      opened.setGain(owner.current.gain);
+      setDevice((previous) => ({
+        ...previous,
+        dsp: dspStatus(opened.getSettings()),
+        sampleRate: opened.sampleRate,
+        opening: false,
+      }));
+      if (opened.onEnded)
+        offEnded.current = opened.onEnded(() => {
+          if (owner.current.mic !== opened) return;
+          owner.current.generation++;
+          closeMic();
+          setDevice((previous) => ({ ...previous, dsp: [], sampleRate: 0, opening: false }));
+          setLevel({ rms: 0, peak: 0, freq: null });
+          onError("Microphone disconnected — reconnect to continue.");
+        });
+      void refreshDevices();
+      const detect = createPitchDetector(opened.sampleRate, profile.current.analysis);
+      const frames: Frame[] = [];
+      let lastUpdate = -Infinity;
+      const loop = () => {
+        if (owner.current.mic !== opened) return;
+        raf.current = requestAnimationFrame(loop);
+        const t = opened.context.currentTime;
+        const samples = opened.readFrame();
+        const detected = detect(samples);
+        const frame: Frame = {
+          t,
+          ...detected,
+          freq: detected.rms >= gate.current ? detected.freq : null,
+        };
+        const peak = peakLevel(samples);
+        for (const listener of listeners.current) listener({ t, samples, frame, peak });
+        frames.push(frame);
+        while (frames.length && frames[0]!.t < t - 6) frames.shift();
+        // Bound retained data even if the context is suspended while RAF keeps firing.
+        if (frames.length > 500) frames.splice(0, frames.length - 500);
+        if (t - lastUpdate >= 0.1 || lastUpdate === -Infinity) {
+          lastUpdate = t;
+          setLevel({ rms: detected.rms, peak, freq: frame.freq });
+        }
+        if (traceRef.current)
+          drawTrace(traceRef.current, frames, {
+            tMin: t - 5,
+            tMax: t + 0.2,
+            ...autoRange(frames),
+            playheadTime: t,
+            ...(monitor.current
+              ? { beats: monitor.current, beatOrigin: monitor.current.origin }
+              : {}),
+          });
+      };
+      loop();
+    } catch (error) {
+      if (owner.current.mounted && current === owner.current.generation) {
+        setDevice((previous) => ({ ...previous, opening: false }));
+        onError(`Mic error: ${(error as Error).message}`);
+      }
+    }
+  };
   useEffect(() => {
-    mounted.current = true;
-    void openDevice("");
+    owner.current.mounted = true;
     return () => {
-      mounted.current = false;
-      generation.current++;
+      owner.current.mounted = false;
+      owner.current.generation++;
       closeMic();
     };
-  }, [closeMic, openDevice]);
-
-  const changeGain = useCallback((value: number) => {
-    gainRef.current = value;
-    setDevice((previous) => ({ ...previous, gain: value }));
-    mic.current?.setGain(value);
-  }, []);
-
-  const microphoneAccess = useMemo(
-    () => ({
-      resume: () => {
-        void mic.current?.context.resume();
-      },
-      currentMic: () => mic.current,
-      isCurrentMic: (handle: MicHandle) => mounted.current && mic.current === handle,
-      captureSettings: () => ({ gain: gainRef.current, noiseFloor: rmsGate.current }),
-    }),
-    [rmsGate],
-  );
-
+  }, [closeMic]);
+  const changeGain = (value: number) => {
+    if (isBusy() || !Number.isFinite(value)) return;
+    const gain = Math.max(1, Math.min(20, value));
+    owner.current.gain = gain;
+    setDevice((previous) => ({ ...previous, gain }));
+    owner.current.mic?.setGain(gain);
+  };
+  const currentMic = useCallback(() => owner.current.mic, []);
+  const isCurrentMic = (handle: MicHandle) => owner.current.mounted && owner.current.mic === handle;
+  const isRunning = () => owner.current.mic?.context.state === "running";
+  const resume = () => {
+    void owner.current.mic?.context.resume().catch(() => {});
+  };
   return {
     devices,
     deviceId: device.id,
     gain: device.gain,
     dsp: device.dsp,
     sampleRate: device.sampleRate,
+    opening: device.opening,
     level,
     levelHint: levelHint(level.peak),
-    checks,
-    noiseReadout,
-    noiseMeasured,
     traceRef,
+    monitor,
+    profile,
+    gate,
+    subscribe,
+    isRunning,
+    currentMic,
+    isCurrentMic,
     refreshDevices,
     openDevice,
     changeGain,
-    measureRoom,
-    ...microphoneAccess,
+    resume,
   };
-}
-
-/** Room calibration owns its timer and accumulated measurements. */
-function useRoomCalibration(mic: RefObject<MicHandle | null>) {
-  const [noiseReadout, setNoiseReadout] = useState("not measured yet");
-  const [noiseMeasured, setNoiseMeasured] = useState(false);
-  const rmsGate = useRef(0.003);
-  const measuring = useRef(false);
-  const noiseSamples = useRef<number[]>([]);
-  const noiseTimer = useRef(0);
-  const mounted = useRef(false);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-      window.clearTimeout(noiseTimer.current);
-    };
-  }, []);
-  const resetCalibration = useCallback(() => {
-    window.clearTimeout(noiseTimer.current);
-    measuring.current = false;
-    noiseSamples.current = [];
-    rmsGate.current = 0.003;
-    setNoiseMeasured(false);
-    setNoiseReadout("not measured yet");
-  }, []);
-  const recordRms = useCallback((rms: number) => {
-    if (measuring.current) noiseSamples.current.push(rms);
-  }, []);
-  const measureRoom = useCallback(() => {
-    if (measuring.current || !mic.current) return;
-    void mic.current.context.resume();
-    measuring.current = true;
-    noiseSamples.current = [];
-    setNoiseReadout("measuring… stay silent");
-    noiseTimer.current = window.setTimeout(() => {
-      if (!mounted.current) return;
-      measuring.current = false;
-      const { floor, gate } = noiseCalibration(noiseSamples.current);
-      rmsGate.current = gate;
-      setNoiseReadout(`floor ${floor.toFixed(4)} · gate ${gate.toFixed(4)} ✓`);
-      setNoiseMeasured(true);
-    }, 1500);
-  }, [mic]);
-
-  return { noiseReadout, noiseMeasured, rmsGate, recordRms, resetCalibration, measureRoom };
-}
-
-/** One live sample loop; stopping invalidates callbacks as well as cancelling RAF. */
-function useLiveTrace(rmsGate: RefObject<number>, recordRms: (rms: number) => void) {
-  const [level, setLevel] = useState({ rms: 0, peak: 0 });
-  const [checks, setChecks] = useState<Check[]>([]);
-  const traceRef = useRef<HTMLCanvasElement>(null);
-  const active = useRef<MicHandle | null>(null);
-  const raf = useRef(0);
-  const lastVerdict = useRef(0);
-  const stopMonitor = useCallback(() => {
-    active.current = null;
-    cancelAnimationFrame(raf.current);
-  }, []);
-  const startMonitor = useCallback(
-    (opened: MicHandle, startedAt: number) => {
-      stopMonitor();
-      active.current = opened;
-      const detect = createPitchDetector(opened.sampleRate);
-      const frames: Frame[] = [];
-      const loop = () => {
-        if (active.current !== opened) return;
-        raf.current = requestAnimationFrame(loop);
-        const t = (performance.now() - startedAt) / 1000;
-        const buf = opened.readFrame();
-        const { freq, clarity, rms } = detect(buf);
-        setLevel({ rms, peak: peakLevel(buf) });
-        recordRms(rms);
-        frames.push({
-          t,
-          freq: freq !== null && rms >= rmsGate.current ? freq : null,
-          clarity,
-          rms,
-        });
-        while (frames.length && frames[0]!.t < t - (LIVE_WINDOW_SEC + 1)) frames.shift();
-        if (traceRef.current)
-          drawTrace(traceRef.current, frames, {
-            tMin: t - LIVE_WINDOW_SEC,
-            tMax: t,
-            ...autoRange(frames),
-          });
-        if (performance.now() - lastVerdict.current > 200) {
-          lastVerdict.current = performance.now();
-          setChecks(checksFor(qualityStats(frames.filter((f) => f.t >= t - 3))));
-        }
-      };
-      loop();
-    },
-    [recordRms, rmsGate, stopMonitor],
-  );
-  return { level, checks, traceRef, startMonitor, stopMonitor };
 }

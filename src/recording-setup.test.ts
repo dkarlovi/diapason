@@ -8,7 +8,11 @@ it("unlocks in order and retains successful checks until their dependencies chan
   expect(nextSetupStep(s)).toBe("microphone");
   s = setupReducer(s, { type: "microphone", ready: true });
   s = setupReducer(s, { type: "room-start" });
-  s = setupReducer(s, { type: "room-result", revision: s.revision, result: { ...pass, floor: 0.001, gate: 0.003 } });
+  s = setupReducer(s, {
+    type: "room-result",
+    revision: s.revision,
+    result: { ...pass, floor: 0.001, gate: 0.003 },
+  });
   expect(nextSetupStep(s)).toBe("sound-check");
   s = setupReducer(s, { type: "sound-start" });
   s = setupReducer(s, { type: "sound-result", revision: s.revision, result: pass });
@@ -20,16 +24,32 @@ it("unlocks in order and retains successful checks until their dependencies chan
   expect(nextSetupStep(changed)).toBe("room");
   expect(changed.tempoConfirmed).toBe(true);
   expect(canRecord(changed)).toBe(false);
-  expect(setupReducer(changed, { type: "room-result", revision: s.revision, result: { ...pass, floor: 0.001, gate: 0.003 } })).toEqual(changed);
+  expect(
+    setupReducer(changed, {
+      type: "room-result",
+      revision: s.revision,
+      result: { ...pass, floor: 0.001, gate: 0.003 },
+    }),
+  ).toEqual(changed);
   expect(setupReducer(s, { type: "room-start" }).sound).toBeNull();
   expect(setupReducer(s, { type: "device", id: "other" }).soundConfirmed).toBe(true);
   expect(setupReducer(s, { type: "tempo", bpm: 120, beatsPerBar: 3 }).tempoConfirmed).toBe(false);
   expect(canRecord(setupReducer(s, { type: "busy", value: true }))).toBe(false);
 });
 it("does not accept failed, unstarted, invalid tempo, or obsolete results", () => {
-  expect(setupReducer(initialSetup, { type: "room-result", revision: 0, result: { ...pass, floor: 0, gate: 0.003 } }).room).toBeNull();
+  expect(
+    setupReducer(initialSetup, {
+      type: "room-result",
+      revision: 0,
+      result: { ...pass, floor: 0, gate: 0.003 },
+    }).room,
+  ).toBeNull();
   let s = setupReducer(initialSetup, { type: "sound-start" });
-  s = setupReducer(s, { type: "sound-result", revision: s.revision, result: { ...pass, pass: false } });
+  s = setupReducer(s, {
+    type: "sound-result",
+    revision: s.revision,
+    result: { ...pass, pass: false },
+  });
   expect(s.sound?.pass).toBe(false);
   s = setupReducer(s, { type: "tempo", bpm: NaN, beatsPerBar: 4 });
   expect(setupReducer(s, { type: "tempo-confirm" }).tempoConfirmed).toBe(false);

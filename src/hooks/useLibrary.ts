@@ -26,7 +26,9 @@ export function useLibrary() {
   const [storage, setStorage] = useState("");
   const [playing, setPlaying] = useState<Playing>(null);
   const playingRef = useRef<Playing>(null);
-  const decoded = useRef(new Map<string, { pcm: Float32Array; frames?: Frame[]; analysisKey?: string }>());
+  const decoded = useRef(
+    new Map<string, { pcm: Float32Array; frames?: Frame[]; analysisKey?: string }>(),
+  );
   const playback = useRef<Playback | null>(null);
   const raf = useRef(0);
   const request = useRef(0);

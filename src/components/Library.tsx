@@ -5,7 +5,7 @@ import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { Button, Panel } from "./primitives";
 
-function TakeCard({
+function RecordingCard({
   record,
   playing,
   onPlay,
@@ -59,7 +59,7 @@ export function Library() {
       {recordings.length ? (
         <div className="recordings">
           {recordings.map((record) => (
-            <TakeCard
+            <RecordingCard
               key={record.id}
               record={record}
               playing={playing}
@@ -72,8 +72,8 @@ export function Library() {
       ) : (
         <Panel title="Your library is empty">
           <p className="sub" style={{ textAlign: "left", margin: 0 }}>
-            No recordings yet. Hit <strong>+ New recording</strong>, whistle a melody to the metronome,
-            and it becomes a recording you can tune and export to MIDI.
+            No recordings yet. Hit <strong>+ New recording</strong>, whistle a melody to the
+            metronome, and it becomes a recording you can tune and export to MIDI.
           </p>
         </Panel>
       )}

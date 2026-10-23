@@ -8,18 +8,19 @@ instrument but can carry a tune by whistling.
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
-## A recordings studio
+## A recording studio
 
 diapason is organized as a **library of recordings**, persisted in your browser
 (IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
 1. **Library** (`/diapason/`) — your recordings. Open / duplicate / delete.
-2. **Capture** (`/diapason/new`) — full signal calibration (device, gain, raw-audio
-   check, record the room) → set **tempo**, get a **count-in + audible
-   metronome**, and record on the downbeat. The recording is saved and opens in the
-   editor. The metronome click is removed from pitch detection automatically
-   (its beat times are known, so those windows are skipped — the stored audio
-   stays untouched).
+2. **New recording** (`/diapason/new`) — a guided setup: choose your sound →
+   connect and verify your microphone → measure room noise → check your sound →
+   find your tempo → record. Set tempo by tapping a button/Space, clapping into
+   the microphone, or entering BPM. Preview the metronome and choose beats per
+   bar, then confirm. One bar counts you in before recording starts on the downbeat.
+   The saved recording opens in the editor. Known metronome beat windows are
+   skipped during pitch detection; stored audio stays untouched.
 3. **Editor** (`/diapason/recording/:id`) — all post-processing on a recording: pitch trace,
    **per-recording tuning** sliders (saved with the recording), live note list,
    **tempo-aware quantization**, and exports (`.mid` / `.wav` / `.json` / log).
@@ -35,17 +36,31 @@ control** by default. For speech that's helpful; for a pure whistle tone it's
 ruinous — noise suppression treats the steady tone as noise and gates it, and
 auto-gain pumps the level up and down. That's the "distortion."
 
-diapason requests a **raw** audio stream with all three disabled, and the
-calibration screen shows you their actual state (`OFF ✓`) plus a live level
-meter, a clipping warning, and a live pitch test, so you can confirm the signal
-is good _before_ recording.
+diapason requests a **raw** audio stream with all three disabled. Setup uses the
+same status rows for audio settings, low room noise, and usable sound. Settings
+that the browser cannot report are shown as unknown and require acknowledgment.
+
+The live monitor combines input level, clipping warnings, pitch, and scrolling
+beat/bar lines. Calibration results stay passed after you stop sounding. Changing
+microphone or gain requires fresh room and sound checks; changing tempo preserves
+calibration. Gain remains available while fixing a failed room measurement.
+
+Whistling is currently the supported sound source. Source profiles store effective
+analysis settings with each new recording, preparing for future humming and
+instrument support. These future choices are not yet offered. The detector is
+monophonic; mixed music and chords are outside its current scope.
+
+Clap listening is explicitly started and stops before metronome preview or
+recording. It requires AudioWorklet support; tapping and numeric input remain
+available if microphone tempo detection fails. Microphone access needs localhost
+or HTTPS. Audio and recordings remain local in IndexedDB.
 
 ## Running it
 
 Requires Node 22+.
 
 ```bash
-npm install
+npm ci
 npm run dev      # opens http://localhost:5173/diapason/
 ```
 
@@ -107,8 +122,8 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled        |
 | Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                   |
 | Storage codec                   | `src/codec.ts`                                  | Float32↔Int16, gzip via `CompressionStream`             |
-| IndexedDB library               | `src/db.ts`                                     | Persisted recordings (no deps)                               |
-| Per-recording tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
+| IndexedDB library               | `src/db.ts`                                     | Persisted recordings (no deps)                          |
+| Per-recording tuning            | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
 | Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                          |
 | Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and browser effects                     |
 | Screen models                   | `src/capture-model.ts`, `src/editor-model.ts`   | Pure calculations shared by hooks and tests             |

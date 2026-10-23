@@ -38,7 +38,10 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
   const downloadMidi = useCallback(() => {
     const current = recordRef.current;
     if (current)
-      downloadBlob(notesToMidi(recordingNotes(current, frames), { bpm: current.bpm }), filename("mid"));
+      downloadBlob(
+        notesToMidi(recordingNotes(current, frames), { bpm: current.bpm }),
+        filename("mid"),
+      );
   }, [filename, frames, recordRef]);
   const downloadWav = useCallback(() => {
     const current = recordRef.current;

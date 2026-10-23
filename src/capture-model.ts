@@ -1,12 +1,19 @@
+import type { Frame } from "./notes";
+import type { SoundProfile } from "./recording-profiles";
+import type { SetupCheck, RoomResult, MeasurementResult } from "./recording-setup";
+import { qualityStats } from "./recorder";
+
 export interface DspCheck {
   name: string;
   off: boolean;
+  known: boolean;
 }
 
 export function dspStatus(settings: MediaTrackSettings): DspCheck[] {
   return (["echoCancellation", "noiseSuppression", "autoGainControl"] as const).map((name) => ({
     name,
-    off: settings[name] !== true,
+    off: settings[name] === false,
+    known: typeof settings[name] === "boolean",
   }));
 }
 
@@ -38,6 +45,145 @@ export function levelHint(peak: number): string {
   return "Good level — whistle a steady note.";
 }
 
-export function isDownbeat(beatIndex: number, beatsPerBar: number): boolean {
-  return ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
+export const CALIBRATION = {
+  roomMs: 1500,
+  soundMs: 2000,
+  roomMinSamples: 10,
+  roomMinSpan: 1.2,
+  soundMinSpan: 1.5,
+  maxFloor: 0.01,
+  clipPeak: 0.98,
+} as const;
+export function setupCheck(
+  id: string,
+  label: string,
+  pass: boolean,
+  detail: string,
+  blocking = true,
+): SetupCheck {
+  return { id, label, status: pass ? "passed" : "attention", detail, blocking };
+}
+function hasCoverage(times: number[], minCount: number, minSpan: number): boolean {
+  return (
+    times.length >= minCount &&
+    times.at(-1)! - times[0]! >= minSpan &&
+    times.every(
+      (time, index) =>
+        index === 0 || (time > times[index - 1]! && time - times[index - 1]! <= 0.25),
+    )
+  );
+}
+export function evaluateRoom(samples: Array<{ t: number; rms: number; peak: number }>): RoomResult {
+  const valid = samples.filter(
+    (s) =>
+      Number.isFinite(s.t) &&
+      Number.isFinite(s.rms) &&
+      Number.isFinite(s.peak) &&
+      s.rms >= 0 &&
+      s.peak >= 0,
+  );
+  const enough =
+    valid.length === samples.length &&
+    hasCoverage(
+      valid.map((s) => s.t),
+      CALIBRATION.roomMinSamples,
+      CALIBRATION.roomMinSpan,
+    );
+  const { floor, gate } = noiseCalibration(valid.map((s) => s.rms));
+  const checks = [
+    setupCheck(
+      "room-samples",
+      "Room measurement captured",
+      enough,
+      enough ? "Silence sampled" : "Not enough audio — measure again",
+    ),
+    setupCheck(
+      "room-quiet",
+      "Low room noise",
+      enough && floor <= CALIBRATION.maxFloor,
+      enough
+        ? floor <= CALIBRATION.maxFloor
+          ? "Quiet enough"
+          : "Move somewhere quieter, then retry"
+        : "Waiting for a valid measurement",
+    ),
+    setupCheck(
+      "room-clipping",
+      "No clipping",
+      enough && valid.every((s) => s.peak < CALIBRATION.clipPeak),
+      enough ? "Room sample checked" : "Not checked",
+    ),
+  ];
+  return { floor, gate, checks, pass: checks.every((c) => c.status === "passed") };
+}
+export function evaluateSound(
+  frames: Frame[],
+  peak: number,
+  floor: number,
+  profile: SoundProfile,
+): MeasurementResult {
+  const valid = frames.filter(
+    (f) =>
+      Number.isFinite(f.t) &&
+      Number.isFinite(f.rms) &&
+      f.rms >= 0 &&
+      Number.isFinite(f.clarity) &&
+      (f.freq === null || (Number.isFinite(f.freq) && f.freq > 0)),
+  );
+  const enough =
+    valid.length === frames.length &&
+    hasCoverage(
+      valid.map((f) => f.t),
+      10,
+      CALIBRATION.soundMinSpan,
+    );
+  const stats = qualityStats(valid);
+  const voicedRms = valid
+    .filter((f) => f.freq !== null)
+    .map((f) => f.rms)
+    .sort((a, b) => a - b);
+  const rms = voicedRms[Math.floor(voicedRms.length / 2)] ?? 0;
+  const checks = [
+    setupCheck(
+      "sound-samples",
+      "Sound measurement captured",
+      enough,
+      enough ? "Test captured" : "Not enough audio — try again",
+    ),
+    setupCheck(
+      "sound-pitch",
+      "Pitch detected",
+      enough && stats.voicedRatio >= profile.checks.voicedRatio,
+      `${Math.round(stats.voicedRatio * 100)}% detected`,
+    ),
+    setupCheck(
+      "sound-clear",
+      "Clear tone",
+      enough && stats.medianClarity >= profile.checks.clarity,
+      "Use your normal volume",
+    ),
+    setupCheck(
+      "sound-clipping",
+      "No clipping",
+      enough && Number.isFinite(peak) && peak < CALIBRATION.clipPeak,
+      peak >= CALIBRATION.clipPeak ? "Lower gain or move back" : "Level checked",
+    ),
+    setupCheck(
+      "sound-noise",
+      "Sound above room noise",
+      enough &&
+        Number.isFinite(floor) &&
+        floor >= 0 &&
+        rms >= Math.max(0.003, floor * profile.checks.noiseRatio),
+      "Your sound should stand out from the background",
+    ),
+    setupCheck(
+      "sound-steady",
+      "Steady pitch",
+      enough && stats.centsStd <= 20,
+      "Optional — steadier notes are easier to transcribe",
+      false,
+    ),
+  ];
+  return { checks, pass: checks.every((c) => !c.blocking || c.status === "passed") };
 }
