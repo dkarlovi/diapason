@@ -5,13 +5,13 @@ import { Editor } from "./Editor";
 import { BASE } from "../router";
 
 vi.mock("../db", () => ({ getRecording: async () => undefined }));
-beforeEach(() => history.replaceState(null, "", "/diapason/take/missing"));
+beforeEach(() => history.replaceState(null, "", "/diapason/recording/missing"));
 
-it("returns to the library when a take in the URL no longer exists", async () => {
+it("returns to the library when a recording in the URL no longer exists", async () => {
   render(
     <BrowserRouter basename={BASE}>
       <Routes>
-        <Route path="/take/:id" element={<Editor id="missing" />} />
+        <Route path="/recording/:id" element={<Editor id="missing" />} />
         <Route path="/" element={<div>Library route</div>} />
       </Routes>
     </BrowserRouter>,

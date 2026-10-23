@@ -7,7 +7,7 @@ import { MidiOutputPicker } from "./components/MidiOutputPicker";
 import { BASE } from "./router";
 import "./styles.css";
 
-function TakeRoute() {
+function RecordingRoute() {
   const { id } = useParams();
   return id ? <Editor key={id} id={id} /> : <Library />;
 }
@@ -30,7 +30,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/new" element={<Capture />} />
-          <Route path="/take/:id" element={<TakeRoute />} />
+          <Route path="/recording/:id" element={<RecordingRoute />} />
           <Route path="*" element={<Library />} />
         </Routes>
       </main>

@@ -7,7 +7,7 @@ import { activeOutput } from "./midiout";
 import { playNotesMidi } from "./midi-playback";
 
 export interface Playback {
-  /** Seconds into the take, or null once finished/stopped. */
+  /** Seconds into the recording, or null once finished/stopped. */
   position(): number | null;
   stop(): void;
 }

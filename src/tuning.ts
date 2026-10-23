@@ -1,4 +1,4 @@
-// Per-recording tuning: defaults + last-used persistence so new takes inherit it.
+// Per-recording tuning: defaults + last-used persistence so new recordings inherit it.
 
 import type { SegmentOptions } from "./notes";
 

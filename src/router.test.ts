@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { takePath } from "./router";
+import { recordingPath } from "./router";
 
-it("encodes take identifiers in path URLs", () => {
-  expect(takePath("take/one")).toBe("/take/take%2Fone");
+it("encodes recording identifiers in path URLs", () => {
+  expect(recordingPath("recording/one")).toBe("/recording/recording%2Fone");
 });

@@ -7,7 +7,7 @@ import {
   makeReportInput,
 } from "./editor-model";
 import { DEFAULT_TUNING } from "./tuning";
-import type { NoteItem } from "./take";
+import type { NoteItem } from "./recording";
 
 const item: NoteItem = {
   raw: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
@@ -35,7 +35,7 @@ describe("editor calculations", () => {
     expect(toggleMuted([{ t: 0.5, midi: 69 }], { ...item, muted: true })).toEqual([]);
   });
 
-  it("builds diagnostics input from a take without UI state", () => {
+  it("builds diagnostics input from a recording without UI state", () => {
     const rec = { name: "Melody", sampleRate: 48000, durationSec: 2, tuning: {} };
     const stats = { voicedRatio: 1, medianClarity: 0.99, centsStd: 0, clipped: false, peak: 0.2 };
     expect(makeReportInput(rec, [], stats)).toMatchObject({

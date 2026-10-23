@@ -8,20 +8,20 @@ instrument but can carry a tune by whistling.
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
-## A takes studio
+## A recordings studio
 
-diapason is organized as a **library of takes**, persisted in your browser
+diapason is organized as a **library of recordings**, persisted in your browser
 (IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
 1. **Library** (`/diapason/`) — your recordings. Open / duplicate / delete.
 2. **Capture** (`/diapason/new`) — full signal calibration (device, gain, raw-audio
    check, record the room) → set **tempo**, get a **count-in + audible
-   metronome**, and record on the downbeat. The take is saved and opens in the
+   metronome**, and record on the downbeat. The recording is saved and opens in the
    editor. The metronome click is removed from pitch detection automatically
    (its beat times are known, so those windows are skipped — the stored audio
    stays untouched).
-3. **Editor** (`/diapason/take/:id`) — all post-processing on a take: pitch trace,
-   **per-recording tuning** sliders (saved with the take), live note list,
+3. **Editor** (`/diapason/recording/:id`) — all post-processing on a recording: pitch trace,
+   **per-recording tuning** sliders (saved with the recording), live note list,
    **tempo-aware quantization**, and exports (`.mid` / `.wav` / `.json` / log).
 
 Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
@@ -107,15 +107,15 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled        |
 | Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                   |
 | Storage codec                   | `src/codec.ts`                                  | Float32↔Int16, gzip via `CompressionStream`             |
-| IndexedDB library               | `src/db.ts`                                     | Persisted takes (no deps)                               |
-| Per-take tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
+| IndexedDB library               | `src/db.ts`                                     | Persisted recordings (no deps)                               |
+| Per-recording tuning                 | `src/tuning.ts`                                 | Defaults + last-used persistence                        |
 | Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                          |
 | Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and browser effects                     |
 | Screen models                   | `src/capture-model.ts`, `src/editor-model.ts`   | Pure calculations shared by hooks and tests             |
 | Shared UI + entry               | `src/components/primitives.tsx`, `src/main.tsx` | controls and app root                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
-deterministically when a take is opened, so the editor always reflects the
+deterministically when a recording is opened, so the editor always reflects the
 current code and tuning.
 
 ### Inspecting / tuning detection

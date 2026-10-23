@@ -97,7 +97,7 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
     mic.current?.setGain(value);
   }, []);
 
-  const session = useMemo(
+  const microphoneAccess = useMemo(
     () => ({
       resume: () => {
         void mic.current?.context.resume();
@@ -125,7 +125,7 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
     openDevice,
     changeGain,
     measureRoom,
-    ...session,
+    ...microphoneAccess,
   };
 }
 

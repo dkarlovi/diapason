@@ -5,13 +5,13 @@ import { playPcm, playNotes, type Playback } from "../playback";
 import { onOutputChange, activeOutput } from "../midiout";
 
 interface Options {
-  takeId: string;
+  recordingId: string;
   recordRef: RefObject<Recording | null>;
   pcmRef: RefObject<Float32Array>;
   notes: NoteEvent[];
 }
 
-export function useEditorPlayback({ takeId, recordRef, pcmRef, notes }: Options) {
+export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Options) {
   const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
   const [position, setPosition] = useState<number | null>(null);
   const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
@@ -42,7 +42,7 @@ export function useEditorPlayback({ takeId, recordRef, pcmRef, notes }: Options)
       preview.current?.stop();
       preview.current = null;
     };
-  }, [takeId, stopPlayback]);
+  }, [recordingId, stopPlayback]);
 
   useEffect(
     () =>

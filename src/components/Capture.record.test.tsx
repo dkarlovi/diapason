@@ -71,7 +71,7 @@ vi.mock("../db", () => ({
     saved = record;
   },
 }));
-vi.mock("../router", () => ({ takePath: (id: string) => `/take/${id}` }));
+vi.mock("../router", () => ({ recordingPath: (id: string) => `/recording/${id}` }));
 
 afterEach(() => {
   cleanup();

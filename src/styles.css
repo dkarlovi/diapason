@@ -265,7 +265,7 @@ canvas.trace {
   accent-color: var(--accent);
 }
 
-/* editor: take (left) vs. MIDI result (right), mirrored */
+/* editor: recording (left) vs. MIDI result (right), mirrored */
 main:has(#view-editor) {
   max-width: 1280px;
 }
@@ -353,12 +353,12 @@ canvas.roll {
 }
 
 /* library cards */
-.takes {
+.recordings {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
 }
-.take {
+.recording {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -367,28 +367,28 @@ canvas.roll {
   border-radius: 9px;
   background: var(--panel);
 }
-.take:hover {
+.recording:hover {
   border-color: var(--accent);
 }
-.take .name {
+.recording .name {
   font-weight: 600;
 }
-.take .meta {
+.recording .meta {
   color: var(--muted);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
 }
-.take .actions {
+.recording .actions {
   margin-left: auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.4rem;
 }
-.take .actions .play {
+.recording .actions .play {
   min-width: 4.8rem;
 }
-.take .actions button {
+.recording .actions button {
   padding: 0.35rem 0.6rem;
   font-size: 0.8rem;
 }
@@ -450,7 +450,7 @@ canvas.roll {
   border-color: var(--accent);
   font-weight: 600;
 }
-.take .actions .button {
+.recording .actions .button {
   padding: 0.35rem 0.6rem;
   font-size: 0.8rem;
 }

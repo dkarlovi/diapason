@@ -72,11 +72,11 @@ export function Editor({ id }: { id: string }) {
       : `${Math.min(100, (state.position / state.record.durationSec) * 100)}%`;
   return (
     <div id="view-editor">
-      <Breadcrumb current="Take" />
+      <Breadcrumb current="Recording" />
       <div className="pair">
         <section className="side">
           <div className="side-head">
-            <h2>Take</h2>
+            <h2>Recording</h2>
             <span className="hint">{state.meta}</span>
           </div>
           <div className="grid-wrap">
@@ -128,7 +128,7 @@ export function Editor({ id }: { id: string }) {
               className="spacer"
               onClick={() => void state.remove()}
             >
-              Delete take
+              Delete recording
             </Button>
           </div>
           <textarea
@@ -269,7 +269,7 @@ export function Editor({ id }: { id: string }) {
           </details>
           <p className="hint">
             Click a note on the grid to hear it, Ctrl+click to mute it. Tuning is saved with this
-            take; hover a label for what it does, double-click it to reset.
+            recording; hover a label for what it does, double-click it to reset.
           </p>
         </section>
       </div>

@@ -122,7 +122,7 @@ it("toggles audio, switches to MIDI and stops when playback finishes", async () 
   expect(result.current.playing).toBeNull();
   expect(result.current.position).toBeNull();
 });
-it("stops on output changes, take changes and unmount and unsubscribes", async () => {
+it("stops on output changes, recording changes and unmount and unsubscribes", async () => {
   const hook = await editor();
   act(() => hook.result.current.togglePlayback("midi"));
   state.external = true;
@@ -139,7 +139,7 @@ it("stops on output changes, take changes and unmount and unsubscribes", async (
   expect(callbacks.size).toBe(0);
   expect(state.output).toBeNull();
 });
-it("flushes tuning to the old take before loading another take", async () => {
+it("flushes tuning to the old recording before loading another recording", async () => {
   const hook = await editor();
   vi.useFakeTimers();
   act(() => hook.result.current.changeTuning("minDurationSec", 120));
@@ -161,7 +161,7 @@ function read(blob: Blob): Promise<ArrayBuffer> {
     reader.readAsArrayBuffer(blob);
   });
 }
-it("exports playable MIDI, PCM WAV and diagnostics from the loaded take", async () => {
+it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", async () => {
   const { result } = await editor();
   act(() => {
     result.current.downloadMidi();
@@ -219,7 +219,7 @@ it("replaces note previews and stops the preview on unmount", async () => {
   hook.unmount();
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
 });
-it("ignores a clipboard completion from a previous take", async () => {
+it("ignores a clipboard completion from a previous recording", async () => {
   let resolve!: () => void;
   vi.stubGlobal("navigator", {
     clipboard: {
@@ -244,7 +244,7 @@ it("ignores a clipboard completion from a previous take", async () => {
   expect(hook.result.current.reportText).toBe("");
   expect(hook.result.current.copyStatus).toBe("");
 });
-it("ignores an obsolete playback animation callback after starting a new take", async () => {
+it("ignores an obsolete playback animation callback after starting a new recording", async () => {
   const hook = await editor();
   act(() => hook.result.current.togglePlayback("audio"));
   const oldTick = [...callbacks.values()][0]!;

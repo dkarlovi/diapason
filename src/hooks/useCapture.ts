@@ -8,7 +8,7 @@ import { putRecording, type Recording } from "../db";
 import { loadLastTuning } from "../tuning";
 import { fmtDate } from "../ui";
 import { dspStatus, isDownbeat, peakLevel, trimCountIn } from "../capture-model";
-import { takePath } from "../router";
+import { recordingPath } from "../router";
 
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 type Beat = { on: boolean; accent: boolean; count: string };
@@ -127,7 +127,7 @@ export function useCapture() {
       const now = Date.now();
       const record: Recording = {
         id: uid(),
-        name: `Take ${fmtDate(now)}`,
+        name: `Recording ${fmtDate(now)}`,
         createdAt: now,
         sampleRate: opened.sampleRate,
         durationSec: trimmed.length / opened.sampleRate,
@@ -142,7 +142,7 @@ export function useCapture() {
         tuning: loadLastTuning(),
       };
       await putRecording(record);
-      if (mounted.current) navigate(takePath(record.id));
+      if (mounted.current) navigate(recordingPath(record.id));
     } catch (error) {
       if (mounted.current) {
         setSaving(false);

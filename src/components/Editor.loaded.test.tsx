@@ -46,7 +46,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("loads a take and saves quantization changes through React controls", async () => {
+it("loads a recording and saves quantization changes through React controls", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
@@ -59,7 +59,7 @@ it("loads a take and saves quantization changes through React controls", async (
   expect(screen.getByText(/not quantized/)).toBeTruthy();
 });
 
-it("saves a renamed take on blur", async () => {
+it("saves a renamed recording on blur", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
@@ -90,9 +90,9 @@ it("keeps a new name when the tuning save fires later", async () => {
 
 it("saves a tuning change when leaving before the debounce delay", async () => {
   render(
-    <MemoryRouter initialEntries={["/take/one"]}>
+    <MemoryRouter initialEntries={["/recording/one"]}>
       <Routes>
-        <Route path="/take/:id" element={<Editor id="one" />} />
+        <Route path="/recording/:id" element={<Editor id="one" />} />
         <Route path="/" element={<div>Library route</div>} />
       </Routes>
     </MemoryRouter>,

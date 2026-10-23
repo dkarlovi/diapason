@@ -1,11 +1,10 @@
 import type { MutedNote, Recording } from "./db";
 import type { Frame } from "./notes";
 import type { QualityStats } from "./recorder";
-import { ANALYZE_DEFAULTS } from "./recorder";
-import { PITCH_DEFAULTS } from "./pitch";
+import { analysisOptionsFor } from "./recording-profiles";
 import type { ReportInput } from "./diagnostics";
-import type { NoteItem } from "./take";
-import { covers } from "./take";
+import type { NoteItem } from "./recording";
+import { covers } from "./recording";
 import type { TraceView } from "./trace";
 import { DEFAULT_TUNING, type Tuning } from "./tuning";
 
@@ -143,24 +142,25 @@ export function exportSlug(name: string, now: number): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-  return `diapason-${base || "take"}-${now}`;
+  return `diapason-${base || "recording"}-${now}`;
 }
 
 export function makeReportInput(
-  record: Pick<Recording, "name" | "sampleRate" | "durationSec" | "tuning">,
+  record: Pick<Recording, "name" | "sampleRate" | "durationSec" | "tuning" | "source">,
   frames: Frame[],
   stats: QualityStats,
 ): ReportInput {
+  const analysis = analysisOptionsFor(record);
   return {
     title: record.name,
     sampleRate: record.sampleRate,
     durationSec: record.durationSec,
-    windowSize: ANALYZE_DEFAULTS.windowSize,
-    hop: ANALYZE_DEFAULTS.hop,
+    windowSize: analysis.windowSize,
+    hop: analysis.hop,
     detector: {
-      minFreq: PITCH_DEFAULTS.minFreq,
-      maxFreq: PITCH_DEFAULTS.maxFreq,
-      clarityThreshold: PITCH_DEFAULTS.clarityThreshold,
+      minFreq: analysis.minFreq,
+      maxFreq: analysis.maxFreq,
+      clarityThreshold: analysis.clarityThreshold,
     },
     rmsGate: record.tuning.rmsGate ?? DEFAULT_TUNING.rmsGate,
     frames,
