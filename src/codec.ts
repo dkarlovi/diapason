@@ -1,5 +1,5 @@
 // Audio sample conversion + lossless gzip compression (browser-native, no deps).
-// Takes are stored as gzipped Int16 PCM: half the size of Float32, losslessly packed.
+// Recordings are stored as gzipped Int16 PCM: half the size of Float32, losslessly packed.
 
 function floatToInt16(f: Float32Array): Int16Array {
   const out = new Int16Array(f.length);

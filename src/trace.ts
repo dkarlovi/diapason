@@ -11,6 +11,10 @@ export interface TraceView {
   midiMin: number;
   midiMax: number;
   /** Tempo grid: vertical lines at each beat (bars emphasized), optional subdivisions. Beat 0 is t=0. */
+  beatOrigin?: number;
+  playheadTime?: number;
+  /** Hide time/bar numbers for a live preview with no recording start. */
+  showTimeLabels?: boolean;
   beats?: { bpm: number; beatsPerBar: number; subdivision?: number };
   /** Note events drawn as piano-roll bars; the pitch trace is then drawn faintly behind them. */
   notes?: NoteEvent[];
@@ -68,6 +72,15 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   drawBeatGrid(ctx, geometry, view);
   drawPitchFrames(ctx, geometry, frames, view);
   drawNoteBars(ctx, geometry, view);
+  if (view.playheadTime !== undefined) {
+    ctx.strokeStyle = COLORS.noteEdge;
+    ctx.lineWidth = 1;
+    const x = geometry.xOf(view.playheadTime);
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
 }
 
 interface TraceGeometry {
@@ -112,24 +125,31 @@ function drawBeatGrid(
   const { tMin, tMax, beats } = view;
   // Vertical tempo grid: subdivisions faint, beats medium, bar lines strong.
   if (beats && beats.bpm > 0) {
+    const origin = view.beatOrigin ?? 0;
     const sub = Math.max(1, beats.subdivision ?? 1);
     const step = 60 / beats.bpm / sub;
     const perBar = sub * Math.max(1, beats.beatsPerBar);
     ctx.lineWidth = 1;
-    for (let i = Math.max(0, Math.ceil(tMin / step)); i * step <= tMax; i++) {
-      const isBar = i % perBar === 0;
-      const isBeat = i % sub === 0;
-      ctx.strokeStyle = isBar ? COLORS.bar : isBeat ? COLORS.beat : COLORS.sub;
-      const x = Math.round(xOf(i * step)) + 0.5;
+    for (
+      let i =
+        view.beatOrigin === undefined
+          ? Math.max(0, Math.ceil(tMin / step))
+          : Math.ceil((tMin - origin) / step);
+      origin + i * step <= tMax;
+      i++
+    ) {
+      drawBeatLine(ctx, xOf(origin + i * step), i, perBar, sub, h, view.showTimeLabels !== false);
+    }
+  } else if (view.showTimeLabels !== false) {
+    ctx.fillStyle = COLORS.label;
+    ctx.strokeStyle = COLORS.grid;
+    for (let second = Math.ceil(tMin); second <= tMax; second++) {
+      const x = xOf(second);
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, h);
       ctx.stroke();
-      if (isBar) {
-        ctx.fillStyle = COLORS.label;
-        ctx.textBaseline = "top";
-        ctx.fillText(String(i / perBar + 1), x + 3, 2);
-      }
+      ctx.fillText(`${second}s`, x + 3, 12);
     }
   }
 }
@@ -213,5 +233,28 @@ function drawNoteBars(
         ctx.fillText(n.name, x0 + 3, y + semi / 2);
       }
     }
+  }
+}
+
+function drawBeatLine(
+  ctx: CanvasRenderingContext2D,
+  position: number,
+  index: number,
+  perBar: number,
+  sub: number,
+  height: number,
+  showLabel: boolean,
+): void {
+  const isBar = index % perBar === 0;
+  ctx.strokeStyle = isBar ? COLORS.bar : index % sub === 0 ? COLORS.beat : COLORS.sub;
+  const x = Math.round(position) + 0.5;
+  ctx.beginPath();
+  ctx.moveTo(x, 0);
+  ctx.lineTo(x, height);
+  ctx.stroke();
+  if (isBar && showLabel) {
+    ctx.fillStyle = COLORS.label;
+    ctx.textBaseline = "top";
+    ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, 2);
   }
 }

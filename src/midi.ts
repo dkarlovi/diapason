@@ -1,5 +1,5 @@
 // Minimal Standard MIDI File (Type 0) writer — no dependencies.
-// Takes note events { midi, start (s), duration (s) } and returns a Blob you can download.
+// Recordings note events { midi, start (s), duration (s) } and returns a Blob you can download.
 
 import type { NoteEvent } from "./notes";
 

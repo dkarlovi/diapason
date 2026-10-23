@@ -5,20 +5,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Library } from "./Library";
 import type { Recording } from "../db";
 
-let takes: Recording[] = [];
+let recordings: Recording[] = [];
 
 vi.mock("../db", () => ({
-  allRecordings: vi.fn(async () => takes),
+  allRecordings: vi.fn(async () => recordings),
   storageEstimate: vi.fn(async () => null),
-  getRecording: vi.fn(async (id: string) => takes.find((take) => take.id === id)),
-  putRecording: vi.fn(async (take: Recording) => {
-    takes = [...takes, take];
+  getRecording: vi.fn(async (id: string) => recordings.find((recording) => recording.id === id)),
+  putRecording: vi.fn(async (recording: Recording) => {
+    recordings = [...recordings, recording];
   }),
   deleteRecording: vi.fn(),
 }));
 
 beforeEach(() => {
-  takes = [];
+  recordings = [];
   history.replaceState(null, "", "/diapason/");
 });
 
@@ -32,15 +32,15 @@ describe("library", () => {
         </Routes>
       </BrowserRouter>,
     );
-    expect(await screen.findByText(/No takes yet/)).toBeTruthy();
+    expect(await screen.findByText(/No recordings yet/)).toBeTruthy();
     await userEvent.click(screen.getByRole("link", { name: /New recording/ }));
     await waitFor(() => expect(location.pathname).toBe("/diapason/new"));
     expect(await screen.findByText("Capture route")).toBeTruthy();
     expect(location.hash).toBe("");
   });
 
-  it("duplicates a take and shows the new card", async () => {
-    takes = [
+  it("duplicates a recording and shows the new card", async () => {
+    recordings = [
       {
         id: "first",
         name: "Melody",

@@ -1,49 +1,59 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { useMicrophone } from "./useMicrophone";
+import { useRecordingSetup } from "./useRecordingSetup";
 import { createRecorder, type Recorder } from "../recorder";
-import { startMetronome, type MetronomeHandle } from "../metronome";
+import { startMetronome, type MetronomeHandle, type TransportState } from "../metronome";
 import { encodeAudio } from "../codec";
 import { putRecording, type Recording } from "../db";
 import { loadLastTuning } from "../tuning";
 import { fmtDate } from "../ui";
-import { dspStatus, isDownbeat, peakLevel, trimCountIn } from "../capture-model";
-import { takePath } from "../router";
-
+import { dspStatus, peakLevel, trimCountIn } from "../capture-model";
+import { recordingPath } from "../router";
+import { getSoundProfile } from "../recording-profiles";
+import { canRecord, type SetupState } from "../recording-setup";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-type Beat = { on: boolean; accent: boolean; count: string };
-
 export function useCapture() {
   const navigate = useNavigate();
   const [recording, setRecording] = useState(false);
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [transport, setTransport] = useState<TransportState | null>(null);
+  const [beat, setBeat] = useState("");
   const recorder = useRef<Recorder | null>(null);
   const metro = useRef<MetronomeHandle | null>(null);
-
-  const [bpm, setBpm] = useState(90);
-  const [beatsPerBar, setBeatsPerBar] = useState(4);
-  const [beat, setBeat] = useState<Beat>({ on: false, accent: false, count: "" });
-
-  const beatTimer = useRef(0);
   const mounted = useRef(false);
-  const recordingRef = useRef(false);
-  const startingRef = useRef(false);
+  const busy = useRef(false);
   const captureStart = useRef(0);
-
+  const snapshot = useRef<SetupState | null>(null);
+  const stopDependents = useRef<() => void>(() => {});
   const releaseCapture = useCallback(() => {
-    window.clearTimeout(beatTimer.current);
     metro.current?.stop();
     metro.current = null;
     recorder.current?.dispose();
     recorder.current = null;
-    recordingRef.current = false;
-    startingRef.current = false;
+    busy.current = false;
+    stopDependents.current();
+    if (mounted.current) {
+      setRecording(false);
+      setStarting(false);
+      setSaving(false);
+      setTransport(null);
+      setBeat("");
+    }
   }, []);
-  const isBusy = useCallback(() => recordingRef.current || startingRef.current, []);
-  const microphone = useMicrophone({ isBusy, onError: setStatus, onBeforeClose: releaseCapture });
-  const { currentMic, isCurrentMic, captureSettings, noiseMeasured } = microphone;
+  const isBusy = useCallback(() => busy.current, []);
+  const prepared = useRecordingSetup({
+    isBusy,
+    setStatus,
+    onBeforeClose: releaseCapture,
+    transport,
+  });
+  const { setupRef, update, microphone, measurements, tempo } = prepared;
+  const { currentMic, isCurrentMic } = microphone;
+  useEffect(() => {
+    stopDependents.current = prepared.onClose;
+  }, [prepared.onClose]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -51,21 +61,16 @@ export function useCapture() {
       releaseCapture();
     };
   }, [releaseCapture]);
-
-  const flashBeat = useCallback((index: number, bar: number) => {
-    if (!mounted.current) return;
-    setBeat({ on: true, accent: isDownbeat(index, bar), count: index < 0 ? String(-index) : "" });
-    window.clearTimeout(beatTimer.current);
-    beatTimer.current = window.setTimeout(() => {
-      if (mounted.current) setBeat((previous) => ({ ...previous, on: false }));
-    }, 90);
-  }, []);
-
-  const startRecording = useCallback(async () => {
-    const opened = currentMic();
-    if (!opened || recordingRef.current || startingRef.current || !noiseMeasured) return;
-    startingRef.current = true;
+  const startRecording = async () => {
+    const opened = currentMic(),
+      current = setupRef.current;
+    if (!opened || busy.current || !canRecord(current) || tempo.listening || tempo.pending) return;
+    tempo.stop();
+    measurements.cancel();
+    busy.current = true;
+    update({ type: "busy", value: true });
     setStarting(true);
+    snapshot.current = current;
     try {
       await opened.context.resume();
       if (!isCurrentMic(opened)) return;
@@ -77,107 +82,122 @@ export function useCapture() {
         }
         recorder.current = created;
       }
-      const bar = Math.max(1, Math.round(beatsPerBar));
-      const tempo = Math.max(40, Math.round(bpm));
       recorder.current.start();
       captureStart.current = opened.context.currentTime;
-      recordingRef.current = true;
       setRecording(true);
       setStatus("Counting in…");
-      metro.current = startMetronome(opened.context, {
-        bpm: tempo,
-        beatsPerBar: bar,
+      const handle = startMetronome(opened.context, {
+        bpm: current.bpm,
+        beatsPerBar: current.beatsPerBar,
         countInBars: 1,
-        onBeat: (index) => flashBeat(index, bar),
-        onDownbeat: () => {
-          if (mounted.current) setStatus("Recording… hit Stop when done.");
+        onBeat: (index) => {
+          if (isCurrentMic(opened) && metro.current)
+            setBeat(
+              index < 0 ? `Count-in: ${-index}` : `Beat ${(index % current.beatsPerBar) + 1}`,
+            );
         },
+        onDownbeat: () => {
+          if (isCurrentMic(opened) && metro.current) {
+            setStatus("Recording… hit Stop when done.");
+            setTransport((previous) => (previous ? { ...previous, phase: "recording" } : null));
+          }
+        },
+      });
+      metro.current = handle;
+      setTransport({
+        bpm: current.bpm,
+        beatsPerBar: current.beatsPerBar,
+        downbeatTime: handle.downbeatTime,
+        phase: "count-in",
+        running: true,
       });
     } catch (error) {
       if (isCurrentMic(opened)) {
-        recordingRef.current = false;
+        metro.current?.stop();
+        metro.current = null;
+        recorder.current?.dispose();
+        recorder.current = null;
+        busy.current = false;
+        update({ type: "busy", value: false });
         setRecording(false);
+        setTransport(null);
         setStatus(`Record error: ${(error as Error).message}`);
       }
     } finally {
-      startingRef.current = false;
       if (isCurrentMic(opened)) setStarting(false);
     }
-  }, [beatsPerBar, bpm, flashBeat, noiseMeasured, currentMic, isCurrentMic]);
-
-  const stopRecording = useCallback(async () => {
-    const opened = currentMic();
-    const activeRecorder = recorder.current;
-    const metronome = metro.current;
-    if (!opened || !activeRecorder || !metronome) return;
-    const pcm = activeRecorder.stop();
-    const downbeat = metronome.downbeatTime;
+  };
+  const stopRecording = async () => {
+    const opened = currentMic(),
+      active = recorder.current,
+      metronome = metro.current,
+      settings = snapshot.current;
+    if (!opened || !active || !metronome || !settings?.room) return;
+    const pcm = active.stop();
     metronome.stop();
     metro.current = null;
-    recordingRef.current = false;
     setRecording(false);
-    const trimmed = trimCountIn(pcm, downbeat, captureStart.current, opened.sampleRate);
+    setTransport(null);
+    setBeat("");
+    const trimmed = trimCountIn(
+      pcm,
+      metronome.downbeatTime,
+      captureStart.current,
+      opened.sampleRate,
+    );
     if (trimmed.length < opened.sampleRate * 0.3) {
+      busy.current = false;
+      update({ type: "busy", value: false });
       setStatus("Too short — try again.");
       return;
     }
     setSaving(true);
     setStatus("Saving…");
     try {
-      const now = Date.now();
+      const now = Date.now(),
+        profile = getSoundProfile(settings.profileId);
       const record: Recording = {
         id: uid(),
-        name: `Take ${fmtDate(now)}`,
+        name: `Recording ${fmtDate(now)}`,
         createdAt: now,
         sampleRate: opened.sampleRate,
         durationSec: trimmed.length / opened.sampleRate,
-        bpm: Math.max(40, Math.round(bpm)),
-        beatsPerBar: Math.max(1, Math.round(beatsPerBar)),
+        bpm: settings.bpm,
+        beatsPerBar: settings.beatsPerBar,
+        source: { profileId: profile.id, analysis: { ...profile.analysis } },
         audio: await encodeAudio(trimmed),
         capture: {
-          ...captureSettings(),
+          gain: settings.gain,
+          noiseFloor: settings.room.floor,
+          rmsGate: settings.room.gate,
           peak: peakLevel(trimmed),
           dspOff: dspStatus(opened.getSettings()).every((check) => check.off),
         },
-        tuning: loadLastTuning(),
+        tuning: { ...loadLastTuning(), rmsGate: settings.room.gate },
       };
+      if (!isCurrentMic(opened)) return;
       await putRecording(record);
-      if (mounted.current) navigate(takePath(record.id));
+      if (mounted.current) navigate(recordingPath(record.id));
     } catch (error) {
+      if (mounted.current)
+        setStatus(`Save error: ${(error as Error).message} — record again to retry.`);
+    } finally {
       if (mounted.current) {
         setSaving(false);
-        setStatus(`Save error: ${(error as Error).message}`);
+        busy.current = false;
+        update({ type: "busy", value: false });
       }
     }
-  }, [beatsPerBar, bpm, navigate, currentMic, captureSettings]);
-
+  };
   return {
-    devices: microphone.devices,
-    deviceId: microphone.deviceId,
-    gain: microphone.gain,
-    dsp: microphone.dsp,
-    sampleRate: microphone.sampleRate,
-    level: microphone.level,
-    levelHint: microphone.levelHint,
-    checks: microphone.checks,
-    noiseReadout: microphone.noiseReadout,
-    noiseMeasured,
-    traceRef: microphone.traceRef,
-    refreshDevices: microphone.refreshDevices,
-    openDevice: microphone.openDevice,
-    changeGain: microphone.changeGain,
-    resume: microphone.resume,
-    measureRoom: microphone.measureRoom,
+    ...prepared,
     recording,
     starting,
     saving,
     status,
-    bpm,
-    beatsPerBar,
+    transport,
     beat,
     startRecording,
     stopRecording,
-    setBpm,
-    setBeatsPerBar,
   };
 }

@@ -1,6 +1,6 @@
-// Optional Web MIDI output: play takes through an external synth / DAW instead of the
+// Optional Web MIDI output: play recordings through an external synth / DAW instead of the
 // browser synth. The chosen port is a per-machine preference (port ids are device-specific),
-// unlike instrument/octave which belong to the take.
+// unlike instrument/octave which belong to the recording.
 
 const KEY = "diapason.midiOutput";
 

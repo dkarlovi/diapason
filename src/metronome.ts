@@ -2,6 +2,14 @@
 // accuracy. The click bleeds into the raw mic, but because every beat is at a known
 // time it's masked at detection time (see analyzeBuffer `maskBpm`) — not cancelled.
 
+export interface TransportState {
+  bpm: number;
+  beatsPerBar: number;
+  downbeatTime: number;
+  phase: "preview" | "count-in" | "recording";
+  running: boolean;
+}
+
 export interface MetronomeHandle {
   /** ctx.currentTime of the downbeat (beat 0) — recording should align audio t=0 here. */
   downbeatTime: number;
@@ -15,13 +23,13 @@ export interface MetronomeOptions {
   countInBars?: number;
   /** Small lead before the first click, seconds. Default 0.15. */
   lead?: number;
-  /** Called (via setTimeout) roughly when the downbeat occurs. */
+  /** Called when the audio clock reaches the downbeat (polled every 25 ms). */
   onDownbeat?: () => void;
   /** Called with the current beat index on each scheduled beat (negative = count-in). */
   onBeat?: (beat: number) => void;
 }
 
-function click(ctx: AudioContext, at: number, accent: boolean): void {
+function click(ctx: AudioContext, at: number, accent: boolean, pending: Set<() => void>): void {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.frequency.value = accent ? 1600 : 1000;
@@ -30,6 +38,20 @@ function click(ctx: AudioContext, at: number, accent: boolean): void {
   gain.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, at + 0.002);
   gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
   osc.connect(gain).connect(ctx.destination);
+  const release = () => {
+    osc.disconnect();
+    gain.disconnect();
+    pending.delete(cancel);
+  };
+  const cancel = () => {
+    try {
+      osc.stop(ctx.currentTime);
+    } finally {
+      release();
+    }
+  };
+  pending.add(cancel);
+  osc.onended = release;
   osc.start(at);
   osc.stop(at + dur);
 }
@@ -46,42 +68,33 @@ export function startMetronome(ctx: AudioContext, opts: MetronomeOptions): Metro
 
   // Lookahead scheduler: only ever schedule ~120ms ahead, so stop() reliably halts it.
   const AHEAD = 0.12;
-  const timers: number[] = [];
+  const due: { at: number; index: number }[] = [];
+  let downbeatReported = false;
+  const pending = new Set<() => void>();
   let next = 0;
-  let stopped = false;
 
   const scheduler = window.setInterval(() => {
     while (t0 + next * beat < ctx.currentTime + AHEAD) {
       const at = t0 + next * beat;
       const beatIndex = next - countInBeats; // 0 == downbeat
       const accent = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
-      click(ctx, at, accent);
-      if (opts.onBeat)
-        timers.push(
-          window.setTimeout(
-            () => opts.onBeat!(beatIndex),
-            Math.max(0, (at - ctx.currentTime) * 1000),
-          ),
-        );
+      click(ctx, at, accent, pending);
+      if (opts.onBeat) due.push({ at, index: beatIndex });
       next++;
     }
+    while (due.length && due[0]!.at <= ctx.currentTime) opts.onBeat?.(due.shift()!.index);
+    if (!downbeatReported && ctx.currentTime >= downbeatTime) {
+      downbeatReported = true;
+      opts.onDownbeat?.();
+    }
   }, 25);
-
-  if (opts.onDownbeat) {
-    timers.push(
-      window.setTimeout(
-        () => !stopped && opts.onDownbeat!(),
-        Math.max(0, (downbeatTime - ctx.currentTime) * 1000),
-      ),
-    );
-  }
 
   return {
     downbeatTime,
     stop(): void {
-      stopped = true;
       window.clearInterval(scheduler);
-      for (const t of timers) window.clearTimeout(t);
+      due.length = 0;
+      for (const cancel of pending) cancel();
     },
   };
 }

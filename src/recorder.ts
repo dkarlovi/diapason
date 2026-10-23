@@ -1,3 +1,4 @@
+import { ensureAudioWorklet } from "./audio-worklet";
 // Captures contiguous raw PCM from the live mic so we can re-analyze it offline
 // (tune detection without whistling live) and replay it. Uses an AudioWorklet,
 // whose processor source is inlined via a Blob URL so there's no extra build step.
@@ -7,26 +8,17 @@ import { freqToMidi, type Frame } from "./notes";
 
 const WORKLET_SRC = `
 class RecorderProcessor extends AudioWorkletProcessor {
+  constructor() { super(); this.active = true; this.port.onmessage = () => { this.active = false; }; }
   process(inputs) {
+    if (!this.active) return false;
     const input = inputs[0];
     const ch = input && input[0];
-    if (ch && ch.length) this.port.postMessage(ch.slice(0));
+    if (ch && ch.length) this.port.postMessage({ samples: ch.slice(0), start: currentTime });
     return true;
   }
 }
 registerProcessor('diapason-recorder', RecorderProcessor);
 `;
-
-let workletReady: Promise<void> | null = null;
-
-async function ensureWorklet(ctx: AudioContext): Promise<void> {
-  if (!workletReady) {
-    const blob = new Blob([WORKLET_SRC], { type: "application/javascript" });
-    const url = URL.createObjectURL(blob);
-    workletReady = ctx.audioWorklet.addModule(url).finally(() => URL.revokeObjectURL(url));
-  }
-  return workletReady;
-}
 
 export interface Recorder {
   start(): void;
@@ -36,7 +28,7 @@ export interface Recorder {
 }
 
 export async function createRecorder(ctx: AudioContext, source: AudioNode): Promise<Recorder> {
-  await ensureWorklet(ctx);
+  await ensureAudioWorklet(ctx, "recorder", WORKLET_SRC);
   const node = new AudioWorkletNode(ctx, "diapason-recorder", {
     numberOfInputs: 1,
     numberOfOutputs: 0,
@@ -44,15 +36,30 @@ export async function createRecorder(ctx: AudioContext, source: AudioNode): Prom
 
   let chunks: Float32Array[] = [];
   let capturing = false;
+  let captureFrom = 0;
+  let received = 0;
 
-  node.port.onmessage = (ev: MessageEvent<Float32Array>): void => {
-    if (capturing) chunks.push(ev.data);
+  node.port.onmessage = (event: MessageEvent<{ samples: Float32Array; start: number }>): void => {
+    if (!capturing) return;
+    const { samples, start } = event.data;
+    const offset = Math.round((start - captureFrom) * ctx.sampleRate);
+    const drop = Math.max(0, received - offset);
+    if (drop >= samples.length) return;
+    if (offset > received) {
+      chunks.push(new Float32Array(offset - received));
+      received = offset;
+    }
+    const chunk = samples.slice(drop);
+    chunks.push(chunk);
+    received += chunk.length;
   };
   source.connect(node);
 
   return {
     start(): void {
       chunks = [];
+      received = 0;
+      captureFrom = ctx.currentTime;
       capturing = true;
     },
     stop(): Float32Array {
@@ -70,11 +77,14 @@ export async function createRecorder(ctx: AudioContext, source: AudioNode): Prom
       capturing = false;
       source.disconnect(node);
       node.port.onmessage = null;
+      node.port.postMessage("stop");
+      node.disconnect();
+      node.port.close();
     },
   };
 }
 
-export const ANALYZE_DEFAULTS = { windowSize: 2048, hop: 512 } as const;
+const ANALYZE_DEFAULTS = { windowSize: 2048, hop: 512 } as const;
 
 export interface AnalyzeOptions {
   /** Analysis window size in samples. Default 2048. */

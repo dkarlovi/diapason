@@ -1,3 +1,4 @@
+import { subscribePcm } from "./clap-input";
 // Microphone capture with the browser's voice DSP explicitly DISABLED.
 //
 // This is the whole ballgame for whistle detection: by default getUserMedia applies
@@ -37,6 +38,8 @@ export interface MicHandle {
   setGain(multiplier: number): void;
   /** What the browser actually gave us — used to confirm DSP really is off. */
   getSettings(): MediaTrackSettings;
+  subscribePcm(listener: (samples: Float32Array, startSec: number) => void): Promise<() => void>;
+  onEnded?(listener: () => void): () => void;
   close(): void;
 }
 
@@ -87,6 +90,11 @@ export async function openMic({
     },
     getSettings(): MediaTrackSettings {
       return track.getSettings ? track.getSettings() : {};
+    },
+    subscribePcm: (listener) => subscribePcm(ctx, gain, listener),
+    onEnded(listener: () => void): () => void {
+      track.addEventListener("ended", listener);
+      return () => track.removeEventListener("ended", listener);
     },
     close(): void {
       track.stop();

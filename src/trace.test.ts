@@ -132,3 +132,43 @@ it("keeps coordinates finite for degenerate view ranges and labels octaves", () 
       .every(Number.isFinite),
   ).toBe(true);
 });
+
+it("anchors moving beat bars to the downbeat and includes count-in beats", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    tMin: 8,
+    tMax: 12,
+    beats: { bpm: 120, beatsPerBar: 4 },
+    beatOrigin: 10,
+    playheadTime: 10.5,
+  });
+  expect(operations).toContainEqual(expect.objectContaining({ method: "moveTo", args: [25.5, 0] }));
+  expect(operations).toContainEqual(
+    expect.objectContaining({ method: "moveTo", args: [50.5, 0], stroke: "#45536a" }),
+  );
+  expect(operations).toContainEqual(
+    expect.objectContaining({ method: "fillText", args: ["Count-in", 3.5, 2] }),
+  );
+});
+
+it("draws an unnumbered live beat grid before recording", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    beats: { bpm: 120, beatsPerBar: 4 },
+    beatOrigin: 0,
+    showTimeLabels: false,
+  });
+  expect(operations).toContainEqual(expect.objectContaining({ method: "moveTo", args: [50.5, 0] }));
+  expect(operations.filter((o) => o.method === "fillText")).toEqual([]);
+});
+
+it("omits vertical time lines when a live monitor has no tempo", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], { ...view, showTimeLabels: false });
+  // Only horizontal pitch lines remain; none end at a time-axis x coordinate.
+  expect(operations.filter((o) => o.method === "lineTo").every((o) => o.args[0] === 100)).toBe(
+    true,
+  );
+});

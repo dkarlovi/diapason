@@ -7,17 +7,17 @@ import { encodeWav } from "../wav";
 import { buildReport, buildReportData } from "../diagnostics";
 import { downloadBlob } from "../ui";
 import { exportSlug, makeReportInput } from "../editor-model";
-import { takeNotes } from "../take";
+import { recordingNotes } from "../recording";
 
 interface Options {
-  takeId: string;
+  recordingId: string;
   recordRef: RefObject<Recording | null>;
   pcmRef: RefObject<Float32Array>;
   frames: Frame[];
   statsRef: RefObject<QualityStats | null>;
 }
 
-export function useEditorExports({ takeId, recordRef, pcmRef, frames, statsRef }: Options) {
+export function useEditorExports({ recordingId, recordRef, pcmRef, frames, statsRef }: Options) {
   const [reportText, setReportText] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
   const logRef = useRef<HTMLTextAreaElement>(null);
@@ -28,17 +28,20 @@ export function useEditorExports({ takeId, recordRef, pcmRef, frames, statsRef }
     return () => {
       generation.current++;
     };
-  }, [takeId]);
+  }, [recordingId]);
 
   const filename = useCallback(
     (extension: string) =>
-      `${exportSlug(recordRef.current?.name ?? "take", Date.now())}.${extension}`,
+      `${exportSlug(recordRef.current?.name ?? "recording", Date.now())}.${extension}`,
     [recordRef],
   );
   const downloadMidi = useCallback(() => {
     const current = recordRef.current;
     if (current)
-      downloadBlob(notesToMidi(takeNotes(current, frames), { bpm: current.bpm }), filename("mid"));
+      downloadBlob(
+        notesToMidi(recordingNotes(current, frames), { bpm: current.bpm }),
+        filename("mid"),
+      );
   }, [filename, frames, recordRef]);
   const downloadWav = useCallback(() => {
     const current = recordRef.current;

@@ -1,3 +1,4 @@
+import { analysisOptionsFor } from "../recording-profiles";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
@@ -7,9 +8,9 @@ import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange, type TraceView } from "../trace";
-import { takeItems, DEFAULT_QUANTIZE } from "../take";
+import { recordingItems, DEFAULT_QUANTIZE } from "../recording";
 import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
-import { takePath } from "../router";
+import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import { noteAtPoint, toggleMuted, updateTuning } from "../editor-model";
 
@@ -68,7 +69,10 @@ export function useEditor(id: string) {
       const decoded = await decodeAudio(found.audio);
       if (cancelled) return;
       pcm.current = decoded;
-      const analyzed = analyzeBuffer(decoded, found.sampleRate, { maskBpm: found.bpm });
+      const analyzed = analyzeBuffer(decoded, found.sampleRate, {
+        ...analysisOptionsFor(found),
+        maskBpm: found.bpm,
+      });
       stats.current = qualityStats(analyzed, decoded);
       setFrames(analyzed);
       replaceRecord(found);
@@ -85,19 +89,19 @@ export function useEditor(id: string) {
   const quantize = record?.quantize ?? DEFAULT_QUANTIZE;
   const play = record?.play ?? DEFAULT_PLAY;
   const tuning = { ...DEFAULT_TUNING, ...record?.tuning };
-  const items = useMemo(() => (record ? takeItems(record, frames) : []), [record, frames]);
+  const items = useMemo(() => (record ? recordingItems(record, frames) : []), [record, frames]);
   const notes = useMemo(
     () => items.filter((item) => !item.muted).map((item) => item.note),
     [items],
   );
   const { playing, position, externalOutput, togglePlayback, previewNote } = useEditorPlayback({
-    takeId: id,
+    recordingId: id,
     recordRef,
     pcmRef: pcm,
     notes,
   });
   const { logRef, reportText, copyStatus, downloadMidi, downloadWav, downloadJson, copyLog } =
-    useEditorExports({ takeId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
+    useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
 
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
   const baseView = useMemo(
@@ -209,7 +213,7 @@ export function useEditor(id: string) {
     if (!current) return;
     const copy = { ...current, id: uid(), name: `${current.name} (copy)`, createdAt: Date.now() };
     await putRecording(copy);
-    if (mounted.current) navigate(takePath(copy.id));
+    if (mounted.current) navigate(recordingPath(copy.id));
   }, [navigate]);
 
   const remove = useCallback(async () => {

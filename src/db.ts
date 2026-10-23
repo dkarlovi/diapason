@@ -1,5 +1,6 @@
-// Minimal IndexedDB wrapper for the takes library. No dependencies.
+// Minimal IndexedDB wrapper for the recordings library. No dependencies.
 
+import type { SoundProfile } from "./recording-profiles";
 import type { SegmentOptions } from "./notes";
 import type { PlaySettings } from "./instruments";
 
@@ -11,11 +12,12 @@ export interface CaptureMeta {
   gain: number;
   peak: number;
   noiseFloor: number;
+  rmsGate?: number;
   dspOff: boolean;
 }
 
 /** A note the user switched off. Anchored to the midpoint of the raw (unquantized) note
- *  rather than an index, so it still finds "its" note after re-tuning re-segments the take. */
+ *  rather than an index, so it still finds "its" note after re-tuning re-segments the recording. */
 export interface MutedNote {
   t: number;
   midi: number;
@@ -28,6 +30,7 @@ export interface QuantizeSetting {
 }
 
 export interface Recording {
+  source?: { profileId: string; analysis: SoundProfile["analysis"] };
   id: string;
   name: string;
   createdAt: number;
@@ -41,7 +44,7 @@ export interface Recording {
   tuning: SegmentOptions;
   muted?: MutedNote[];
   quantize?: QuantizeSetting;
-  /** How ▶ MIDI sounds for this take (playback only; the .mid is unaffected). */
+  /** How ▶ MIDI sounds for this recording (playback only; the .mid is unaffected). */
   play?: PlaySettings;
 }
 

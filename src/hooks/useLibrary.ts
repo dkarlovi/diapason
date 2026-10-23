@@ -1,3 +1,4 @@
+import { analysisOptionsFor } from "../recording-profiles";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   allRecordings,
@@ -10,7 +11,7 @@ import {
 import { decodeAudio } from "../codec";
 import { analyzeBuffer } from "../recorder";
 import { playPcm, playNotes, type Playback } from "../playback";
-import { takeNotes } from "../take";
+import { recordingNotes } from "../recording";
 import { onOutputChange } from "../midiout";
 import type { Frame } from "../notes";
 
@@ -21,11 +22,13 @@ function uid(): string {
 }
 
 export function useLibrary() {
-  const [takes, setTakes] = useState<Recording[]>([]);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
   const [storage, setStorage] = useState("");
   const [playing, setPlaying] = useState<Playing>(null);
   const playingRef = useRef<Playing>(null);
-  const decoded = useRef(new Map<string, { pcm: Float32Array; frames?: Frame[] }>());
+  const decoded = useRef(
+    new Map<string, { pcm: Float32Array; frames?: Frame[]; analysisKey?: string }>(),
+  );
   const playback = useRef<Playback | null>(null);
   const raf = useRef(0);
   const request = useRef(0);
@@ -44,13 +47,13 @@ export function useLibrary() {
     stopPlayback();
     const records = await allRecordings();
     if (!mounted.current) return;
-    setTakes(records);
+    setRecordings(records);
     const estimate = await storageEstimate();
     if (!mounted.current) return;
     setStorage(
       estimate
-        ? `${records.length} take(s) · ~${(estimate.usage / 1e6).toFixed(1)} MB used`
-        : `${records.length} take(s)`,
+        ? `${records.length} recording(s) · ~${(estimate.usage / 1e6).toFixed(1)} MB used`
+        : `${records.length} recording(s)`,
     );
   }, [stopPlayback]);
 
@@ -81,14 +84,18 @@ export function useLibrary() {
         audio = { pcm: await decodeAudio(record.audio) };
         decoded.current.set(record.id, audio);
       }
-      if (kind === "midi")
-        audio.frames ??= analyzeBuffer(audio.pcm, record.sampleRate, { maskBpm: record.bpm });
+      const options = { ...analysisOptionsFor(record), maskBpm: record.bpm };
+      const analysisKey = JSON.stringify(options);
+      if (kind === "midi" && (!audio.frames || audio.analysisKey !== analysisKey)) {
+        audio.frames = analyzeBuffer(audio.pcm, record.sampleRate, options);
+        audio.analysisKey = analysisKey;
+      }
       if (!mounted.current || token !== request.current) return;
 
       playback.current =
         kind === "audio"
           ? playPcm(audio.pcm, record.sampleRate)
-          : playNotes(takeNotes(record, audio.frames!), record.durationSec, record.play);
+          : playNotes(recordingNotes(record, audio.frames!), record.durationSec, record.play);
       const tick = () => {
         if (playback.current?.position() == null) return stopPlayback();
         raf.current = requestAnimationFrame(tick);
@@ -125,5 +132,5 @@ export function useLibrary() {
     [reload, stopPlayback],
   );
 
-  return { takes, storage, playing, togglePlay, duplicate, remove };
+  return { recordings, storage, playing, togglePlay, duplicate, remove };
 }
