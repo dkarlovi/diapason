@@ -16,7 +16,9 @@ if (!values.json || !values.wav || !values.out) {
   );
   process.exitCode = 2;
 } else {
+  // A non-development mode keeps the build identity the replay compares against.
   const server = await createServer({
+    mode: "replay",
     server: { middlewareMode: true, hmr: false, ws: false, watch: null },
     appType: "custom",
   });

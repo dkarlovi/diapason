@@ -10,6 +10,8 @@ import { resolveAnalysisOptions } from "./recording-analysis";
 import { BUILD_INFO } from "./build-info";
 import type { QualityStats } from "./recorder";
 
+export const SCHEMA_VERSION = 2;
+
 export interface ReportInput {
   recording: Recording;
   context?: { browser: string; audioOutput: string; midiOutput: string };
@@ -63,7 +65,7 @@ export function buildReportData(input: ReportInput) {
 
   return {
     app: "diapason",
-    schemaVersion: 2,
+    schemaVersion: SCHEMA_VERSION,
     build: BUILD_INFO,
     saved: { ...input.recording, audio: undefined },
     context: input.context ?? { browser: "unknown", audioOutput: "unknown", midiOutput: "unknown" },
@@ -118,7 +120,10 @@ export function buildReport(input: ReportInput): string {
   lines.push(`[settings] ${JSON.stringify(d.settings)}`);
   lines.push(`[capture] ${JSON.stringify(d.saved.capture)}`);
   lines.push(`[analysis] ${JSON.stringify(d.analysis)}`);
-  lines.push(`[stages] ${JSON.stringify(d.stages)}`);
+  const s = d.stages;
+  lines.push(
+    `[stages] segmented=${s.segmented.length} quantized=${s.quantized.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length} adjustments=${s.adjustments.length}`,
+  );
   lines.push("[quality]");
   lines.push(
     `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? " CLIPPING!" : ""}`,

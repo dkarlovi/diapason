@@ -11,6 +11,8 @@ import { downloadBlob } from "../ui";
 import { exportSlug, makeReportInput } from "../editor-model";
 import { recordingNotes } from "../recording";
 
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 interface Options {
   recordingId: string;
   recordRef: RefObject<Recording | null>;
@@ -50,11 +52,15 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
   );
   const downloadMidi = useCallback(() => {
     const current = recordRef.current;
-    if (current)
+    if (!current) return;
+    try {
       downloadBlob(
         notesToMidi(recordingNotes(current, frames), { bpm: current.bpm }),
         filename("mid"),
       );
+    } catch (error) {
+      setCopyStatus(`MIDI export failed: ${errorMessage(error)}`);
+    }
   }, [filename, frames, recordRef]);
   const downloadWav = useCallback(() => {
     const current = recordRef.current;
@@ -80,7 +86,13 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
     const current = recordRef.current;
     if (!current || !statsRef.current) return;
     const token = generation.current;
-    const report = buildReport(reportInput(current, statsRef.current));
+    let report: string;
+    try {
+      report = buildReport(reportInput(current, statsRef.current));
+    } catch (error) {
+      setCopyStatus(`Diagnostics failed: ${errorMessage(error)}`);
+      return;
+    }
     setReportText(report);
     try {
       await navigator.clipboard.writeText(report);

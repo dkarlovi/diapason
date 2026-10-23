@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { PIPELINE_VERSION } from "./src/build-info";
 
 let revision = "unknown";
 try {
@@ -26,8 +27,18 @@ for (const file of readdirSync("src", { recursive: true })
 const source = sourceHash.digest("hex");
 const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
 
-export default defineConfig({
-  define: { __APP_BUILD__: JSON.stringify({ version, revision, source, pipeline: 2 }) },
+// A dev server keeps serving edited sources, so a startup snapshot would misidentify exports.
+const identity = (live: boolean) =>
+  live ? { revision: "unknown", source: "unknown" } : { revision, source };
+
+export default defineConfig(({ command, mode }) => ({
+  define: {
+    __APP_BUILD__: JSON.stringify({
+      version,
+      ...identity(command === "serve" && mode === "development"),
+      pipeline: PIPELINE_VERSION,
+    }),
+  },
   plugins: [react()],
   test: {
     coverage: {
@@ -45,4 +56,4 @@ export default defineConfig({
     port: 5173,
     open: true,
   },
-});
+}));

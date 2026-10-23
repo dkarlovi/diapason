@@ -1,8 +1,9 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { buildReportData } from "./diagnostics";
+import { buildReport, buildReportData } from "./diagnostics";
 import { makeReportInput } from "./editor-model";
 import { recording } from "./test-support/recording";
+import { PIPELINE_VERSION } from "./build-info";
 import { qualityStats } from "./recorder";
 import type { Frame } from "./notes";
 
@@ -46,7 +47,7 @@ it("reports final enabled notes and all saved/effective settings, rather than de
     maxFreq: 3000,
     masking: "none",
   });
-  expect(report.build.pipeline).toBe(2);
+  expect(report.build.pipeline).toBe(PIPELINE_VERSION);
 });
 
 it("records the legacy grid fallback separately from explicitly disabled quantization", () => {
@@ -60,4 +61,11 @@ it("records the legacy grid fallback separately from explicitly disabled quantiz
     "saved",
   );
   expect(report({ quantize: { on: false, subdivision: 2 } }).notes).toEqual([]);
+});
+
+it("summarizes processing stages in the pasteable log instead of dumping them", () => {
+  const rec = recording({ quantize: { on: false, subdivision: 2 }, muted: [{ t: 0.2, midi: 69 }] });
+  const text = buildReport(makeReportInput(rec, frames, qualityStats(frames)));
+  const line = text.split("\n").find((l) => l.startsWith("[stages]"));
+  expect(line).toBe("[stages] segmented=1 quantized=1 muted=1 exported=0 adjustments=0");
 });

@@ -160,12 +160,15 @@ Each recording can be exported from the editor's **Recording** panel:
   for offline analysis.
 - **Download .json** — the metrics: config (band, clarity threshold, noise gate),
   quality stats, the segmented notes, and the full per-frame pitch track.
-- **Copy log** — the same report as compact text, for pasting inline.
+- **Copy log** — the same report as compact text, for pasting inline; processing
+  stages appear as counts, with full detail left to the JSON.
 
 Schema-2 JSON includes complete saved and effective analysis/tuning settings, BPM,
 grid, muted anchors, playback settings, build identity, full-precision pitch frames,
 segmented and quantized notes, collision adjustments, final enabled notes, and
 absolute MIDI tick events. The top-level `notes` are the notes exported to MIDI.
+Exports from `npm run dev` record the build revision and source as unknown, because
+the dev server serves edited sources live; use a production build for comparable exports.
 Playback octave/instrument settings are recorded separately and do not change MIDI export.
 
 Export JSON and WAV from the same recording. JSON identifies the exact mono PCM16

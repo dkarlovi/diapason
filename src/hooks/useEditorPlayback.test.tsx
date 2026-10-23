@@ -15,7 +15,18 @@ const state = vi.hoisted(() => ({
   output: null as (() => void) | null,
   external: false,
   frames: null as Frame[] | null,
+  midiError: false,
 }));
+vi.mock("../midi", async (original) => {
+  const midi = await original<typeof import("../midi")>();
+  const guard =
+    <T extends unknown[], R>(fn: (...args: T) => R) =>
+    (...args: T): R => {
+      if (state.midiError) throw new Error("MIDI resolution cannot preserve distinct notes.");
+      return fn(...args);
+    };
+  return { midiEvents: guard(midi.midiEvents), notesToMidi: guard(midi.notesToMidi) };
+});
 vi.mock("../db", () => ({
   getRecording: async (id: string): Promise<Recording> => ({
     id,
@@ -81,6 +92,7 @@ beforeEach(() => {
   state.notes = [];
   state.external = false;
   state.frames = null;
+  state.midiError = false;
   callbacks = new Map();
   nextId = 0;
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
@@ -182,6 +194,21 @@ it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", a
   expect(wavBytes.getUint32(40, true)).toBe(96000);
   const data = JSON.parse(new TextDecoder().decode(await read(json!.blob)));
   expect(data).toMatchObject({ title: "one", config: { sampleRate: 48000 } });
+});
+it("reports MIDI encoding failures instead of throwing from export handlers", async () => {
+  const { result } = await editor();
+  state.midiError = true;
+  act(() => result.current.downloadMidi());
+  expect(state.downloads).toEqual([]);
+  expect(result.current.copyStatus).toBe(
+    "MIDI export failed: MIDI resolution cannot preserve distinct notes.",
+  );
+  await act(async () => {
+    await result.current.copyLog();
+  });
+  expect(result.current.copyStatus).toBe(
+    "Diagnostics failed: MIDI resolution cannot preserve distinct notes.",
+  );
 });
 it("selects report text when clipboard access fails", async () => {
   vi.stubGlobal("navigator", {

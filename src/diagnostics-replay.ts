@@ -1,5 +1,5 @@
 import { type DiagnosticSnapshot, sha256 } from "./diagnostic-snapshot";
-import { buildReportData } from "./diagnostics";
+import { buildReportData, SCHEMA_VERSION } from "./diagnostics";
 import { makeReportInput } from "./editor-model";
 import { analyzeRecording } from "./recording-analysis";
 import { qualityStats } from "./recorder";
@@ -41,7 +41,7 @@ export async function replayDiagnostics(value: unknown, wavBytes: ArrayBuffer) {
       difference: "Legacy JSON omits settings needed for exact replay.",
     } as const;
   }
-  if (value.schemaVersion !== 2) throw new Error("Unsupported diagnostic schema.");
+  if (value.schemaVersion !== SCHEMA_VERSION) throw new Error("Unsupported diagnostic schema.");
   validateDiagnostics(value);
   if ((await sha256(wavBytes)) !== value.audio.sha256)
     throw new Error("WAV does not match diagnostic SHA-256.");
