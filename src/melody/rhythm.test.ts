@@ -72,3 +72,18 @@ it.each([0, 1, 2, 3, 4] as GridSubdivision[])(
     });
   },
 );
+it.each([1, 2, 3, 4] as GridSubdivision[])(
+  "syncopation pushes a beat by at most half a beat on grid %i",
+  (grid) => {
+    const beats = Array.from({ length: 8 }, (_, i) => note(i * 0.5, 0.2));
+    const notes = applyFeel(beats, { ...neutral, grid, syncopation: 1 }, timing);
+    const pushes = notes.map((n, i) => beats[i]!.start - n.start);
+    expect(pushes.some((push) => push > 0)).toBe(true);
+    pushes.forEach((push) => expect(push).toBeLessThanOrEqual(0.25 + 1e-9));
+  },
+);
+it.each([1, 3] as GridSubdivision[])("swing leaves every beat on grid %i in place", (grid) => {
+  const beats = Array.from({ length: 8 }, (_, i) => note(i * 0.5, 0.1));
+  const notes = applyFeel(beats, { ...neutral, grid, swing: 0.5 }, timing);
+  expect(notes.map((n) => n.start)).toEqual(beats.map((n) => n.start));
+});

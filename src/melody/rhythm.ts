@@ -13,10 +13,9 @@ const MIN_PHASE_NOTES = 4;
 function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision: number): number {
   const beat = 60 / timing.bpm;
   if (notes.length < MIN_PHASE_NOTES || !(beat > 0) || !Number.isFinite(beat)) return 0;
-  const vote = (cycles: number, phase: number) =>
+  const vote = (phase: number) =>
     notes.reduce(
-      (sum, note) =>
-        sum + note.duration * Math.cos(2 * Math.PI * cycles * (note.start / beat - phase)),
+      (sum, note) => sum + note.duration * Math.cos(2 * Math.PI * (note.start / beat - phase)),
       0,
     );
   let x = 0,
@@ -29,25 +28,18 @@ function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision: numbe
   const folded = Math.atan2(y, x) / (2 * Math.PI * subdivision);
   let phase = folded;
   for (let k = 1; k < subdivision; k++)
-    if (vote(1, folded + k / subdivision) > vote(1, phase)) phase = folded + k / subdivision;
+    if (vote(folded + k / subdivision) > vote(phase)) phase = folded + k / subdivision;
   phase -= Math.round(phase);
   return phase * beat;
 }
-export function applyFeel(
-  notes: NoteEvent[],
-  knobs: Knobs,
-  timing: { bpm: number; beatsPerBar: number },
-): NoteEvent[] {
-  const step = knobs.grid ? 60 / timing.bpm / knobs.grid : 0;
-  const lag =
-    step > 0 && Number.isFinite(step)
-      ? Math.min(gridLag(notes, timing, knobs.grid), notes[0]?.start ?? 0)
-      : 0;
+export function applyFeel(notes: NoteEvent[], knobs: Knobs, timing: { bpm: number }): NoteEvent[] {
+  const candidate = knobs.grid ? 60 / timing.bpm / knobs.grid : 0;
+  const step = candidate > 0 && Number.isFinite(candidate) ? candidate : 0;
+  const lag = step ? Math.min(gridLag(notes, timing, knobs.grid), notes[0]?.start ?? 0) : 0;
   const aligned = lag ? notes.map((note) => ({ ...note, start: note.start - lag })) : notes;
-  const gridded =
-    step > 0 && Number.isFinite(step)
-      ? quantizeSequence(aligned, { bpm: timing.bpm, subdivision: knobs.grid }).notes
-      : notes;
+  const gridded = step
+    ? quantizeSequence(aligned, { bpm: timing.bpm, subdivision: knobs.grid }).notes
+    : notes;
   const base = aligned.map(
     (note, i) => note.start + (gridded[i]!.start - note.start) * knobs.gridPull,
   );
@@ -59,11 +51,14 @@ export function applyFeel(
     const subdivision = Math.round(position);
     const onBeat = subdivision % knobs.grid === 0;
     const anticipate = onBeat && Math.round(subdivision / knobs.grid) % 2 === 1;
+    // Swing delays off-beat halves of a beat, so only even grids have them; a
+    // push anticipates by at most an eighth, whatever the grid.
+    const swung = knobs.grid % 2 === 0 && subdivision % 2 === 1;
     return Math.max(
       0,
       start +
-        (subdivision % 2 === 1 ? knobs.swing * step : 0) -
-        (anticipate ? knobs.syncopation * step : 0),
+        (swung ? knobs.swing * step : 0) -
+        (anticipate ? knobs.syncopation * Math.min(step, (knobs.grid * step) / 2) : 0),
     );
   });
   // Dense passages may not have room for displacement. Preserve their ordered
