@@ -79,4 +79,5 @@ it("replays the real exported JSON/WAV into identical MIDI bytes", async () => {
   expect(replay.notes).toEqual(report.notes);
   const expected = await notesToMidi(report.notes, { bpm: rec.bpm }).arrayBuffer();
   expect(new Uint8Array(await replay.midi!.arrayBuffer())).toEqual(new Uint8Array(expected));
-});
+  // Reanalysis is CPU-heavy under V8 coverage on shared runners.
+}, 15_000);

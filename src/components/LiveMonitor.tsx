@@ -1,6 +1,50 @@
 import type { RefObject } from "react";
-import { freqToMidi, midiToName } from "../notes";
-import { Panel } from "./primitives";
+import { liveReadout, type LiveLevel } from "../capture-presentation";
+import type { TransportState } from "../metronome";
+import { LiveBeat } from "./LiveBeat";
+
+type Readout = ReturnType<typeof liveReadout>;
+function LivePitch({ readout, connected }: { readout: Readout; connected: boolean }) {
+  if (!connected)
+    return <p className="live-chart-placeholder">Connect your microphone to see live sound</p>;
+  return (
+    <>
+      <div className="live-pitch" title={readout.message}>
+        <strong>{readout.note ?? "—"}</strong>
+        <span>{readout.frequency}</span>
+      </div>
+      <span className="sr-only">{readout.message}</span>
+      {readout.clipping && <span className="clip-warning">Clipping</span>}
+    </>
+  );
+}
+
+function InputLevel({ readout, connected }: { readout: Readout; connected: boolean }) {
+  const value = connected ? readout.db : "Microphone disconnected";
+  return (
+    <div className="live-level">
+      <label id="input-level-label">Input level</label>
+      <div
+        role="meter"
+        aria-labelledby="input-level-label"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={readout.percent}
+        aria-valuetext={readout.clipping ? "Clipping" : value}
+        className={"meter" + (readout.clipping ? " clip" : "")}
+      >
+        <div style={{ width: readout.percent + "%" }} />
+      </div>
+      <span className="level-db">{connected ? readout.db : "—"}</span>
+      <span
+        className={"clip-light" + (readout.clipping ? " active" : "")}
+        title={readout.clipping ? "Clipping" : "No clipping"}
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
 export function LiveMonitor({
   level,
   traceRef,
@@ -9,43 +53,22 @@ export function LiveMonitor({
   beatsPerBar,
   confirmed,
   connected,
+  transport = null,
+  clock = null,
 }: {
-  level: { rms: number; peak: number; freq: number | null };
+  level: LiveLevel;
   traceRef: RefObject<HTMLCanvasElement | null>;
   mode: "listen" | "room" | "sound" | "clap" | "recording";
   bpm: number | null;
   beatsPerBar: number;
   confirmed: boolean;
   connected: boolean;
+  transport?: TransportState | null;
+  clock?: Pick<AudioContext, "currentTime"> | null;
 }) {
-  const message = monitorMessage(connected, mode, level);
+  const readout = liveReadout(level);
   return (
-    <Panel title="Live sound">
-      {connected && (
-        <div className="monitor-readout">
-          <span>{message}</span>
-          {bpm !== null && (
-            <span className="hint">
-              {confirmed ? "Beat grid" : "Preview grid"} · {bpm} BPM · {beatsPerBar} beats/bar
-            </span>
-          )}
-        </div>
-      )}
-      {connected && (
-        <>
-          <label id="input-level-label">Input level</label>
-          <div
-            role="meter"
-            aria-labelledby="input-level-label"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(Math.min(100, level.rms * 400))}
-            className={`meter ${level.peak >= 0.98 ? "clip" : ""}`}
-          >
-            <div style={{ width: `${Math.min(100, level.rms * 400)}%` }} />
-          </div>
-        </>
-      )}
+    <section className="live-monitor" aria-label="Live signal" data-mode={mode}>
       <div className="live-chart">
         <canvas
           className="trace live-trace"
@@ -57,26 +80,17 @@ export function LiveMonitor({
         >
           Live microphone pitch trace
         </canvas>
-        {!connected && (
-          <p className="live-chart-placeholder">Connect your microphone to see live sound</p>
+        <LivePitch readout={readout} connected={connected} />
+        {connected && bpm !== null && (
+          <>
+            <span className="sr-only">
+              {confirmed ? "Beat grid" : "Preview grid"} · {bpm} BPM · {beatsPerBar} beats/bar
+            </span>
+            <LiveBeat bpm={bpm} beatsPerBar={beatsPerBar} transport={transport} clock={clock} />
+          </>
         )}
       </div>
-    </Panel>
+      <InputLevel readout={readout} connected={connected} />
+    </section>
   );
-}
-
-function monitorMessage(
-  connected: boolean,
-  mode: string,
-  level: { rms: number; peak: number; freq: number | null },
-): string {
-  if (!connected) return "Connect your microphone to see live sound.";
-  if (mode === "room") return "Measuring background noise — stay silent.";
-  if (mode === "clap") return "Listening for claps — clap a steady beat.";
-  if (level.peak >= 0.98) return "Signal is clipping — lower input gain.";
-  if (level.freq !== null)
-    return `Pitch detected: ${midiToName(Math.round(freqToMidi(level.freq)))}`;
-  return level.rms > 0.003
-    ? "Sound detected; no whistle pitch detected."
-    : "Listening — whistle a steady note.";
 }

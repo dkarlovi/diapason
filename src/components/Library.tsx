@@ -1,9 +1,16 @@
 import { Link } from "react-router";
+import { ChevronRight, Ellipsis, FileAudio, Plus, Play, Square } from "lucide-react";
 import { useLibrary, type Playing } from "../hooks/useLibrary";
 import type { Recording } from "../db";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { Button, Panel } from "./primitives";
+
+function closeRecordingMenu(control: HTMLElement) {
+  const menu = control.closest("details");
+  menu?.removeAttribute("open");
+  menu?.querySelector("summary")?.focus();
+}
 
 function RecordingCard({
   record,
@@ -14,35 +21,70 @@ function RecordingCard({
 }: {
   record: Recording;
   playing: Playing;
-  onPlay: (record: Recording, kind: "audio" | "midi") => void;
-  onDuplicate: (id: string) => void;
-  onDelete: (record: Recording) => void;
+  onPlay(record: Recording, kind: "audio" | "midi"): void;
+  onDuplicate(id: string): void;
+  onDelete(record: Recording): void;
 }) {
-  const isPlaying = (kind: "audio" | "midi") => playing?.id === record.id && playing.kind === kind;
   return (
-    <div className="recording">
-      <div>
-        <div className="name">{record.name}</div>
-        <div className="meta">
+    <article className="library-record">
+      <span className="recording-icon">
+        <FileAudio aria-hidden="true" />
+      </span>
+      <div className="recording-info">
+        <h2>{record.name}</h2>
+        <p>
           {fmtDate(record.createdAt)} · {record.bpm} BPM · {record.durationSec.toFixed(1)}s
-        </div>
+        </p>
       </div>
-      <div className="actions">
-        <Button className="play" onClick={() => onPlay(record, "audio")}>
-          {isPlaying("audio") ? "■ Stop" : "▶ Audio"}
-        </Button>
-        <Button className="play" onClick={() => onPlay(record, "midi")}>
-          {isPlaying("midi") ? "■ Stop" : "▶ MIDI"}
-        </Button>
-        <Link className="button primary" to={recordingPath(record.id)}>
-          Open
+      <div className="library-record-actions">
+        {(["audio", "midi"] as const).map((kind) => {
+          const active = playing?.id === record.id && playing.kind === kind;
+          return (
+            <Button
+              key={kind}
+              aria-pressed={active}
+              aria-label={(active ? "Stop " : "Play ") + kind + ": " + record.name}
+              onClick={() => onPlay(record, kind)}
+            >
+              {active ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
+              {kind === "audio" ? "Audio" : "MIDI"}
+            </Button>
+          );
+        })}
+        <Link className="button recording-open" to={recordingPath(record.id)}>
+          Open <ChevronRight aria-hidden="true" />
         </Link>
-        <Button onClick={() => onDuplicate(record.id)}>Duplicate</Button>
-        <Button variant="danger" onClick={() => onDelete(record)}>
-          Delete
-        </Button>
+        <details
+          className="recording-menu"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeRecordingMenu(event.currentTarget);
+          }}
+        >
+          <summary aria-label={"Actions for " + record.name} title="Recording actions">
+            <Ellipsis aria-hidden="true" />
+          </summary>
+          <div className="recording-menu-items">
+            <Button
+              onClick={(event) => {
+                closeRecordingMenu(event.currentTarget);
+                onDuplicate(record.id);
+              }}
+            >
+              Duplicate
+            </Button>
+            <Button
+              variant="danger"
+              onClick={(event) => {
+                closeRecordingMenu(event.currentTarget);
+                onDelete(record);
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </details>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -50,10 +92,10 @@ export function Library() {
   const { recordings, storage, playing, togglePlay, duplicate, remove } = useLibrary();
   return (
     <div id="view-library">
-      <div className="row" style={{ marginBottom: "1rem" }}>
-        <h2 style={{ margin: 0 }}>Your recordings</h2>
-        <Link className="button primary spacer" to="/new">
-          + New recording
+      <div className="library-heading">
+        <h1>Your recordings</h1>
+        <Link className="button primary" to="/new">
+          <Plus aria-hidden="true" /> New recording
         </Link>
       </div>
       {recordings.length ? (
@@ -71,13 +113,12 @@ export function Library() {
         </div>
       ) : (
         <Panel title="Your library is empty">
-          <p className="sub" style={{ textAlign: "left", margin: 0 }}>
-            No recordings yet. Hit <strong>+ New recording</strong>, whistle a melody to the
-            metronome, and it becomes a recording you can tune and export to MIDI.
+          <p className="empty-library-copy">
+            No recordings yet. Record a melody, refine the notes, and export it to MIDI.
           </p>
         </Panel>
       )}
-      <p className="hint">{storage}</p>
+      <p className="library-storage">{storage}</p>
     </div>
   );
 }

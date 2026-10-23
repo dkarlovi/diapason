@@ -4,11 +4,8 @@ export function MidiOutputPicker() {
   const output = useMidiOutput();
   if (!output.supported) return null;
   return (
-    <label
-      className="spacer"
-      style={{ display: "flex", alignItems: "center", gap: ".5rem", marginTop: ".4rem" }}
-    >
-      MIDI out
+    <label className="spacer midi-output">
+      <span className="midi-output-label">MIDI out</span>
       <select
         value={output.selected}
         onChange={(event) => void output.change(event.target.value)}

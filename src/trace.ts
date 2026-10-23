@@ -22,7 +22,7 @@ export interface TraceView {
   muted?: NoteEvent[];
 }
 
-const COLORS = {
+const DEFAULT_COLORS = {
   bg: "#0a0d11",
   grid: "#222a34",
   gridOctave: "#2f3a47",
@@ -34,7 +34,40 @@ const COLORS = {
   bar: "#45536a",
   note: "#5ad1a8",
   noteEdge: "#b6f2dd",
+  noteText: "#06231a",
+  playhead: "#b6f2dd",
 };
+
+type TraceColors = typeof DEFAULT_COLORS;
+const palettes = new WeakMap<HTMLCanvasElement, { key: string; colors: TraceColors }>();
+
+function traceColors(canvas: HTMLCanvasElement): TraceColors {
+  if (!canvas.matches(".live-trace, .themed-trace")) return DEFAULT_COLORS;
+  const style = getComputedStyle(canvas);
+  const values = Object.entries(DEFAULT_COLORS).map(
+    ([name, fallback]) =>
+      [name, style.getPropertyValue("--trace-" + name).trim() || fallback] as const,
+  );
+  const key =
+    values.map(([, value]) => value).join(";") +
+    window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const cached = palettes.get(canvas);
+  if (cached?.key === key) return cached.colors;
+  // Canvas color parsing does not consistently resolve CSS light-dark()/var().
+  // Resolve through a CSS color property once per palette, never once per frame.
+  const probe = document.createElement("span");
+  probe.hidden = true;
+  (canvas.parentElement ?? document.body).append(probe);
+  const colors = Object.fromEntries(
+    values.map(([name, value]) => {
+      probe.style.color = value;
+      return [name, getComputedStyle(probe).color];
+    }),
+  ) as TraceColors;
+  probe.remove();
+  palettes.set(canvas, { key, colors });
+  return colors;
+}
 
 /** Pick a y-axis range that fits the voiced frames, padded and clamped to sane whistle bounds. */
 export function autoRange(frames: Frame[]): { midiMin: number; midiMax: number } {
@@ -57,11 +90,13 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
-  ctx.fillStyle = COLORS.bg;
+  const colors = traceColors(canvas);
+  ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, w, h);
 
   const { tMin, tMax, midiMin, midiMax } = view;
   const geometry: TraceGeometry = {
+    colors,
     width: w,
     height: h,
     semitoneHeight: h / (midiMax - midiMin || 1),
@@ -73,7 +108,7 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   drawPitchFrames(ctx, geometry, frames, view);
   drawNoteBars(ctx, geometry, view);
   if (view.playheadTime !== undefined) {
-    ctx.strokeStyle = COLORS.noteEdge;
+    ctx.strokeStyle = colors.playhead;
     ctx.lineWidth = 1;
     const x = geometry.xOf(view.playheadTime);
     ctx.beginPath();
@@ -84,6 +119,7 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
 }
 
 interface TraceGeometry {
+  colors: TraceColors;
   width: number;
   height: number;
   semitoneHeight: number;
@@ -96,7 +132,7 @@ function drawPitchGrid(
   geometry: TraceGeometry,
   view: TraceView,
 ): void {
-  const { width: w, yOf } = geometry;
+  const { width: w, yOf, colors } = geometry;
   const { midiMin, midiMax } = view;
   // Horizontal gridlines + note labels at each semitone (octaves emphasized).
   ctx.textBaseline = "middle";
@@ -104,13 +140,13 @@ function drawPitchGrid(
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
     const isC = m % 12 === 0;
     const y = yOf(m);
-    ctx.strokeStyle = isC ? COLORS.gridOctave : COLORS.grid;
+    ctx.strokeStyle = isC ? colors.gridOctave : colors.grid;
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(w, y);
     ctx.stroke();
     if (isC) {
-      ctx.fillStyle = COLORS.label;
+      ctx.fillStyle = colors.label;
       ctx.fillText(midiToName(m), 3, y - 6);
     }
   }
@@ -121,7 +157,7 @@ function drawBeatGrid(
   geometry: TraceGeometry,
   view: TraceView,
 ): void {
-  const { height: h, xOf } = geometry;
+  const { height: h, xOf, colors } = geometry;
   const { tMin, tMax, beats } = view;
   // Vertical tempo grid: subdivisions faint, beats medium, bar lines strong.
   if (beats && beats.bpm > 0) {
@@ -138,11 +174,20 @@ function drawBeatGrid(
       origin + i * step <= tMax;
       i++
     ) {
-      drawBeatLine(ctx, xOf(origin + i * step), i, perBar, sub, h, view.showTimeLabels !== false);
+      drawBeatLine(
+        ctx,
+        xOf(origin + i * step),
+        i,
+        perBar,
+        sub,
+        h,
+        view.showTimeLabels !== false,
+        colors,
+      );
     }
   } else if (view.showTimeLabels !== false) {
-    ctx.fillStyle = COLORS.label;
-    ctx.strokeStyle = COLORS.grid;
+    ctx.fillStyle = colors.label;
+    ctx.strokeStyle = colors.grid;
     for (let second = Math.ceil(tMin); second <= tMax; second++) {
       const x = xOf(second);
       ctx.beginPath();
@@ -160,7 +205,7 @@ function drawPitchFrames(
   frames: Frame[],
   view: TraceView,
 ): void {
-  const { xOf, yOf } = geometry;
+  const { xOf, yOf, colors } = geometry;
   const { tMin, tMax, notes } = view;
   // Pitch trace: connect consecutive voiced frames, brightness by clarity.
   // Behind note bars it's a thin, faint reference.
@@ -179,14 +224,14 @@ function drawPitchFrames(
     const x = xOf(f.t);
     const y = yOf(freqToMidi(f.freq));
     if (prev) {
-      ctx.strokeStyle = faint || f.clarity <= 0.95 ? COLORS.faint : COLORS.line;
+      ctx.strokeStyle = faint || f.clarity <= 0.95 ? colors.faint : colors.line;
       ctx.beginPath();
       ctx.moveTo(prev.x, prev.y);
       ctx.lineTo(x, y);
       ctx.stroke();
     }
     if (!faint) {
-      ctx.fillStyle = f.clarity > 0.95 ? COLORS.line : COLORS.faint;
+      ctx.fillStyle = f.clarity > 0.95 ? colors.line : colors.faint;
       ctx.beginPath();
       ctx.arc(x, y, 1.8, 0, Math.PI * 2);
       ctx.fill();
@@ -200,14 +245,14 @@ function drawNoteBars(
   geometry: TraceGeometry,
   view: TraceView,
 ): void {
-  const { xOf, yOf } = geometry;
+  const { xOf, yOf, colors } = geometry;
   const { notes, muted } = view;
   // Piano-roll note bars, one semitone tall, centred on the note.
   const semi = geometry.semitoneHeight;
   if (muted) {
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = COLORS.label;
+    ctx.strokeStyle = colors.label;
     for (const n of muted) {
       const x0 = xOf(n.start);
       const x1 = xOf(n.start + n.duration);
@@ -221,14 +266,14 @@ function drawNoteBars(
       const x0 = xOf(n.start);
       const x1 = xOf(n.start + n.duration);
       const y = yOf(n.midi) - semi / 2;
-      ctx.fillStyle = COLORS.note;
+      ctx.fillStyle = colors.note;
       ctx.globalAlpha = 0.85;
       ctx.fillRect(x0, y, Math.max(2, x1 - x0), semi);
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = COLORS.noteEdge;
+      ctx.strokeStyle = colors.noteEdge;
       ctx.strokeRect(x0 + 0.5, y + 0.5, Math.max(2, x1 - x0) - 1, semi - 1);
       if (x1 - x0 > 22 && semi >= 9) {
-        ctx.fillStyle = "#06231a";
+        ctx.fillStyle = colors.noteText;
         ctx.textBaseline = "middle";
         ctx.fillText(n.name, x0 + 3, y + semi / 2);
       }
@@ -244,16 +289,17 @@ function drawBeatLine(
   sub: number,
   height: number,
   showLabel: boolean,
+  colors: TraceColors,
 ): void {
   const isBar = index % perBar === 0;
-  ctx.strokeStyle = isBar ? COLORS.bar : index % sub === 0 ? COLORS.beat : COLORS.sub;
+  ctx.strokeStyle = isBar ? colors.bar : index % sub === 0 ? colors.beat : colors.sub;
   const x = Math.round(position) + 0.5;
   ctx.beginPath();
   ctx.moveTo(x, 0);
   ctx.lineTo(x, height);
   ctx.stroke();
   if (isBar && showLabel) {
-    ctx.fillStyle = COLORS.label;
+    ctx.fillStyle = colors.label;
     ctx.textBaseline = "top";
     ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, 2);
   }
