@@ -1,4 +1,4 @@
-import { analysisOptionsFor } from "../recording-profiles";
+import { resolveAnalysisOptions } from "../recording-analysis";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
@@ -69,10 +69,7 @@ export function useEditor(id: string) {
       const decoded = await decodeAudio(found.audio);
       if (cancelled) return;
       pcm.current = decoded;
-      const analyzed = analyzeBuffer(decoded, found.sampleRate, {
-        ...analysisOptionsFor(found),
-        maskBpm: found.bpm,
-      });
+      const analyzed = analyzeBuffer(decoded, found.sampleRate, resolveAnalysisOptions(found));
       stats.current = qualityStats(analyzed, decoded);
       setFrames(analyzed);
       replaceRecord(found);

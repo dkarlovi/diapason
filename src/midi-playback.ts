@@ -18,7 +18,7 @@ export function playNotesMidi(
     keys.add(key);
     const on = t0 + n.start * 1000;
     // End a hair early so back-to-back same notes don't swallow the next note-on.
-    const off = on + Math.max(20, n.duration * 1000 - 5);
+    const off = on + Math.max(0, n.duration * 1000 - Math.min(5, n.duration * 500));
     out.send([0x90 | CHANNEL, key, 100], on);
     out.send([0x80 | CHANNEL, key, 0], off);
   }

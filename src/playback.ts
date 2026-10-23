@@ -73,7 +73,7 @@ export function playNotes(
   const srcs: AudioScheduledSourceNode[] = [];
   for (const n of notes) {
     const freq = 440 * 2 ** ((n.midi + 12 * octave - 69) / 12);
-    srcs.push(...voice(c, out, freq, t0 + n.start, Math.max(0.03, n.duration)));
+    srcs.push(...voice(c, out, freq, t0 + n.start, n.duration));
   }
   const end = notes.reduce((m, n) => Math.max(m, n.start + n.duration), 0);
   return track(c, Math.max(duration, end), srcs);

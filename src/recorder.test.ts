@@ -55,7 +55,7 @@ it("uses audio timestamps to exclude queued pre-start samples", async () => {
   recorder.dispose();
 });
 
-it("analyzes a saved tone using effective source settings and masks metronome beat windows", async () => {
+it("analyzes a saved tone using effective source settings without deleting beat windows", async () => {
   const { analyzeBuffer } = await import("./recorder");
   const pcm = Float32Array.from(
     { length: 8000 },
@@ -66,9 +66,8 @@ it("analyzes a saved tone using effective source settings and masks metronome be
     maxFreq: 1000,
     windowSize: 512,
     hop: 128,
-    maskBpm: 120,
   });
-  expect(frames[0]?.freq).toBeNull();
+  expect(frames[0]?.freq).toBeCloseTo(440, 0);
   expect(frames.find((frame) => frame.t >= 0.15)?.freq).toBeCloseTo(440, 0);
-  expect(frames.find((frame) => frame.t >= 0.48)?.freq).toBeNull();
+  expect(frames.find((frame) => frame.t >= 0.48)?.freq).toBeCloseTo(440, 0);
 });

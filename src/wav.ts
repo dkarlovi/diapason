@@ -1,8 +1,10 @@
+import { floatToPcm16 } from "./pcm";
+
 // Encodes mono Float32 PCM to a 16-bit WAV Blob — the most universally readable
 // format for offline inspection (scipy, Audacity, ffmpeg, etc.). 16-bit is plenty
 // for whistle analysis; the signal is near-sine and well above the noise floor.
 
-export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
+export function wavBytes(samples: Float32Array, sampleRate: number): ArrayBuffer {
   const numSamples = samples.length;
   const bytesPerSample = 2;
   const dataSize = numSamples * bytesPerSample;
@@ -30,12 +32,16 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   writeStr(36, "data");
   view.setUint32(40, dataSize, true);
 
+  const integers = floatToPcm16(samples);
   let offset = 44;
   for (let i = 0; i < numSamples; i++) {
-    const s = Math.max(-1, Math.min(1, samples[i]!));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    view.setInt16(offset, integers[i]!, true);
     offset += 2;
   }
 
-  return new Blob([buffer], { type: "audio/wav" });
+  return buffer;
+}
+
+export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
+  return new Blob([wavBytes(samples, sampleRate)], { type: "audio/wav" });
 }

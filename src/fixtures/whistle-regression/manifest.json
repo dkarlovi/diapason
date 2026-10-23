@@ -1,0 +1,10 @@
+{
+  "provenance": "User-supplied headphone whistle, 2026-10-23. Reference is the unmasked/unquantized preview preferred by the user, not a hand-transcribed score. Original schema-1 JSON lacks complete settings; MIDI matches a 95 BPM quarter grid.",
+  "files": {
+    "original.json": "9bf6b4fd2852104816e8b18d5b2dd476265856906b2fb576d56f36bd2e32c7d9",
+    "original.mid": "22ba5047f950497f10bcce1df633e1db52f48d9c1400c913c47630655a68bed0",
+    "original.wav": "327cae38b3895b354bb87201654b28a3799866feae2ba5f87fea2eb6d8e46252"
+  },
+  "sampleRate": 48000,
+  "sampleCount": 973873
+}

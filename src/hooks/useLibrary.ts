@@ -1,4 +1,4 @@
-import { analysisOptionsFor } from "../recording-profiles";
+import { resolveAnalysisOptions } from "../recording-analysis";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   allRecordings,
@@ -84,7 +84,7 @@ export function useLibrary() {
         audio = { pcm: await decodeAudio(record.audio) };
         decoded.current.set(record.id, audio);
       }
-      const options = { ...analysisOptionsFor(record), maskBpm: record.bpm };
+      const options = resolveAnalysisOptions(record);
       const analysisKey = JSON.stringify(options);
       if (kind === "midi" && (!audio.frames || audio.analysisKey !== analysisKey)) {
         audio.frames = analyzeBuffer(audio.pcm, record.sampleRate, options);

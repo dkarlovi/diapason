@@ -1,11 +1,20 @@
+import { midiEvents } from "./midi";
 // Builds diagnostics for a recorded sample so detection can be inspected/tuned
 // offline. Produces a structured object (for a .json sidecar) and a compact text
 // report (for pasting inline). Both share one source of truth: buildReportData().
 
-import { freqToMidi, midiToName, segmentNotes, type Frame, type NoteEvent } from "./notes";
+import { freqToMidi, midiToName, type Frame } from "./notes";
+import type { Recording } from "./db";
+import { processRecording } from "./recording";
+import { resolveAnalysisOptions } from "./recording-analysis";
+import { BUILD_INFO } from "./build-info";
 import type { QualityStats } from "./recorder";
 
+export const SCHEMA_VERSION = 2;
+
 export interface ReportInput {
+  recording: Recording;
+  context?: { browser: string; audioOutput: string; midiOutput: string };
   title: string;
   sampleRate: number;
   durationSec: number;
@@ -17,7 +26,8 @@ export interface ReportInput {
   stats: QualityStats;
 }
 
-export interface FrameRow {
+interface FrameRow {
+  t: number;
   tMs: number;
   freq: number | null;
   midi: number | null;
@@ -26,31 +36,14 @@ export interface FrameRow {
   rms: number;
 }
 
-export interface ReportData {
-  app: "diapason";
-  title: string;
-  generated: string;
-  config: {
-    sampleRate: number;
-    durationSec: number;
-    windowSize: number;
-    hop: number;
-    minFreq: number;
-    maxFreq: number;
-    clarityThreshold: number;
-    rmsGate: number;
-  };
-  quality: QualityStats;
-  notes: NoteEvent[];
-  frames: FrameRow[];
-}
-
-export function buildReportData(input: ReportInput): ReportData {
-  const notes = segmentNotes(input.frames, { rmsGate: input.rmsGate });
+export function buildReportData(input: ReportInput) {
+  const stages = processRecording(input.recording, input.frames);
+  const notes = stages.notes;
   const frames: FrameRow[] = input.frames.map((f) => {
     if (f.freq === null) {
       return {
-        tMs: Math.round(f.t * 1000),
+        t: f.t,
+        tMs: f.t * 1000,
         freq: null,
         midi: null,
         cents: null,
@@ -60,22 +53,36 @@ export function buildReportData(input: ReportInput): ReportData {
     }
     const midi = freqToMidi(f.freq);
     return {
-      tMs: Math.round(f.t * 1000),
-      freq: Math.round(f.freq * 10) / 10,
+      t: f.t,
+      tMs: f.t * 1000,
+      freq: f.freq,
       midi: Math.round(midi * 100) / 100,
       cents: Math.round((midi - Math.round(midi)) * 100),
-      clarity: Math.round(f.clarity * 1000) / 1000,
-      rms: Math.round(f.rms * 10000) / 10000,
+      clarity: f.clarity,
+      rms: f.rms,
     };
   });
 
   return {
     app: "diapason",
+    schemaVersion: SCHEMA_VERSION,
+    build: BUILD_INFO,
+    saved: { ...input.recording, audio: undefined },
+    context: input.context ?? { browser: "unknown", audioOutput: "unknown", midiOutput: "unknown" },
+    settings: stages.settings,
+    analysis: { ...resolveAnalysisOptions(input.recording), masking: "none" },
+    stages,
+    midiEvents: midiEvents(notes, { bpm: input.recording.bpm }),
+    playback: {
+      octaveAffectsExport: false,
+      instrumentAffectsExport: false,
+      externalNoteOffLeadMs: 5,
+    },
     title: input.title,
     generated: new Date().toISOString(),
     config: {
       sampleRate: input.sampleRate,
-      durationSec: Math.round(input.durationSec * 1000) / 1000,
+      durationSec: input.durationSec,
       windowSize: input.windowSize,
       hop: input.hop,
       minFreq: input.detector.minFreq,
@@ -109,12 +116,20 @@ export function buildReport(input: ReportInput): string {
     `band=${c.minFreq}-${c.maxFreq}Hz  clarityThreshold=${f(c.clarityThreshold, 2)}  rmsGate=${f(c.rmsGate, 4)}`,
   );
   lines.push("");
+  lines.push(`build=${d.build.revision} pipeline=${d.build.pipeline} schema=${d.schemaVersion}`);
+  lines.push(`[settings] ${JSON.stringify(d.settings)}`);
+  lines.push(`[capture] ${JSON.stringify(d.saved.capture)}`);
+  lines.push(`[analysis] ${JSON.stringify(d.analysis)}`);
+  const s = d.stages;
+  lines.push(
+    `[stages] segmented=${s.segmented.length} quantized=${s.quantized.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length} adjustments=${s.adjustments.length}`,
+  );
   lines.push("[quality]");
   lines.push(
     `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? " CLIPPING!" : ""}`,
   );
   lines.push("");
-  lines.push(`[segmented notes]  (${d.notes.length})`);
+  lines.push(`[exported notes]  (${d.notes.length})`);
   if (d.notes.length) {
     d.notes.forEach((n, i) =>
       lines.push(

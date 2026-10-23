@@ -146,12 +146,13 @@ export function exportSlug(name: string, now: number): string {
 }
 
 export function makeReportInput(
-  record: Pick<Recording, "name" | "sampleRate" | "durationSec" | "tuning" | "source">,
+  record: Recording,
   frames: Frame[],
   stats: QualityStats,
 ): ReportInput {
   const analysis = analysisOptionsFor(record);
   return {
+    recording: record,
     title: record.name,
     sampleRate: record.sampleRate,
     durationSec: record.durationSec,
