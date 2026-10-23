@@ -10,7 +10,7 @@ import {
   type KeyScore,
 } from "./key";
 import type { Knobs } from "./knobs";
-import { applyFeel } from "./rhythm";
+import { applyFeel, gridLag } from "./rhythm";
 export type KeyChoice = "auto" | Key;
 export interface Interpretation {
   knobs: Knobs;
@@ -49,11 +49,13 @@ export function interpretMelody(
       : performedTuning;
   if (chosen && knobs.mode !== "auto") chosen = parallelKey(chosen, knobs.mode);
   const harmony = chosen ? inferHarmony(faithful, chosen, timing, "bar") : [];
+  const meter = { beat: 60 / timing.bpm, lag: gridLag(faithful, timing, 2) };
   const decoded = notesFromSegments(segments, knobs, {
     key: chosen,
     harmony,
     range,
     tuning,
+    meter,
   });
   return {
     knobs,

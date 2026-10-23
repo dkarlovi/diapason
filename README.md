@@ -210,7 +210,11 @@ preview. Starting another preview replaces it.
   (from exactly what you whistled to always in key, guided by the key and implied
   chords), Mode (as detected, major or minor), and Timing grid are directly
   visible. **More** holds Level gate, Minimum note length, Silence gap, Smooth
-  leaps, Max pitch move, Pull onto grid (from as recorded to exactly on the grid),
+  leaps, Max pitch move (fixes notes you could not hit: a note that clashes with
+  the implied chord moves onto the nearest chord tone within that many
+  semitones; off-beat passing and neighbour notes, reached and left by step, are
+  kept as the melody's decoration; 0 by default),
+  Pull onto grid (from as recorded to exactly on the grid),
   Swing, Syncopation (an anticipation of at most an eighth), and Note length.
   Changing a control shows **Custom (from …)** and saves it with the recording;
   saved values for controls that have since been retired are ignored.
@@ -245,6 +249,12 @@ must export its approved `clean.mid` byte for byte.
   and pitch wobble. Presets and individual controls let you compare this tradeoff.
 - Automatic key/harmony can be uncertain, especially on short intros. Try the
   previewable alternative keys or preserve odd notes when needed.
+- Max pitch move recognises only off-beat passing and neighbour notes as
+  deliberate. Accented decoration, such as an appoggiatura that leans on the beat
+  and resolves by step, is treated as a clash and moved onto the chord.
+- Max pitch move corrects towards chords inferred from the take itself, one per
+  bar. A take with many wrong notes can imply the wrong chord, and the fix then
+  follows it.
 - Pitch detection remains monophonic and band-limited to 250–3000 Hz for whistles.
 - Existing recordings can sound different with the new engine. Legacy hysteresis,
   debounce, and median-window settings no longer control note decisions.

@@ -42,7 +42,13 @@ const RANGE_GROUPS: Record<
   },
   shape: {
     leapPenalty: ["Smooth leaps", "Prefer smaller melodic steps.", 0, 1, 0.01],
-    maxMoveSemitones: ["Max pitch move", "Semitone limit.", 0, 4, 1],
+    maxMoveSemitones: [
+      "Max pitch move",
+      "Move notes that clash with the implied chord onto it, up to this many semitones.",
+      0,
+      4,
+      1,
+    ],
   },
   rhythm: {
     gridPull: ["Pull onto grid", "Timing blend.", 0, 1, 0.01],
@@ -114,7 +120,7 @@ const BASE: Knobs = {
   keyPull: 0.6,
   mode: "auto",
   leapPenalty: 0.1,
-  maxMoveSemitones: 2,
+  maxMoveSemitones: 0,
   gridPull: 1,
   swing: 0,
   syncopation: 0,

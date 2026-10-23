@@ -10,7 +10,7 @@ const MIN_PHASE_NOTES = 4;
  * Onsets are folded onto the grid step first, then the step-sized ambiguity is
  * resolved toward beats, weighted by note length (long notes sit on beats).
  */
-function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision: number): number {
+export function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision: number): number {
   const beat = 60 / timing.bpm;
   if (notes.length < MIN_PHASE_NOTES || !(beat > 0) || !Number.isFinite(beat)) return 0;
   const vote = (phase: number) =>

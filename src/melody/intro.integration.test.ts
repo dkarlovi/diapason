@@ -66,3 +66,10 @@ it.each(["as-played", "gentle", "keep-odd"] as const)(
     expect(notes.length).toBeGreaterThanOrEqual(intended.length);
   },
 );
+it("Max pitch move keeps the intro's neighbour notes", () => {
+  const notes = previewNotes(intro.record, intro.frames, {
+    preset: "clean",
+    overrides: { maxMoveSemitones: 2 },
+  });
+  expect(notes.map((note) => note.name)).toEqual(intended.map(([name]) => name));
+});

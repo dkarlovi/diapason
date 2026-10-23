@@ -12,6 +12,7 @@ const context: PitchContext = {
   harmony: [],
   range: { minMidi: freqToMidi(250), maxMidi: freqToMidi(3000) },
   tuning: 0,
+  meter: null,
 };
 const gentle = PRESETS.gentle.knobs;
 function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
@@ -165,4 +166,62 @@ it("keeps sustained intentional semitone steps", () => {
     context,
   );
   expect(notes.map((note) => note.midi)).toEqual([76, 77, 76]);
+});
+const cMajorChord: PitchContext = {
+  ...context,
+  key: { tonic: 0, mode: "major" },
+  harmony: [{ start: 0, end: 2, pitchClasses: new Set([0, 4, 7]) }],
+  // 120 BPM, performed on the click.
+  meter: { beat: 0.5, lag: 0 },
+};
+const missedFifth = frames([
+  [0.5, 60],
+  [0.5, 64],
+  [0.5, 67],
+  [0.5, 69],
+]);
+it("max pitch move lets the harmony fix a note whistled a whole tone off", () => {
+  const fixed = decodeMelody(missedFifth, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
+  expect(fixed.map((n) => n.midi)).toEqual([60, 64, 67, 67]);
+});
+it.each([0, 1])("max pitch move %i leaves a note out of reach of a chord tone alone", (move) => {
+  const kept = decodeMelody(missedFifth, { ...gentle, maxMoveSemitones: move }, cMajorChord);
+  expect(kept.map((n) => n.midi)).toEqual([60, 64, 67, 69]);
+});
+it("a fixed note moves to the chord tone nearer the whistled pitch", () => {
+  // D sits two semitones from both C and E; whistled sharp, it belongs to E.
+  const between = frames([
+    [0.5, 60],
+    [0.5, 62.3],
+    [0.5, 67],
+  ]);
+  const fixed = decodeMelody(between, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
+  expect(fixed.map((n) => n.midi)).toEqual([60, 64, 67]);
+});
+it("keeps an off-beat passing note between chord tones", () => {
+  const passing = frames([
+    [0.75, 60],
+    [0.25, 62],
+    [0.5, 64],
+  ]);
+  const kept = decodeMelody(passing, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
+  expect(kept.map((n) => n.midi)).toEqual([60, 62, 64]);
+});
+it("keeps an off-beat neighbour note that steps away and back", () => {
+  const neighbour = frames([
+    [0.75, 64],
+    [0.25, 65],
+    [0.5, 64],
+  ]);
+  const kept = decodeMelody(neighbour, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
+  expect(kept.map((n) => n.midi)).toEqual([64, 65, 64]);
+});
+it("still fixes a stepwise clash that lands on the beat", () => {
+  const held = frames([
+    [0.5, 60],
+    [0.5, 62.3],
+    [0.5, 64],
+  ]);
+  const fixed = decodeMelody(held, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
+  expect(fixed.map((n) => n.midi)).toEqual([60, 64, 64]);
 });

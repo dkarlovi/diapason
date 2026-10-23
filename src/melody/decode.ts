@@ -7,6 +7,8 @@ export interface PitchContext {
   range: { minMidi: number; maxMidi: number };
   /** Performer's tuning relative to A440, in semitones; subtracted before labelling. */
   tuning: number;
+  /** Beat length and the performance's lag behind the click, in seconds. */
+  meter: { beat: number; lag: number } | null;
 }
 /** One performed note, in seconds, with a single continuous pitch. */
 export interface Segment {
@@ -36,6 +38,9 @@ const SLIP_MAX = 0.25;
 const PITCH_TRUST_MIN = 0.4;
 const HARMONY_SHARE = 0.4;
 const KEEP_ODD_NOTES = 0.6;
+// Naming considers the semitones around the tuned pitch; moving further is the
+// wrong-note fix's job.
+const NAMING_REACH = 1.5;
 
 // The pitch detector already drops frames below the sound profile's clarity.
 function isVoiced(frame: Frame, knobs: Knobs) {
@@ -206,7 +211,7 @@ function pitchScore(
   chord: ReadonlySet<number> | undefined,
 ): number {
   const distance = Math.abs(pitch - state);
-  if (distance > knobs.maxMoveSemitones + 0.5) return -Infinity;
+  if (distance > NAMING_REACH) return -Infinity;
   const pc = ((state % 12) + 12) % 12;
   const pull = knobs.keyPull;
   const trust = 1 - (1 - PITCH_TRUST_MIN) * pull;
@@ -231,6 +236,48 @@ function emissions(
   return Float64Array.from({ length: space.count }, (_, s) =>
     pitchScore(pitch, space.low + s, knobs, space.scale, chord),
   );
+}
+function chordAt(context: PitchContext, segment: Segment) {
+  const time = segment.start + segment.duration / 2;
+  return context.harmony.find((span) => span.start <= time && time < span.end)?.pitchClasses;
+}
+const isStep = (a: number, b: number) => Math.abs(a - b) === 1 || Math.abs(a - b) === 2;
+// Onsets within this fraction of a beat from the beat itself are accented.
+const ACCENT_WINDOW = 0.2;
+function offBeat(segment: Segment, meter: PitchContext["meter"]) {
+  if (!meter) return true;
+  const position = (segment.start - meter.lag) / meter.beat;
+  return Math.abs(position - Math.round(position)) > ACCENT_WINDOW;
+}
+// Passing and neighbour notes decorate the harmony rather than clash with it:
+// reached and left by step, and unaccented.
+function embellishes(segments: Segment[], labels: number[], i: number, context: PitchContext) {
+  const before = labels[i - 1],
+    after = labels[i + 1];
+  return (
+    before !== undefined &&
+    after !== undefined &&
+    isStep(before, labels[i]!) &&
+    isStep(labels[i]!, after) &&
+    offBeat(segments[i]!, context.meter)
+  );
+}
+// A whistler who cannot reach a note still means it: a note that clashes with
+// the implied chord moves to the chord tone within reach that is nearest to
+// what was whistled.
+function fixWrongNote(segment: Segment, midi: number, knobs: Knobs, context: PitchContext) {
+  const chord = chordAt(context, segment);
+  const reach = knobs.maxMoveSemitones;
+  if (!chord || !reach || chord.has(((midi % 12) + 12) % 12)) return midi;
+  const sung = segment.pitch - context.tuning;
+  let best = midi;
+  for (let candidate = midi - reach; candidate <= midi + reach; candidate++)
+    if (
+      chord.has(((candidate % 12) + 12) % 12) &&
+      (best === midi || Math.abs(candidate - sung) < Math.abs(best - sung))
+    )
+      best = candidate;
+  return best;
 }
 function bestPredecessor(previous: Float64Array, state: number, leapPenalty: number) {
   let best = -Infinity,
@@ -257,9 +304,7 @@ function labelSegments(segments: Segment[], knobs: Knobs, context: PitchContext)
   let previous = new Float64Array(space.count);
   const back: Int32Array[] = [];
   for (const segment of segments) {
-    const time = segment.start + segment.duration / 2;
-    const chord = context.harmony.find((span) => span.start <= time && time < span.end);
-    const scores = emissions(segment, chord?.pitchClasses, knobs, space);
+    const scores = emissions(segment, chordAt(context, segment), knobs, space);
     const leap = back.length ? knobs.leapPenalty : 0;
     const from = new Int32Array(space.count);
     previous = scores.map((emission, s) => {
@@ -287,7 +332,14 @@ export function notesFromSegments(
   context: PitchContext,
 ): NoteEvent[] {
   const labels = labelSegments(segments, knobs, context);
-  return segments.map((segment, i) => toNote(segment, labels[i]!));
+  return segments.map((segment, i) =>
+    toNote(
+      segment,
+      embellishes(segments, labels, i, context)
+        ? labels[i]!
+        : fixWrongNote(segment, labels[i]!, knobs, context),
+    ),
+  );
 }
 /** The nearest tuned semitone for every note, with no musical context. */
 export function nearestNotes(segments: Segment[], tuning: number): NoteEvent[] {
