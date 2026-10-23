@@ -41,6 +41,11 @@ export async function replayDiagnostics(value: unknown, wavBytes: ArrayBuffer) {
       difference: "Legacy JSON omits settings needed for exact replay.",
     } as const;
   }
+  if (value.schemaVersion === 2 && value.app === "diapason")
+    return {
+      status: "incomplete",
+      difference: "Schema-2 evidence was produced by an older analysis pipeline.",
+    } as const;
   if (value.schemaVersion !== SCHEMA_VERSION) throw new Error("Unsupported diagnostic schema.");
   validateDiagnostics(value);
   if ((await sha256(wavBytes)) !== value.audio.sha256)

@@ -1,13 +1,7 @@
 import { recording } from "./test-support/recording";
 import { describe, expect, it } from "vitest";
-import {
-  sliderValue,
-  updateTuning,
-  noteAtPoint,
-  toggleMuted,
-  makeReportInput,
-} from "./editor-model";
-import { DEFAULT_TUNING } from "./tuning";
+import { knobValueLabel, noteAtPoint, toggleMuted, makeReportInput } from "./editor-model";
+import { KNOB_DEFS } from "./melody/knobs";
 import type { NoteItem } from "./recording";
 
 const item: NoteItem = {
@@ -17,12 +11,19 @@ const item: NoteItem = {
 };
 
 describe("editor calculations", () => {
-  it("converts millisecond sliders to seconds without changing other tuning", () => {
-    expect(sliderValue("minDurationSec", DEFAULT_TUNING)).toBe(80);
-    expect(updateTuning(DEFAULT_TUNING, "minDurationSec", 120)).toEqual({
-      ...DEFAULT_TUNING,
-      minDurationSec: 0.12,
-    });
+  it("labels melody controls with their units and choices", () => {
+    expect(
+      knobValueLabel(
+        KNOB_DEFS.find((def) => def.key === "minNoteMs")!,
+        120,
+      ),
+    ).toBe("120 ms");
+    expect(
+      knobValueLabel(
+        KNOB_DEFS.find((def) => def.key === "grid")!,
+        2,
+      ),
+    ).toBe("Eighth notes");
   });
 
   it("finds the note under a point in the roll", () => {

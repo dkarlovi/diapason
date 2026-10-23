@@ -1,27 +1,28 @@
 export type GridSubdivision = 0 | 1 | 2 | 3 | 4;
 export type HarmonyRate = "bar" | "half-bar" | "beat";
-export interface Knobs {
-  pitchTrust: number;
-  stickiness: number;
-  slipMs: number;
-  minNoteMs: number;
-  silenceGapMs: number;
-  clarityGate: number;
-  levelGate: number;
-  modeBias: number;
-  keyPull: number;
-  harmonyPull: number;
-  keepOddNotes: number;
-  leapPenalty: number;
-  maxMoveSemitones: number;
-  gridPull: number;
-  swing: number;
-  syncopation: number;
-  articulation: number;
+type NumericKnob =
+  | "pitchTrust"
+  | "stickiness"
+  | "slipMs"
+  | "minNoteMs"
+  | "silenceGapMs"
+  | "clarityGate"
+  | "levelGate"
+  | "modeBias"
+  | "keyPull"
+  | "harmonyPull"
+  | "keepOddNotes"
+  | "leapPenalty"
+  | "maxMoveSemitones"
+  | "gridPull"
+  | "swing"
+  | "syncopation"
+  | "articulation";
+export interface Knobs extends Record<NumericKnob, number> {
   grid: GridSubdivision;
   harmonyRate: HarmonyRate;
 }
-export type KnobFamily = "listening" | "key" | "shape" | "rhythm";
+type KnobFamily = "listening" | "key" | "shape" | "rhythm";
 interface KnobBase {
   key: keyof Knobs;
   label: string;
@@ -32,194 +33,50 @@ interface KnobBase {
 export type KnobDef =
   | (KnobBase & { kind: "range"; min: number; max: number; step: number })
   | (KnobBase & { kind: "select"; options: { value: string | number; label: string }[] });
+const RANGE_GROUPS: Record<
+  KnobFamily,
+  Partial<Record<NumericKnob, [string, string, number, number, number]>>
+> = {
+  listening: {
+    pitchTrust: ["Trust what I sang", "Pitch vs context.", 0, 1, 0.01],
+    stickiness: ["Stickiness", "Keep held notes steady.", 0, 1, 0.01],
+    slipMs: ["Absorb slips", "Absorb shorter pitch excursions.", 0, 250, 5],
+    minNoteMs: ["Minimum note length", "Minimum length, ms.", 20, 300, 5],
+    silenceGapMs: ["Silence gap", "Split after silence.", 30, 300, 5],
+    clarityGate: ["Clarity gate", "Require a clear pitch.", 0.85, 0.999, 0.001],
+    levelGate: ["Level gate", "Minimum level.", 0.001, 0.1, 0.001],
+  },
+  key: {
+    modeBias: ["Darker ↔ Brighter", "Halfway forces mode.", -1, 1, 0.01],
+    keyPull: ["Pull into key", "Favour notes belonging to the key.", 0, 1, 0.01],
+    harmonyPull: ["Follow harmony", "Favour notes in the implied chord.", 0, 1, 0.01],
+    keepOddNotes: ["Keep odd notes", "Protect sung notes.", 0, 1, 0.01],
+  },
+  shape: {
+    leapPenalty: ["Smooth leaps", "Prefer smaller melodic steps.", 0, 1, 0.01],
+    maxMoveSemitones: ["Max pitch move", "Semitone limit.", 0, 4, 1],
+  },
+  rhythm: {
+    gridPull: ["Pull onto grid", "Timing blend.", 0, 1, 0.01],
+    swing: ["Swing", "Delay alternate subdivisions.", 0, 0.5, 0.01],
+    syncopation: ["Syncopation", "Anticipate alternate beats.", 0, 1, 0.01],
+    articulation: ["Note length", "Detached to legato.", 0.5, 1.2, 0.01],
+  },
+};
 export const KNOB_DEFS: readonly KnobDef[] = [
-  {
-    key: "pitchTrust",
-    label: "Trust what I sang",
-    family: "listening",
-    tip: "Balance sung pitch against musical context.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "stickiness",
-    label: "Stickiness",
-    family: "listening",
-    tip: "Keep held notes steady.",
-    basic: true,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "slipMs",
-    label: "Absorb slips",
-    family: "listening",
-    tip: "Absorb shorter pitch excursions.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 250,
-    step: 5,
-  },
-  {
-    key: "minNoteMs",
-    label: "Minimum note length",
-    family: "listening",
-    tip: "Discard notes shorter than this many milliseconds.",
-    basic: false,
-    kind: "range",
-    min: 20,
-    max: 300,
-    step: 5,
-  },
-  {
-    key: "silenceGapMs",
-    label: "Silence gap",
-    family: "listening",
-    tip: "Separate repeated notes after this much silence.",
-    basic: false,
-    kind: "range",
-    min: 30,
-    max: 300,
-    step: 5,
-  },
-  {
-    key: "clarityGate",
-    label: "Clarity gate",
-    family: "listening",
-    tip: "Require a clear pitch.",
-    basic: false,
-    kind: "range",
-    min: 0.85,
-    max: 0.999,
-    step: 0.001,
-  },
-  {
-    key: "levelGate",
-    label: "Level gate",
-    family: "listening",
-    tip: "Ignore sound below this level.",
-    basic: false,
-    kind: "range",
-    min: 0.001,
-    max: 0.1,
-    step: 0.001,
-  },
-  {
-    key: "modeBias",
-    label: "Darker ↔ Brighter",
-    family: "key",
-    tip: "Prefer minor or major; beyond halfway selects the parallel mode.",
-    basic: true,
-    kind: "range",
-    min: -1,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "keyPull",
-    label: "Pull into key",
-    family: "key",
-    tip: "Favour notes belonging to the key.",
-    basic: true,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "harmonyPull",
-    label: "Follow harmony",
-    family: "key",
-    tip: "Favour notes in the implied chord.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "keepOddNotes",
-    label: "Keep odd notes",
-    family: "key",
-    tip: "Let confidently sung chromatic notes resist correction.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "leapPenalty",
-    label: "Smooth leaps",
-    family: "shape",
-    tip: "Prefer smaller melodic steps.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "maxMoveSemitones",
-    label: "Maximum pitch move",
-    family: "shape",
-    tip: "Limit correction distance in semitones.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 4,
-    step: 1,
-  },
-  {
-    key: "gridPull",
-    label: "Pull onto grid",
-    family: "rhythm",
-    tip: "Blend performed timing with snapped timing.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "swing",
-    label: "Swing",
-    family: "rhythm",
-    tip: "Delay alternate subdivisions.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 0.5,
-    step: 0.01,
-  },
-  {
-    key: "syncopation",
-    label: "Syncopation",
-    family: "rhythm",
-    tip: "Anticipate alternate beats.",
-    basic: false,
-    kind: "range",
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  {
-    key: "articulation",
-    label: "Note length",
-    family: "rhythm",
-    tip: "Shorten notes or extend them toward the next onset.",
-    basic: false,
-    kind: "range",
-    min: 0.5,
-    max: 1.2,
-    step: 0.01,
-  },
+  ...Object.entries(RANGE_GROUPS).flatMap(([family, definitions]) =>
+    Object.entries(definitions).map(([key, [label, tip, min, max, step]]): KnobDef => ({
+      key: key as NumericKnob,
+      label,
+      family: family as KnobFamily,
+      tip,
+      min,
+      max,
+      step,
+      kind: "range",
+      basic: ["stickiness", "keyPull", "modeBias"].includes(key),
+    })),
+  ),
   {
     key: "grid",
     label: "Timing grid",
@@ -252,6 +109,8 @@ export const KNOB_DEFS: readonly KnobDef[] = [
 export type IntentPresetId = "as-played" | "gentle" | "clean" | "keep-odd";
 export type MoodPresetId = "happy" | "sad" | "dreamy" | "syncopated";
 export type PresetId = IntentPresetId | MoodPresetId;
+// Provisional starting point; listening refinement continues in the editor.
+export const DEFAULT_PRESET: PresetId = "clean";
 export interface Preset {
   id: PresetId;
   label: string;
@@ -302,10 +161,10 @@ export const PRESETS: Record<PresetId, Preset> = {
   gentle: preset("gentle", "Gentle fix", "intent", "Steady held notes and soften slips.", {}),
   clean: preset("clean", "Clean", "intent", "Use stronger musical guidance.", {
     pitchTrust: 0.4,
-    stickiness: 0.7,
+    stickiness: 1,
     keyPull: 1,
     harmonyPull: 0.4,
-    slipMs: 180,
+    slipMs: 250,
   }),
   "keep-odd": preset(
     "keep-odd",
@@ -314,15 +173,32 @@ export const PRESETS: Record<PresetId, Preset> = {
     "Clean slips while keeping deliberate surprises.",
     { pitchTrust: 0.8, keepOddNotes: 1, keyPull: 0.3 },
   ),
-  happy: preset("happy", "Happy", "mood", "A brighter version of the tune.", {}),
-  sad: preset("sad", "Sad", "mood", "A darker version of the tune.", {}),
-  dreamy: preset("dreamy", "Dreamy", "mood", "Smooth movement and flowing notes.", {}),
+  happy: preset("happy", "Happy", "mood", "A brighter version of the tune.", {
+    modeBias: 1,
+    pitchTrust: 0.4,
+    stickiness: 1,
+    slipMs: 250,
+  }),
+  sad: preset("sad", "Sad", "mood", "A darker version of the tune.", {
+    modeBias: -1,
+    pitchTrust: 0.4,
+    stickiness: 1,
+    slipMs: 250,
+  }),
+  dreamy: preset("dreamy", "Dreamy", "mood", "Smooth movement and flowing notes.", {
+    pitchTrust: 0.3,
+    stickiness: 1,
+    slipMs: 250,
+    leapPenalty: 1,
+    articulation: 1.2,
+    gridPull: 0.1,
+  }),
   syncopated: preset(
     "syncopated",
     "Syncopated",
     "mood",
     "Anticipated beats with a rhythmic lift.",
-    {},
+    { pitchTrust: 0.4, stickiness: 1, slipMs: 250, grid: 2, gridPull: 1, syncopation: 1 },
   ),
 };
 function validValue(def: KnobDef, value: unknown): boolean {

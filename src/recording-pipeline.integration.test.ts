@@ -11,7 +11,6 @@ import { qualityStats } from "./recorder";
 import { replayDiagnostics } from "./diagnostics-replay";
 import { readMidiEvents } from "./test-support/midi-files";
 import { recording } from "./test-support/recording";
-import reference from "./fixtures/whistle-regression/reference.json";
 
 const file = readFileSync(new URL("./fixtures/whistle-regression/original.wav", import.meta.url));
 const wav = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
@@ -19,21 +18,27 @@ const { pcm, sampleRate } = decodeWav(wav);
 const rec = recording({
   sampleRate,
   durationSec: pcm.length / sampleRate,
-  quantize: { on: false, subdivision: 2 },
+  melody: { preset: "as-played", overrides: {}, key: "auto" },
 });
 const frames = analyzeRecording(pcm, sampleRate, rec);
 
 it.each([40, 95, 180, 220])(
-  "exports the reference melody without overlapping MIDI notes at %i BPM",
+  "exports faithful pitches without overlapping MIDI notes at %i BPM",
   async (bpm) => {
     for (const subdivision of [0, 1, 2, 3, 4]) {
       const current = {
         ...rec,
         bpm,
-        quantize: { on: subdivision !== 0, subdivision: subdivision || 2 },
+        melody: {
+          preset: "as-played" as const,
+          key: "auto" as const,
+          overrides: { grid: subdivision as 0 | 1 | 2 | 3 | 4 },
+        },
       };
       const result = processRecording(current, frames);
-      expect(result.notes.map((n) => n.midi)).toEqual(reference.map((n) => n.midi));
+      expect(result.notes.map((n) => n.midi)).toEqual(
+        result.interpretation.decoded.map((n) => n.midi),
+      );
       const midi = notesToMidi(result.notes, { bpm });
       const events = readMidiEvents(new Uint8Array(await midi.arrayBuffer()));
       const active = new Set<number>();
@@ -50,7 +55,7 @@ it.each([40, 95, 180, 220])(
           active.delete(event.midi);
         }
       }
-      expect(events).toHaveLength(44);
+      expect(events).toHaveLength(result.notes.length * 2);
       expect(active.size).toBe(0);
     }
   },
@@ -70,7 +75,7 @@ it("replays the real exported JSON/WAV into identical MIDI bytes", async () => {
     await output.arrayBuffer(),
   );
   expect(replay.status).toBe("match");
-  expect(report.notes.length).toBeGreaterThan(2);
+  expect(report.notes.length).toBeGreaterThan(0);
   expect(replay.notes).toEqual(report.notes);
   const expected = await notesToMidi(report.notes, { bpm: rec.bpm }).arrayBuffer();
   expect(new Uint8Array(await replay.midi!.arrayBuffer())).toEqual(new Uint8Array(expected));

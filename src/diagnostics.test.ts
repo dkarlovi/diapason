@@ -23,15 +23,14 @@ it("reports final enabled notes and all saved/effective settings, rather than de
   const report = JSON.parse(
     JSON.stringify(buildReportData(makeReportInput(rec, frames, qualityStats(frames)))),
   );
-  expect(report.schemaVersion).toBe(2);
+  expect(report.schemaVersion).toBe(3);
   expect(report.notes).toEqual([]);
   expect(report.settings).toMatchObject({
-    tuning: { minDurationSec: 0.12, silenceGapSec: 0.09 },
-    quantize: { on: true, subdivision: 1 },
+    melody: { overrides: { minNoteMs: 120, grid: 1, gridPull: 1 } },
     bpm: 95,
     beatsPerBar: 4,
   });
-  expect(report.stages.segmented).toHaveLength(1);
+  expect(report.stages.decoded).toHaveLength(1);
   expect(report.stages.items[0].muted).toBe(true);
   expect(report.saved.muted).toEqual([{ t: 0.4, midi: 69 }]);
   expect(report.frames[0]).toMatchObject({
@@ -55,10 +54,10 @@ it("records the legacy grid fallback separately from explicitly disabled quantiz
     JSON.parse(
       JSON.stringify(buildReportData(makeReportInput(recording(overrides), [], qualityStats([])))),
     );
-  expect(report().settings.origins.quantize).toBe("legacy-default");
-  expect(report().settings.quantize).toEqual({ on: true, subdivision: 2 });
-  expect(report({ quantize: { on: false, subdivision: 2 } }).settings.origins.quantize).toBe(
-    "saved",
+  expect(report().settings.origins.melody).toBe("legacy-default");
+  expect(report().settings.melody.overrides).not.toHaveProperty("grid");
+  expect(report({ quantize: { on: false, subdivision: 2 } }).settings.origins.melody).toBe(
+    "legacy-default",
   );
   expect(report({ quantize: { on: false, subdivision: 2 } }).notes).toEqual([]);
 });
@@ -67,5 +66,24 @@ it("summarizes processing stages in the pasteable log instead of dumping them", 
   const rec = recording({ quantize: { on: false, subdivision: 2 }, muted: [{ t: 0.2, midi: 69 }] });
   const text = buildReport(makeReportInput(rec, frames, qualityStats(frames)));
   const line = text.split("\n").find((l) => l.startsWith("[stages]"));
-  expect(line).toBe("[stages] segmented=1 quantized=1 muted=1 exported=0 adjustments=0");
+  expect(line).toMatch(
+    /^\[stages\] preset=clean key=.+ \(auto\) faithful=1 decoded=1 muted=1 exported=0$/,
+  );
+});
+it("records preset, overrides, effective knobs, key choice and harmony", () => {
+  const melody = { preset: "clean" as const, overrides: { stickiness: 0.2 }, key: "auto" as const };
+  const report = buildReportData(
+    makeReportInput(recording({ melody }), frames, qualityStats(frames)),
+  );
+  expect(report.settings.melody).toEqual(melody);
+  expect(report.stages.knobs.stickiness).toBe(0.2);
+  expect(report.stages.key.auto).toBe(true);
+  expect(report.stages.key.ranked).toHaveLength(24);
+  for (const stage of [
+    report.stages.faithful,
+    report.stages.decoded,
+    report.stages.harmony,
+    report.stages.notes,
+  ])
+    expect(stage).toBeInstanceOf(Array);
 });

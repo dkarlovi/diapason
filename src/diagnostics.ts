@@ -1,3 +1,4 @@
+import { keyName } from "./melody/key";
 import { midiEvents } from "./midi";
 // Builds diagnostics for a recorded sample so detection can be inspected/tuned
 // offline. Produces a structured object (for a .json sidecar) and a compact text
@@ -10,7 +11,7 @@ import { resolveAnalysisOptions } from "./recording-analysis";
 import { BUILD_INFO } from "./build-info";
 import type { QualityStats } from "./recorder";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export interface ReportInput {
   recording: Recording;
@@ -37,8 +38,17 @@ interface FrameRow {
 }
 
 export function buildReportData(input: ReportInput) {
-  const stages = processRecording(input.recording, input.frames);
-  const notes = stages.notes;
+  const processed = processRecording(input.recording, input.frames);
+  const stages = {
+    ...processed.interpretation,
+    harmony: processed.interpretation.harmony.map((chord) => ({
+      ...chord,
+      pitchClasses: [...chord.pitchClasses],
+    })),
+    items: processed.items,
+    notes: processed.notes,
+  };
+  const notes = processed.notes;
   const frames: FrameRow[] = input.frames.map((f) => {
     if (f.freq === null) {
       return {
@@ -69,7 +79,7 @@ export function buildReportData(input: ReportInput) {
     build: BUILD_INFO,
     saved: { ...input.recording, audio: undefined },
     context: input.context ?? { browser: "unknown", audioOutput: "unknown", midiOutput: "unknown" },
-    settings: stages.settings,
+    settings: processed.settings,
     analysis: { ...resolveAnalysisOptions(input.recording), masking: "none" },
     stages,
     midiEvents: midiEvents(notes, { bpm: input.recording.bpm }),
@@ -122,7 +132,7 @@ export function buildReport(input: ReportInput): string {
   lines.push(`[analysis] ${JSON.stringify(d.analysis)}`);
   const s = d.stages;
   lines.push(
-    `[stages] segmented=${s.segmented.length} quantized=${s.quantized.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length} adjustments=${s.adjustments.length}`,
+    `[stages] preset=${d.settings.melody.preset} key=${s.key.chosen ? keyName(s.key.chosen) : "none"} (${s.key.auto ? "auto" : "chosen"}) faithful=${s.faithful.length} decoded=${s.decoded.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length}`,
   );
   lines.push("[quality]");
   lines.push(

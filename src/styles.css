@@ -513,3 +513,61 @@ select:focus-visible {
     position: static;
   }
 }
+
+.melody-panel {
+  margin-block-start: 1rem;
+}
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.6rem;
+}
+.preset-card {
+  padding: 0.7rem;
+  border: 1px solid var(--line, #2f3a47);
+  border-radius: 0.5rem;
+}
+.preset-card[data-selected="true"] {
+  border-color: var(--accent, #5ad1a8);
+}
+.preset-card p {
+  min-height: 2.5em;
+  margin-block: 0.4rem;
+}
+.melody-key {
+  margin-block: 1rem;
+}
+.key-alternatives {
+  flex-wrap: wrap;
+  margin-block-end: 0.8rem;
+}
+.melody-panel fieldset {
+  border: 0;
+  padding: 0.6rem 0;
+  margin: 0;
+  min-width: 0;
+}
+.note-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-block: 0.6rem;
+}
+.selected-note {
+  min-height: 1.5em;
+}
+
+@media (max-width: 600px) {
+  .melody-panel .tune .ctl {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.5rem;
+  }
+  .melody-panel .ctl .val {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .melody-panel .ctl input,
+  .melody-panel .ctl select {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,13 @@
+import { readFileSync } from "node:fs";
+import { decodeWav } from "../wav-reader";
+import { analyzeRecording } from "../recording-analysis";
+import { recording } from "./recording";
+
+export function loadFixture(name: "whistle-regression" | "whistle-take2" | "whistle-intro") {
+  const bytes = readFileSync(new URL(`../fixtures/${name}/original.wav`, import.meta.url));
+  const { pcm, sampleRate } = decodeWav(
+    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  );
+  const record = recording({ sampleRate, durationSec: pcm.length / sampleRate, bpm: 95 });
+  return { pcm, sampleRate, record, frames: analyzeRecording(pcm, sampleRate, record) };
+}

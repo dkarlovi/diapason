@@ -1,7 +1,7 @@
 // Minimal IndexedDB wrapper for the recordings library. No dependencies.
 
 import type { SoundProfile } from "./recording-profiles";
-import type { SegmentOptions } from "./notes";
+import type { MelodySetting } from "./melody/settings";
 import type { PlaySettings } from "./instruments";
 
 const DB_NAME = "diapason";
@@ -41,7 +41,17 @@ export interface Recording {
   /** Gzipped Int16 PCM (see codec.ts). Audio t=0 is the downbeat. */
   audio: Blob;
   capture: CaptureMeta;
-  tuning: SegmentOptions;
+  melody?: MelodySetting;
+  /** Legacy fields are read only to migrate older saved recordings. */
+  tuning?: Partial<{
+    rmsGate: number;
+    clarityThreshold: number;
+    minDurationSec: number;
+    silenceGapSec: number;
+    medianWindow: number;
+    changeDebounceSec: number;
+    hysteresisSemitones: number;
+  }>;
   muted?: MutedNote[];
   quantize?: QuantizeSetting;
   /** How ▶ MIDI sounds for this recording (playback only; the .mid is unaffected). */

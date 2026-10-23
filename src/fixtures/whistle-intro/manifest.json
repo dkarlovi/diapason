@@ -1,0 +1,8 @@
+{
+  "provenance": "User-supplied intro, 2026-10-23. User expects two notes in the first block and a distinct new note starting the second block; exact pitch targets and block boundaries require visual editor feedback. Preserve source audio unchanged.",
+  "files": {
+    "original.wav": "19b4d693326cbe46d941e6cbd7164b6d8a9de287f5fa2829af6e4f54381c62b1"
+  },
+  "sampleRate": 48000,
+  "sampleCount": 502567
+}
