@@ -49,3 +49,37 @@ export function parallelKey(key: Key, mode: Key["mode"]): Key {
 export function keyName(key: Key): string {
   return `${["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][key.tonic]} ${key.mode}`;
 }
+// Whistlers rarely sit on A440 and their intervals are approximate. Search the
+// offset (within half a semitone) that best fits the performed pitches to one
+// diatonic scale, or to the given scale; misses are capped so a deliberate
+// chromatic note cannot drag the whole take.
+export function fitTuning(
+  notes: { pitch: number; duration: number }[],
+  scale: ReadonlySet<number> | null = null,
+): number {
+  const scales = scale
+    ? [scale]
+    : Array.from({ length: 12 }, (_, tonic) => scalePitchClasses({ tonic, mode: "major" }));
+  let best = 0,
+    bestCost = Infinity;
+  for (let step = -50; step < 50; step++) {
+    const tuning = step / 100;
+    for (const pitchClasses of scales) {
+      let cost = Math.abs(tuning) * 1e-3;
+      for (const note of notes) {
+        const pitch = note.pitch - tuning;
+        let miss = 0.5;
+        for (const pc of pitchClasses) {
+          const distance = Math.abs(((((pitch - pc) % 12) + 18) % 12) - 6);
+          miss = Math.min(miss, distance);
+        }
+        cost += note.duration * miss * miss;
+      }
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = tuning;
+      }
+    }
+  }
+  return best;
+}

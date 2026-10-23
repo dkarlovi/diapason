@@ -42,7 +42,7 @@ export function quantizeSequence(notes: NoteEvent[], opts: QuantizeOptions) {
     const start = starts[index]!;
     const snappedEnd = snap(note.start + note.duration);
     const duration =
-      note.duration < step || snappedEnd <= start ? note.duration : snappedEnd - start;
+      note.duration < step / 2 || snappedEnd <= start ? note.duration : snappedEnd - start;
     const end = Math.min(start + duration, starts[index + 1] ?? Infinity);
     const after = { ...note, start, duration: end < start + duration ? end - start : duration };
     if (fallback.has(index))

@@ -8,6 +8,13 @@ export function loadFixture(name: "whistle-regression" | "whistle-take2" | "whis
   const { pcm, sampleRate } = decodeWav(
     bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
   );
-  const record = recording({ sampleRate, durationSec: pcm.length / sampleRate, bpm: 95 });
+  const manifest = JSON.parse(
+    readFileSync(new URL(`../fixtures/${name}/manifest.json`, import.meta.url), "utf8"),
+  ) as { bpm?: number };
+  const record = recording({
+    sampleRate,
+    durationSec: pcm.length / sampleRate,
+    bpm: manifest.bpm ?? 95,
+  });
   return { pcm, sampleRate, record, frames: analyzeRecording(pcm, sampleRate, record) };
 }

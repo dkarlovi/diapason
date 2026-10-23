@@ -1,8 +1,11 @@
 {
-  "provenance": "User-supplied intro, 2026-10-23. User expects two notes in the first block and a distinct new note starting the second block; exact pitch targets and block boundaries require visual editor feedback. Preserve source audio unchanged.",
+  "provenance": "User-supplied intro, 2026-10-23. Two held notes, then one four-note figure whistled three times, each repeat lower. Whistled about a quarter-tone sharp of A440 and about a third of a beat behind the click. Preserve source audio unchanged. clean.mid is the user-approved Clean transcription (2026-10-23): E-flat, G held two beats each, then a four-note figure descending through E-flat major three times, on the eighth grid at 94 BPM. original.json is the schema-3 diagnostics export of the same recording (saved with the Syncopated preset and a quarter-note grid override, before the note-first decoder).",
   "files": {
+    "clean.mid": "c86c5aeb2fe9d11263618eb97dcbfd7e5f14ede0802d813ce0267838faa8ce19",
+    "original.json": "e6dab3f300f59aafcd37e8387d00f24b35f7491886f8a4d97a7c04b0f8b56d5a",
     "original.wav": "19b4d693326cbe46d941e6cbd7164b6d8a9de287f5fa2829af6e4f54381c62b1"
   },
   "sampleRate": 48000,
-  "sampleCount": 502567
+  "sampleCount": 502567,
+  "bpm": 94
 }

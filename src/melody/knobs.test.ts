@@ -33,9 +33,13 @@ describe("melody knobs", () => {
     expect(knobs.stickiness).toBe(0.1);
     expect(knobs).not.toHaveProperty("bogus");
   });
-  it("intent presets keep timing as sung", () => {
+  it("intent presets add no feel, and only Clean snaps to a grid", () => {
     for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "intent"))
-      expect(preset.knobs).toMatchObject({ grid: 0, swing: 0, syncopation: 0 });
+      expect(preset.knobs).toMatchObject({
+        grid: preset.id === "clean" ? 2 : 0,
+        swing: 0,
+        syncopation: 0,
+      });
   });
   it("isKnobs rejects out-of-range and wrong-typed values", () => {
     for (const value of [

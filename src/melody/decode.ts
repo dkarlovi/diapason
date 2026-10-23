@@ -5,12 +5,28 @@ export interface PitchContext {
   key: Key | null;
   harmony: { start: number; end: number; pitchClasses: ReadonlySet<number> }[];
   range: { minMidi: number; maxMidi: number };
+  /** Performer's tuning relative to A440, in semitones; subtracted before labelling. */
+  tuning?: number;
 }
-interface Run {
-  state: number;
+/** One performed note: frame span plus a single continuous pitch. */
+export interface Segment {
+  start: number;
+  end: number;
+  pitch: number;
+}
+interface Span {
   start: number;
   end: number;
 }
+
+// A re-articulated note dips at least this far (log10 RMS, ~6 dB) below the
+// level on both sides of it within DIP_RADIUS frames.
+const DIP_DEPTH = 0.3;
+const DIP_RADIUS = 6;
+// Changepoint cost, in squared semitones x frames, for starting a new note
+// without an articulation. Stickiness scales it between these bounds.
+const SPLIT_COST_MIN = 0.5;
+const SPLIT_COST_MAX = 13;
 
 function isVoiced(frame: Frame, knobs: Knobs) {
   return (
@@ -20,94 +36,157 @@ function isVoiced(frame: Frame, knobs: Knobs) {
     frame.rms >= knobs.levelGate
   );
 }
-// Pool log-frequency evidence over the slip horizon. A short excursion can then
-// support the sustained pitch on either side instead of becoming its own note.
-// Separate voiced spans keep real silences from contributing across a reattack.
-function pooledPitches(frames: Frame[], knobs: Knobs): Float64Array {
-  const raw = Float64Array.from(frames, (frame) =>
-    isVoiced(frame, knobs) ? freqToMidi(frame.freq!) : NaN,
-  );
-  const pooled = raw.slice();
-  let start = 0;
-  while (start < raw.length) {
-    if (Number.isNaN(raw[start]!)) {
-      start++;
+function hopOf(frames: Frame[]) {
+  return frames.length > 1 ? frames[1]!.t - frames[0]!.t : 512 / 48000;
+}
+function median(values: number[]): number {
+  const sorted = values.slice().sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+// Voiced runs. Gaps where the level stays up are pitch-tracker dropouts and are
+// bridged when shorter than the silence gap; a real drop in level always splits.
+function voicedSpans(frames: Frame[], knobs: Knobs): Span[] {
+  const hop = hopOf(frames);
+  const spans: Span[] = [];
+  let i = 0;
+  while (i < frames.length) {
+    if (!isVoiced(frames[i]!, knobs)) {
+      i++;
       continue;
     }
-    let end = start + 1;
-    while (end < raw.length && !Number.isNaN(raw[end]!)) end++;
-    poolSpan(raw, pooled, frames, start, end, knobs.slipMs / 2000);
-    start = end;
+    let end = i + 1;
+    while (end < frames.length && isVoiced(frames[end]!, knobs)) end++;
+    const last = spans[spans.length - 1];
+    const gap = last ? frames.slice(last.end, i) : [];
+    if (
+      last &&
+      gap.length * hop < knobs.silenceGapMs / 1000 &&
+      gap.every((frame) => frame.rms >= knobs.levelGate)
+    )
+      last.end = end;
+    else spans.push({ start: i, end });
+    i = end;
   }
-  return pooled;
+  return spans;
 }
-function poolSpan(
-  raw: Float64Array,
-  pooled: Float64Array,
-  frames: Frame[],
-  start: number,
-  end: number,
-  radius: number,
-) {
-  let left = start,
-    right = start,
-    weighted = 0,
-    weight = 0;
-  for (let i = start; i < end; i++) {
-    const t = frames[i]!.t;
-    while (right < end && frames[right]!.t <= t + radius) {
-      const clarity = frames[right]!.clarity;
-      weighted += raw[right]! * clarity;
-      weight += clarity;
-      right++;
+// Whistlers and singers re-articulate with a brief dip in level. Those dips are
+// note boundaries even when the pitch on both sides is the same.
+function articulations(frames: Frame[], span: Span): Span[] {
+  const level = (i: number) => Math.log10(Math.max(frames[i]!.rms, 1e-6));
+  const cuts = [span.start];
+  for (let k = span.start + 1; k < span.end - 1; k++) {
+    const lo = Math.max(span.start, k - DIP_RADIUS);
+    const hi = Math.min(span.end, k + DIP_RADIUS + 1);
+    let left = -Infinity,
+      right = -Infinity,
+      lowest = true;
+    for (let j = lo; j < hi; j++) {
+      if (level(j) < level(k)) lowest = false;
+      if (j < k) left = Math.max(left, level(j));
+      if (j > k) right = Math.max(right, level(j));
     }
-    while (left < right && frames[left]!.t < t - radius) {
-      const clarity = frames[left]!.clarity;
-      weighted -= raw[left]! * clarity;
-      weight -= clarity;
-      left++;
+    if (lowest && left - level(k) >= DIP_DEPTH && right - level(k) >= DIP_DEPTH) {
+      cuts.push(k);
+      k += DIP_RADIUS;
     }
-    pooled[i] = weighted / weight;
+  }
+  cuts.push(span.end);
+  return cuts.slice(1).map((end, i) => ({ start: cuts[i]!, end }));
+}
+// Optimal piecewise-constant fit of the pitch curve (least squares plus a cost
+// per extra note), so vibrato and drift inside a held note stay one note while
+// sustained steps split.
+function pitchChanges(pitch: number[], minLength: number, splitCost: number): Span[] {
+  const n = pitch.length;
+  if (n < 2 * minLength) return [{ start: 0, end: n }];
+  const sum = new Float64Array(n + 1);
+  const squares = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) {
+    sum[i + 1] = sum[i]! + pitch[i]!;
+    squares[i + 1] = squares[i]! + pitch[i]! * pitch[i]!;
+  }
+  const cost = (a: number, b: number) => {
+    const s = sum[b]! - sum[a]!;
+    return squares[b]! - squares[a]! - (s * s) / (b - a);
+  };
+  const best = new Float64Array(n + 1).fill(Infinity);
+  const from = new Int32Array(n + 1);
+  best[0] = -splitCost;
+  for (let end = minLength; end <= n; end++)
+    for (let start = 0; start <= end - minLength; start++) {
+      if (best[start] === Infinity) continue;
+      const candidate = best[start]! + splitCost + cost(start, end);
+      if (candidate < best[end]!) {
+        best[end] = candidate;
+        from[end] = start;
+      }
+    }
+  if (best[n] === Infinity) return [{ start: 0, end: n }];
+  const spans: Span[] = [];
+  for (let end = n; end > 0; end = from[end]!) spans.unshift({ start: from[end]!, end });
+  return spans;
+}
+// Pieces shorter than the slip horizon join their longer neighbour.
+function absorbSlips(spans: Span[], slip: number): Span[] {
+  const length = (span: Span) => span.end - span.start;
+  for (;;) {
+    const i = spans.findIndex((span) => length(span) < slip);
+    if (i < 0 || spans.length < 2) return spans;
+    const left = spans[i - 1],
+      right = spans[i + 1];
+    const target = !right || (left && length(left) >= length(right)) ? i - 1 : i + 1;
+    const merged = {
+      start: Math.min(spans[i]!.start, spans[target]!.start),
+      end: Math.max(spans[i]!.end, spans[target]!.end),
+    };
+    spans.splice(Math.min(i, target), 2, merged);
   }
 }
-function observations(
-  frames: Frame[],
-  knobs: Knobs,
-  context: PitchContext,
-  low: number,
-  count: number,
-) {
-  const scores = new Float64Array(frames.length * count).fill(-Infinity);
-  const scale = context.key ? scalePitchClasses(context.key) : null;
-  const pitches = pooledPitches(frames, knobs);
-  let chordIndex = 0;
-  for (let i = 0; i < frames.length; i++) {
-    const frame = frames[i]!;
-    const offset = i * count;
-    const voiced = isVoiced(frame, knobs);
-    scores[offset + count - 1] = voiced ? -8 : 0;
-    if (!voiced) continue;
-    const pitch = pitches[i]!;
-    while (chordIndex < context.harmony.length && context.harmony[chordIndex]!.end <= frame.t)
-      chordIndex++;
-    const chord = context.harmony[chordIndex];
-    for (let s = 0; s < count - 1; s++) {
-      scores[offset + s] = pitchScore(
-        pitch,
-        low + s,
-        frame.clarity,
-        knobs,
-        scale,
-        chord && frame.t >= chord.start ? chord.pitchClasses : undefined,
-      );
-    }
-  }
-  return scores;
+function smoothed(raw: number[]): number[] {
+  return raw.map((_, i) => median(raw.slice(Math.max(0, i - 2), i + 3)));
+}
+// Steady-state pitch: the middle of the note, away from attack and release.
+function notePitch(raw: number[]): number {
+  const trim = Math.floor(raw.length / 5);
+  return median(raw.slice(trim, raw.length - trim));
+}
+interface PieceOptions {
+  minLength: number;
+  slip: number;
+  splitCost: number;
+}
+function segmentPiece(frames: Frame[], piece: Span, knobs: Knobs, options: PieceOptions) {
+  const indices: number[] = [];
+  for (let i = piece.start; i < piece.end; i++) if (isVoiced(frames[i]!, knobs)) indices.push(i);
+  if (!indices.length) return [];
+  const raw = indices.map((i) => freqToMidi(frames[i]!.freq!));
+  const parts = absorbSlips(
+    pitchChanges(smoothed(raw), options.minLength, options.splitCost),
+    options.slip,
+  );
+  return parts.map((part) => ({
+    start: part.start ? indices[part.start]! : piece.start,
+    end: part.end < indices.length ? indices[part.end]! : piece.end,
+    pitch: notePitch(raw.slice(part.start, part.end)),
+  }));
+}
+export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
+  const hop = hopOf(frames);
+  const stickiness = Math.min(1, Math.max(0, knobs.stickiness));
+  const options = {
+    minLength: Math.max(1, Math.round(knobs.minNoteMs / 1000 / hop)),
+    slip: knobs.slipMs / 1000 / hop,
+    splitCost: SPLIT_COST_MIN + (SPLIT_COST_MAX - SPLIT_COST_MIN) * stickiness,
+  };
+  return voicedSpans(frames, knobs)
+    .flatMap((span) => articulations(frames, span))
+    .flatMap((piece) => segmentPiece(frames, piece, knobs, options))
+    .filter((segment) => (segment.end - segment.start) * hop >= knobs.minNoteMs / 1000);
 }
 function pitchScore(
   pitch: number,
   state: number,
-  clarity: number,
   knobs: Knobs,
   scale: ReadonlySet<number> | null,
   chord: ReadonlySet<number> | undefined,
@@ -121,147 +200,102 @@ function pitchScore(
     : 0;
   const chordPrior = chord?.has(pc) ? knobs.harmonyPull : 0;
   return (
-    -knobs.pitchTrust * (distance / 0.35) ** 2 * clarity +
-    (1 - knobs.pitchTrust) * (keyPrior + chordPrior)
+    -knobs.pitchTrust * (distance / 0.35) ** 2 + (1 - knobs.pitchTrust) * (keyPrior + chordPrior)
   );
 }
-function transitionCosts(count: number, knobs: Knobs) {
-  const costs = new Float64Array(count * count);
-  for (let s = 0; s < count; s++)
-    for (let p = 0; p < count; p++) {
-      if (s === p) continue;
-      costs[s * count + p] =
-        s === count - 1 || p === count - 1
-          ? 1
-          : knobs.stickiness * 8 + (knobs.leapPenalty * Math.abs(s - p)) / 2;
+interface LabelSpace {
+  low: number;
+  count: number;
+  scale: ReadonlySet<number> | null;
+  tuning: number;
+}
+function emissions(
+  segment: Segment,
+  chord: ReadonlySet<number> | undefined,
+  knobs: Knobs,
+  space: LabelSpace,
+) {
+  const pitch = segment.pitch - space.tuning;
+  const scores = Float64Array.from({ length: space.count }, (_, s) =>
+    pitchScore(pitch, space.low + s, knobs, space.scale, chord),
+  );
+  // A pitch outside every state's reach keeps its nearest in-range label.
+  if (scores.every((score) => score === -Infinity))
+    scores[Math.min(space.count - 1, Math.max(0, Math.round(pitch) - space.low))] = 0;
+  return scores;
+}
+function bestPredecessor(previous: Float64Array, state: number, leapPenalty: number) {
+  let best = -Infinity,
+    from = 0;
+  for (let p = 0; p < previous.length; p++) {
+    const candidate = previous[p]! - (leapPenalty * Math.abs(state - p)) / 2;
+    if (candidate > best) {
+      best = candidate;
+      from = p;
     }
-  return costs;
-}
-interface Trellis {
-  scores: Float64Array;
-  costs: Float64Array;
-  back: Int16Array;
-  previous: Float64Array;
-  current: Float64Array;
-}
-function advance(trellis: Trellis, offset: number) {
-  const { scores, costs, back, previous, current } = trellis;
-  const count = current.length;
-  for (let s = 0; s < count; s++) {
-    const emission = scores[offset + s]!;
-    let best = -Infinity;
-    let from = 0;
-    if (emission !== -Infinity)
-      for (let p = 0; p < count; p++) {
-        const candidate = previous[p]! - costs[s * count + p]!;
-        if (candidate >= best) {
-          best = candidate;
-          from = p;
-        }
-      }
-    current[s] = best + emission;
-    back[offset + s] = from;
   }
-  trellis.previous = current;
-  trellis.current = previous;
+  return { best, from };
 }
-function bestPath(scores: Float64Array, count: number, knobs: Knobs) {
-  const length = scores.length / count;
-  const back = new Int16Array(scores.length);
-  const labels = new Int16Array(length);
-  const trellis: Trellis = {
-    scores,
-    costs: transitionCosts(count, knobs),
-    back,
-    previous: new Float64Array(count),
-    current: new Float64Array(count),
+// Note-level Viterbi: each performed note gets one pitch, chosen from its
+// tuned pitch, the key, the implied chord and the size of the melodic step.
+function labelSegments(
+  segments: Segment[],
+  frames: Frame[],
+  knobs: Knobs,
+  context: PitchContext,
+): number[] {
+  const low = Math.round(context.range.minMidi);
+  const space: LabelSpace = {
+    low,
+    count: Math.round(context.range.maxMidi) - low + 1,
+    scale: context.key ? scalePitchClasses(context.key) : null,
+    tuning: context.tuning ?? 0,
   };
-  for (let i = 0; i < length; i++) advance(trellis, i * count);
-  const previous = trellis.previous;
-  let state = 0;
-  for (let s = 1; s < count; s++) if (previous[s]! >= previous[state]!) state = s;
-  for (let i = length - 1; i >= 0; i--) {
-    labels[i] = state;
-    state = back[i * count + state]!;
+  let previous = new Float64Array(space.count);
+  const back: Int32Array[] = [];
+  for (const segment of segments) {
+    const time = (frames[segment.start]!.t + (frames[segment.end - 1] ?? frames.at(-1)!).t) / 2;
+    const chord = context.harmony.find((span) => span.start <= time && time < span.end);
+    const scores = emissions(segment, chord?.pitchClasses, knobs, space);
+    const leap = back.length ? knobs.leapPenalty : 0;
+    const from = new Int32Array(space.count);
+    previous = scores.map((emission, s) => {
+      if (emission === -Infinity) return emission;
+      const step = bestPredecessor(previous, s, leap);
+      from[s] = step.from;
+      return step.best + emission;
+    });
+    back.push(from);
+  }
+  const labels: number[] = [];
+  let state = previous.indexOf(Math.max(...previous));
+  for (let i = back.length - 1; i >= 0; i--) {
+    labels.unshift(low + state);
+    state = back[i]![state]!;
   }
   return labels;
 }
-function runsOf(labels: Int16Array): Run[] {
-  const runs: Run[] = [];
-  for (let i = 0; i < labels.length; i++) {
-    const last = runs[runs.length - 1];
-    if (last && last.state === labels[i]) last.end = i + 1;
-    else runs.push({ state: labels[i]!, start: i, end: i + 1 });
-  }
-  return runs;
-}
-function settleRuns(
-  labels: Int16Array,
+export function notesFromSegments(
+  segments: Segment[],
   frames: Frame[],
   knobs: Knobs,
-  rest: number,
-  endTime: number,
-) {
-  const time = (index: number) => frames[index]?.t ?? endTime;
-  // Short voiced excursions attach to the longer adjacent voiced run. Real rests
-  // remain barriers, even when their duration is shorter than the slip control.
-  const context = { labels, rest, time };
-  absorbSlips(context, knobs.slipMs / 1000);
-  bridgeRests(context, knobs.silenceGapMs / 1000);
-  return runsOf(labels);
-}
-interface RunContext {
-  labels: Int16Array;
-  rest: number;
-  time: (index: number) => number;
-}
-function absorbSlips(context: RunContext, slip: number) {
-  let changed = true;
-  while (changed) changed = absorbPass(context, slip);
-}
-function absorbPass(context: RunContext, slip: number) {
-  const { labels, rest, time } = context;
-  const runs = runsOf(labels);
-  for (let i = 0; i < runs.length; i++) {
-    const run = runs[i]!;
-    if (run.state === rest || time(run.end) - time(run.start) >= slip) continue;
-    const target = [runs[i - 1], runs[i + 1]]
-      .filter((candidate): candidate is Run => candidate !== undefined && candidate.state !== rest)
-      .sort((a, b) => time(b.end) - time(b.start) - (time(a.end) - time(a.start)))[0];
-    if (target && time(target.end) - time(target.start) > time(run.end) - time(run.start)) {
-      labels.fill(target.state, run.start, run.end);
-      return true;
-    }
-  }
-  return false;
-}
-function bridgeRests({ labels, rest, time }: RunContext, gap: number) {
-  const runs = runsOf(labels);
-  for (let i = 1; i < runs.length - 1; i++) {
-    const run = runs[i]!;
-    if (
-      run.state === rest &&
-      time(run.end) - time(run.start) < gap &&
-      runs[i - 1]!.state === runs[i + 1]!.state
-    )
-      labels.fill(runs[i - 1]!.state, run.start, run.end);
-  }
+  context: PitchContext,
+): NoteEvent[] {
+  if (!segments.length) return [];
+  const end = frames[frames.length - 1]!.t + hopOf(frames);
+  const labels = labelSegments(segments, frames, knobs, context);
+  return segments.map((segment, i) => {
+    const start = frames[segment.start]!.t;
+    const midi = labels[i]!;
+    return {
+      midi,
+      name: midiToName(midi),
+      start,
+      duration: (frames[segment.end]?.t ?? end) - start,
+    };
+  });
 }
 export function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
   if (!frames.length) return [];
-  const low = Math.round(context.range.minMidi);
-  const count = Math.round(context.range.maxMidi) - low + 2;
-  if (count < 2 || count > 32767) return [];
-  const scores = observations(frames, knobs, context, low, count);
-  const labels = bestPath(scores, count, knobs);
-  const hop = frames.length > 1 ? frames[1]!.t - frames[0]!.t : 512 / 48000;
-  const end = frames[frames.length - 1]!.t + hop;
-  return settleRuns(labels, frames, knobs, count - 1, end)
-    .filter((run) => run.state !== count - 1)
-    .map((run) => {
-      const start = frames[run.start]!.t;
-      const midi = low + run.state;
-      return { midi, name: midiToName(midi), start, duration: (frames[run.end]?.t ?? end) - start };
-    })
-    .filter((note) => note.duration >= knobs.minNoteMs / 1000);
+  return notesFromSegments(segmentMelody(frames, knobs), frames, knobs, context);
 }

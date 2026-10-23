@@ -1,17 +1,54 @@
 import type { NoteEvent } from "../notes";
 import { quantizeSequence } from "../quantize";
 import type { Knobs } from "./knobs";
+// Fewer onsets than this give no reliable estimate of the grid phase.
+const MIN_PHASE_NOTES = 4;
+/**
+ * Constant lag of the performance behind the click, in seconds, within half a
+ * beat. Monitoring and capture latency delay every onset by the same amount;
+ * snapping without removing it pushes onsets onto the rounding boundary.
+ * Onsets are folded onto the grid step first, then the step-sized ambiguity is
+ * resolved toward beats, weighted by note length (long notes sit on beats).
+ */
+function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision: number): number {
+  const beat = 60 / timing.bpm;
+  if (notes.length < MIN_PHASE_NOTES || !(beat > 0) || !Number.isFinite(beat)) return 0;
+  const vote = (cycles: number, phase: number) =>
+    notes.reduce(
+      (sum, note) =>
+        sum + note.duration * Math.cos(2 * Math.PI * cycles * (note.start / beat - phase)),
+      0,
+    );
+  let x = 0,
+    y = 0;
+  for (const note of notes) {
+    const angle = 2 * Math.PI * subdivision * (note.start / beat);
+    x += note.duration * Math.cos(angle);
+    y += note.duration * Math.sin(angle);
+  }
+  const folded = Math.atan2(y, x) / (2 * Math.PI * subdivision);
+  let phase = folded;
+  for (let k = 1; k < subdivision; k++)
+    if (vote(1, folded + k / subdivision) > vote(1, phase)) phase = folded + k / subdivision;
+  phase -= Math.round(phase);
+  return phase * beat;
+}
 export function applyFeel(
   notes: NoteEvent[],
   knobs: Knobs,
   timing: { bpm: number; beatsPerBar: number },
 ): NoteEvent[] {
   const step = knobs.grid ? 60 / timing.bpm / knobs.grid : 0;
+  const lag =
+    step > 0 && Number.isFinite(step)
+      ? Math.min(gridLag(notes, timing, knobs.grid), notes[0]?.start ?? 0)
+      : 0;
+  const aligned = lag ? notes.map((note) => ({ ...note, start: note.start - lag })) : notes;
   const gridded =
     step > 0 && Number.isFinite(step)
-      ? quantizeSequence(notes, { bpm: timing.bpm, subdivision: knobs.grid }).notes
+      ? quantizeSequence(aligned, { bpm: timing.bpm, subdivision: knobs.grid }).notes
       : notes;
-  const base = notes.map(
+  const base = aligned.map(
     (note, i) => note.start + (gridded[i]!.start - note.start) * knobs.gridPull,
   );
   let starts = base.map((start, i) => {

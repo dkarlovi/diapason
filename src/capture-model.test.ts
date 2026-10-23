@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   noiseCalibration,
   trimCountIn,
+  roundTripLatency,
   peakLevel,
   dspStatus,
   evaluateRoom,
@@ -20,6 +21,14 @@ describe("capture calculations", () => {
     const trimmed = trimCountIn(new Float32Array([0.1, -0.2, 0.7, -0.8]), 1.2, 1, 10);
     expect([...trimmed]).toEqual([0.699999988079071, -0.800000011920929]);
     expect(peakLevel(trimmed)).toBeCloseTo(0.8);
+  });
+
+  it("sums the reported output and input latency, ignoring missing figures", () => {
+    expect(
+      roundTripLatency({ baseLatency: 0.01, outputLatency: 0.04 }, { latency: 0.02 }),
+    ).toBeCloseTo(0.07);
+    expect(roundTripLatency({ outputLatency: Number.NaN }, {})).toBe(0);
+    expect(roundTripLatency({ outputLatency: 5 }, {})).toBe(1);
   });
 
   it("marks browser DSP settings as on only when explicitly enabled", () => {

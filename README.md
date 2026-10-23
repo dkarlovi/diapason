@@ -28,10 +28,14 @@ diapason is organized as a **library of recordings**, persisted in your browser
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
 
-New recordings start with **Clean** and **Auto** key selection. Intent presets keep
-performed timing; a single timing-grid control offers quarter notes, eighth notes,
-sixteenth notes, and triplets. Grid pull blends performed and snapped timing while
-preserving note order. Mood presets can add swing, syncopation, and legato.
+New recordings start with **Clean** and **Auto** key selection. Clean snaps to an
+eighth-note grid; the other intent presets keep performed timing. A single
+timing-grid control offers quarter notes, eighth notes, sixteenth notes, and
+triplets. Before snapping, a constant lag behind the click (monitoring latency or
+a late start) is measured from the onsets and removed, so notes land on the beat
+rather than on the next subdivision. Grid pull blends performed and snapped timing
+while preserving note order. Mood presets can add swing, syncopation, and legato.
+Recording also compensates for the output and input latency the browser reports.
 Older recordings open with the same default preset and carry over their saved
 level/clarity gates, minimum note length, silence gap, and explicit grid setting.
 They may sound different after this update; their original captured audio stays unchanged.
@@ -213,12 +217,15 @@ Click a piano-roll note to hear it and show its name, start time, and duration.
 same named previews as keyboard-accessible buttons. Ctrl/Cmd+click mutes a note;
 muted anchors are kept through preset changes so switching back restores them.
 
-The decoder pools pitch evidence across the **Absorb slips** window, then uses
-sung pitch, key, implied harmony, and note-transition costs to decide notes.
-Captured and exported WAV audio is never pitch-corrected. Musical context is a
-prior, not knowledge of the intended tune: ambiguous sustained changes can still
-be merged or assigned the wrong pitch. Clean is a provisional starting point;
-use the interactive previews to choose and adjust the result by ear.
+The decoder finds notes before naming them. A dip in level (re-articulation) or a
+real silence always starts a new note; within one articulation, a sustained pitch
+step does too, while scoops, vibrato and drift shorter than **Absorb slips** stay
+part of the held note. Each note then gets one steady-state pitch. The performer's
+tuning offset from A440 is estimated from the whole take (whistlers are often a
+quarter-tone off), and the tuned pitch, key, implied harmony and step size decide
+each note name. Captured and exported WAV audio is never pitch-corrected. Musical
+context is a prior, not knowledge of the intended tune: a note whose pitch sits
+halfway between two in-key notes can still be named wrongly.
 
 Offline developer comparisons remain available:
 
@@ -229,13 +236,16 @@ npm run render:presets -- --out /tmp/diapason-melody-listening --presets as-play
 Both full fixture takes produce a WAV/MIDI per preset and a README with keys,
 note timing, sung cents, and pitch-sequence edit counts. Synthesized WAV previews
 play two octaves below the whistle; MIDI retains detected pitches. Edit distance
-measures agreement, not musical correctness. The intro-only sample is preserved
-in `src/fixtures/whistle-intro/` for further visual/listening feedback.
+measures agreement, not musical correctness. The intro-only sample in
+`src/fixtures/whistle-intro/` is an exact regression: Clean must transcribe it
+note-for-note on the eighth grid.
 
 ## Known limitations
 
-- Slurred repeated notes without silence may merge. Separate amplitude-based
-  re-articulation detection remains future work.
+- Slurred repeated notes with neither a level dip nor a pitch change merge.
+- Tuning is one offset per take. A performer whose intervals wander by close to
+  half a semitone note-to-note (rather than drifting slowly) can still get
+  individual notes named a semitone off; repeated figures are not yet compared.
 - Strong correction can flatten intended rises; weak correction can keep slips
   and pitch wobble. Presets and individual controls let you compare this tradeoff.
 - Automatic key/harmony can be uncertain, especially on short intros. Try the
@@ -243,12 +253,14 @@ in `src/fixtures/whistle-intro/` for further visual/listening feedback.
 - Pitch detection remains monophonic and band-limited to 250–3000 Hz for whistles.
 - Existing recordings can sound different with the new engine. Legacy hysteresis,
   debounce, and median-window settings no longer control note decisions.
+- Syncopation is scaled by the grid step, so on a quarter-note grid it moves
+  notes a whole beat.
 - Capturing and correcting notes is local to the browser; audio file import and
   user-defined saved presets are not yet available.
 
 ## Roadmap ideas
 
-- Amplitude-based onset detection for repeated notes
+- Interval consistency across repeated figures, and slowly varying tuning
 - WAV/MP3 file input
 - Further decoder tuning using named-note feedback in the editor
 - User-defined presets

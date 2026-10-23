@@ -165,6 +165,7 @@ export const PRESETS: Record<PresetId, Preset> = {
     keyPull: 1,
     harmonyPull: 0.4,
     slipMs: 250,
+    grid: 2,
   }),
   "keep-odd": preset(
     "keep-odd",

@@ -140,7 +140,7 @@ it("toggles audio, switches to MIDI and stops when playback finishes", async () 
   act(() => result.current.togglePlayback("midi"));
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
   expect(result.current.playing).toBe("midi");
-  expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69, start: 0, duration: 0.6000000000000001 }]);
+  expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69, start: 0, duration: 0.5 }]);
   state.handles.at(-1)!.position.mockReturnValue(null);
   tick();
   expect(result.current.playing).toBeNull();
