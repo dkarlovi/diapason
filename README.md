@@ -206,11 +206,16 @@ preview. Starting another preview replaces it.
 - **Mood:** Happy, Sad, Dreamy, and Syncopated.
 - **Key:** Auto, three suggested alternatives with previews, and all 24 keys under
   **I know my key**.
-- **Controls:** Stickiness, Pull into key, Darker ↔ Brighter, and Timing grid are
-  directly visible. **More** groups listening, key/harmony, melody-shape, and
-  rhythm/feel controls. Changing a control shows **Custom (from …)** and saves it
-  with the recording. Double-click a label to reset that control; **Reset all**
-  restores the current preset's controls while retaining the chosen key.
+- **Controls:** Steadiness (keep held notes whole, absorb short slips), Pull into key
+  (from exactly what you whistled to always in key, guided by the key and implied
+  chords), Mode (as detected, major or minor), and Timing grid are directly
+  visible. **More** holds Level gate, Minimum note length, Silence gap, Smooth
+  leaps, Max pitch move, Pull onto grid (from as recorded to exactly on the grid),
+  Swing, Syncopation (an anticipation of at most an eighth), and Note length.
+  Changing a control shows **Custom (from …)** and saves it with the recording;
+  saved values for controls that have since been retired are ignored.
+  Double-click a label to reset that control; **Reset all** restores the current
+  preset's controls while retaining the chosen key.
 
 Click a piano-roll note to hear it and show its name, start time, and duration.
 **Hear in context** includes neighboring notes. The **Notes** list provides the
@@ -219,8 +224,8 @@ muted anchors are kept through preset changes so switching back restores them.
 
 The decoder finds notes before naming them. A dip in level (re-articulation) or a
 real silence always starts a new note; within one articulation, a sustained pitch
-step does too, while scoops, vibrato and drift shorter than **Absorb slips** stay
-part of the held note. Each note then gets one steady-state pitch. The performer's
+step does too, while scoops, vibrato and drift stay part of the held note; higher
+**Steadiness** absorbs longer slips (up to 250 ms). Each note then gets one steady-state pitch. The performer's
 tuning offset from A440 is estimated from the whole take (whistlers are often a
 quarter-tone off), and the tuned pitch, key, implied harmony and step size decide
 each note name. Captured and exported WAV audio is never pitch-corrected. Musical
@@ -243,8 +248,6 @@ must export its approved `clean.mid` byte for byte.
 - Pitch detection remains monophonic and band-limited to 250–3000 Hz for whistles.
 - Existing recordings can sound different with the new engine. Legacy hysteresis,
   debounce, and median-window settings no longer control note decisions.
-- Syncopation is scaled by the grid step, so on a quarter-note grid it moves
-  notes a whole beat.
 - Capturing and correcting notes is local to the browser; audio file import and
   user-defined saved presets are not yet available.
 

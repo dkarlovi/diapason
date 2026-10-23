@@ -57,13 +57,13 @@ it("as played equals the faithful pass", () => {
   const result = interpretMelody(take1.frames, { ...input, knobs: PRESETS["as-played"].knobs });
   expect(result.decoded).toEqual(result.faithful);
 });
-it("auto key uses the faithful pass and modeBias forces the parallel mode", () => {
+it("auto key uses the faithful pass and mode forces the parallel mode", () => {
   const auto = interpretMelody(take2.frames, input);
   expect(auto.key.chosen).toEqual(auto.key.ranked[0]!.key);
   expect(keyName(auto.key.chosen!)).toBe("E minor");
   expect(
     keyName(
-      interpretMelody(take2.frames, { ...input, knobs: { ...input.knobs, modeBias: 1 } }).key
+      interpretMelody(take2.frames, { ...input, knobs: { ...input.knobs, mode: "major" } }).key
         .chosen!,
     ),
   ).toBe("E major");

@@ -36,14 +36,16 @@ it("holds a vibrato note as one note", () => {
   }));
   expect(decodeMelody(input, gentle, context).map((n) => n.midi)).toEqual([76]);
 });
-it("absorbs a glide shorter than slipMs", () => {
+it("steadiness decides whether a short glide is its own note", () => {
   const input = frames([
     [0.5, 79],
     [0.1, 79.51],
     [0.5, 79],
   ]);
-  expect(decodeMelody(input, { ...gentle, slipMs: 150 }, context).map((n) => n.midi)).toEqual([79]);
-  expect(decodeMelody(input, { ...gentle, slipMs: 0, stickiness: 0 }, context)).toHaveLength(3);
+  expect(decodeMelody(input, { ...gentle, steadiness: 0.6 }, context).map((n) => n.midi)).toEqual([
+    79,
+  ]);
+  expect(decodeMelody(input, { ...gentle, steadiness: 0 }, context)).toHaveLength(3);
 });
 it("keeps a deliberate leap and repeated pitches separated by real silence", () => {
   expect(

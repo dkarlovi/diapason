@@ -21,7 +21,6 @@ it("legacy tuning and grid carry over to the default preset", () => {
     key: "auto",
     overrides: {
       levelGate: 0.01,
-      clarityGate: 0.95,
       minNoteMs: 120,
       silenceGapMs: 150,
       grid: 4,
@@ -30,8 +29,16 @@ it("legacy tuning and grid carry over to the default preset", () => {
   });
 });
 it("a saved melody setting is used as is", () => {
-  const melody = { preset: "clean" as const, key: "auto" as const, overrides: { stickiness: 0.2 } };
+  const melody = { preset: "clean" as const, key: "auto" as const, overrides: { steadiness: 0.2 } };
   expect(melodySettingFor(recording({ melody }))).toEqual(melody);
+});
+it("saved overrides for knobs that no longer exist are dropped", () => {
+  const melody = {
+    preset: "clean" as const,
+    key: "auto" as const,
+    overrides: { stickiness: 0.2, clarityGate: 0.95, keyPull: 0.5 } as never,
+  };
+  expect(melodySettingFor(recording({ melody })).overrides).toEqual({ keyPull: 0.5 });
 });
 it("new captures start on the default preset with the measured level gate", () => {
   expect(newRecordingMelody(0.012)).toEqual({

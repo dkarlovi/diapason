@@ -1,6 +1,7 @@
 import type { Recording } from "../db";
 import {
   PRESETS,
+  KNOB_DEFS,
   isKnobs,
   DEFAULT_PRESET,
   type Knobs,
@@ -20,12 +21,17 @@ export function newRecordingMelody(levelGate: number): MelodySetting {
     key: "auto",
   };
 }
+// Knobs are retired as the engine evolves; overrides saved for them are ignored.
+function knownKnobs(overrides: Partial<Knobs>): Partial<Knobs> {
+  return Object.fromEntries(
+    Object.entries(overrides).filter(([key]) => KNOB_DEFS.some((def) => def.key === key)),
+  );
+}
 export function melodySettingFor(record: Recording): MelodySetting {
-  if (record.melody) return record.melody;
+  if (record.melody) return { ...record.melody, overrides: knownKnobs(record.melody.overrides) };
   const legacy = record.tuning ?? {};
   const overrides: Partial<Knobs> = {};
   if (legacy.rmsGate !== undefined) overrides.levelGate = legacy.rmsGate;
-  if (legacy.clarityThreshold !== undefined) overrides.clarityGate = legacy.clarityThreshold;
   if (legacy.minDurationSec !== undefined) overrides.minNoteMs = legacy.minDurationSec * 1000;
   if (legacy.silenceGapSec !== undefined) overrides.silenceGapMs = legacy.silenceGapSec * 1000;
   if (record.quantize) {

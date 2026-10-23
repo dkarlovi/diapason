@@ -71,12 +71,12 @@ it("summarizes processing stages in the pasteable log instead of dumping them", 
   );
 });
 it("records preset, overrides, effective knobs, key choice and harmony", () => {
-  const melody = { preset: "clean" as const, overrides: { stickiness: 0.2 }, key: "auto" as const };
+  const melody = { preset: "clean" as const, overrides: { steadiness: 0.2 }, key: "auto" as const };
   const report = buildReportData(
     makeReportInput(recording({ melody }), frames, qualityStats(frames)),
   );
   expect(report.settings.melody).toEqual(melody);
-  expect(report.stages.knobs.stickiness).toBe(0.2);
+  expect(report.stages.knobs.steadiness).toBe(0.2);
   expect(report.stages.key.auto).toBe(true);
   expect(report.stages.key.ranked).toHaveLength(24);
   for (const stage of [

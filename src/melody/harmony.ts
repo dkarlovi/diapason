@@ -1,6 +1,6 @@
 import type { NoteEvent } from "../notes";
 import type { Key } from "./key";
-import type { HarmonyRate } from "./knobs";
+export type HarmonyRate = "bar" | "half-bar" | "beat";
 export interface ChordSpan {
   start: number;
   end: number;

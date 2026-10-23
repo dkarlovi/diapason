@@ -10,7 +10,7 @@ const preview = vi.fn();
 function Harness() {
   const [melody, set] = useState<MelodySetting>({
     preset: "gentle",
-    overrides: { stickiness: 0.2 },
+    overrides: { steadiness: 0.2 },
     key: "auto",
   });
   const change = (patch: Partial<MelodySetting>) => set((current) => ({ ...current, ...patch }));
@@ -62,8 +62,9 @@ it("offers Auto, previewable alternatives and every key behind I know my key", (
 });
 it("basic knobs are visible and other controls are inside More", () => {
   render(<Harness />);
-  expect(screen.getByLabelText("Stickiness").closest("details")).toBeNull();
+  expect(screen.getByLabelText("Steadiness").closest("details")).toBeNull();
   expect(screen.getByLabelText("Pull into key").closest("details")).toBeNull();
+  expect(screen.getByLabelText("Mode").closest("details")).toBeNull();
   expect(
     screen.getByLabelText("Minimum note length").closest("details")?.querySelector("summary")
       ?.textContent,

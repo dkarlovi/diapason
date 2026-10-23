@@ -24,17 +24,22 @@ interface Span {
 const DIP_DEPTH = 0.3;
 const DIP_RADIUS = 6;
 // Changepoint cost, in squared semitones x frames, for starting a new note
-// without an articulation. Stickiness scales it between these bounds.
+// without an articulation. Steadiness scales it between these bounds, and the
+// slip horizon from zero to the maximum.
 const SPLIT_COST_MIN = 0.5;
 const SPLIT_COST_MAX = 13;
+const SLIP_MAX = 0.25;
+// Pull into key trades pitch evidence for musical context: at full pull the
+// sung pitch keeps this much weight, and chord tones earn this share of the
+// key's bonus. An out-of-key note keeps this much of its claim when it was
+// sung clearly.
+const PITCH_TRUST_MIN = 0.4;
+const HARMONY_SHARE = 0.4;
+const KEEP_ODD_NOTES = 0.6;
 
+// The pitch detector already drops frames below the sound profile's clarity.
 function isVoiced(frame: Frame, knobs: Knobs) {
-  return (
-    frame.freq !== null &&
-    frame.freq > 0 &&
-    frame.clarity >= knobs.clarityGate &&
-    frame.rms >= knobs.levelGate
-  );
+  return frame.freq !== null && frame.freq > 0 && frame.rms >= knobs.levelGate;
 }
 function hopOf(frames: Frame[]) {
   return frames.length > 1 ? frames[1]!.t - frames[0]!.t : 512 / 48000;
@@ -181,11 +186,11 @@ function inSeconds(frames: Frame[], piece: Span & { pitch: number }): Segment {
 }
 export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
   const hop = hopOf(frames);
-  const stickiness = Math.min(1, Math.max(0, knobs.stickiness));
+  const steadiness = Math.min(1, Math.max(0, knobs.steadiness));
   const options = {
     minLength: Math.max(1, Math.round(knobs.minNoteMs / 1000 / hop)),
-    slip: knobs.slipMs / 1000 / hop,
-    splitCost: SPLIT_COST_MIN + (SPLIT_COST_MAX - SPLIT_COST_MIN) * stickiness,
+    slip: (SLIP_MAX * steadiness) / hop,
+    splitCost: SPLIT_COST_MIN + (SPLIT_COST_MAX - SPLIT_COST_MIN) * steadiness,
   };
   return voicedSpans(frames, knobs)
     .flatMap((span) => articulations(frames, span))
@@ -203,14 +208,12 @@ function pitchScore(
   const distance = Math.abs(pitch - state);
   if (distance > knobs.maxMoveSemitones + 0.5) return -Infinity;
   const pc = ((state % 12) + 12) % 12;
+  const pull = knobs.keyPull;
+  const trust = 1 - (1 - PITCH_TRUST_MIN) * pull;
   const confidence = 1 - Math.min(1, 2 * distance);
-  const keyPrior = scale
-    ? knobs.keyPull * (scale.has(pc) ? 1 : -(1 - knobs.keepOddNotes * confidence))
-    : 0;
-  const chordPrior = chord?.has(pc) ? knobs.harmonyPull : 0;
-  return (
-    -knobs.pitchTrust * (distance / 0.35) ** 2 + (1 - knobs.pitchTrust) * (keyPrior + chordPrior)
-  );
+  const keyPrior = scale ? pull * (scale.has(pc) ? 1 : -(1 - KEEP_ODD_NOTES * confidence)) : 0;
+  const chordPrior = chord?.has(pc) ? HARMONY_SHARE * pull : 0;
+  return -trust * (distance / 0.35) ** 2 + (1 - trust) * (keyPrior + chordPrior);
 }
 interface LabelSpace {
   low: number;

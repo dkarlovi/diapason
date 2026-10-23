@@ -51,7 +51,7 @@ it("a mute follows its note through a merge and returns when switching back", ()
   }));
   const original: Recording = {
     ...recording,
-    melody: { preset: "as-played", key: "auto", overrides: { stickiness: 0, slipMs: 0 } },
+    melody: { preset: "as-played", key: "auto", overrides: { steadiness: 0 } },
     muted: [{ t: 0.46, midi: 70 }],
   };
   const baseline = recordingItems(original, frames);

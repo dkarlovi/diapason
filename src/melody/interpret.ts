@@ -47,9 +47,8 @@ export function interpretMelody(
     chosen && input.key !== "auto"
       ? fitTuning(segments, scalePitchClasses(chosen))
       : performedTuning;
-  if (chosen && Math.abs(knobs.modeBias) >= 0.5)
-    chosen = parallelKey(chosen, knobs.modeBias > 0 ? "major" : "minor");
-  const harmony = chosen ? inferHarmony(faithful, chosen, timing, knobs.harmonyRate) : [];
+  if (chosen && knobs.mode !== "auto") chosen = parallelKey(chosen, knobs.mode);
+  const harmony = chosen ? inferHarmony(faithful, chosen, timing, "bar") : [];
   const decoded = notesFromSegments(segments, knobs, {
     key: chosen,
     harmony,

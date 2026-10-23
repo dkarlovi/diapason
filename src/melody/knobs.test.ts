@@ -16,11 +16,29 @@ describe("melody knobs", () => {
         } else expect(def.options.map((option) => option.value)).toContain(value);
       }
   });
+  it("exposes only the meaningful knobs", () => {
+    expect(KNOB_DEFS.map((def) => def.key).sort()).toEqual(
+      [
+        "levelGate",
+        "minNoteMs",
+        "silenceGapMs",
+        "steadiness",
+        "keyPull",
+        "mode",
+        "maxMoveSemitones",
+        "leapPenalty",
+        "grid",
+        "gridPull",
+        "swing",
+        "syncopation",
+        "articulation",
+      ].sort(),
+    );
+  });
   it("as played turns every musical prior off", () => {
     expect(PRESETS["as-played"].knobs).toMatchObject({
-      pitchTrust: 1,
       keyPull: 0,
-      harmonyPull: 0,
+      mode: "auto",
       leapPenalty: 0,
       maxMoveSemitones: 0,
       grid: 0,
@@ -29,8 +47,8 @@ describe("melody knobs", () => {
     });
   });
   it("overrides win over the preset and unknown keys are ignored", () => {
-    const knobs = resolveKnobs("clean", { stickiness: 0.1, bogus: 3 } as never);
-    expect(knobs.stickiness).toBe(0.1);
+    const knobs = resolveKnobs("clean", { steadiness: 0.1, bogus: 3 } as never);
+    expect(knobs.steadiness).toBe(0.1);
     expect(knobs).not.toHaveProperty("bogus");
   });
   it("intent presets add no feel, and only Clean snaps to a grid", () => {
@@ -45,7 +63,9 @@ describe("melody knobs", () => {
     for (const value of [
       { keyPull: 2 },
       { grid: "x" },
-      { pitchTrust: NaN },
+      { steadiness: NaN },
+      { mode: "lydian" },
+      { stickiness: 0.5 },
       null,
       [],
       { bogus: 1 },
