@@ -4,21 +4,10 @@
     "src/hooks/useCapture.ts": {
       "complexity_critical": {
         "count": 1
-      },
-      "crap_high": {
-        "count": 1
-      },
-      "crap_moderate": {
-        "count": 2
       }
     },
     "src/hooks/useEditor.ts": {
       "complexity_critical": {
-        "count": 1
-      }
-    },
-    "src/hooks/useLibrary.ts": {
-      "crap_moderate": {
         "count": 1
       }
     },
@@ -37,9 +26,6 @@
     },
     "src/trace.ts": {
       "complexity_critical": {
-        "count": 1
-      },
-      "crap_critical": {
         "count": 1
       }
     }

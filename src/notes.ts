@@ -65,17 +65,25 @@ const SEGMENT_DEFAULTS: Required<SegmentOptions> = {
 //  - label each note by the median pitch over its own frames (not the attack transient)
 export function segmentNotes(frames: Frame[], opts: SegmentOptions = {}): NoteEvent[] {
   const cfg = { ...SEGMENT_DEFAULTS, ...opts };
+  const pitch = voicedPitches(frames, cfg);
+  const smooth = medianSmooth(pitch, cfg.medianWindow);
+  const labels = stickyLabels(smooth, cfg.hysteresisSemitones);
+  return mergeAdjacent(collectEvents(frames, smooth, labels, cfg), cfg.silenceGapSec);
+}
 
+function voicedPitches(frames: Frame[], cfg: Required<SegmentOptions>): (number | null)[] {
   // 1. Continuous MIDI pitch per voiced frame (null = unvoiced).
-  const pitch: (number | null)[] = frames.map((f) =>
+  return frames.map((f) =>
     f.freq !== null && f.clarity >= cfg.clarityThreshold && f.rms >= cfg.rmsGate
       ? freqToMidi(f.freq)
       : null,
   );
+}
 
+function medianSmooth(pitch: (number | null)[], window: number): (number | null)[] {
   // 2. Median-filter the continuous pitch (ignoring nulls).
-  const half = Math.floor(cfg.medianWindow / 2);
-  const smooth: (number | null)[] = pitch.map((v, i) => {
+  const half = Math.floor(window / 2);
+  return pitch.map((v, i) => {
     if (v === null) return null;
     const win: number[] = [];
     for (let j = i - half; j <= i + half; j++) {
@@ -85,10 +93,12 @@ export function segmentNotes(frames: Frame[], opts: SegmentOptions = {}): NoteEv
     win.sort((a, b) => a - b);
     return win[Math.floor(win.length / 2)]!;
   });
+}
 
+function stickyLabels(smooth: (number | null)[], hysteresis: number): (number | null)[] {
   // 3. Sticky semitone labels via hysteresis. `lock` only moves when the pitch escapes
   //    the deadband; silence resets it so the next note locks fresh.
-  const band = 0.5 + cfg.hysteresisSemitones;
+  const band = 0.5 + hysteresis;
   const labels: (number | null)[] = [];
   let lock: number | null = null;
   for (const p of smooth) {
@@ -101,6 +111,15 @@ export function segmentNotes(frames: Frame[], opts: SegmentOptions = {}): NoteEv
     labels.push(lock);
   }
 
+  return labels;
+}
+
+function collectEvents(
+  frames: Frame[],
+  smooth: (number | null)[],
+  labels: (number | null)[],
+  cfg: Required<SegmentOptions>,
+): NoteEvent[] {
   // 4. Debounced state machine over the labels; note pitch = median of its frames.
   const events: NoteEvent[] = [];
   const median = (lo: number, hi: number): number => {
@@ -155,17 +174,17 @@ export function segmentNotes(frames: Frame[], opts: SegmentOptions = {}): NoteEv
   }
   if (cur) close(frames.length, (cur as { lastT: number }).lastT);
 
+  return events;
+}
+
+function mergeAdjacent(events: NoteEvent[], silenceGapSec: number): NoteEvent[] {
   // 5. Merge consecutive events of the same pitch with no real gap between them
   //    (a glide relabel can split one held note into two same-pitch events). A genuine
   //    re-articulation of the same note leaves a silence gap and is preserved.
   const merged: NoteEvent[] = [];
   for (const e of events) {
     const prev = merged[merged.length - 1];
-    if (
-      prev &&
-      prev.midi === e.midi &&
-      e.start - (prev.start + prev.duration) < cfg.silenceGapSec
-    ) {
+    if (prev && prev.midi === e.midi && e.start - (prev.start + prev.duration) < silenceGapSec) {
       prev.duration = e.start + e.duration - prev.start;
     } else {
       merged.push({ ...e });

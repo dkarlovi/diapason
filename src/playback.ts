@@ -3,7 +3,8 @@
 
 import type { NoteEvent } from "./notes";
 import { VOICES, DEFAULT_PLAY, type PlaySettings } from "./instruments";
-import { activeOutput, playNotesMidi } from "./midiout";
+import { activeOutput } from "./midiout";
+import { playNotesMidi } from "./midi-playback";
 
 export interface Playback {
   /** Seconds into the take, or null once finished/stopped. */

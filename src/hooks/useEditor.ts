@@ -1,3 +1,5 @@
+import { useEditorPlayback } from "./useEditorPlayback";
+import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
@@ -6,22 +8,10 @@ import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange, type TraceView } from "../trace";
 import { takeItems, DEFAULT_QUANTIZE } from "../take";
-import { notesToMidi } from "../midi";
-import { encodeWav } from "../wav";
-import { buildReport, buildReportData } from "../diagnostics";
 import { DEFAULT_TUNING, saveLastTuning, type Tuning } from "../tuning";
-import { downloadBlob } from "../ui";
 import { takePath } from "../router";
-import { playPcm, playNotes, type Playback } from "../playback";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
-import { onOutputChange, activeOutput } from "../midiout";
-import {
-  exportSlug,
-  makeReportInput,
-  noteAtPoint,
-  toggleMuted,
-  updateTuning,
-} from "../editor-model";
+import { noteAtPoint, toggleMuted, updateTuning } from "../editor-model";
 
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 const gridLabels: Record<number, string> = {
@@ -36,41 +26,20 @@ export function useEditor(id: string) {
   const [record, setRecord] = useState<Recording | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
   const [draftName, setDraftName] = useState("");
-  const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
-  const [position, setPosition] = useState<number | null>(null);
   const [rollHover, setRollHover] = useState(false);
-  const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
-  const [reportText, setReportText] = useState("");
-  const [copyStatus, setCopyStatus] = useState("");
 
   const recordRef = useRef<Recording | null>(null);
   const pcm = useRef(new Float32Array(0));
   const stats = useRef<QualityStats | null>(null);
   const traceRef = useRef<HTMLCanvasElement>(null);
   const rollRef = useRef<HTMLCanvasElement>(null);
-  const logRef = useRef<HTMLTextAreaElement>(null);
-  const playback = useRef<Playback | null>(null);
-  const preview = useRef<Playback | null>(null);
-  const raf = useRef(0);
   const persistTimer = useRef(0);
   const tuningDirty = useRef(false);
   const mounted = useRef(false);
-  const playingRef = useRef<"audio" | "midi" | null>(null);
 
   const replaceRecord = useCallback((next: Recording) => {
     recordRef.current = next;
     setRecord(next);
-  }, []);
-
-  const stopPlayback = useCallback(() => {
-    playback.current?.stop();
-    playback.current = null;
-    playingRef.current = null;
-    cancelAnimationFrame(raf.current);
-    if (mounted.current) {
-      setPlaying(null);
-      setPosition(null);
-    }
   }, []);
 
   const flushTuning = useCallback(() => {
@@ -89,8 +58,6 @@ export function useEditor(id: string) {
     recordRef.current = null;
     setRecord(null);
     setFrames([]);
-    setReportText("");
-    setCopyStatus("");
     void (async () => {
       const found = await getRecording(id);
       if (cancelled) return;
@@ -112,20 +79,8 @@ export function useEditor(id: string) {
       mounted.current = false;
       window.clearTimeout(persistTimer.current);
       flushTuning();
-      stopPlayback();
-      preview.current?.stop();
-      preview.current = null;
     };
-  }, [flushTuning, id, navigate, replaceRecord, stopPlayback]);
-
-  useEffect(
-    () =>
-      onOutputChange(() => {
-        stopPlayback();
-        setExternalOutput(!!activeOutput());
-      }),
-    [stopPlayback],
-  );
+  }, [flushTuning, id, navigate, replaceRecord]);
 
   const quantize = record?.quantize ?? DEFAULT_QUANTIZE;
   const play = record?.play ?? DEFAULT_PLAY;
@@ -135,6 +90,15 @@ export function useEditor(id: string) {
     () => items.filter((item) => !item.muted).map((item) => item.note),
     [items],
   );
+  const { playing, position, externalOutput, togglePlayback, previewNote } = useEditorPlayback({
+    takeId: id,
+    recordRef,
+    pcmRef: pcm,
+    notes,
+  });
+  const { logRef, reportText, copyStatus, downloadMidi, downloadWav, downloadJson, copyLog } =
+    useEditorExports({ takeId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
+
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
   const baseView = useMemo(
     () => (record ? { tMin: 0, tMax: record.durationSec, ...autoRange(frames) } : null),
@@ -280,81 +244,15 @@ export function useEditor(id: string) {
         persist(next);
         return;
       }
-      preview.current?.stop();
-      preview.current = playNotes([{ ...item.note, start: 0 }], item.note.duration, current.play);
+      previewNote(item.note);
     },
-    [noteAt, persist, replaceRecord],
+    [noteAt, persist, replaceRecord, previewNote],
   );
 
   const moveRoll = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => setRollHover(!!noteAt(event)),
     [noteAt],
   );
-
-  const togglePlayback = useCallback(
-    (kind: "audio" | "midi") => {
-      const current = recordRef.current;
-      const wasThis = playingRef.current === kind;
-      stopPlayback();
-      if (!current || wasThis) return;
-      playback.current =
-        kind === "audio"
-          ? playPcm(pcm.current, current.sampleRate)
-          : playNotes(notes, current.durationSec, current.play);
-      playingRef.current = kind;
-      setPlaying(kind);
-      const tick = () => {
-        const value = playback.current?.position();
-        if (value == null) {
-          stopPlayback();
-          return;
-        }
-        setPosition(value);
-        raf.current = requestAnimationFrame(tick);
-      };
-      raf.current = requestAnimationFrame(tick);
-    },
-    [notes, stopPlayback],
-  );
-
-  const filename = useCallback(
-    (extension: string) =>
-      `${exportSlug(recordRef.current?.name ?? "take", Date.now())}.${extension}`,
-    [],
-  );
-  const downloadMidi = useCallback(() => {
-    const current = recordRef.current;
-    if (current) downloadBlob(notesToMidi(notes, { bpm: current.bpm }), filename("mid"));
-  }, [filename, notes]);
-  const downloadWav = useCallback(() => {
-    const current = recordRef.current;
-    if (current) downloadBlob(encodeWav(pcm.current, current.sampleRate), filename("wav"));
-  }, [filename]);
-  const downloadJson = useCallback(() => {
-    const current = recordRef.current;
-    if (!current || !stats.current) return;
-    const json = JSON.stringify(
-      buildReportData(makeReportInput(current, frames, stats.current)),
-      null,
-      2,
-    );
-    downloadBlob(new Blob([json], { type: "application/json" }), filename("json"));
-  }, [filename, frames]);
-  const copyLog = useCallback(async () => {
-    const current = recordRef.current;
-    if (!current || !stats.current) return;
-    const report = buildReport(makeReportInput(current, frames, stats.current));
-    setReportText(report);
-    try {
-      await navigator.clipboard.writeText(report);
-      if (mounted.current) setCopyStatus("copied ✓");
-    } catch {
-      if (mounted.current) setCopyStatus("select the text above to copy");
-    }
-  }, [frames]);
-  useEffect(() => {
-    if (copyStatus.startsWith("select")) logRef.current?.select();
-  }, [copyStatus]);
 
   return {
     record,

@@ -167,3 +167,7 @@ detectors.
 - WAV/MP3 file input
 - Scale snapping (constrain output to a chosen key)
 - Direct MIDI-out via Web MIDI instead of file download
+
+### Runtime test coverage
+
+`npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and reports coverage-aware metrics. No percentage gate is imposed before establishing a baseline.

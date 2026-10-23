@@ -2,8 +2,15 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Recording } from "../db";
+import type { MetronomeOptions } from "../metronome";
 import { Capture } from "./Capture";
 
+const dispose = vi.fn();
+const stopMetro = vi.fn();
+const closeMic = vi.fn();
+let recorderPending: Promise<import("../recorder").Recorder> | null = null;
+let samples = new Float32Array([0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+let metroCallbacks: MetronomeOptions | null = null;
 let saved: Recording | null = null;
 let encodeFailure = false;
 let recorderFailure = false;
@@ -22,7 +29,7 @@ vi.mock("../audio", () => ({
       noiseSuppression: false,
       autoGainControl: false,
     }),
-    close: () => undefined,
+    close: closeMic,
   }),
 }));
 vi.mock("../pitch", () => ({
@@ -38,16 +45,20 @@ vi.mock("../recorder", async (importOriginal) => {
     ...original,
     createRecorder: async () => {
       if (recorderFailure) throw new Error("worklet unavailable");
+      if (recorderPending) return recorderPending;
       return {
         start,
-        stop: () => new Float32Array([0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]),
-        dispose: () => undefined,
+        stop: () => samples,
+        dispose,
       };
     },
   };
 });
 vi.mock("../metronome", () => ({
-  startMetronome: () => ({ downbeatTime: 1.2, stop: () => undefined }),
+  startMetronome: (_ctx: unknown, options: MetronomeOptions) => {
+    metroCallbacks = options;
+    return { downbeatTime: 1.2, stop: stopMetro };
+  },
 }));
 vi.mock("../codec", () => ({
   encodeAudio: async () => {
@@ -71,6 +82,12 @@ afterEach(() => {
   recorderFailure = false;
   resumePending = null;
   start.mockClear();
+  dispose.mockClear();
+  stopMetro.mockClear();
+  closeMic.mockClear();
+  recorderPending = null;
+  metroCallbacks = null;
+  samples = new Float32Array([0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
 });
 
 it("disables record while the audio context is starting", async () => {
@@ -189,4 +206,130 @@ it("shows a recorder error without entering recording state", async () => {
     false,
   );
   expect(start).not.toHaveBeenCalled();
+});
+
+async function calibratedCapture() {
+  vi.stubGlobal("requestAnimationFrame", () => 1);
+  vi.stubGlobal("cancelAnimationFrame", () => undefined);
+  const view = render(
+    <MemoryRouter>
+      <Capture />
+    </MemoryRouter>,
+  );
+  await screen.findByText("10 Hz");
+  vi.useFakeTimers();
+  fireEvent.click(screen.getByRole("button", { name: /Record the room/ }));
+  act(() => vi.advanceTimersByTime(1500));
+  return view;
+}
+it("does not start recording after unmount during context resume", async () => {
+  const view = await calibratedCapture();
+  let release!: () => void;
+  resumePending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  fireEvent.click(screen.getByRole("button", { name: "● Record" }));
+  view.unmount();
+  await act(async () => {
+    release();
+    await Promise.resolve();
+  });
+  expect(start).not.toHaveBeenCalled();
+  expect(closeMic).toHaveBeenCalledOnce();
+});
+it("disposes a recorder created after unmount", async () => {
+  const view = await calibratedCapture();
+  let release!: (recorder: import("../recorder").Recorder) => void;
+  recorderPending = new Promise((resolve) => {
+    release = resolve;
+  });
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: "● Record" }));
+    await Promise.resolve();
+  });
+  view.unmount();
+  await act(async () => {
+    release({ start, stop: () => samples, dispose });
+    await Promise.resolve();
+  });
+  expect(start).not.toHaveBeenCalled();
+  expect(dispose).toHaveBeenCalledOnce();
+});
+it("rejects a recording shorter than 300 ms after trimming count-in", async () => {
+  await calibratedCapture();
+  samples = new Float32Array([0, 0, 0.5, 0.5]);
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: "● Record" }));
+  });
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: /Stop & save/ }));
+  });
+  expect(screen.getByText(/Too short/)).toBeTruthy();
+  expect(saved).toBeNull();
+  expect(stopMetro).toHaveBeenCalledOnce();
+});
+it.each(["count-in", "recording"])(
+  "releases recorder and metronome before closing the microphone during %s",
+  async (phase) => {
+    const view = await calibratedCapture();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "● Record" }));
+    });
+    if (phase === "recording") {
+      act(() => metroCallbacks?.onDownbeat?.());
+      expect(screen.getByText(/Recording… hit Stop/)).toBeTruthy();
+    }
+    view.unmount();
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(stopMetro).toHaveBeenCalledOnce();
+    expect(closeMic).toHaveBeenCalledOnce();
+    expect(dispose.mock.invocationCallOrder[0]).toBeLessThan(closeMic.mock.invocationCallOrder[0]!);
+    expect(stopMetro.mock.invocationCallOrder[0]).toBeLessThan(
+      closeMic.mock.invocationCallOrder[0]!,
+    );
+  },
+);
+
+it("blocks device switching during startup and recording, then releases the old recorder", async () => {
+  const { renderHook } = await import("@testing-library/react");
+  const { useCapture } = await import("../hooks/useCapture");
+  const hook = renderHook(() => useCapture(), { wrapper: MemoryRouter });
+  await act(async () => {
+    await Promise.resolve();
+  });
+  vi.useFakeTimers();
+  act(() => hook.result.current.measureRoom());
+  act(() => vi.advanceTimersByTime(1500));
+  let release!: () => void;
+  resumePending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  act(() => {
+    void hook.result.current.startRecording();
+  });
+  await act(async () => {
+    await hook.result.current.openDevice("blocked-start");
+  });
+  expect(hook.result.current.deviceId).toBe("");
+  await act(async () => {
+    release();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  await act(async () => {
+    await hook.result.current.openDevice("blocked-record");
+  });
+  expect(hook.result.current.deviceId).toBe("");
+  expect(hook.result.current.recording).toBe(true);
+  samples = new Float32Array([0, 0, 0.5]);
+  await act(async () => {
+    await hook.result.current.stopRecording();
+  });
+  await act(async () => {
+    await hook.result.current.openDevice("next");
+  });
+  expect(hook.result.current.deviceId).toBe("next");
+  expect(hook.result.current.noiseMeasured).toBe(false);
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(closeMic).toHaveBeenCalledOnce();
 });

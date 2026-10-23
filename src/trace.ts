@@ -56,10 +56,35 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   ctx.fillStyle = COLORS.bg;
   ctx.fillRect(0, 0, w, h);
 
-  const { tMin, tMax, midiMin, midiMax, beats, notes, muted } = view;
-  const xOf = (t: number): number => ((t - tMin) / (tMax - tMin || 1)) * w;
-  const yOf = (midi: number): number => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h;
+  const { tMin, tMax, midiMin, midiMax } = view;
+  const geometry: TraceGeometry = {
+    width: w,
+    height: h,
+    semitoneHeight: h / (midiMax - midiMin || 1),
+    xOf: (t) => ((t - tMin) / (tMax - tMin || 1)) * w,
+    yOf: (midi) => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h,
+  };
+  drawPitchGrid(ctx, geometry, view);
+  drawBeatGrid(ctx, geometry, view);
+  drawPitchFrames(ctx, geometry, frames, view);
+  drawNoteBars(ctx, geometry, view);
+}
 
+interface TraceGeometry {
+  width: number;
+  height: number;
+  semitoneHeight: number;
+  xOf(t: number): number;
+  yOf(midi: number): number;
+}
+
+function drawPitchGrid(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+): void {
+  const { width: w, yOf } = geometry;
+  const { midiMin, midiMax } = view;
   // Horizontal gridlines + note labels at each semitone (octaves emphasized).
   ctx.textBaseline = "middle";
   ctx.font = "10px system-ui, sans-serif";
@@ -76,7 +101,15 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       ctx.fillText(midiToName(m), 3, y - 6);
     }
   }
+}
 
+function drawBeatGrid(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+): void {
+  const { height: h, xOf } = geometry;
+  const { tMin, tMax, beats } = view;
   // Vertical tempo grid: subdivisions faint, beats medium, bar lines strong.
   if (beats && beats.bpm > 0) {
     const sub = Math.max(1, beats.subdivision ?? 1);
@@ -99,7 +132,16 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       }
     }
   }
+}
 
+function drawPitchFrames(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  frames: Frame[],
+  view: TraceView,
+): void {
+  const { xOf, yOf } = geometry;
+  const { tMin, tMax, notes } = view;
   // Pitch trace: connect consecutive voiced frames, brightness by clarity.
   // Behind note bars it's a thin, faint reference.
   const faint = !!notes;
@@ -131,9 +173,17 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
     }
     prev = { x, y };
   }
+}
 
+function drawNoteBars(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+): void {
+  const { xOf, yOf } = geometry;
+  const { notes, muted } = view;
   // Piano-roll note bars, one semitone tall, centred on the note.
-  const semi = h / (midiMax - midiMin || 1);
+  const semi = geometry.semitoneHeight;
   if (muted) {
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
