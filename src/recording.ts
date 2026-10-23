@@ -37,9 +37,6 @@ export function processRecording(rec: Recording, frames: Frame[]) {
     notes: items.filter((item) => !item.muted).map((item) => item.note),
   };
 }
-export function recordingItems(rec: Recording, frames: Frame[]): NoteItem[] {
-  return processRecording(rec, frames).items;
-}
 export function recordingNotes(rec: Recording, frames: Frame[]): NoteEvent[] {
   return processRecording(rec, frames).notes;
 }

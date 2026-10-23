@@ -227,18 +227,8 @@ each note name. Captured and exported WAV audio is never pitch-corrected. Musica
 context is a prior, not knowledge of the intended tune: a note whose pitch sits
 halfway between two in-key notes can still be named wrongly.
 
-Offline developer comparisons remain available:
-
-```bash
-npm run render:presets -- --out /tmp/diapason-melody-listening --presets as-played,gentle,clean,keep-odd
-```
-
-Both full fixture takes produce a WAV/MIDI per preset and a README with keys,
-note timing, sung cents, and pitch-sequence edit counts. Synthesized WAV previews
-play two octaves below the whistle; MIDI retains detected pitches. Edit distance
-measures agreement, not musical correctness. The intro-only sample in
-`src/fixtures/whistle-intro/` is an exact regression: Clean must transcribe it
-note-for-note on the eighth grid.
+The intro sample in `src/fixtures/whistle-intro/` is an exact regression: Clean
+must export its approved `clean.mid` byte for byte.
 
 ## Known limitations
 

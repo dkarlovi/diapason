@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { freqToMidi, type Frame } from "../notes";
+import { freqToMidi, type Frame, type NoteEvent } from "../notes";
 import { loadFixture } from "../test-support/fixtures";
 import { PRESETS } from "./knobs";
-import { decodeMelody, type PitchContext } from "./decode";
+import { notesFromSegments, segmentMelody, type PitchContext } from "./decode";
+import type { Knobs } from "./knobs";
 const take1 = loadFixture("whistle-regression");
 const take2 = loadFixture("whistle-take2");
 const context: PitchContext = {
@@ -12,6 +13,9 @@ const context: PitchContext = {
   range: { minMidi: freqToMidi(250), maxMidi: freqToMidi(3000) },
 };
 const gentle = PRESETS.gentle.knobs;
+function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
+  return notesFromSegments(segmentMelody(frames, knobs), frames, knobs, context);
+}
 function frames(parts: [number, number | null][]): Frame[] {
   const result: Frame[] = [];
   for (const [duration, midi] of parts)

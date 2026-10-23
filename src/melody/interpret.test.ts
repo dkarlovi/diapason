@@ -5,7 +5,7 @@ import { freqToMidi, type NoteEvent } from "../notes";
 import { analyzeRecording } from "../recording-analysis";
 import { PRESETS } from "./knobs";
 import { keyName } from "./key";
-import { agreement, interpretMelody } from "./interpret";
+import { interpretMelody } from "./interpret";
 const take1 = loadFixture("whistle-regression");
 const take2 = loadFixture("whistle-take2");
 const input = {
@@ -14,6 +14,22 @@ const input = {
   timing: { bpm: 95, beatsPerBar: 4 },
   range: { minMidi: freqToMidi(250), maxMidi: freqToMidi(3000) },
 };
+// Edit distance between pitch sequences: how recognisable one tune is in another.
+function agreement(a: NoteEvent[], b: NoteEvent[]): number {
+  let previous = Int32Array.from({ length: b.length + 1 }, (_, i) => i);
+  let current = new Int32Array(b.length + 1);
+  for (let i = 1; i <= a.length; i++) {
+    current[0] = i;
+    for (let j = 1; j <= b.length; j++)
+      current[j] = Math.min(
+        previous[j]! + 1,
+        current[j - 1]! + 1,
+        previous[j - 1]! + (a[i - 1]!.midi === b[j - 1]!.midi ? 0 : 1),
+      );
+    [previous, current] = [current, previous];
+  }
+  return previous[b.length]!;
+}
 it("silence yields no notes and no key", () => {
   const result = interpretMelody(
     Array.from({ length: 188 }, (_, i) => ({

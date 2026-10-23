@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { recordingItems, recordingNotes } from "./recording";
+import { processRecording, recordingNotes } from "./recording";
 import type { Recording } from "./db";
 import type { Frame } from "./notes";
+
+const recordingItems = (rec: Recording, frames: Frame[]) => processRecording(rec, frames).items;
 
 const frames: Frame[] = Array.from({ length: 12 }, (_, i) => ({
   t: i * 0.05,

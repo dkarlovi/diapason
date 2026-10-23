@@ -295,7 +295,3 @@ export function notesFromSegments(
     };
   });
 }
-export function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
-  if (!frames.length) return [];
-  return notesFromSegments(segmentMelody(frames, knobs), frames, knobs, context);
-}
