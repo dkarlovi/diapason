@@ -28,6 +28,8 @@ Use Vitest and React Testing Library. Name tests `*.test.ts` or `*.test.tsx`; us
 
 ## Commit & Pull Request Guidelines
 
+Review and update `README.md` on every feature branch so it reflects the resulting app behavior, available features, setup instructions, and known limitations. Remove or revise roadmap ideas as they are implemented.
+
 History uses short descriptive subjects such as `React UI` and `Fallow health`; no mandatory prefix convention is evident. Keep commits focused. Describe the problem, resulting behavior, and validation in pull requests; link relevant issues and include screenshots for visible changes. Run `npm run check` before submission. GitHub Actions checks pull requests targeting `main`; pushes to `main` deploy to GitHub Pages.
 
 ## Browser Configuration
