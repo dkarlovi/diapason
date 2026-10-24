@@ -157,7 +157,7 @@ export function useCapture() {
       return;
     }
     setSaving(true);
-    setStatus("Saving…");
+    setStatus("");
     try {
       const now = Date.now(),
         profile = getSoundProfile(settings.profileId);

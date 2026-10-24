@@ -45,6 +45,9 @@ pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas
 Record is available only after setup. The same button becomes a bright red **Stop**;
 the wizard folds into a slab around the Record step, keeping its icon in place
 and replacing it with the green diapason mark. Stop matches the step width.
+The Record label and separator stay in place; only the count-in summary fades.
+The wizard is cropped from the left as its width changes, keeping its contents
+fixed during collapse and expansion.
 Stopping restores the layout, saves a separate take, and briefly shows
 **Recording saved**. The count-in and timer reset for the next take, with
 calibration and tempo retained. A short take or save failure leaves setup ready

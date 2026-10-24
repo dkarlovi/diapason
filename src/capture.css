@@ -134,9 +134,10 @@ body:has(.studio-shell) {
   --capture-gap: 20px;
   --capture-step-gap: 4px;
   --capture-step-padding: 10px;
+  --capture-wizard-width: calc((100cqw - var(--capture-gap)) / 2);
   --capture-record-width: calc(
     (
-        (100cqw - var(--capture-gap)) / 2 - 2px - 2 * var(--capture-step-padding) - 5 *
+        var(--capture-wizard-width) - 2px - 2 * var(--capture-step-padding) - 5 *
           var(--capture-step-gap)
       ) /
       6
@@ -322,6 +323,7 @@ body:has(.studio-shell) {
   color: var(--color-destructive);
 }
 .studio-shell .capture-wizard {
+  width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
@@ -333,6 +335,16 @@ body:has(.studio-shell) {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 7px;
+  transition: width 460ms cubic-bezier(0.22, 0.7, 0.25, 1);
+}
+.capture-wizard-content {
+  width: calc(var(--capture-wizard-width) - 2px);
+  height: 100%;
+  min-height: 0;
+  flex-shrink: 0;
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
 }
 .capture-steps {
   display: flex;
@@ -355,10 +367,6 @@ body:has(.studio-shell) {
   color: var(--color-muted-foreground);
   background: transparent;
   border-radius: 4px;
-  transition:
-    flex-grow 460ms,
-    opacity 180ms,
-    padding 460ms;
 }
 .studio-shell .capture-step:hover:not(:disabled) {
   background: var(--color-muted);
@@ -391,9 +399,6 @@ body:has(.studio-shell) {
   white-space: nowrap;
   line-height: 1.3;
   max-height: 24px;
-  transition:
-    opacity 180ms,
-    max-height 460ms;
 }
 .capture-step[aria-current="step"] .step-name {
   color: var(--color-foreground);
@@ -497,9 +502,10 @@ body:has(.studio-shell) {
   max-width: 100%;
 }
 .capture-actions .record-toggle {
-  width: 142px;
+  width: var(--capture-record-width);
   flex-shrink: 0;
-  padding-inline: 8px;
+  padding-inline: 4px;
+  gap: 4px;
 }
 .record-symbol {
   width: 7px;
@@ -633,15 +639,6 @@ body:has(.studio-shell) {
       calc(var(--capture-record-width) + 2 * var(--capture-step-padding) + 2px)
     );
 }
-#view-capture[data-recording="true"] .capture-steps {
-  gap: 0;
-}
-#view-capture[data-recording="true"] .capture-step:not([data-step="record"]) {
-  flex-grow: 0;
-  opacity: 0;
-  padding: 0;
-  pointer-events: none;
-}
 #view-capture[data-recording="true"] .capture-step[data-step="record"] {
   opacity: 1;
 }
@@ -651,29 +648,11 @@ body:has(.studio-shell) {
   color: var(--color-success);
   outline: none;
 }
-#view-capture[data-recording="true"] .step-name,
-#view-capture[data-recording="true"] .capture-step small {
-  max-height: 0;
-  min-height: 0;
+#view-capture[data-recording="true"] .capture-step[data-step="record"] small {
   opacity: 0;
-  overflow: hidden;
 }
-#view-capture[data-recording="true"] .capture-step-body {
-  opacity: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-#view-capture[data-recording="true"] .capture-back {
-  display: none;
-}
-#view-capture[data-recording="true"] .capture-actions {
-  justify-content: flex-end;
+.capture-actions:has(.record-toggle) {
   padding-inline: var(--capture-step-padding);
-  gap: 0;
-}
-#view-capture[data-recording="true"] .record-toggle {
-  width: var(--capture-record-width);
-  padding-inline: 4px;
 }
 #view-capture[data-recording="true"] .stop-symbol {
   display: none;
@@ -746,9 +725,7 @@ body:has(.studio-shell) {
   }
   .studio-shell #view-capture {
     padding: 10px;
-    --capture-record-width: calc(
-      (100cqw - 2px - 2 * var(--capture-step-padding) - 5 * var(--capture-step-gap)) / 6
-    );
+    --capture-wizard-width: 100cqw;
   }
   .capture-layout,
   #view-capture[data-recording="true"] .capture-layout {
@@ -786,6 +763,12 @@ body:has(.studio-shell) {
   .capture-step .step-name {
     font-size: 11px;
   }
+  .capture-actions .record-toggle {
+    font-size: clamp(0.625rem, 3cqw, 0.875rem);
+  }
+  .record-toggle .record-symbol {
+    display: none;
+  }
   .capture-step small {
     font-size: 11px;
   }
@@ -793,9 +776,11 @@ body:has(.studio-shell) {
     gap: 10px;
     grid-template-columns: minmax(90px, 0.85fr) minmax(0, 1.4fr);
   }
-  #view-capture[data-recording="true"] .capture-wizard {
+  .studio-shell .capture-wizard {
     justify-self: end;
     margin-left: auto;
+  }
+  #view-capture[data-recording="true"] .capture-wizard {
     width: calc(var(--capture-record-width) + 2 * var(--capture-step-padding) + 2px);
   }
 }
@@ -836,6 +821,7 @@ body:has(.studio-shell) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .capture-wizard,
   .capture-layout,
   .capture-wizard *,
   .live-level .meter > div {

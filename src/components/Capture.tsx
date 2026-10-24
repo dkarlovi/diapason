@@ -33,30 +33,35 @@ export function Capture() {
           />
         </div>
         <section className="capture-wizard" aria-label="Recording setup">
-          <CaptureSteps
-            setup={state.setup}
-            active={wizard.active.id}
-            nextIndex={wizard.nextIndex}
-            locked={locked}
-            recording={state.recording}
-            microphone={microphone?.label || "Default"}
-            onChoose={wizard.chooseStep}
-          />
-          <p role="status" className="capture-status">
-            {state.status}
-          </p>
-          <div className="setup-step">
-            <h2 className="sr-only" ref={wizard.heading} tabIndex={-1}>
-              {wizard.active.title}
-            </h2>
-            <fieldset disabled={locked && wizard.active.id !== "record"} className="setup-controls">
-              <CaptureControls
-                step={wizard.active.id}
-                state={state}
-                advance={wizard.advance}
-                back={wizard.back}
-              />
-            </fieldset>
+          <div className="capture-wizard-content">
+            <CaptureSteps
+              setup={state.setup}
+              active={wizard.active.id}
+              nextIndex={wizard.nextIndex}
+              locked={locked}
+              recording={state.recording}
+              microphone={microphone?.label || "Default"}
+              onChoose={wizard.chooseStep}
+            />
+            <p role="status" className="capture-status">
+              {state.status}
+            </p>
+            <div className="setup-step">
+              <h2 className="sr-only" ref={wizard.heading} tabIndex={-1}>
+                {wizard.active.title}
+              </h2>
+              <fieldset
+                disabled={locked && wizard.active.id !== "record"}
+                className="setup-controls"
+              >
+                <CaptureControls
+                  step={wizard.active.id}
+                  state={state}
+                  advance={wizard.advance}
+                  back={wizard.back}
+                />
+              </fieldset>
+            </div>
           </div>
         </section>
       </div>
