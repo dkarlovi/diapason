@@ -306,14 +306,9 @@ must export its approved `clean.mid` byte for byte.
 - Capturing and correcting notes is local to the browser; audio file import and
   user-defined saved presets are not yet available.
 
-## Roadmap ideas
+Feature ideas and planned work are tracked in
+[GitHub issues](https://github.com/dkarlovi/diapason/issues).
 
-- Interval consistency across repeated figures, and slowly varying tuning
-- WAV/MP3 file input
-- Further decoder tuning using named-note feedback in the editor
-- User-defined presets
-- Additional sound sources, such as humming and instruments
-
-### Runtime test coverage
+## Runtime test coverage
 
 `npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and reports coverage-aware metrics. No percentage gate is imposed before establishing a baseline.
