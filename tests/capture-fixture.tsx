@@ -145,7 +145,6 @@ export function advance(ms: number, tone = false) {
 }
 export async function microphoneReady() {
   await click("Continue with whistling");
-  await click("Connect microphone");
   await click("Confirm microphone");
 }
 export async function calibratedCapture() {

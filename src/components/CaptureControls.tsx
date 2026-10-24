@@ -180,7 +180,14 @@ function AcousticSetup({
       <div className="capture-step-body">
         <p className="setup-instruction">{config.instruction}</p>
         {kind === "room" && <InputGain state={state} />}
-        {state.measuring && <progress aria-label={config.pending} />}
+        {state.measuring && (
+          <progress
+            className="measurement-progress"
+            aria-label={config.pending}
+            value={state.measurements.progress}
+            max={1}
+          />
+        )}
         <StatusChecklist checks={state.setup[kind]?.checks ?? []} />
       </div>
       <CaptureActions back={back}>

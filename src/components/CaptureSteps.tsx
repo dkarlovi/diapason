@@ -24,12 +24,15 @@ export function CaptureSteps({
           type="button"
           className="capture-step"
           data-step={step.id}
+          data-completed={index < nextIndex}
           aria-current={active === step.id ? "step" : undefined}
           aria-label={index < nextIndex ? `Edit ${step.title}` : `Step ${index + 1}: ${step.title}`}
           disabled={locked || index > nextIndex}
           onClick={() => onChoose(step.id)}
         >
-          <span className="step-number">{index + 1}</span>
+          <span className="step-number" aria-hidden="true">
+            {index < nextIndex ? "✓" : index + 1}
+          </span>
           <span className="step-name">{step.label}</span>
           <small title={stepSummary(step.id, setup, microphone)}>
             {stepSummary(step.id, setup, microphone)}

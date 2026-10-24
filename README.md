@@ -30,8 +30,14 @@ diapason is organized as a **library of recordings**, persisted in your browser
 
 The **Recording workstation** uses a Slate & blue theme that follows your system's
 light/dark preference. Its compact header keeps the live signal in view while a
-horizontal six-step wizard shows your setup values. Microphone, gain, and tempo
-fields use compact label/control rows. The input level sits below the signal;
+horizontal six-step wizard shows your setup values. The steps mark completed
+setup with green checkmarks and labels, while amber summaries distinguish the
+selected values. The current step keeps a blue fill with a contrasting outer ring,
+including when revisiting a completed step. Continuing from sound selection connects the
+microphone and requests browser permission if needed; the microphone step then
+shows its settings, with a connection retry available if access fails.
+Microphone, gain, and tempo fields use compact label/control rows. The input level
+sits below the signal;
 pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas.
 Record is available only after setup. The same button becomes **Stop & save**;
 the wizard folds down to step 6 and the signal expands while it runs. Stopping
@@ -84,7 +90,8 @@ same status rows for audio settings, low room noise, and usable sound. Settings
 that the browser cannot report are shown as unknown and require acknowledgment.
 
 The live monitor combines input level, clipping warnings, pitch, and scrolling
-beat/bar lines. Calibration results stay passed after you stop sounding. Changing
+beat/bar lines. Room and sound checks show a full-width progress bar that fills
+over the measurement period. Calibration results stay passed after you stop sounding. Changing
 microphone or gain requires fresh room and sound checks; changing tempo preserves
 calibration. Gain remains available while fixing a failed room measurement.
 

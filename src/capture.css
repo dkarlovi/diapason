@@ -113,6 +113,11 @@ body:has(.studio-shell) {
   color: var(--color-primary-foreground);
   font-weight: 600;
 }
+.studio-shell [data-slot="button"].primary:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-primary) 88%, var(--color-foreground));
+  color: var(--color-primary-foreground);
+  filter: none;
+}
 .studio-shell button:focus-visible,
 .studio-shell input:focus-visible,
 .studio-shell select:focus-visible,
@@ -380,11 +385,6 @@ body:has(.studio-shell) {
   place-items: center;
   font-size: 0.75rem;
 }
-.capture-step[aria-current="step"] .step-number {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-foreground);
-}
 .capture-step .step-name {
   font-size: 0.8125rem;
   white-space: nowrap;
@@ -398,7 +398,23 @@ body:has(.studio-shell) {
   color: var(--color-foreground);
   font-weight: 600;
 }
+.capture-step[data-completed="true"] .step-number {
+  background: color-mix(in oklab, var(--color-success) 12%, var(--color-card));
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.capture-step[aria-current="step"] .step-number {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 2px;
+}
+.capture-step[data-completed="true"] .step-name {
+  color: var(--color-success);
+}
 .capture-step small {
+  color: var(--color-warning);
   font-size: 11px;
   min-height: 28px;
   max-height: 32px;
@@ -433,6 +449,27 @@ body:has(.studio-shell) {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+}
+.measurement-progress {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-block: 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-border);
+  accent-color: var(--color-primary);
+}
+.measurement-progress::-webkit-progress-bar {
+  background: var(--color-border);
+}
+.measurement-progress::-webkit-progress-value {
+  background: var(--color-primary);
+}
+.measurement-progress::-moz-progress-bar {
+  background: var(--color-primary);
 }
 .capture-actions {
   margin-top: auto;

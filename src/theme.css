@@ -17,6 +17,7 @@
 
 .studio-shell {
   color-scheme: light dark;
+  --color-success: light-dark(#237442, #83dca1);
   --trace-bg: var(--color-muted);
   --trace-grid: color-mix(in oklab, var(--color-border) 45%, var(--color-muted));
   --trace-gridOctave: var(--color-border);

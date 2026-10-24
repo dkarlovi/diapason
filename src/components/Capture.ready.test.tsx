@@ -49,7 +49,6 @@ it("requires acknowledgment for unknown processing and blocks enabled processing
   fixture.settings = { echoCancellation: true };
   renderCapture();
   await click("Continue with whistling");
-  await click("Connect microphone");
   expect(
     (screen.getByRole("button", { name: "Confirm microphone" }) as HTMLButtonElement).disabled,
   ).toBe(true);
@@ -87,7 +86,6 @@ it("revokes microphone readiness when unknown-setting acknowledgment is withdraw
   fixture.settings = {};
   renderCapture();
   await click("Continue with whistling");
-  await click("Connect microphone");
   fireEvent.click(screen.getByLabelText(/Continue with unverified/));
   await click("Confirm microphone");
   await click("Measure room noise");
@@ -120,7 +118,6 @@ it("has no tempo until chosen and keeps gain in microphone and room setup", asyn
   expect(screen.queryByText(/BPM/)).toBeNull();
   expect(screen.queryByLabelText(/Input gain/)).toBeNull();
   await click("Continue with whistling");
-  await click("Connect microphone");
   expect(screen.getByLabelText(/Input gain/).closest(".setup-step")?.textContent).toContain(
     "Set up your microphone",
   );
@@ -146,7 +143,6 @@ it("has no tempo until chosen and keeps gain in microphone and room setup", asyn
 it("keeps initial gain setup in the microphone step without calibration instructions", async () => {
   renderCapture();
   await click("Continue with whistling");
-  await click("Connect microphone");
   fireEvent.change(screen.getByLabelText(/Input gain/), { target: { value: "2" } });
   expect(screen.getByRole("status").textContent).toBe("");
   expect(screen.getByRole("button", { name: "Confirm microphone" })).toBeTruthy();
