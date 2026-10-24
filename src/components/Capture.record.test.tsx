@@ -1,6 +1,12 @@
 import { act, cleanup, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { calibratedCapture, click, fixture, resetFixture } from "../../tests/capture-fixture";
+import {
+  advance,
+  calibratedCapture,
+  click,
+  fixture,
+  resetFixture,
+} from "../../tests/capture-fixture";
 beforeEach(resetFixture);
 afterEach(() => {
   cleanup();
@@ -13,7 +19,7 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
   expect(fixture.start).toHaveBeenCalledOnce();
   expect(screen.getByText("Counting in…")).toBeTruthy();
   act(() => fixture.metro?.onDownbeat?.());
-  await click("Stop & save");
+  await click("Stop recording");
   expect(fixture.saved).toMatchObject({
     sampleRate: 48000,
     durationSec: 0.8,
@@ -43,17 +49,45 @@ it("locks record and device edits while starting audio", async () => {
   });
   expect(fixture.start).toHaveBeenCalledOnce();
 });
+
+it("stays ready for separate takes and resets the recording clock after saving", async () => {
+  await calibratedCapture();
+  await click("Record");
+  act(() => fixture.metro?.onDownbeat?.());
+  advance(4000, true);
+  expect(screen.getByRole("group", { name: /Metronome/ }).textContent).toContain("0:03");
+  await click("Stop recording");
+  const first = fixture.saved;
+  expect(first).not.toBeNull();
+  expect(screen.queryByText("Editor route")).toBeNull();
+  expect(screen.getByRole("status", { name: "Recording saved" })).toBeTruthy();
+  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
+    false,
+  );
+  expect(screen.queryByText("0:03")).toBeNull();
+  fixture.pcm = new Float32Array(96000).fill(0.2);
+  await click("Record");
+  expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
+  expect(screen.getByRole("group", { name: /Metronome/ }).textContent).toContain("Count-in");
+  act(() => fixture.metro?.onDownbeat?.());
+  expect(screen.getByRole("group", { name: /Metronome/ }).textContent).toContain("0:00");
+  await click("Stop recording");
+  expect(fixture.saved?.id).not.toBe(first?.id);
+  expect(fixture.saved?.durationSec).toBeCloseTo(1.8);
+  expect(screen.getByRole("button", { name: "Record" })).toBeTruthy();
+  advance(4000);
+  expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
+});
 it.each(["encode", "recorder"])("allows retry after %s failure", async (kind) => {
   await calibratedCapture();
   fixture.encodeFailure = kind === "encode";
   fixture.recorderFailure = kind === "recorder";
   await click("Record");
-  if (kind === "encode") await click("Stop & save");
-  expect(
-    screen.getByText(
-      kind === "encode" ? /Save error: storage failed/ : /Record error: worklet unavailable/,
-    ),
-  ).toBeTruthy();
+  if (kind === "encode") await click("Stop recording");
+  expect(screen.getByRole("alert").textContent).toMatch(
+    kind === "encode" ? /Save error: storage failed/ : /Record error: worklet unavailable/,
+  );
+  expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
   expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
     false,
   );
@@ -62,10 +96,36 @@ it("rejects a recording that stops before the downbeat", async () => {
   await calibratedCapture();
   fixture.pcm = new Float32Array(100);
   await click("Record");
-  await click("Stop & save");
-  expect(screen.getByText(/Too short/)).toBeTruthy();
+  await click("Stop recording");
+  expect(screen.getByRole("alert").textContent).toContain("Too short");
   expect(fixture.saved).toBeNull();
+  advance(6000);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
+    false,
+  );
 });
+
+it("replaces the saved toast with an error if the microphone disconnects", async () => {
+  await calibratedCapture();
+  await click("Record");
+  await click("Stop recording");
+  expect(screen.getByRole("status", { name: "Recording saved" })).toBeTruthy();
+  act(() => fixture.ended?.());
+  expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
+  expect(screen.getByRole("alert").textContent).toContain("Microphone disconnected");
+});
+
+it.each(["Preview metronome", "Listen for claps"])(
+  "shows %s failures as error toasts",
+  async (action) => {
+    await calibratedCapture();
+    await click("Edit Find your tempo");
+    fixture.resumePending = Promise.reject(new Error("audio unavailable"));
+    await click(action);
+    expect(screen.getByRole("alert").textContent).toContain("audio unavailable");
+  },
+);
 it("disposes a recorder resolving after unmount", async () => {
   const view = await calibratedCapture();
   let release!: (recorder: import("../recorder").Recorder) => void;

@@ -1,54 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
 import { useCapture } from "../hooks/useCapture";
-import { nextSetupStep, validTempo, type SetupStep } from "../recording-setup";
-import { Breadcrumb, Button } from "./primitives";
+import { validTempo } from "../recording-setup";
+import { useCaptureWizard } from "../hooks/useCaptureWizard";
 import { LiveMonitor } from "./LiveMonitor";
 import { CaptureControls } from "./CaptureControls";
-const STEPS: { id: SetupStep; title: string }[] = [
-  { id: "sound", title: "Choose your sound" },
-  { id: "microphone", title: "Set up your microphone" },
-  { id: "room", title: "Measure room noise" },
-  { id: "sound-check", title: "Check your sound" },
-  { id: "tempo", title: "Find your tempo" },
-  { id: "record", title: "Record" },
-];
+import { CaptureSteps } from "./CaptureSteps";
+
 export function Capture() {
   const state = useCapture();
-  const next = nextSetupStep(state.setup);
-  const [editing, setEditing] = useState<SetupStep | null>(null);
-  const nextIndex = STEPS.findIndex((step) => step.id === next);
-  const editIndex = STEPS.findIndex((step) => step.id === editing);
-  const active = editing && editIndex <= nextIndex ? editing : next;
-  const heading = useRef<HTMLHeadingElement>(null);
-  const previousRevision = useRef(state.setup.revision);
-  useEffect(() => {
-    if (previousRevision.current !== state.setup.revision) {
-      setEditing(null);
-      previousRevision.current = state.setup.revision;
-    }
-  }, [state.setup.revision]);
-  useEffect(() => {
-    heading.current?.focus();
-  }, [active]);
   const locked = state.starting || state.recording || state.saving;
+  const wizard = useCaptureWizard(state.setup, locked, state.tempo.stop);
   const mode =
     state.measuring ?? (state.tempo.listening ? "clap" : state.recording ? "recording" : "listen");
-  const advance = (action: () => void) => {
-    action();
-    setEditing(null);
-  };
-  const summaries: Record<SetupStep, string> = {
-    sound: state.profile.label,
-    microphone: `${state.sampleRate} Hz · ${state.acknowledged ? "Unreported settings acknowledged" : "Audio settings verified"}`,
-    room: "Low room noise · Measurement passed",
-    "sound-check": "Sound check passed",
-    tempo: `${state.setup.bpm} BPM · ${state.setup.beatsPerBar} beats/bar`,
-    record: "Ready",
-  };
+  const microphone = state.devices.find((device) => device.deviceId === state.deviceId);
   return (
-    <div id="view-capture" onPointerDown={state.resume}>
-      <Breadcrumb current="New recording" />
-      <div className="pair capture-layout">
+    <div id="view-capture" data-recording={state.recording} onPointerDown={state.resume}>
+      <Link className="capture-library-fallback" to="/">
+        Library
+      </Link>
+      <div className="capture-layout">
         <div className="capture-monitor">
           <LiveMonitor
             level={state.level}
@@ -58,48 +28,53 @@ export function Capture() {
             beatsPerBar={state.setup.beatsPerBar}
             confirmed={state.setup.tempoConfirmed}
             connected={state.sampleRate > 0}
+            transport={state.transport ?? state.tempo.transport}
+            clock={state.currentMic()?.context ?? null}
           />
         </div>
-        <div className="capture-wizard">
-          <p role="status">{state.status}</p>
-          {STEPS.filter((_, index) => index <= nextIndex).map((step, index) => (
-            <section
-              key={step.id}
-              className={`setup-step ${active === step.id ? "active" : "completed"}`}
-            >
-              <div className="step-heading">
-                <h2 ref={active === step.id ? heading : undefined} tabIndex={-1}>
-                  {index + 1} — {step.title}
-                </h2>
-                {active !== step.id && (
-                  <Button
-                    disabled={locked}
-                    aria-label={`Edit ${step.title}`}
-                    onClick={() => {
-                      state.tempo.stop();
-                      setEditing(step.id);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {active !== step.id ? (
-                <p className="hint">
-                  {index < nextIndex ? `✓ ${summaries[step.id]}` : "Not checked yet"}
-                </p>
-              ) : (
-                <fieldset disabled={locked && step.id !== "record"} className="setup-controls">
-                  <CaptureControls step={step.id} state={state} advance={advance} />
-                  {editing === step.id && step.id !== "sound" && (
-                    <Button onClick={() => setEditing(null)}>Done editing</Button>
-                  )}
-                </fieldset>
-              )}
-            </section>
-          ))}
-        </div>
+        <section className="capture-wizard" aria-label="Recording setup">
+          <div className="capture-wizard-content">
+            <CaptureSteps
+              setup={state.setup}
+              active={wizard.active.id}
+              nextIndex={wizard.nextIndex}
+              locked={locked}
+              recording={state.recording}
+              microphone={microphone?.label || "Default"}
+              onChoose={wizard.chooseStep}
+            />
+            <p role="status" className="sr-only">
+              {state.status}
+            </p>
+            <div className="setup-step">
+              <h2 className="sr-only" ref={wizard.heading} tabIndex={-1}>
+                {wizard.active.title}
+              </h2>
+              <fieldset
+                disabled={locked && wizard.active.id !== "record"}
+                className="setup-controls"
+              >
+                <CaptureControls
+                  step={wizard.active.id}
+                  state={state}
+                  advance={wizard.advance}
+                  back={wizard.back}
+                />
+              </fieldset>
+            </div>
+          </div>
+        </section>
       </div>
+      {state.notice && (
+        <div
+          className="capture-toast"
+          data-kind={state.notice.kind}
+          role={state.notice.kind === "error" ? "alert" : "status"}
+          aria-label={state.notice.kind === "error" ? "Recording error" : "Recording saved"}
+        >
+          {state.notice.message}
+        </div>
+      )}
     </div>
   );
 }

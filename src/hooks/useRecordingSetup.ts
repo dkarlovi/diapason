@@ -56,6 +56,7 @@ export function useRecordingSetup({
     currentMic,
     onChange: changeTempo,
     onConfirm: confirmTempo,
+    onError: setStatus,
   });
   useEffect(() => {
     microphone.profile.current = getSoundProfile(setup.profileId);
@@ -132,6 +133,7 @@ export function useRecordingSetup({
       tempo.stop();
     }
     update({ type: "source", id: profile.id });
+    if (!currentMic() && !microphone.opening) void openDevice(setupRef.current.deviceId);
   };
   const runMeasurement = async (kind: "room" | "sound") => {
     const opened = currentMic(),

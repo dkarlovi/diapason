@@ -24,6 +24,10 @@ it("leaves capture safely while microphone permission is pending", async () => {
       </Routes>
     </BrowserRouter>,
   );
+  await userEvent.click(screen.getByRole("button", { name: "Continue with whistling" }));
+  expect((screen.getByRole("button", { name: "Connecting…" }) as HTMLButtonElement).disabled).toBe(
+    true,
+  );
   await userEvent.click(screen.getByRole("link", { name: /Library/ }));
   expect(await screen.findByText("Library route")).toBeTruthy();
   rejectMic?.(new Error("permission denied"));

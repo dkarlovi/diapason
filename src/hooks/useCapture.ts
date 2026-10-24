@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import { useRecordingSetup } from "./useRecordingSetup";
 import { createRecorder, type Recorder } from "../recorder";
 import { startMetronome, type MetronomeHandle, type TransportState } from "../metronome";
@@ -8,16 +7,18 @@ import { putRecording, type Recording } from "../db";
 import { newRecordingMelody } from "../melody/settings";
 import { fmtDate } from "../ui";
 import { dspStatus, peakLevel, roundTripLatency, trimCountIn } from "../capture-model";
-import { recordingPath } from "../router";
 import { getSoundProfile } from "../recording-profiles";
 import { canRecord, type SetupState } from "../recording-setup";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useCapture() {
-  const navigate = useNavigate();
   const [recording, setRecording] = useState(false);
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [notice, setNotice] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
   const [transport, setTransport] = useState<TransportState | null>(null);
   const [beat, setBeat] = useState("");
   const recorder = useRef<Recorder | null>(null);
@@ -27,6 +28,15 @@ export function useCapture() {
   const captureStart = useRef(0);
   const snapshot = useRef<SetupState | null>(null);
   const stopDependents = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(null), notice.kind === "error" ? 6000 : 4000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+  const setError = useCallback((message: string) => {
+    setStatus("");
+    setNotice(message ? { kind: "error", message } : null);
+  }, []);
   const releaseCapture = useCallback(() => {
     metro.current?.stop();
     metro.current = null;
@@ -45,7 +55,7 @@ export function useCapture() {
   const isBusy = useCallback(() => busy.current, []);
   const prepared = useRecordingSetup({
     isBusy,
-    setStatus,
+    setStatus: setError,
     onBeforeClose: releaseCapture,
     transport,
   });
@@ -65,6 +75,7 @@ export function useCapture() {
     const opened = currentMic(),
       current = setupRef.current;
     if (!opened || busy.current || !canRecord(current) || tempo.listening || tempo.pending) return;
+    setNotice(null);
     tempo.stop();
     measurements.cancel();
     busy.current = true;
@@ -121,7 +132,7 @@ export function useCapture() {
         update({ type: "busy", value: false });
         setRecording(false);
         setTransport(null);
-        setStatus(`Record error: ${(error as Error).message}`);
+        setError(`Record error: ${(error as Error).message}`);
       }
     } finally {
       if (isCurrentMic(opened)) setStarting(false);
@@ -149,11 +160,11 @@ export function useCapture() {
     if (trimmed.length < opened.sampleRate * 0.3) {
       busy.current = false;
       update({ type: "busy", value: false });
-      setStatus("Too short — try again.");
+      setError("Too short — try again.");
       return;
     }
     setSaving(true);
-    setStatus("Saving…");
+    setStatus("");
     try {
       const now = Date.now(),
         profile = getSoundProfile(settings.profileId);
@@ -178,10 +189,13 @@ export function useCapture() {
       };
       if (!isCurrentMic(opened)) return;
       await putRecording(record);
-      if (mounted.current) navigate(recordingPath(record.id));
+      if (mounted.current) {
+        setStatus("");
+        setNotice({ kind: "success", message: "Recording saved" });
+      }
     } catch (error) {
       if (mounted.current)
-        setStatus(`Save error: ${(error as Error).message} — record again to retry.`);
+        setError(`Save error: ${(error as Error).message} — record again to retry.`);
     } finally {
       if (mounted.current) {
         setSaving(false);
@@ -196,6 +210,7 @@ export function useCapture() {
     starting,
     saving,
     status,
+    notice,
     transport,
     beat,
     startRecording,

@@ -1,4 +1,3 @@
-import { Button } from "./primitives";
 import type { SetupCheck } from "../recording-setup";
 const labels = {
   unchecked: "Not checked",
@@ -23,34 +22,10 @@ export function StatusChecklist({ checks }: { checks: SetupCheck[] }) {
           </span>
           <span className="detail">
             {labels[check.status]}
-            {check.detail && ` · ${check.detail}`}
+            {check.detail && " · " + check.detail}
           </span>
         </li>
       ))}
     </ul>
-  );
-}
-
-export function MeasurementControl({
-  label,
-  pendingLabel,
-  pending,
-  checks,
-  onStart,
-}: {
-  label: string;
-  pendingLabel: string;
-  pending: boolean;
-  checks: SetupCheck[];
-  onStart(): void;
-}) {
-  return (
-    <>
-      <Button variant="primary" disabled={pending} onClick={onStart}>
-        {pending ? pendingLabel : label}
-      </Button>
-      {pending && <progress aria-label={pendingLabel} />}
-      <StatusChecklist checks={checks} />
-    </>
   );
 }

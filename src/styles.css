@@ -1,3 +1,5 @@
+@import "./theme.css";
+
 :root {
   color-scheme: dark;
   --bg: #0e1116;
@@ -8,6 +10,12 @@
   --accent: #5ad1a8;
   --warn: #e0a84e;
   --bad: #e05a5a;
+}
+.midi-output {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
 }
 * {
   box-sizing: border-box;
@@ -234,7 +242,7 @@ canvas.trace {
 }
 
 /* editor: recording (left) vs. MIDI result (right), mirrored */
-main:has(#view-editor, #view-capture) {
+main:not(.studio-shell):has(#view-editor, #view-capture) {
   max-width: 1280px;
 }
 .pair {

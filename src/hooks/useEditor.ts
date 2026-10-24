@@ -158,7 +158,16 @@ export function useEditor(id: string) {
     };
     draw();
     window.addEventListener("resize", draw);
-    return () => window.removeEventListener("resize", draw);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(draw);
+    if (traceRef.current) observer?.observe(traceRef.current);
+    if (rollRef.current) observer?.observe(rollRef.current);
+    const theme = window.matchMedia?.("(prefers-color-scheme: dark)");
+    theme?.addEventListener("change", draw);
+    return () => {
+      window.removeEventListener("resize", draw);
+      observer?.disconnect();
+      theme?.removeEventListener("change", draw);
+    };
   }, [record, frames, baseView, beats, rollView]);
 
   const persist = useCallback((next: Recording) => {

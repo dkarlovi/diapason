@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: light-dark(oklch(98% 0.004 245), oklch(18% 0.014 245));
+  --color-foreground: light-dark(oklch(25% 0.017 245), oklch(93% 0.009 245));
+  --color-card: light-dark(oklch(100% 0 0), oklch(22% 0.017 245));
+  --color-muted: light-dark(oklch(96% 0.007 245), oklch(16% 0.014 245));
+  --color-border: light-dark(oklch(88% 0.012 245), oklch(33% 0.02 245));
+  --color-muted-foreground: light-dark(oklch(45% 0.02 245), oklch(73% 0.015 245));
+  --color-primary: light-dark(#0072b1, #8bc1f1);
+  --color-primary-foreground: light-dark(#ffffff, oklch(20% 0.025 245));
+  --color-primary-muted: color-mix(in oklab, var(--color-primary) 12%, var(--color-card));
+  --color-destructive: light-dark(oklch(48% 0.16 25), oklch(77% 0.13 25));
+  --color-warning: light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75));
+  --color-ring: var(--color-primary);
+}
+
+.studio-shell {
+  color-scheme: light dark;
+  --color-success: light-dark(#237442, #83dca1);
+  --trace-bg: var(--color-muted);
+  --trace-grid: color-mix(in oklab, var(--color-border) 45%, var(--color-muted));
+  --trace-gridOctave: var(--color-border);
+  --trace-label: var(--color-muted-foreground);
+  --trace-line: var(--color-primary);
+  --trace-faint: color-mix(in oklab, var(--color-primary) 50%, var(--color-muted));
+  --trace-sub: var(--color-muted);
+  --trace-beat: var(--trace-grid);
+  --trace-bar: var(--color-border);
+  --trace-playhead: var(--color-warning);
+  --trace-note: var(--color-primary);
+  --trace-noteEdge: color-mix(in oklab, var(--color-primary) 55%, var(--color-card));
+  --trace-noteText: var(--color-primary-foreground);
+}

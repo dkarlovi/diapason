@@ -20,13 +20,57 @@ diapason is organized as a **library of recordings**, persisted in your browser
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
    the microphone, or entering BPM. Preview the metronome and choose beats per
    bar, then confirm. One bar counts you in before recording starts on the downbeat.
-   The saved recording opens in the editor. The metronome guides your timing; its beat schedule never blanks captured
-   pitches. Stored audio stays untouched.
+   Each take saves to the Library while the studio stays ready for another recording.
+   The metronome guides your timing; its beat schedule never blanks captured pitches.
+   Stored audio stays untouched.
 3. **Editor** (`/diapason/recording/:id`) — all post-processing on a recording: pitch trace,
    **per-recording melody presets and controls**, an interactive
    MIDI piano roll with named note previews, audio/MIDI playback, rhythm controls, and
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
+
+The **Recording workstation** uses a Slate & blue theme that follows your system's
+light/dark preference. Its compact header keeps the live signal in view while a
+horizontal six-step wizard shows your setup values
+directly, without a separate wizard heading or step counter. The input-level
+strip and wizard action strip share the same height. The steps mark completed
+setup with green checkmarks and labels, while amber summaries distinguish the
+selected values. The current step keeps a blue fill with a contrasting outer ring,
+including when revisiting a completed step. Continuing from sound selection connects the
+microphone and requests browser permission if needed; the microphone step then
+shows its settings, with a connection retry available if access fails.
+Microphone, gain, and tempo fields use compact label/control rows. The input level
+sits below the signal;
+pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas.
+Record is available only after setup. The same button becomes a bright red **Stop**;
+the wizard folds into a slab around the Record step, keeping its icon in place
+and replacing it with the green diapason mark. Stop matches the step width.
+The Record label and separator stay in place; only the count-in summary fades.
+The wizard is cropped from the left as its width changes, keeping its contents
+fixed during collapse and expansion.
+Stopping restores the layout, saves a separate take, and briefly shows
+**Recording saved**. The count-in and timer reset for the next take, with
+calibration and tempo retained.
+
+The larger confirmation toast sits at the bottom center, clear of the Record
+button. Recording and microphone errors use red toasts in the same position;
+they do not shift the wizard layout. Both parts of the breadcrumb use matching
+type size and alignment.
+
+A short take or save failure leaves setup ready to retry. Clap listening and
+metronome preview also use one button to start and stop. Narrow screens stack the signal above
+setup; reduced motion preferences disable the folding animation.
+
+All three screens share the Slate & blue system theme, compact header, readable
+type, and shared controls built with Tailwind, the shadcn/ui component pattern,
+semantic theme tokens, and Lucide icons. The Editor keeps original audio on the
+left and MIDI on the right, with matching playback/download actions. Their
+canvases stay visible while recording settings and melody controls scroll below.
+On narrow screens, paired charts remain pinned above the stacked toolboxes.
+Presets retain separate preview and apply actions; all advanced controls,
+diagnostics, and note previews remain available. Saved charts update when the
+system theme or their container size changes. The Library keeps audio/MIDI
+previews and Open visible, with Duplicate and Delete in each row's actions menu.
 
 New recordings start with **Clean** and **Auto** key selection. Clean snaps to an
 eighth-note grid; the other intent presets keep performed timing. A single
@@ -61,7 +105,8 @@ same status rows for audio settings, low room noise, and usable sound. Settings
 that the browser cannot report are shown as unknown and require acknowledgment.
 
 The live monitor combines input level, clipping warnings, pitch, and scrolling
-beat/bar lines. Calibration results stay passed after you stop sounding. Changing
+beat/bar lines. Room and sound checks show a full-width progress bar that fills
+over the measurement period. Calibration results stay passed after you stop sounding. Changing
 microphone or gain requires fresh room and sound checks; changing tempo preserves
 calibration. Gain remains available while fixing a failed room measurement.
 

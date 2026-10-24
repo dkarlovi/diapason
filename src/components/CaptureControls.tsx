@@ -1,35 +1,44 @@
 import type { useCapture } from "../hooks/useCapture";
 import type { SetupStep } from "../recording-setup";
 import { SOUND_PROFILES } from "../recording-profiles";
-import { Button } from "./primitives";
-import { MeasurementControl, StatusChecklist } from "./StatusChecklist";
+import { Button, Field } from "./primitives";
+import { CaptureActions } from "./CaptureActions";
+import { StatusChecklist } from "./StatusChecklist";
 import { TempoSetup } from "./TempoSetup";
-type CaptureState = ReturnType<typeof useCapture>;
-type Advance = (action: () => void) => void;
 
-function SoundChoice({ state, advance }: { state: CaptureState; advance: Advance }) {
+type CaptureState = ReturnType<typeof useCapture>;
+interface ControlProps {
+  state: CaptureState;
+  advance: (action: () => void) => void;
+  back: (() => void) | undefined;
+}
+
+function SoundChoice({ state, advance, back }: ControlProps) {
   return (
     <>
-      <label htmlFor="cap-source">What will you record?</label>
-      <select id="cap-source" defaultValue={state.profile.id}>
-        {SOUND_PROFILES.map((profile) => (
-          <option key={profile.id} value={profile.id}>
-            {profile.label}
-          </option>
-        ))}
-      </select>
-      <p className="hint">Whistling is supported now. Humming and instruments are planned.</p>
-      <Button variant="primary" onClick={() => advance(() => state.chooseSound("whistle"))}>
-        Continue with whistling
-      </Button>
+      <div className="capture-step-body">
+        <Field label="What will you record?" htmlFor="cap-source">
+          <select id="cap-source" defaultValue={state.profile.id}>
+            {SOUND_PROFILES.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                {profile.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <CaptureActions back={back}>
+        <Button variant="primary" onClick={() => advance(() => state.chooseSound("whistle"))}>
+          Continue with whistling
+        </Button>
+      </CaptureActions>
     </>
   );
 }
 
 function InputGain({ state }: { state: CaptureState }) {
   return (
-    <div className="field">
-      <label htmlFor="cap-gain">Input gain — {state.gain.toFixed(1)}×</label>
+    <Field label={"Input gain — " + state.gain.toFixed(1) + "×"} htmlFor="cap-gain">
       <input
         id="cap-gain"
         type="range"
@@ -40,54 +49,54 @@ function InputGain({ state }: { state: CaptureState }) {
         disabled={!!state.measuring}
         onChange={(event) => state.changeGain(Number(event.target.value))}
       />
-    </div>
+    </Field>
   );
 }
 
-function MicrophoneSetup({ state, advance }: { state: CaptureState; advance: Advance }) {
+function MicrophoneSetup({ state, advance, back }: ControlProps) {
+  const connected = state.sampleRate > 0;
   return (
     <>
-      {state.sampleRate === 0 ? (
-        <Button
-          variant="primary"
-          disabled={state.opening}
-          onClick={() => void state.openDevice(state.deviceId)}
-        >
-          {state.opening ? "Connecting…" : "Connect microphone"}
-        </Button>
-      ) : (
-        <>
-          <label htmlFor="cap-device">Microphone</label>
-          <div className="row">
-            <select
-              id="cap-device"
-              value={state.deviceId}
-              onChange={(event) => void state.openDevice(event.target.value)}
-            >
-              <option value="">Default microphone</option>
-              {state.devices.map((device, index) => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label || `Microphone ${index + 1}`}
-                </option>
-              ))}
-            </select>
-            <Button onClick={() => void state.refreshDevices()}>Rescan microphones</Button>
-            <Button onClick={() => void state.openDevice(state.deviceId)}>
-              Reconnect microphone
-            </Button>
-          </div>
-          <InputGain state={state} />
-          <StatusChecklist checks={state.micChecks} />
-          {state.dsp.some((check) => !check.known) && (
-            <label className="acknowledgment">
-              <input
-                type="checkbox"
-                checked={state.acknowledged}
-                onChange={(event) => state.setAcknowledged(event.target.checked)}
-              />{" "}
-              Continue with unverified audio settings
-            </label>
-          )}
+      <div className="capture-step-body">
+        {connected && (
+          <>
+            <Field label="Microphone" htmlFor="cap-device">
+              <select
+                id="cap-device"
+                value={state.deviceId}
+                onChange={(event) => void state.openDevice(event.target.value)}
+              >
+                <option value="">Default microphone</option>
+                {state.devices.map((device, index) => (
+                  <option key={device.deviceId} value={device.deviceId}>
+                    {device.label || "Microphone " + (index + 1)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <InputGain state={state} />
+            <div className="row device-actions">
+              <Button onClick={() => void state.refreshDevices()}>Rescan microphones</Button>
+              <Button onClick={() => void state.openDevice(state.deviceId)}>
+                Reconnect microphone
+              </Button>
+            </div>
+            <StatusChecklist checks={state.micChecks} />
+            {state.dsp.some((check) => !check.known) && (
+              <label className="acknowledgment">
+                <input
+                  type="checkbox"
+                  checked={state.acknowledged}
+                  onChange={(event) => state.setAcknowledged(event.target.checked)}
+                />
+                Continue with unverified audio settings
+              </label>
+            )}
+          </>
+        )}
+      </div>
+      <CaptureActions back={back}>
+        {connected ? (
           <Button
             variant="primary"
             disabled={!state.micCanConfirm}
@@ -95,88 +104,131 @@ function MicrophoneSetup({ state, advance }: { state: CaptureState; advance: Adv
           >
             Confirm microphone
           </Button>
-        </>
-      )}
+        ) : (
+          <Button
+            variant="primary"
+            disabled={state.opening}
+            onClick={() => void state.openDevice(state.deviceId)}
+          >
+            {state.opening ? "Connecting…" : "Connect microphone"}
+          </Button>
+        )}
+      </CaptureActions>
     </>
   );
 }
 
-function RecordControls({ state }: { state: CaptureState }) {
+function RecordControls({ state, back }: Pick<ControlProps, "state" | "back">) {
   return (
     <>
-      <p>
-        {state.profile.label} · {state.setup.bpm} BPM · {state.setup.beatsPerBar} beats/bar
-      </p>
-      <p className="hint">
-        One bar counts you in; recording starts on the downbeat. Stop when you finish.
-      </p>
-      <p className="count">{state.beat}</p>
-      <div className="row">
+      <div className="capture-step-body record-facts">
+        <div>
+          <span>Tempo</span>
+          <strong>{state.setup.bpm} BPM</strong>
+        </div>
+        <div>
+          <span>Meter</span>
+          <strong>{state.setup.beatsPerBar} beats/bar</strong>
+        </div>
+        <div>
+          <span>Count-in</span>
+          <strong>1 bar</strong>
+        </div>
+      </div>
+      <CaptureActions back={back}>
         <Button
           variant="primary"
-          disabled={!state.ready || state.starting || state.recording || state.saving}
-          onClick={() => void state.startRecording()}
+          className="record-toggle"
+          aria-pressed={state.recording}
+          aria-label={state.recording ? "Stop recording" : undefined}
+          disabled={state.starting || state.saving || (!state.recording && !state.ready)}
+          onClick={() => void (state.recording ? state.stopRecording() : state.startRecording())}
         >
-          Record
+          <span className={state.recording ? "stop-symbol" : "record-symbol"} aria-hidden="true" />
+          {state.recording ? "Stop" : state.saving ? "Saving…" : "Record"}
         </Button>
-        <Button
-          disabled={!state.recording || state.starting}
-          onClick={() => void state.stopRecording()}
-        >
-          Stop & save
-        </Button>
-      </div>
-      {state.saving && <p>Saving recording…</p>}
+      </CaptureActions>
     </>
   );
 }
 
-function AcousticSetup({ state, room }: { state: CaptureState; room: boolean }) {
+const ACOUSTIC = {
+  room: {
+    instruction: "Stay quiet during measurement.",
+    label: "Measure room noise",
+    pending: "Measuring… stay silent",
+    action: "measureRoom",
+  },
+  sound: {
+    instruction: "Whistle a steady note.",
+    label: "Check my sound",
+    pending: "Checking… keep sounding",
+    action: "checkSound",
+  },
+} as const;
+function AcousticSetup({
+  state,
+  kind,
+  back,
+}: {
+  state: CaptureState;
+  kind: keyof typeof ACOUSTIC;
+  back: (() => void) | undefined;
+}) {
+  const config = ACOUSTIC[kind];
   return (
     <>
-      <p>
-        {room
-          ? "Stay silent for about 1.5 seconds while we measure the background noise."
-          : state.profile.instruction}
-      </p>
-      {room && <InputGain state={state} />}
-      <MeasurementControl
-        label={room ? "Measure room noise" : "Check my sound"}
-        pendingLabel={room ? "Measuring… stay silent" : "Checking… keep sounding"}
-        pending={!!state.measuring}
-        checks={(room ? state.setup.room : state.setup.sound)?.checks ?? []}
-        onStart={() => void (room ? state.measureRoom() : state.checkSound())}
-      />
+      <div className="capture-step-body">
+        <p className="setup-instruction">{config.instruction}</p>
+        {kind === "room" && <InputGain state={state} />}
+        {state.measuring && (
+          <progress
+            className="measurement-progress"
+            aria-label={config.pending}
+            value={state.measurements.progress}
+            max={1}
+          />
+        )}
+        <StatusChecklist checks={state.setup[kind]?.checks ?? []} />
+      </div>
+      <CaptureActions back={back}>
+        <Button
+          variant="primary"
+          disabled={!!state.measuring}
+          onClick={() => void state[config.action]()}
+        >
+          {state.measuring ? config.pending : config.label}
+        </Button>
+      </CaptureActions>
     </>
   );
 }
+
 export function CaptureControls({
   step,
   state,
   advance,
-}: {
-  step: SetupStep;
-  state: CaptureState;
-  advance: Advance;
-}) {
+  back,
+}: ControlProps & { step: SetupStep }) {
   switch (step) {
     case "sound":
-      return <SoundChoice state={state} advance={advance} />;
+      return <SoundChoice state={state} advance={advance} back={back} />;
     case "microphone":
-      return <MicrophoneSetup state={state} advance={advance} />;
+      return <MicrophoneSetup state={state} advance={advance} back={back} />;
     case "room":
-      return <AcousticSetup state={state} room />;
+      return <AcousticSetup state={state} kind="room" back={back} />;
     case "sound-check":
-      return <AcousticSetup state={state} room={false} />;
+      return <AcousticSetup state={state} kind="sound" back={back} />;
     case "tempo":
       return (
         <TempoSetup
           tempo={state.tempo}
           bpm={state.setup.bpm}
           beatsPerBar={state.setup.beatsPerBar}
+          back={back}
         />
       );
     case "record":
-      return <RecordControls state={state} />;
+      return <RecordControls state={state} back={back} />;
   }
 }

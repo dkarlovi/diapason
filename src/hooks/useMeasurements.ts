@@ -13,10 +13,12 @@ export function useMeasurements(
 ) {
   const cleanup = useRef<(() => void) | null>(null);
   const [measuring, setMeasuring] = useState<"room" | "sound" | null>(null);
+  const [progress, setProgress] = useState(0);
   const cancel = useCallback(() => {
     cleanup.current?.();
     cleanup.current = null;
     setMeasuring(null);
+    setProgress(0);
   }, []);
   useEffect(
     () => () => {
@@ -29,6 +31,10 @@ export function useMeasurements(
       cancel();
       const observations: Observation[] = [];
       setMeasuring(kind);
+      const started = Date.now();
+      const progressTimer = window.setInterval(() => {
+        setProgress(Math.min(1, (Date.now() - started) / duration));
+      }, 50);
       let valid = true;
       const interrupted = () => {
         if (!isRunning() || document.hidden) valid = false;
@@ -51,6 +57,7 @@ export function useMeasurements(
       }, duration);
       cleanup.current = () => {
         window.clearTimeout(timer);
+        window.clearInterval(progressTimer);
         off();
         document.removeEventListener("visibilitychange", interrupted);
         context?.removeEventListener("statechange", interrupted);
@@ -83,5 +90,5 @@ export function useMeasurements(
       ),
     [collect],
   );
-  return { measuring, startRoom, startSound, cancel };
+  return { measuring, progress, startRoom, startSound, cancel };
 }
