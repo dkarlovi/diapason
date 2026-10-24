@@ -33,10 +33,6 @@ export function Capture() {
           />
         </div>
         <section className="capture-wizard" aria-label="Recording setup">
-          <div className="wizard-heading">
-            <span>Recording setup</span>
-            <small>{wizard.activeIndex + 1} / 6</small>
-          </div>
           <CaptureSteps
             setup={state.setup}
             active={wizard.active.id}

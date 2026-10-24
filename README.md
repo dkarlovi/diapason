@@ -30,7 +30,9 @@ diapason is organized as a **library of recordings**, persisted in your browser
 
 The **Recording workstation** uses a Slate & blue theme that follows your system's
 light/dark preference. Its compact header keeps the live signal in view while a
-horizontal six-step wizard shows your setup values. The steps mark completed
+horizontal six-step wizard shows your setup values
+directly, without a separate wizard heading or step counter. The input-level
+strip and wizard action strip share the same height. The steps mark completed
 setup with green checkmarks and labels, while amber summaries distinguish the
 selected values. The current step keeps a blue fill with a contrasting outer ring,
 including when revisiting a completed step. Continuing from sound selection connects the
