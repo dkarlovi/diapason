@@ -42,7 +42,7 @@ it("allows retrying microphone permission after continuing from sound selection"
   fixture.denied = true;
   renderCapture();
   await click("Continue with whistling");
-  expect(screen.getByRole("status").textContent).toContain("permission denied");
+  expect(screen.getByRole("alert").textContent).toContain("permission denied");
   fixture.denied = false;
   await click("Connect microphone");
   expect(screen.getByLabelText("Microphone")).toBeTruthy();

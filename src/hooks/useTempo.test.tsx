@@ -16,6 +16,7 @@ it("estimates tapped tempo, requires stable detection, and supports manual overr
       floor: 0.001,
       currentMic: () => null,
       onChange: (bpm) => changes.push(bpm),
+      onError: () => {},
       onConfirm: () => {},
     }),
   );
@@ -50,6 +51,7 @@ it("disposes a clap subscription that finishes after cancellation", async () => 
       floor: 0.001,
       currentMic: () => mic,
       onChange: () => {},
+      onError: () => {},
       onConfirm: () => {},
     }),
   );
@@ -77,6 +79,7 @@ it("previews confirmed numeric settings and releases the transport on stop", asy
       floor: 0.001,
       currentMic: () => mic,
       onChange: () => {},
+      onError: () => {},
       onConfirm: () => {},
     }),
   );

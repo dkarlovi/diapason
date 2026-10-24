@@ -56,6 +56,7 @@ export function useRecordingSetup({
     currentMic,
     onChange: changeTempo,
     onConfirm: confirmTempo,
+    onError: setStatus,
   });
   useEffect(() => {
     microphone.profile.current = getSoundProfile(setup.profileId);

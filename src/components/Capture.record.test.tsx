@@ -84,11 +84,9 @@ it.each(["encode", "recorder"])("allows retry after %s failure", async (kind) =>
   fixture.recorderFailure = kind === "recorder";
   await click("Record");
   if (kind === "encode") await click("Stop recording");
-  expect(
-    screen.getByText(
-      kind === "encode" ? /Save error: storage failed/ : /Record error: worklet unavailable/,
-    ),
-  ).toBeTruthy();
+  expect(screen.getByRole("alert").textContent).toMatch(
+    kind === "encode" ? /Save error: storage failed/ : /Record error: worklet unavailable/,
+  );
   expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
   expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
     false,
@@ -99,9 +97,35 @@ it("rejects a recording that stops before the downbeat", async () => {
   fixture.pcm = new Float32Array(100);
   await click("Record");
   await click("Stop recording");
-  expect(screen.getByText(/Too short/)).toBeTruthy();
+  expect(screen.getByRole("alert").textContent).toContain("Too short");
   expect(fixture.saved).toBeNull();
+  advance(6000);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
+    false,
+  );
 });
+
+it("replaces the saved toast with an error if the microphone disconnects", async () => {
+  await calibratedCapture();
+  await click("Record");
+  await click("Stop recording");
+  expect(screen.getByRole("status", { name: "Recording saved" })).toBeTruthy();
+  act(() => fixture.ended?.());
+  expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
+  expect(screen.getByRole("alert").textContent).toContain("Microphone disconnected");
+});
+
+it.each(["Preview metronome", "Listen for claps"])(
+  "shows %s failures as error toasts",
+  async (action) => {
+    await calibratedCapture();
+    await click("Edit Find your tempo");
+    fixture.resumePending = Promise.reject(new Error("audio unavailable"));
+    await click(action);
+    expect(screen.getByRole("alert").textContent).toContain("audio unavailable");
+  },
+);
 it("disposes a recorder resolving after unmount", async () => {
   const view = await calibratedCapture();
   let release!: (recorder: import("../recorder").Recorder) => void;

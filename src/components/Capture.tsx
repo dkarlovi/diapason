@@ -43,7 +43,7 @@ export function Capture() {
               microphone={microphone?.label || "Default"}
               onChoose={wizard.chooseStep}
             />
-            <p role="status" className="capture-status">
+            <p role="status" className="sr-only">
               {state.status}
             </p>
             <div className="setup-step">
@@ -65,9 +65,14 @@ export function Capture() {
           </div>
         </section>
       </div>
-      {state.savedNotice && (
-        <div className="capture-toast" role="status" aria-label="Recording saved">
-          Recording saved
+      {state.notice && (
+        <div
+          className="capture-toast"
+          data-kind={state.notice.kind}
+          role={state.notice.kind === "error" ? "alert" : "status"}
+          aria-label={state.notice.kind === "error" ? "Recording error" : "Recording saved"}
+        >
+          {state.notice.message}
         </div>
       )}
     </div>

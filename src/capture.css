@@ -51,9 +51,17 @@ body:has(.studio-shell) {
   border-left: 1px solid var(--color-border);
   padding-left: 24px;
   min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+.workstation-location a,
+.workstation-location h1 {
+  font: inherit;
+  letter-spacing: inherit;
 }
 .workstation-location a {
-  font-size: 0.875rem;
   color: var(--color-muted-foreground);
 }
 .workstation-location > svg {
@@ -63,9 +71,6 @@ body:has(.studio-shell) {
   flex-shrink: 0;
 }
 .workstation-location h1 {
-  font-size: 1rem;
-  font-weight: 550;
-  letter-spacing: -0.015em;
   margin: 0;
   white-space: nowrap;
 }
@@ -531,16 +536,26 @@ body:has(.studio-shell) {
 }
 .capture-toast {
   position: fixed;
-  right: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 24px;
   z-index: 10;
-  padding: 10px 16px;
+  padding: 12px 20px;
+  width: max-content;
+  max-width: min(36rem, calc(100% - 32px));
+  font-size: 1.2rem;
+  text-align: center;
+  overflow-wrap: anywhere;
   border: 1px solid var(--color-success);
   border-radius: 7px;
   background: var(--color-card);
   color: var(--color-success);
   box-shadow: 0 4px 18px #0002;
   pointer-events: none;
+}
+.capture-toast[data-kind="error"] {
+  border-color: var(--color-destructive);
+  color: var(--color-destructive);
 }
 .capture-wizard input[type="range"] {
   width: 100%;
@@ -622,16 +637,6 @@ body:has(.studio-shell) {
   color: var(--color-primary);
   background: var(--color-primary-muted);
 }
-.capture-status {
-  margin: 0;
-  padding: 10px 20px;
-  font-size: 0.875rem;
-  overflow-wrap: anywhere;
-  color: var(--color-destructive);
-}
-.capture-status:empty {
-  display: none;
-}
 #view-capture[data-recording="true"] .capture-layout {
   /* Retain the last step's center using its expanded width, padding, and borders. */
   grid-template-columns: minmax(0, 1fr) minmax(
@@ -656,14 +661,6 @@ body:has(.studio-shell) {
 }
 #view-capture[data-recording="true"] .stop-symbol {
   display: none;
-}
-#view-capture[data-recording="true"] .capture-status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  clip-path: inset(50%);
-  padding: 0;
-  overflow: hidden;
 }
 @media (max-width: 1000px) {
   .workstation-header {
@@ -701,6 +698,9 @@ body:has(.studio-shell) {
   }
 }
 @media (max-width: 720px) {
+  .capture-toast {
+    bottom: calc(var(--capture-footer-height) + 24px);
+  }
   .workstation-header {
     min-height: 60px;
     padding: 10px 12px;

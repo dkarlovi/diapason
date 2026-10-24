@@ -12,6 +12,7 @@ interface Options {
   currentMic(): MicHandle | null;
   onChange(bpm: number, beatsPerBar: number): void;
   onConfirm(): void;
+  onError(message: string): void;
 }
 export function useTempo(options: Options) {
   const latest = useRef(options);
@@ -61,6 +62,7 @@ export function useTempo(options: Options) {
   };
   const startClap = async () => {
     reset();
+    latest.current.onError("");
     const mic = latest.current.currentMic();
     if (!mic) {
       setMessage("Connect your microphone first.");
@@ -90,12 +92,15 @@ export function useTempo(options: Options) {
     } catch (error) {
       if (current === resources.current.token) {
         stop();
-        setMessage(`Clap listening unavailable: ${(error as Error).message}. You can tap instead.`);
+        latest.current.onError(
+          `Clap listening unavailable: ${(error as Error).message}. You can tap instead.`,
+        );
       }
     }
   };
   const preview = async () => {
     stop();
+    latest.current.onError("");
     const mic = latest.current.currentMic();
     const { bpm, beatsPerBar } = latest.current;
     if (!mic || !validTempo(bpm, beatsPerBar)) return;
@@ -115,7 +120,7 @@ export function useTempo(options: Options) {
     } catch (error) {
       if (current === resources.current.token) {
         stop();
-        setMessage(`Preview unavailable: ${(error as Error).message}`);
+        latest.current.onError(`Preview unavailable: ${(error as Error).message}`);
       }
     }
   };

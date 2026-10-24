@@ -50,9 +50,15 @@ The wizard is cropped from the left as its width changes, keeping its contents
 fixed during collapse and expansion.
 Stopping restores the layout, saves a separate take, and briefly shows
 **Recording saved**. The count-in and timer reset for the next take, with
-calibration and tempo retained. A short take or save failure leaves setup ready
-to retry. Clap listening and metronome preview
-also use one button to start and stop. Narrow screens stack the signal above
+calibration and tempo retained.
+
+The larger confirmation toast sits at the bottom center, clear of the Record
+button. Recording and microphone errors use red toasts in the same position;
+they do not shift the wizard layout. Both parts of the breadcrumb use matching
+type size and alignment.
+
+A short take or save failure leaves setup ready to retry. Clap listening and
+metronome preview also use one button to start and stop. Narrow screens stack the signal above
 setup; reduced motion preferences disable the folding animation.
 
 All three screens share the Slate & blue system theme, compact header, readable

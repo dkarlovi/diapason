@@ -18,6 +18,7 @@ it("accepts manual tempo without a detection test and keeps keyboard taps out of
         setBpm(value);
         setMeter(beats);
       },
+      onError: () => {},
       onConfirm: confirmed,
     });
     return <TempoSetup tempo={tempo} bpm={bpm} beatsPerBar={meter} />;
