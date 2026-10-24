@@ -38,6 +38,7 @@ export function Capture() {
             active={wizard.active.id}
             nextIndex={wizard.nextIndex}
             locked={locked}
+            recording={state.recording}
             microphone={microphone?.label || "Default"}
             onChoose={wizard.chooseStep}
           />
@@ -59,6 +60,11 @@ export function Capture() {
           </div>
         </section>
       </div>
+      {state.savedNotice && (
+        <div className="capture-toast" role="status" aria-label="Recording saved">
+          Recording saved
+        </div>
+      )}
     </div>
   );
 }

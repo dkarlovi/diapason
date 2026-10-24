@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import { useRecordingSetup } from "./useRecordingSetup";
 import { createRecorder, type Recorder } from "../recorder";
 import { startMetronome, type MetronomeHandle, type TransportState } from "../metronome";
@@ -8,16 +7,15 @@ import { putRecording, type Recording } from "../db";
 import { newRecordingMelody } from "../melody/settings";
 import { fmtDate } from "../ui";
 import { dspStatus, peakLevel, roundTripLatency, trimCountIn } from "../capture-model";
-import { recordingPath } from "../router";
 import { getSoundProfile } from "../recording-profiles";
 import { canRecord, type SetupState } from "../recording-setup";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useCapture() {
-  const navigate = useNavigate();
   const [recording, setRecording] = useState(false);
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [savedNotice, setSavedNotice] = useState(false);
   const [transport, setTransport] = useState<TransportState | null>(null);
   const [beat, setBeat] = useState("");
   const recorder = useRef<Recorder | null>(null);
@@ -27,6 +25,11 @@ export function useCapture() {
   const captureStart = useRef(0);
   const snapshot = useRef<SetupState | null>(null);
   const stopDependents = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!savedNotice) return;
+    const timer = window.setTimeout(() => setSavedNotice(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [savedNotice]);
   const releaseCapture = useCallback(() => {
     metro.current?.stop();
     metro.current = null;
@@ -65,6 +68,7 @@ export function useCapture() {
     const opened = currentMic(),
       current = setupRef.current;
     if (!opened || busy.current || !canRecord(current) || tempo.listening || tempo.pending) return;
+    setSavedNotice(false);
     tempo.stop();
     measurements.cancel();
     busy.current = true;
@@ -178,7 +182,10 @@ export function useCapture() {
       };
       if (!isCurrentMic(opened)) return;
       await putRecording(record);
-      if (mounted.current) navigate(recordingPath(record.id));
+      if (mounted.current) {
+        setStatus("");
+        setSavedNotice(true);
+      }
     } catch (error) {
       if (mounted.current)
         setStatus(`Save error: ${(error as Error).message} — record again to retry.`);
@@ -196,6 +203,7 @@ export function useCapture() {
     starting,
     saving,
     status,
+    savedNotice,
     transport,
     beat,
     startRecording,

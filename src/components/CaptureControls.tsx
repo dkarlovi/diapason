@@ -140,11 +140,12 @@ function RecordControls({ state, back }: Pick<ControlProps, "state" | "back">) {
           variant="primary"
           className="record-toggle"
           aria-pressed={state.recording}
+          aria-label={state.recording ? "Stop recording" : undefined}
           disabled={state.starting || state.saving || (!state.recording && !state.ready)}
           onClick={() => void (state.recording ? state.stopRecording() : state.startRecording())}
         >
           <span className={state.recording ? "stop-symbol" : "record-symbol"} aria-hidden="true" />
-          {state.recording ? "Stop & save" : state.saving ? "Saving…" : "Record"}
+          {state.recording ? "Stop" : state.saving ? "Saving…" : "Record"}
         </Button>
       </CaptureActions>
     </>

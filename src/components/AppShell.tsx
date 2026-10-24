@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import { ChevronRight } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
 import { StudioTitleContext } from "../hooks/useStudioTitle";
+import { DiapasonMark } from "./DiapasonMark";
 
 export function AppShell({ children }: PropsWithChildren) {
   const pathname = useLocation().pathname.replace(/\/$/, "");
@@ -18,9 +19,7 @@ export function AppShell({ children }: PropsWithChildren) {
       >
         <header className="workstation-header">
           <Link className="studio-brand" to="/" aria-label="diapason">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 3v7a5 5 0 0 0 10 0V3M12 15v6M8 21h8" />
-            </svg>
+            <DiapasonMark />
             <span>diapason</span>
           </Link>
           {(capture || editor) && (

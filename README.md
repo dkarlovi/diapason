@@ -20,8 +20,9 @@ diapason is organized as a **library of recordings**, persisted in your browser
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
    the microphone, or entering BPM. Preview the metronome and choose beats per
    bar, then confirm. One bar counts you in before recording starts on the downbeat.
-   The saved recording opens in the editor. The metronome guides your timing; its beat schedule never blanks captured
-   pitches. Stored audio stays untouched.
+   Each take saves to the Library while the studio stays ready for another recording.
+   The metronome guides your timing; its beat schedule never blanks captured pitches.
+   Stored audio stays untouched.
 3. **Editor** (`/diapason/recording/:id`) — all post-processing on a recording: pitch trace,
    **per-recording melody presets and controls**, an interactive
    MIDI piano roll with named note previews, audio/MIDI playback, rhythm controls, and
@@ -41,10 +42,13 @@ shows its settings, with a connection retry available if access fails.
 Microphone, gain, and tempo fields use compact label/control rows. The input level
 sits below the signal;
 pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas.
-Record is available only after setup. The same button becomes **Stop & save**;
-the wizard folds down to step 6 and the signal expands while it runs. Stopping
-restores the layout while the take saves, then opens the editor. A short take or
-save failure leaves setup ready to retry. Clap listening and metronome preview
+Record is available only after setup. The same button becomes a bright red **Stop**;
+the wizard folds into a slab around the Record step, keeping its icon in place
+and replacing it with the green diapason mark. Stop matches the step width.
+Stopping restores the layout, saves a separate take, and briefly shows
+**Recording saved**. The count-in and timer reset for the next take, with
+calibration and tempo retained. A short take or save failure leaves setup ready
+to retry. Clap listening and metronome preview
 also use one button to start and stop. Narrow screens stack the signal above
 setup; reduced motion preferences disable the folding animation.
 

@@ -1,11 +1,13 @@
 import { CAPTURE_STEPS, stepSummary } from "../capture-presentation";
 import type { SetupState, SetupStep } from "../recording-setup";
+import { DiapasonMark } from "./DiapasonMark";
 
 export function CaptureSteps({
   setup,
   active,
   nextIndex,
   locked,
+  recording,
   microphone,
   onChoose,
 }: {
@@ -13,6 +15,7 @@ export function CaptureSteps({
   active: SetupStep;
   nextIndex: number;
   locked: boolean;
+  recording: boolean;
   microphone: string;
   onChoose(step: SetupStep): void;
 }) {
@@ -31,7 +34,13 @@ export function CaptureSteps({
           onClick={() => onChoose(step.id)}
         >
           <span className="step-number" aria-hidden="true">
-            {index < nextIndex ? "✓" : index + 1}
+            {recording && step.id === "record" ? (
+              <DiapasonMark />
+            ) : index < nextIndex ? (
+              "✓"
+            ) : (
+              index + 1
+            )}
           </span>
           <span className="step-name">{step.label}</span>
           <small title={stepSummary(step.id, setup, microphone)}>

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { vi } from "vitest";
 import type { Recording } from "../src/db";
 import type { MetronomeOptions } from "../src/metronome";
@@ -122,7 +122,10 @@ export function resetFixture() {
 export function renderCapture() {
   return render(
     <MemoryRouter>
-      <Capture />
+      <Routes>
+        <Route path="/" element={<Capture />} />
+        <Route path="/recording/:id" element={<div>Editor route</div>} />
+      </Routes>
     </MemoryRouter>,
   );
 }
