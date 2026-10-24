@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
-import { Link } from "react-router";
+import { Button as StyledButton } from "./ui/button";
 
 export function Panel({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
@@ -14,8 +14,14 @@ export function Button({
   variant,
   className = "",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "danger" }) {
-  return <button className={`${variant ?? ""} ${className}`.trim()} {...props} />;
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "danger" | undefined }) {
+  return (
+    <StyledButton
+      variant={variant ?? "default"}
+      className={`${variant ?? ""} ${className}`.trim()}
+      {...props}
+    />
+  );
 }
 
 export function Field({
@@ -28,13 +34,5 @@ export function Field({
       <label htmlFor={htmlFor}>{label}</label>
       {children}
     </div>
-  );
-}
-
-export function Breadcrumb({ current }: { current: string }) {
-  return (
-    <p className="step">
-      <Link to="/">← Library</Link> · {current}
-    </p>
   );
 }

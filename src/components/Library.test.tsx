@@ -60,7 +60,9 @@ describe("library", () => {
       </BrowserRouter>,
     );
     expect(await screen.findByText("Melody")).toBeTruthy();
+    await userEvent.click(screen.getByLabelText("Actions for Melody"));
     await userEvent.click(screen.getByRole("button", { name: "Duplicate" }));
     expect(await screen.findByText("Melody (copy)")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText("Actions for Melody"));
   });
 });

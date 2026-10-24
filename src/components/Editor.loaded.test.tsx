@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Recording } from "../db";
 import { Editor } from "./Editor";
+import { AppShell } from "./AppShell";
 
 let saved: Recording | null = null;
 const recording: Recording = {
@@ -58,6 +59,27 @@ it("loads a recording and applies a melody preset through React controls", async
   await waitFor(() =>
     expect(saved?.melody).toEqual({ preset: "gentle", overrides: {}, key: "auto" }),
   );
+});
+
+it("keeps one recording title above paired audio and MIDI canvas regions", async () => {
+  render(
+    <MemoryRouter initialEntries={["/recording/one"]}>
+      <AppShell>
+        <Editor id="one" />
+      </AppShell>
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  await screen.findByRole("heading", { name: "Melody" });
+  expect(screen.getAllByRole("heading", { name: "Melody" })).toHaveLength(1);
+  const audio = screen.getByRole("region", { name: "Original recording" });
+  const midi = screen.getByRole("region", { name: "MIDI melody" });
+  expect(audio.querySelector("canvas")).toBeTruthy();
+  expect(midi.querySelector("canvas")).toBeTruthy();
+  expect(audio.querySelector("input")).toBeNull();
+  expect(midi.querySelector("select")).toBeNull();
+  expect(screen.getByRole("button", { name: "Download WAV" }).closest("section")).toBe(audio);
+  expect(screen.getByRole("button", { name: "Download MIDI" }).closest("section")).toBe(midi);
 });
 
 it("saves a renamed recording on blur", async () => {

@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { Check, Play, Square } from "lucide-react";
 import { Button, Field } from "./primitives";
 import {
   KNOB_DEFS,
@@ -98,28 +99,35 @@ function PresetRow({
           <article
             key={preset.id}
             className="preset-card"
+            title={preset.blurb}
             data-selected={props.melody.preset === preset.id}
           >
             <strong>{preset.label}</strong>
-            <p className="hint">{preset.blurb}</p>
+            <p className="sr-only">{preset.blurb}</p>
             <div className="row">
               <Button
                 disabled={props.disabled}
                 aria-label={`Play ${preset.label}`}
+                title={`Preview ${preset.label}`}
                 aria-pressed={props.previewId === `preset-${preset.id}`}
                 onClick={() =>
                   props.previewMelody({ preset: preset.id, overrides: {} }, `preset-${preset.id}`)
                 }
               >
-                {props.previewId === `preset-${preset.id}` ? "Stop" : "Play"}
+                {props.previewId === `preset-${preset.id}` ? (
+                  <Square aria-hidden="true" />
+                ) : (
+                  <Play aria-hidden="true" />
+                )}
               </Button>
               <Button
                 disabled={props.disabled}
                 aria-label={`Use ${preset.label}`}
+                title={`Use ${preset.label}`}
                 aria-pressed={props.melody.preset === preset.id}
                 onClick={() => props.applyPreset(preset.id)}
               >
-                Use
+                <Check aria-hidden="true" />
               </Button>
             </div>
           </article>

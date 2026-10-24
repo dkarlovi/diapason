@@ -33,4 +33,6 @@ it.each(Object.keys(PRESETS) as PresetId[])(
       new Uint8Array(await notesToMidi(report.notes, { bpm: rec.bpm }).arrayBuffer()),
     );
   },
+  // Each preset reanalyzes the PCM; coverage instrumentation can exceed 5 seconds.
+  15_000,
 );

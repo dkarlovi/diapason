@@ -22,13 +22,15 @@ it("reveals steps in order, requires sound and tempo, and retains calibration af
   await microphoneReady();
   await click("Measure room noise");
   advance(1500);
-  expect(screen.getByText(/Low room noise/)).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Edit Measure room noise" }).textContent).toContain(
+    "-60 dB",
+  );
   expect(screen.queryByLabelText("Tempo (BPM)")).toBeNull();
   await click("Check my sound");
   advance(2000, true);
   expect(screen.getByLabelText("Tempo (BPM)")).toBeTruthy();
   advance(4000);
-  expect(screen.getByRole("heading", { name: /Check your sound/ })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Edit Check your sound" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Tempo (BPM)"), { target: { value: "90" } });
   await click("Confirm tempo");
   expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(

@@ -28,6 +28,29 @@ diapason is organized as a **library of recordings**, persisted in your browser
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
 
+The **Recording workstation** uses a Slate & blue theme that follows your system's
+light/dark preference. Its compact header keeps the live signal in view while a
+horizontal six-step wizard shows your setup values. Microphone, gain, and tempo
+fields use compact label/control rows. The input level sits below the signal;
+pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas.
+Record is available only after setup. The same button becomes **Stop & save**;
+the wizard folds down to step 6 and the signal expands while it runs. Stopping
+restores the layout while the take saves, then opens the editor. A short take or
+save failure leaves setup ready to retry. Clap listening and metronome preview
+also use one button to start and stop. Narrow screens stack the signal above
+setup; reduced motion preferences disable the folding animation.
+
+All three screens share the Slate & blue system theme, compact header, readable
+type, and shared controls built with Tailwind, the shadcn/ui component pattern,
+semantic theme tokens, and Lucide icons. The Editor keeps original audio on the
+left and MIDI on the right, with matching playback/download actions. Their
+canvases stay visible while recording settings and melody controls scroll below.
+On narrow screens, paired charts remain pinned above the stacked toolboxes.
+Presets retain separate preview and apply actions; all advanced controls,
+diagnostics, and note previews remain available. Saved charts update when the
+system theme or their container size changes. The Library keeps audio/MIDI
+previews and Open visible, with Duplicate and Delete in each row's actions menu.
+
 New recordings start with **Clean** and **Auto** key selection. Clean snaps to an
 eighth-note grid; the other intent presets keep performed timing. A single
 timing-grid control offers quarter notes, eighth notes, sixteenth notes, and

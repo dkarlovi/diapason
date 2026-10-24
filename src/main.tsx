@@ -1,11 +1,13 @@
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Link, Route, Routes, useParams } from "react-router";
+import { BrowserRouter, Route, Routes, useParams } from "react-router";
 import { Library } from "./components/Library";
 import { Capture } from "./components/Capture";
 import { Editor } from "./components/Editor";
-import { MidiOutputPicker } from "./components/MidiOutputPicker";
+import { AppShell } from "./components/AppShell";
 import { BASE } from "./router";
 import "./styles.css";
+import "./capture.css";
+import "./studio.css";
 
 function RecordingRoute() {
   const { id } = useParams();
@@ -15,25 +17,14 @@ function RecordingRoute() {
 function App() {
   return (
     <BrowserRouter basename={BASE}>
-      <main>
-        <header className="row" style={{ alignItems: "flex-start" }}>
-          <div>
-            <h1>
-              <Link to="/">
-                <span>diapason</span>
-              </Link>
-            </h1>
-            <p className="tagline">Whistle into your mic → MIDI out.</p>
-          </div>
-          <MidiOutputPicker />
-        </header>
+      <AppShell>
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/new" element={<Capture />} />
           <Route path="/recording/:id" element={<RecordingRoute />} />
           <Route path="*" element={<Library />} />
         </Routes>
-      </main>
+      </AppShell>
     </BrowserRouter>
   );
 }

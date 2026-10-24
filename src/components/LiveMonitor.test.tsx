@@ -21,6 +21,10 @@ it("distinguishes sound without pitch and supplies an accessible level meter", (
     "40",
   );
   expect(screen.getByText(/Preview grid/)).toBeTruthy();
+  expect(
+    screen.getByRole("img").compareDocumentPosition(screen.getByRole("meter")) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
 });
 it("renders saved check results with text and does not interpret markup", () => {
   const { container } = render(
