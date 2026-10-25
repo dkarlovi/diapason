@@ -28,13 +28,25 @@ export interface MetronomeOptions {
   onBeat?: (beat: number) => void;
 }
 
-function click(ctx: AudioContext, at: number, accent: boolean, pending: Set<() => void>): void {
+/** Zero-based beat within the bar; beat one keeps its own downbeat accent. */
+export function hasBeatSubdivision(bpm: number, beatInBar: number): boolean {
+  return bpm < 120 && beatInBar > 0 && beatInBar % 2 === 0;
+}
+
+function click(
+  ctx: AudioContext,
+  at: number,
+  accent: boolean,
+  subdivision: boolean,
+  pending: Set<() => void>,
+): void {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.frequency.value = accent ? 1600 : 1000;
+  const level = subdivision ? 0.15 : accent ? 0.5 : 0.3;
   const dur = 0.04;
   gain.gain.setValueAtTime(0.0001, at);
-  gain.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, at + 0.002);
+  gain.gain.exponentialRampToValueAtTime(level, at + 0.002);
   gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
   osc.connect(gain).connect(ctx.destination);
   const release = () => {
@@ -75,11 +87,14 @@ export function startMetronome(ctx: AudioContext, opts: MetronomeOptions): Metro
   const scheduler = window.setInterval(() => {
     while (t0 + next * beat < ctx.currentTime + AHEAD) {
       const at = t0 + next * beat;
-      const beatIndex = next - countInBeats; // 0 == downbeat
-      const accent = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
-      click(ctx, at, accent, pending);
-      if (opts.onBeat) due.push({ at, index: beatIndex });
-      next++;
+      const beatIndex = Math.floor(next) - countInBeats; // 0 == downbeat
+      const beatInBar = ((beatIndex % beatsPerBar) + beatsPerBar) % beatsPerBar;
+      const subdivision = next % 1 !== 0;
+      if (!subdivision || hasBeatSubdivision(bpm, beatInBar)) {
+        click(ctx, at, beatInBar === 0, subdivision, pending);
+      }
+      if (!subdivision && opts.onBeat) due.push({ at, index: beatIndex });
+      next += 0.5;
     }
     while (due.length && due[0]!.at <= ctx.currentTime) opts.onBeat?.(due.shift()!.index);
     if (!downbeatReported && ctx.currentTime >= downbeatTime) {

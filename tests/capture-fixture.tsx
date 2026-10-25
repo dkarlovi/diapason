@@ -75,7 +75,8 @@ vi.mock("../src/recorder", async (original) => ({
     return { start: fixture.start, stop: () => fixture.pcm, dispose: fixture.dispose };
   },
 }));
-vi.mock("../src/metronome", () => ({
+vi.mock("../src/metronome", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../src/metronome")>()),
   startMetronome: (_ctx: unknown, options: MetronomeOptions) => {
     fixture.metro = options;
     return { downbeatTime: fixture.time + 0.2, stop: fixture.stopMetro };
