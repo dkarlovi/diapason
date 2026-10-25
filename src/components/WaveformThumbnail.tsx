@@ -7,7 +7,28 @@ export function WaveformThumbnail({ summary }: { summary: WaveformSummary | unde
   const { ref, layout } = useWaveformLayout();
   const gradientId = `${id}-gradient`;
   const maskId = `${id}-cutout`;
-  const bars = summary ? waveformBars(summary, 80) : null;
+  const bars = summary ? waveformBars(summary, 48) : null;
+  const waveform = bars && (
+    <svg
+      className="recording-waveform-cutout"
+      {...layout}
+      viewBox="0 0 320 100"
+      preserveAspectRatio="none"
+      overflow="visible"
+    >
+      {bars.map((height, index) => (
+        <rect
+          key={index}
+          x={index * (320 / 48)}
+          y={50 - height * 50}
+          width={4.4}
+          height={height * 100}
+          rx={1.5}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </svg>
+  );
   return (
     <svg ref={ref} className="recording-waveform" aria-hidden="true" focusable="false">
       <defs>
@@ -27,24 +48,7 @@ export function WaveformThumbnail({ summary }: { summary: WaveformSummary | unde
             style={{ maskType: "luminance" }}
           >
             <rect width="100%" height="100%" fill="white" />
-            <svg
-              className="recording-waveform-cutout"
-              {...layout}
-              viewBox="0 0 320 100"
-              preserveAspectRatio="none"
-            >
-              {bars.map((height, index) => (
-                <rect
-                  key={index}
-                  x={index * 4}
-                  y={50 - height * 50}
-                  width={2.6}
-                  height={height * 100}
-                  rx={1.3}
-                  fill="black"
-                />
-              ))}
-            </svg>
+            <g fill="black">{waveform}</g>
           </mask>
         )}
       </defs>
@@ -54,6 +58,16 @@ export function WaveformThumbnail({ summary }: { summary: WaveformSummary | unde
         fill={`url(#${gradientId})`}
         mask={bars ? `url(#${maskId})` : undefined}
       />
+      {/* Temporary interior shading for visual comparison. */}
+      <g fill="#000">{waveform}</g>
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.2}
+        mask={bars ? `url(#${maskId})` : undefined}
+      >
+        {waveform}
+      </g>
     </svg>
   );
 }

@@ -116,6 +116,9 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       padding.left + ((t - tMin) / (tMax - tMin || 1)) * (w - padding.left - padding.right),
     yOf: (midi) => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h,
   };
+  ctx.textBaseline = "middle";
+  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.textAlign = "left";
   drawPitchGrid(ctx, geometry, view);
   drawBeatGrid(ctx, geometry, view);
   drawPitchFrames(ctx, geometry, frames, view);
@@ -129,6 +132,7 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
     ctx.lineTo(x, h);
     ctx.stroke();
   }
+  drawPitchLabels(ctx, geometry, view);
 }
 
 interface TraceGeometry {
@@ -147,11 +151,6 @@ function drawPitchGrid(
 ): void {
   const { width: w, yOf, colors } = geometry;
   const { midiMin, midiMax } = view;
-  // Horizontal gridlines + note labels at each semitone (octaves emphasized).
-  ctx.textBaseline = "middle";
-  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
-  ctx.textAlign = view.inset ? "right" : "left";
-  const labelX = view.inset ? traceHorizontalPadding(w, true).left - 6 : 3;
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
     const isC = m % 12 === 0;
     const y = yOf(m);
@@ -160,11 +159,35 @@ function drawPitchGrid(
     ctx.moveTo(0, y);
     ctx.lineTo(w, y);
     ctx.stroke();
-    if (
-      view.pitchLabels !== "none" &&
-      (isC || view.pitchLabels === "all") &&
-      (!view.timeLabelY || y > view.timeLabelY + 10)
-    ) {
+  }
+}
+
+function drawPitchLabels(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+): void {
+  if (view.pitchLabels === "none") return;
+  const { width: w, height: h, yOf, colors } = geometry;
+  const { midiMin, midiMax } = view;
+  const edge = view.inset ? traceHorizontalPadding(w, true).left : 36;
+  const fade = ctx.createLinearGradient(edge, 0, edge + 16, 0);
+  fade.addColorStop(0, colors.bg);
+  fade.addColorStop(1, "transparent");
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, edge, h);
+  ctx.fillStyle = fade;
+  ctx.fillRect(edge, 0, 16, h);
+  ctx.globalAlpha = 1;
+  ctx.textBaseline = "middle";
+  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.textAlign = view.inset ? "right" : "left";
+  const labelX = view.inset ? edge - 6 : 3;
+  for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
+    const isC = m % 12 === 0;
+    const y = yOf(m);
+    if ((isC || view.pitchLabels === "all") && (!view.timeLabelY || y > view.timeLabelY + 10)) {
       ctx.fillStyle = colors.label;
       ctx.fillText(midiToName(m), labelX, y - 6);
     }

@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 /** SVG viewport attributes need actual lengths; CSS geometry on nested SVGs is unreliable. */
 export function useWaveformLayout() {
   const ref = useRef<SVGSVGElement>(null);
-  const [layout, setLayout] = useState({ x: 70, y: 20, width: 480, height: 48 });
+  const [layout, setLayout] = useState({ x: 70, y: 20, width: 480, height: 58 });
   useLayoutEffect(() => {
     const svg = ref.current;
     const row = svg?.parentElement;
@@ -14,7 +14,7 @@ export function useWaveformLayout() {
       if (!bounds.width) return;
       const label = info.getBoundingClientRect();
       const x = label.left - bounds.left;
-      const height = Math.min(50, label.height);
+      const height = Math.min(60, label.height * 1.2);
       const next = {
         x,
         y: label.top - bounds.top + (label.height - height) / 2,

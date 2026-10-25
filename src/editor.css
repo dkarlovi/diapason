@@ -53,6 +53,13 @@
   max-width: calc(100% - var(--tune-obstruction) - 170px);
   pointer-events: none;
 }
+.editor-track-label > * {
+  align-self: flex-start;
+  max-width: 100%;
+  background: color-mix(in oklab, var(--trace-bg) 80%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--trace-bg) 80%, transparent);
+  border-radius: 2px;
+}
 .editor-track-label h2 {
   margin: 0;
   font-size: 0.75rem;
