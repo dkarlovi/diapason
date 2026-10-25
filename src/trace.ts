@@ -4,6 +4,10 @@
 import { midiToName, freqToMidi, type Frame, type NoteEvent } from "./notes";
 
 export interface TraceView {
+  inset?: boolean;
+  pitchLabels?: "all" | "none";
+  timeLabelY?: number;
+  noteHeight?: number;
   /** Time window shown, in seconds. */
   tMin: number;
   tMax: number;
@@ -78,6 +82,13 @@ export function autoRange(frames: Frame[]): { midiMin: number; midiMax: number }
   return { midiMin: lo, midiMax: Math.max(hi, lo + 6) };
 }
 
+export function traceHorizontalPadding(width: number, inset = false) {
+  return {
+    left: inset ? Math.min(57, width * 0.1) : 0,
+    right: inset ? Math.min(18, width * 0.05) : 0,
+  };
+}
+
 export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: TraceView): void {
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
@@ -95,12 +106,14 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
   ctx.fillRect(0, 0, w, h);
 
   const { tMin, tMax, midiMin, midiMax } = view;
+  const padding = traceHorizontalPadding(w, view.inset);
   const geometry: TraceGeometry = {
     colors,
     width: w,
     height: h,
     semitoneHeight: h / (midiMax - midiMin || 1),
-    xOf: (t) => ((t - tMin) / (tMax - tMin || 1)) * w,
+    xOf: (t) =>
+      padding.left + ((t - tMin) / (tMax - tMin || 1)) * (w - padding.left - padding.right),
     yOf: (midi) => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h,
   };
   drawPitchGrid(ctx, geometry, view);
@@ -136,7 +149,7 @@ function drawPitchGrid(
   const { midiMin, midiMax } = view;
   // Horizontal gridlines + note labels at each semitone (octaves emphasized).
   ctx.textBaseline = "middle";
-  ctx.font = "10px system-ui, sans-serif";
+  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
     const isC = m % 12 === 0;
     const y = yOf(m);
@@ -145,7 +158,11 @@ function drawPitchGrid(
     ctx.moveTo(0, y);
     ctx.lineTo(w, y);
     ctx.stroke();
-    if (isC) {
+    if (
+      view.pitchLabels !== "none" &&
+      (isC || view.pitchLabels === "all") &&
+      (!view.timeLabelY || y > view.timeLabelY + 10)
+    ) {
       ctx.fillStyle = colors.label;
       ctx.fillText(midiToName(m), 3, y - 6);
     }
@@ -183,6 +200,7 @@ function drawBeatGrid(
         h,
         view.showTimeLabels !== false,
         colors,
+        view.timeLabelY,
       );
     }
   } else if (view.showTimeLabels !== false) {
@@ -263,21 +281,36 @@ function drawNoteBars(
   if (notes) {
     ctx.lineWidth = 1;
     for (const n of notes) {
-      const x0 = xOf(n.start);
-      const x1 = xOf(n.start + n.duration);
-      const y = yOf(n.midi) - semi / 2;
-      ctx.fillStyle = colors.note;
-      ctx.globalAlpha = 0.85;
-      ctx.fillRect(x0, y, Math.max(2, x1 - x0), semi);
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = colors.noteEdge;
-      ctx.strokeRect(x0 + 0.5, y + 0.5, Math.max(2, x1 - x0) - 1, semi - 1);
-      if (x1 - x0 > 22 && semi >= 9) {
-        ctx.fillStyle = colors.noteText;
-        ctx.textBaseline = "middle";
-        ctx.fillText(n.name, x0 + 3, y + semi / 2);
-      }
+      paintNote(ctx, geometry, view, n);
     }
+  }
+}
+
+function paintNote(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+  note: NoteEvent,
+) {
+  const { xOf, yOf, colors, semitoneHeight } = geometry;
+  const x = xOf(note.start),
+    width = Math.max(2, xOf(note.start + note.duration) - x);
+  const height = semitoneHeight * (view.noteHeight ?? 1);
+  const y = yOf(note.midi) - height / 2;
+  const sounding =
+    view.playheadTime !== undefined &&
+    view.playheadTime >= note.start &&
+    view.playheadTime < note.start + note.duration;
+  ctx.fillStyle = sounding ? colors.playhead : colors.note;
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(x, y, width, height);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = colors.noteEdge;
+  ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+  if (width > 22 && height >= 9) {
+    ctx.fillStyle = colors.noteText;
+    ctx.textBaseline = "middle";
+    ctx.fillText(note.name, x + 3, y + height / 2);
   }
 }
 
@@ -290,6 +323,7 @@ function drawBeatLine(
   height: number,
   showLabel: boolean,
   colors: TraceColors,
+  labelY = 2,
 ): void {
   const isBar = index % perBar === 0;
   ctx.strokeStyle = isBar ? colors.bar : index % sub === 0 ? colors.beat : colors.sub;
@@ -301,6 +335,6 @@ function drawBeatLine(
   if (isBar && showLabel) {
     ctx.fillStyle = colors.label;
     ctx.textBaseline = "top";
-    ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, 2);
+    ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, labelY);
   }
 }

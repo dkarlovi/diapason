@@ -7,14 +7,14 @@ import { getRecording, putRecording, deleteRecording, type Recording } from "../
 import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
-import { drawTrace, autoRange, type TraceView } from "../trace";
-import { processRecording, previewNotes, covers, type NoteItem } from "../recording";
+import { useEditorPlot } from "./useEditorPlot";
+import { processRecording, covers, type NoteItem } from "../recording";
 import type { MelodySetting } from "../melody/settings";
 import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
-import { noteAtPoint, toggleMuted } from "../editor-model";
+import { auditionLabel, noteAtPoint, toggleMuted } from "../editor-model";
 
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -24,6 +24,7 @@ export function useEditor(id: string) {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [draftName, setDraftName] = useState("");
   const [rollHover, setRollHover] = useState(false);
+  const [audition, setAudition] = useState<ReturnType<typeof processRecording> | null>(null);
 
   const recordRef = useRef<Recording | null>(null);
   const pcm = useRef(new Float32Array(0));
@@ -80,12 +81,12 @@ export function useEditor(id: string) {
     () => (record ? processRecording(record, frames) : null),
     [record, frames],
   );
-  const items = processed?.items ?? [];
+  const appliedItems = processed?.items ?? [];
   const notes = useMemo(() => processed?.notes ?? [], [processed]);
   const interpretation = processed?.interpretation ?? null;
   const melody = processed?.settings.melody ?? NO_MELODY;
   const grid = interpretation?.knobs.grid ?? 0;
-  const selectedItem = selected ? items.find((item) => covers(selected, item.raw)) : undefined;
+
   const {
     playing,
     position,
@@ -94,14 +95,27 @@ export function useEditor(id: string) {
     previewNote,
     previewSequence,
     previewId,
+    stopPlayback,
   } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
   const previewMelody = useCallback(
     (change: Partial<MelodySetting>, previewId: string) => {
       const current = recordRef.current;
-      if (current) previewSequence(previewNotes(current, frames, change), previewId);
+      if (!current) return;
+      const result = processRecording({ ...current, melody: { ...melody, ...change } }, frames);
+      setAudition(result);
+      previewSequence(result.notes, previewId);
     },
-    [frames, previewSequence],
+    [frames, previewSequence, melody],
   );
+  const showingPreview =
+    !!previewId && (previewId.startsWith("preset-") || previewId.startsWith("key-"));
+  const displayed = showingPreview ? audition : processed;
+  const items = displayed?.items ?? appliedItems;
+  const displayNotes = displayed?.notes ?? notes;
+  const selectedItem = selected ? items.find((item) => covers(selected, item.raw)) : undefined;
+  const previewLabel = audition
+    ? auditionLabel(previewId ?? "", audition.settings.melody, audition.interpretation.key.chosen)
+    : null;
   const selectNote = useCallback(
     (item: NoteItem) => {
       setSelected({ t: item.raw.start + item.raw.duration / 2, midi: item.raw.midi });
@@ -125,50 +139,30 @@ export function useEditor(id: string) {
       start,
     );
   };
-  const { logRef, reportText, copyStatus, downloadMidi, downloadWav, downloadJson, copyLog } =
-    useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
+  const {
+    logRef,
+    reportText,
+    copyStatus,
+    downloadMidi,
+    downloadWav,
+    downloadJson,
+    downloadLog,
+    copyLog,
+  } = useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
 
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
-  const baseView = useMemo(
-    () => (record ? { tMin: 0, tMax: record.durationSec, ...autoRange(frames) } : null),
-    [record, frames],
-  );
-  const beats = useMemo(
-    () => (record ? { bpm: record.bpm, beatsPerBar: record.beatsPerBar } : null),
-    [record],
-  );
-  const rollView: TraceView | null = useMemo(
-    () =>
-      baseView && beats
-        ? {
-            ...baseView,
-            beats: { ...beats, subdivision: grid || 1 },
-            notes,
-            muted,
-          }
-        : null,
-    [baseView, beats, grid, notes, muted],
-  );
-
-  useEffect(() => {
-    if (!record || !baseView || !beats || !rollView) return;
-    const draw = () => {
-      if (traceRef.current) drawTrace(traceRef.current, frames, { ...baseView, beats });
-      if (rollRef.current) drawTrace(rollRef.current, frames, rollView);
-    };
-    draw();
-    window.addEventListener("resize", draw);
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(draw);
-    if (traceRef.current) observer?.observe(traceRef.current);
-    if (rollRef.current) observer?.observe(rollRef.current);
-    const theme = window.matchMedia?.("(prefers-color-scheme: dark)");
-    theme?.addEventListener("change", draw);
-    return () => {
-      window.removeEventListener("resize", draw);
-      observer?.disconnect();
-      theme?.removeEventListener("change", draw);
-    };
-  }, [record, frames, baseView, beats, rollView]);
+  const displayGrid = displayed?.interpretation.knobs.grid ?? grid;
+  const viewport = useEditorPlot({
+    record,
+    frames,
+    notes: displayNotes,
+    muted,
+    grid: displayGrid,
+    position,
+    traceRef,
+    rollRef,
+  });
+  const rollView = viewport.view;
 
   const persist = useCallback((next: Recording) => {
     void putRecording(next);
@@ -211,7 +205,7 @@ export function useEditor(id: string) {
 
   const noteAt = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
-      if (!rollView) return null;
+      if (!record) return null;
       const rect = event.currentTarget.getBoundingClientRect();
       return noteAtPoint(items, rollView, {
         x: event.clientX - rect.left,
@@ -220,23 +214,28 @@ export function useEditor(id: string) {
         height: rect.height,
       });
     },
-    [items, rollView],
+    [items, rollView, record],
   );
 
+  const muteNote = useCallback(
+    (item: NoteItem) => {
+      const current = recordRef.current;
+      if (!current) return;
+      stopPlayback();
+      const next = { ...current, muted: toggleMuted(current.muted ?? [], item) };
+      replaceRecord(next);
+      persist(next);
+    },
+    [stopPlayback, replaceRecord, persist],
+  );
   const clickRoll = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
       const item = noteAt(event);
-      const current = recordRef.current;
-      if (!item || !current) return;
-      if (event.ctrlKey || event.metaKey) {
-        const next = { ...current, muted: toggleMuted(current.muted ?? [], item) };
-        replaceRecord(next);
-        persist(next);
-        return;
-      }
-      selectNote(item);
+      if (!item) return;
+      if (event.ctrlKey || event.metaKey) muteNote(item);
+      else selectNote(item);
     },
-    [noteAt, persist, replaceRecord, selectNote],
+    [noteAt, muteNote, selectNote],
   );
 
   const moveRoll = useCallback(
@@ -246,6 +245,10 @@ export function useEditor(id: string) {
 
   return {
     record,
+    displayNotes,
+    previewLabel,
+    stopPlayback,
+    viewport,
     draftName,
     setDraftName,
     commitName,
@@ -259,11 +262,16 @@ export function useEditor(id: string) {
     previewId,
     previewMelody,
     selectedNote: selectedItem?.note ?? null,
+    selectedMuted: selectedItem?.muted ?? false,
+    clearSelection: () => setSelected(null),
+    muteSelected: () => {
+      if (selectedItem) muteNote(selectedItem);
+    },
     previewContext,
     selectNote,
     items,
     play,
-    notesLabel: `${notes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${PRESETS[melody.preset].label}${grid ? " · grid on" : " · performed timing"}`,
+    notesLabel: `${displayNotes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${previewLabel ?? PRESETS[melody.preset].label}${displayGrid ? " · grid on" : " · performed timing"}`,
     meta: record
       ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
       : "",
@@ -284,6 +292,7 @@ export function useEditor(id: string) {
     downloadMidi,
     downloadWav,
     downloadJson,
+    downloadLog,
     copyLog,
   };
 }

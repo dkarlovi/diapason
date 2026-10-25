@@ -472,3 +472,27 @@ it("shows context playback at the selected phrase's recording position", async (
   tick();
   expect(hook.result.current.position).toBeCloseTo(1.25);
 });
+
+it("draws the exact auditioned notes and restores applied notes through regular Stop", async () => {
+  const hook = await editor();
+  const applied = hook.result.current.displayNotes;
+  act(() =>
+    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  expect(hook.result.current.displayNotes).toEqual(state.notes.at(-1)?.[0]);
+  expect(hook.result.current.previewLabel).toBe("Gentle fix");
+  expect(hook.result.current.notesLabel).toContain("Gentle fix · performed timing");
+  expect(state.saves).toHaveLength(0);
+  act(() => hook.result.current.togglePlayback("midi"));
+  expect(hook.result.current.playing).toBeNull();
+  expect(hook.result.current.displayNotes).toEqual(applied);
+  expect(hook.result.current.previewLabel).toBeNull();
+});
+
+it("downloads a readable diagnostic log from the same applied recording", async () => {
+  const hook = await editor();
+  act(() => hook.result.current.downloadLog());
+  const log = state.downloads[0]!;
+  expect(log.name).toMatch(/\.txt$/);
+  expect(new TextDecoder().decode(await read(log.blob))).toContain("diapason diagnostics: one");
+});

@@ -66,13 +66,24 @@ setup; reduced motion preferences disable the folding animation.
 
 All three screens share the Slate & blue system theme, compact header, readable
 type, and shared controls built with Tailwind, the shadcn/ui component pattern,
-semantic theme tokens, and Lucide icons. The Editor keeps original audio on the
-left and MIDI on the right, with matching playback/download actions. Their
-canvases stay visible while recording settings and melody controls scroll below.
-On narrow screens, paired charts remain pinned above the stacked toolboxes.
-Presets retain separate preview and apply actions; all advanced controls,
-diagnostics, and note previews remain available. Saved charts update when the
-system theme or their container size changes. The Library keeps audio/MIDI
+semantic theme tokens, and Lucide icons. The Editor uses a shared timeline with
+original audio above an edge-to-edge MIDI roll. A divider handle hides or restores
+original audio; mobile starts with it hidden. Tune floats over the right side,
+starts at 360px, and resizes from 286px to half the workspace. Matching Play and
+Download pairs move left of Tune. Preset and Key dropdowns contain their
+Preview/Use actions; the Key menu includes Auto, suggestions, and all 24 keys;
+Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
+Instrument and octave sit in Tune. Rename lives in the header, with duplicate,
+delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
+keeps external MIDI selection in that menu.
+
+Time zoom, pitch zoom, Fit notes, and shared pan float over the roll. The pan
+slider sits above the buttons, keeping the buttons fixed when it appears. Playback
+follows the playhead through the uncovered area and highlights sounding notes.
+Real preset and key previews appear on the roll with a preview label; regular
+Stop ends the audition and restores applied notes. Previewing never saves or
+changes exports. Saved charts redraw when the theme or container changes.
+The Library keeps audio/MIDI
 previews and Open visible, with Duplicate and Delete in each row's actions menu.
 Each Library row has a subtle blue gradient with a compact waveform cut out
 behind the labels, preserving the original row height and controls. Recordings
@@ -130,6 +141,26 @@ available if microphone tempo detection fails. Microphone access needs localhost
 or HTTPS. Audio and recordings remain local in IndexedDB.
 
 ## Running it
+
+Three interactive **editor layout studies** are available at
+[`/diapason/prototypes/editor-directions.html`](http://localhost:5173/diapason/prototypes/editor-directions.html)
+while the development server is running. Compare a 25/75 audio–MIDI split, a shared
+timeline with a slim original track, and a MIDI canvas with tools shown on demand.
+The shared-timeline study now opens by default. Its original track can be hidden
+(hidden initially on mobile); matching Play/Download pairs sit at each track's
+top right, instrument and octave live in the toolbox, and zoom floats over the
+canvas. The divider handle restores or hides the original track without removing
+the MIDI canvas. Download log is under Recording actions.
+Tune starts wider and can be dragged from 286px up to half the workspace, or
+switched between docked and overlay placement. Preset auditions appear on the
+roll with a preview label and sounding-note highlights; the regular Stop button
+ends the preview and restores the applied version. Zoomed playback follows the
+playhead across both tracks.
+Try the preset dropdown's Preview/Use actions, grouped tuning controls, note
+selection and muting, and time/pitch zoom. These are standalone design prototypes
+with a generated demo melody and synth audio; they do not load or modify saved
+recordings, run the melody correction engine, or export MIDI. The shipped Editor implements the approved shared-timeline overlay direction. See [the study notes](prototypes/editor-directions.md)
+for tradeoffs and review details.
 
 Requires Node 22+.
 
@@ -258,27 +289,22 @@ preview. Starting another preview replaces it.
 
 - **Intent:** As played, Gentle fix, Clean, and Keep my odd notes.
 - **Mood:** Happy, Sad, Dreamy, and Syncopated.
-- **Key:** Auto, three suggested alternatives with previews, and all 24 keys under
-  **I know my key**.
-- **Controls:** Steadiness (keep held notes whole, absorb short slips), Pull into key
-  (from exactly what you whistled to always in key, guided by the key and implied
-  chords), Mode (as detected, major or minor), and Timing grid are directly
-  visible. **More** holds Level gate, Minimum note length, Silence gap, Smooth
-  leaps, Max pitch move (fixes notes you could not hit: a note that clashes with
-  the implied chord moves onto the nearest chord tone within that many
-  semitones; off-beat passing and neighbour notes, reached and left by step, are
-  kept as the melody's decoration; 0 by default),
-  Pull onto grid (from as recorded to exactly on the grid),
-  Swing, Syncopation (an anticipation of at most an eighth), and Note length.
-  Changing a control shows **Custom (from …)** and saves it with the recording;
-  saved values for controls that have since been retired are ignored.
-  Double-click a label to reset that control; **Reset all** restores the current
-  preset's controls while retaining the chosen key.
+- **Key:** One dropdown contains Auto, three suggested alternatives, and all 24
+  explicit keys, each with Preview and Use actions.
+- **Controls:** Essentials groups Steadiness, Pull into key, and Pull onto grid.
+  Pitch includes key pull, Mode, Smooth leaps, and Max pitch move. Rhythm holds
+  Timing grid, grid pull, Swing, Syncopation, and Note length. Detection holds
+  Steadiness, Level gate, Minimum note length, and Silence gap. Changing a control
+  shows **Custom (from …)** and saves it. Double-click a label to reset that
+  control; **Reset** restores the current preset's controls and retains the key.
+  Each control uses one label–widget–value row; explanations appear in tooltips.
 
-Click a piano-roll note to hear it and show its name, start time, and duration.
-**Hear in context** includes neighboring notes. The **Notes** list provides the
-same named previews as keyboard-accessible buttons. Ctrl/Cmd+click mutes a note;
-muted anchors are kept through preset changes so switching back restores them.
+Click a piano-roll note to hear it and show its name, start time, duration, Mute,
+and **Hear in context**. Focus the roll and use arrow keys or Home/End to select
+and audition notes, Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
+also toggles mute. Muted anchors survive preset changes. Tune's divider supports
+Left/Right, Home, and End. On mobile, starting an audition closes Tune so the
+preview remains visible; reopen it to keep adjusting.
 
 The decoder finds notes before naming them. A dip in level (re-articulation) or a
 real silence always starts a new note; within one articulation, a sustained pitch

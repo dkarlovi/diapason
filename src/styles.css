@@ -564,18 +564,3 @@ select:focus-visible {
 .selected-note {
   min-height: 1.5em;
 }
-
-@media (max-width: 600px) {
-  .melody-panel .tune .ctl {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.25rem 0.5rem;
-  }
-  .melody-panel .ctl .val {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .melody-panel .ctl input,
-  .melody-panel .ctl select {
-    grid-column: 1 / -1;
-  }
-}

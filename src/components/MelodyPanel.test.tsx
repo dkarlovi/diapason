@@ -42,33 +42,60 @@ function Harness() {
 it("previewing a preset leaves the current selection unchanged", () => {
   preview.mockClear();
   render(<Harness />);
+  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
   fireEvent.click(screen.getByRole("button", { name: "Play Clean" }));
   expect(preview).toHaveBeenCalledWith({ preset: "clean", overrides: {} }, "preset-clean");
-  expect(screen.getByRole("heading", { name: "Custom (from Gentle fix)" })).toBeTruthy();
+  expect(screen.getByText("Custom (from Gentle fix)")).toBeTruthy();
 });
 it("using a preset clears overrides and editing a knob shows Custom", () => {
   render(<Harness />);
+  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
   fireEvent.click(screen.getByRole("button", { name: "Use Clean" }));
-  expect(screen.getByRole("heading", { name: "Clean" })).toBeTruthy();
+  expect(screen.getByText("Clean")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Pull into key"), { target: { value: ".3" } });
-  expect(screen.getByRole("heading", { name: "Custom (from Clean)" })).toBeTruthy();
+  expect(screen.getByText("Custom (from Clean)")).toBeTruthy();
 });
-it("offers Auto, previewable alternatives and every key behind I know my key", () => {
+it("keeps automatic, suggested and all explicit key actions inside the key dropdown", () => {
   render(<Harness />);
-  expect((screen.getByLabelText("Key") as HTMLSelectElement).value).toBe("auto");
-  expect(screen.getAllByRole("button", { name: /^Play key / })).toHaveLength(3);
-  fireEvent.click(screen.getByText("I know my key"));
-  expect(screen.getByLabelText("Choose any key").querySelectorAll("option")).toHaveLength(24);
+  expect(screen.queryByText("Key alternatives")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use key G major" })).toBeNull();
+  fireEvent.click(screen.getByLabelText("Choose key"));
+  expect(screen.getByRole("button", { name: "Use Auto key" })).toBeTruthy();
+  expect(screen.getAllByRole("button", { name: /^Use key / })).toHaveLength(24);
+  expect(screen.getAllByRole("button", { name: /^Play key / })).toHaveLength(24);
+  fireEvent.click(screen.getByRole("button", { name: "Use key G major" }));
+  expect(screen.getByLabelText("Choose key").textContent).toContain("G major");
+  expect(screen.queryByRole("button", { name: "Use key G major" })).toBeNull();
 });
-it("basic knobs are visible and other controls are inside More", () => {
+it("previews a key without applying it and restores focus after dismissal", () => {
+  preview.mockClear();
   render(<Harness />);
-  expect(screen.getByLabelText("Steadiness").closest("details")).toBeNull();
-  expect(screen.getByLabelText("Pull into key").closest("details")).toBeNull();
-  expect(screen.getByLabelText("Mode").closest("details")).toBeNull();
-  expect(
-    screen.getByLabelText("Minimum note length").closest("details")?.querySelector("summary")
-      ?.textContent,
-  ).toBe("More");
+  fireEvent.click(screen.getByLabelText("Choose key"));
+  fireEvent.click(screen.getByRole("button", { name: "Play key G major" }));
+  expect(preview).toHaveBeenCalledWith({ key: { tonic: 7, mode: "major" } }, "key-7-major");
+  const key = screen.getByLabelText("Choose key");
+  expect(key.textContent).toContain("Auto · E minor");
+  expect(document.activeElement).toBe(key);
+  fireEvent.click(key);
+  fireEvent.keyDown(key, { key: "Escape" });
+  expect(screen.queryByRole("button", { name: "Use Auto key" })).toBeNull();
+  expect(document.activeElement).toBe(key);
+});
+it("keeps control explanations in tooltips without a separate help line", () => {
+  render(<Harness />);
+  const slider = screen.getByLabelText("Steadiness");
+  expect(slider.title).toContain("Keep held notes whole");
+  expect(slider.closest(".ctl")?.querySelector("small")).toBeNull();
+});
+it("reveals presets and tuning groups only when requested", () => {
+  render(<Harness />);
+  expect(screen.queryByRole("button", { name: "Use Clean" })).toBeNull();
+  expect(screen.queryByLabelText("Minimum note length")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Detection" }));
+  expect(screen.getByLabelText("Minimum note length")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Rhythm" }));
+  expect(screen.getByLabelText("Timing grid")).toBeTruthy();
+  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
   for (const preset of Object.values(PRESETS))
     expect(screen.getByRole("button", { name: `Use ${preset.label}` })).toBeTruthy();
 });

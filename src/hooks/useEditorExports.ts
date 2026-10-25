@@ -82,6 +82,16 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
       if (token === generation.current) setCopyStatus("Diagnostics export failed; please retry.");
     }
   }, [filename, reportInput, recordRef, statsRef, pcmRef]);
+  const downloadLog = useCallback(() => {
+    const current = recordRef.current;
+    if (!current || !statsRef.current) return;
+    try {
+      const report = buildReport(reportInput(current, statsRef.current));
+      downloadBlob(new Blob([report], { type: "text/plain" }), filename("txt"));
+    } catch (error) {
+      setCopyStatus(`Diagnostics failed: ${errorMessage(error)}`);
+    }
+  }, [filename, reportInput, recordRef, statsRef]);
   const copyLog = useCallback(async () => {
     const current = recordRef.current;
     if (!current || !statsRef.current) return;
@@ -105,5 +115,14 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
     if (copyStatus.startsWith("select")) logRef.current?.select();
   }, [copyStatus]);
 
-  return { logRef, reportText, copyStatus, downloadMidi, downloadWav, downloadJson, copyLog };
+  return {
+    logRef,
+    reportText,
+    copyStatus,
+    downloadMidi,
+    downloadWav,
+    downloadJson,
+    downloadLog,
+    copyLog,
+  };
 }

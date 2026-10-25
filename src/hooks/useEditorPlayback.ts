@@ -17,7 +17,6 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
   const [position, setPosition] = useState<number | null>(null);
   const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
   const playback = useRef<Playback | null>(null);
-  const preview = useRef<Playback | null>(null);
   const transport = useRef({
     raf: 0,
     mounted: false,
@@ -26,8 +25,6 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
   });
 
   const stopPlayback = useCallback(() => {
-    preview.current?.stop();
-    preview.current = null;
     playback.current?.stop();
     playback.current = null;
     transport.current.previewId = null;
@@ -48,8 +45,6 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
     return () => {
       transport.current.mounted = false;
       stopPlayback();
-      preview.current?.stop();
-      preview.current = null;
     };
   }, [recordingId, stopPlayback]);
 
@@ -60,17 +55,6 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
         setExternalOutput(!!activeOutput());
       }),
     [stopPlayback],
-  );
-
-  const previewNote = useCallback(
-    (note: NoteEvent) => {
-      const current = recordRef.current;
-      if (!current) return;
-      stopPlayback();
-      preview.current?.stop();
-      preview.current = playNotes([{ ...note, start: 0 }], note.duration, current.play);
-    },
-    [recordRef, stopPlayback],
   );
 
   const start = useCallback(
@@ -91,6 +75,15 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       transport.current.raf = requestAnimationFrame(tick);
     },
     [stopPlayback],
+  );
+  const previewNote = useCallback(
+    (note: NoteEvent) => {
+      const current = recordRef.current;
+      if (!current) return;
+      stopPlayback();
+      start("midi", playNotes([{ ...note, start: 0 }], note.duration, current.play), note.start);
+    },
+    [recordRef, start, stopPlayback],
   );
   const togglePlayback = useCallback(
     (kind: "audio" | "midi") => {
