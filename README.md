@@ -20,6 +20,9 @@ diapason is organized as a **library of recordings**, persisted in your browser
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
    the microphone, or entering BPM. Preview the metronome and choose beats per
    bar, then confirm. One bar counts you in before recording starts on the downbeat.
+   Below 120 BPM, a quieter click halfway after beats 3, 5, and subsequent odd
+   beats helps you keep your place. The same beat indicator flashes twice;
+   beat 1 retains its distinct accent. This applies to preview, count-in, and recording.
    Each take saves to the Library while the studio stays ready for another recording.
    The metronome guides your timing; its beat schedule never blanks captured pitches.
    Stored audio stays untouched.
