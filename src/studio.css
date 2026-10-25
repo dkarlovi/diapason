@@ -398,6 +398,8 @@ main.studio-shell.library-shell {
   background: var(--color-card);
 }
 .library-record {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) auto;
   align-items: center;
@@ -407,6 +409,9 @@ main.studio-shell.library-shell {
 }
 .library-record:last-child {
   border-bottom: 0;
+}
+.library-record:has(.recording-menu[open]) {
+  z-index: 1;
 }
 .recording-icon {
   width: 34px;
@@ -437,6 +442,23 @@ main.studio-shell.library-shell {
   font-size: 0.8125rem;
   color: var(--color-muted-foreground);
   font-variant-numeric: tabular-nums;
+}
+.recording-waveform {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  display: block;
+  width: min(550px, 100%);
+  height: 100%;
+  color: var(--color-primary);
+  opacity: 0.14;
+  pointer-events: none;
+}
+.library-record:first-child .recording-waveform {
+  border-radius: 6px 6px 0 0;
+}
+.library-record:last-child .recording-waveform {
+  border-radius: 0 0 6px 6px;
 }
 .library-record-actions {
   display: flex;
@@ -631,6 +653,9 @@ main.studio-shell.library-shell {
   }
   .recording-info p {
     font-size: 0.75rem;
+  }
+  .recording-waveform {
+    width: min(362px, 100%);
   }
 }
 @media (max-width: 420px) {

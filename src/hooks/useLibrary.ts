@@ -14,6 +14,7 @@ import { playPcm, playNotes, type Playback } from "../playback";
 import { recordingNotes } from "../recording";
 import { onOutputChange } from "../midiout";
 import type { Frame } from "../notes";
+import { useLibraryRecordings } from "./useWaveformBackfill";
 
 export type Playing = { id: string; kind: "audio" | "midi" } | null;
 
@@ -22,7 +23,7 @@ function uid(): string {
 }
 
 export function useLibrary() {
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [recordings, setRecordings] = useLibraryRecordings();
   const [storage, setStorage] = useState("");
   const [playing, setPlaying] = useState<Playing>(null);
   const playingRef = useRef<Playing>(null);

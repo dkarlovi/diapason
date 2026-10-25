@@ -10,6 +10,7 @@ vi.mock("../db", () => ({
   deleteRecording: async () => {},
   getRecording: async () => state.record,
   putRecording: async () => {},
+  saveWaveform: async () => undefined,
 }));
 vi.mock("../codec", () => ({
   decodeAudio: async () =>
