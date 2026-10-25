@@ -74,6 +74,12 @@ Presets retain separate preview and apply actions; all advanced controls,
 diagnostics, and note previews remain available. Saved charts update when the
 system theme or their container size changes. The Library keeps audio/MIDI
 previews and Open visible, with Duplicate and Delete in each row's actions menu.
+Each Library row has a subtle blue gradient with a compact waveform cut out
+behind the labels, preserving the original row height and controls. Recordings
+without a waveform show the gradient alone. The original-audio preview preserves pauses and relative loudness,
+uses a compact summary saved with each new take, and survives reloads and
+duplication. Older recordings gain previews gradually in the background when
+you visit the Library; unavailable previews do not block playback.
 
 New recordings start with **Clean** and **Auto** key selection. Clean snaps to an
 eighth-note grid; the other intent presets keep performed timing. A single

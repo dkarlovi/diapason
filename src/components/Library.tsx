@@ -5,6 +5,7 @@ import type { Recording } from "../db";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { Button, Panel } from "./primitives";
+import { WaveformThumbnail } from "./WaveformThumbnail";
 
 function closeRecordingMenu(control: HTMLElement) {
   const menu = control.closest("details");
@@ -27,6 +28,7 @@ function RecordingCard({
 }) {
   return (
     <article className="library-record">
+      <WaveformThumbnail summary={record.waveform} />
       <span className="recording-icon">
         <FileAudio aria-hidden="true" />
       </span>

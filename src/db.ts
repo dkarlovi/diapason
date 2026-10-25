@@ -3,6 +3,7 @@
 import type { SoundProfile } from "./recording-profiles";
 import type { MelodySetting } from "./melody/settings";
 import type { PlaySettings } from "./instruments";
+import type { WaveformSummary } from "./waveform";
 
 const DB_NAME = "diapason";
 const DB_VERSION = 1;
@@ -40,6 +41,7 @@ export interface Recording {
   beatsPerBar: number;
   /** Gzipped Int16 PCM (see codec.ts). Audio t=0 is the downbeat. */
   audio: Blob;
+  waveform?: WaveformSummary;
   capture: CaptureMeta;
   melody?: MelodySetting;
   /** Legacy fields are read only to migrate older saved recordings. */
@@ -108,6 +110,29 @@ export function putRecording(r: Recording): Promise<unknown> {
 
 export function deleteRecording(id: string): Promise<unknown> {
   return tx("readwrite", (s) => s.delete(id));
+}
+
+/** Merge in one transaction so backfill cannot overwrite edits or resurrect deletions. */
+export async function saveWaveform(
+  id: string,
+  waveform: WaveformSummary,
+): Promise<WaveformSummary | undefined> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, "readwrite");
+    const store = transaction.objectStore(STORE);
+    let saved: WaveformSummary | undefined;
+    const request = store.get(id) as IDBRequest<Recording | undefined>;
+    request.onsuccess = () => {
+      const record = request.result;
+      if (!record) return;
+      saved = record.waveform ?? waveform;
+      if (!record.waveform) store.put({ ...record, waveform });
+    };
+    transaction.oncomplete = () => resolve(saved);
+    transaction.onabort = () => reject(transaction.error);
+    transaction.onerror = () => reject(transaction.error);
+  });
 }
 
 /** Best-effort storage usage, for a usage indicator. */

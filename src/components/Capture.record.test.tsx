@@ -25,6 +25,7 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
     durationSec: 0.8,
     bpm: 90,
     beatsPerBar: 4,
+    waveform: { version: 1, rms: expect.any(Float32Array) },
     source: { profileId: "whistle", analysis: { minFreq: 250, maxFreq: 3000 } },
     capture: { gain: 1, noiseFloor: 0.001, rmsGate: 0.003, dspOff: true },
     melody: { preset: "clean", key: "auto", overrides: { levelGate: 0.003 } },

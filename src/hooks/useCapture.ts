@@ -3,6 +3,7 @@ import { useRecordingSetup } from "./useRecordingSetup";
 import { createRecorder, type Recorder } from "../recorder";
 import { startMetronome, type MetronomeHandle, type TransportState } from "../metronome";
 import { encodeAudio } from "../codec";
+import { summarizeWaveform } from "../waveform";
 import { putRecording, type Recording } from "../db";
 import { newRecordingMelody } from "../melody/settings";
 import { fmtDate } from "../ui";
@@ -178,6 +179,7 @@ export function useCapture() {
         beatsPerBar: settings.beatsPerBar,
         source: { profileId: profile.id, analysis: { ...profile.analysis } },
         audio: await encodeAudio(trimmed),
+        waveform: summarizeWaveform(trimmed),
         capture: {
           gain: settings.gain,
           noiseFloor: settings.room.floor,
