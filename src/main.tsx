@@ -8,6 +8,7 @@ import { BASE } from "./router";
 import "./styles.css";
 import "./capture.css";
 import "./studio.css";
+import "./editor.css";
 
 function RecordingRoute() {
   const { id } = useParams();

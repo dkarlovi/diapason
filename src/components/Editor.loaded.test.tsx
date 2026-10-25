@@ -25,6 +25,10 @@ vi.mock("../db", () => ({
   },
   deleteRecording: async () => undefined,
 }));
+vi.mock("../playback", () => ({
+  playNotes: () => ({ position: () => null, stop() {} }),
+  playPcm: () => ({ position: () => null, stop() {} }),
+}));
 vi.mock("../codec", () => ({ decodeAudio: async () => new Float32Array(48000) }));
 vi.mock("../recorder", async (importOriginal) => {
   const original = await importOriginal<typeof import("../recorder")>();
@@ -45,6 +49,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 it("loads a recording and applies a melody preset through React controls", async () => {
@@ -55,6 +60,7 @@ it("loads a recording and applies a melody preset through React controls", async
   );
   await screen.findByDisplayValue("Melody");
   expect(screen.getByText(/1 notes/)).toBeTruthy();
+  fireEvent.click(screen.getByLabelText("Choose preset"));
   fireEvent.click(screen.getByRole("button", { name: "Use Gentle fix" }));
   await waitFor(() =>
     expect(saved?.melody).toEqual({ preset: "gentle", overrides: {}, key: "auto" }),
@@ -102,6 +108,7 @@ it("keeps a new name when the tuning save fires later", async () => {
   );
   const name = await screen.findByDisplayValue("Melody");
   vi.useFakeTimers();
+  fireEvent.click(screen.getByRole("button", { name: "Detection" }));
   fireEvent.change(screen.getByLabelText("Minimum note length"), { target: { value: "120" } });
   fireEvent.change(name, { target: { value: "Renamed" } });
   fireEvent.blur(name);
@@ -121,6 +128,7 @@ it("saves a tuning change when leaving before the debounce delay", async () => {
     </MemoryRouter>,
   );
   await screen.findByDisplayValue("Melody");
+  fireEvent.click(screen.getByRole("button", { name: "Detection" }));
   fireEvent.change(screen.getByLabelText("Minimum note length"), { target: { value: "120" } });
   fireEvent.click(screen.getByRole("link", { name: /Library/ }));
   expect(screen.getByText("Library route")).toBeTruthy();
@@ -149,4 +157,64 @@ it("mutes a note through the MIDI roll", async () => {
   fireEvent.click(roll, { clientX: 25, clientY: 67, ctrlKey: true });
   await waitFor(() => expect(saved?.muted).toMatchObject([{ midi: 69 }]));
   expect(screen.getByText(/0 notes · 1 muted/)).toBeTruthy();
+});
+
+it("provides a resizable Tune overlay and a removable original track", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const divider = screen.getByRole("separator", { name: "Resize Tune sidebar" });
+  expect(divider.getAttribute("aria-orientation")).toBe("vertical");
+  fireEvent.click(screen.getByRole("button", { name: "Hide original" }));
+  expect(screen.queryByRole("region", { name: "Original recording" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Show original" }));
+  expect(screen.getByRole("region", { name: "Original recording" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Close Tune" }));
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Open Tune" }));
+  expect(screen.getByRole("region", { name: "Tune melody" })).toBeTruthy();
+  expect(screen.queryByText("Notes")).toBeNull();
+});
+
+it("keeps panning available at 1× while Tune obscures the ending", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  expect(screen.getByLabelText("Pan shared timeline").closest("label")?.hidden).toBe(false);
+});
+it("starts mobile with original audio and Tune closed", async () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("760px"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  expect(screen.queryByRole("region", { name: "Original recording" })).toBeNull();
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Open Tune" })).toBeTruthy();
+});
+it("allows keyboard note selection and contextual muting without a note list", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
+  fireEvent.keyDown(roll, { key: "ArrowRight" });
+  expect(screen.getByRole("button", { name: "Hear in context" })).toBeTruthy();
+  fireEvent.keyDown(roll, { key: "m" });
+  await waitFor(() => expect(saved?.muted).toMatchObject([{ midi: 69 }]));
+  expect(screen.getByRole("button", { name: "Unmute" })).toBeTruthy();
 });

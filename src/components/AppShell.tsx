@@ -26,10 +26,16 @@ export function AppShell({ children }: PropsWithChildren) {
             <nav className="workstation-location" aria-label="Location">
               <Link to="/">Library</Link>
               <ChevronRight aria-hidden="true" />
-              <h1>{capture ? "New recording" : title || "Recording"}</h1>
+              <h1 aria-label={capture ? "New recording" : title || "Recording"}>
+                <span className="studio-title-fallback">
+                  {capture ? "New recording" : title || "Recording"}
+                </span>
+                {editor && <span id="editor-title-slot" />}
+              </h1>
             </nav>
           )}
           <MidiOutputPicker />
+          {editor && <div id="editor-actions-slot" />}
         </header>
         {children}
       </main>

@@ -5,10 +5,12 @@ import { analysisOptionsFor } from "./recording-profiles";
 import type { ReportInput } from "./diagnostics";
 import type { NoteItem } from "./recording";
 import { covers } from "./recording";
-import type { TraceView } from "./trace";
+import { traceHorizontalPadding, type TraceView } from "./trace";
 import type { KnobDef, Knobs } from "./melody/knobs";
 import { melodySettingFor } from "./melody/settings";
-import { resolveKnobs } from "./melody/knobs";
+import { keyName, type Key } from "./melody/key";
+import type { MelodySetting } from "./melody/settings";
+import { PRESETS, resolveKnobs } from "./melody/knobs";
 export function knobValueLabel(def: KnobDef, value: Knobs[keyof Knobs]): string {
   if (def.kind === "select")
     return def.options.find((option) => option.value === value)?.label ?? String(value);
@@ -26,11 +28,15 @@ export interface RollPoint {
 
 export function noteAtPoint(
   items: NoteItem[],
-  view: Pick<TraceView, "tMin" | "tMax" | "midiMin" | "midiMax">,
+  view: Pick<TraceView, "tMin" | "tMax" | "midiMin" | "midiMax" | "inset">,
   point: RollPoint,
 ): NoteItem | null {
   if (!point.width || !point.height) return null;
-  const t = view.tMin + (point.x / point.width) * (view.tMax - view.tMin);
+  const padding = traceHorizontalPadding(point.width, view.inset);
+  const t =
+    view.tMin +
+    ((point.x - padding.left) / (point.width - padding.left - padding.right)) *
+      (view.tMax - view.tMin);
   const midi = view.midiMax - (point.y / point.height) * (view.midiMax - view.midiMin);
   const padT = (4 / point.width) * (view.tMax - view.tMin);
   let best: NoteItem | null = null;
@@ -80,4 +86,10 @@ export function makeReportInput(
     frames,
     stats,
   };
+}
+
+export function auditionLabel(id: string, melody: MelodySetting, key: Key | null): string | null {
+  if (id.startsWith("preset-")) return PRESETS[melody.preset].label;
+  if (id.startsWith("key-")) return key ? `Key ${keyName(key)}` : "Key Auto";
+  return null;
 }

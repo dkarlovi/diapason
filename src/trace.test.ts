@@ -172,3 +172,18 @@ it("omits vertical time lines when a live monitor has no tempo", () => {
     true,
   );
 });
+
+it("highlights the sounding editor note and gives compact notes room within the pitch row", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    noteHeight: 0.68,
+    playheadTime: 0.4,
+    notes: [{ midi: 69, name: "A4", start: 0.25, duration: 0.5 }],
+  });
+  const note = operations.find(
+    (operation) => operation.method === "fillRect" && operation.args[0] === 25,
+  );
+  expect(note?.fill).toBe("#b6f2dd");
+  expect(note?.args[3]).toBe(17);
+});

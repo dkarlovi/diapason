@@ -30,15 +30,16 @@ The live signal is the primary feedback during recording setup. The wizard helps
 the user bring that signal into a recordable state. Keep the live view visible
 through every setup step and throughout recording.
 
-The live signal on the new recording screen becomes the original audio on the
-editor screen. Preserve its left-hand position, chart vocabulary, and surrounding
-frame to make that continuity apparent. Give the live chart roughly twice the
-editor chart's height: its prominence matters more than identical dimensions.
+The saved editor uses the approved shared-timeline overlay direction. Original
+audio is a shallow track above an edge-to-edge MIDI roll, with exactly aligned
+time coordinates. Original audio can be hidden entirely and starts hidden on
+mobile. A handle straddles the divider to hide or restore it.
 
-In the editor, original audio belongs on the left and resulting MIDI on the
-right. They complement each other. Match their chart dimensions, timeline scale,
-and the positions of parallel actions such as play and download. Keep both
-canvases in view while the user adjusts the recording.
+Each track has identically sized Play/Stop and Download controls in the same
+order and at the same top-right offset. Open Tune moves both pairs left together
+so playback remains accessible. Tune overlays the workarea, starts at 360px, and
+can be resized from 286px to 50% using its divider or keyboard. Zoom and pan float
+at bottom right; metadata and note details are overlays, never dedicated rows.
 
 ## Controls are a toolbox
 
@@ -97,22 +98,30 @@ state. Respect reduced motion preferences.
 
 ## Implemented studio relationships
 
-All three screens share the compact studio shell, Slate & blue system themes,
-readable controls, and semantic tokens. The Editor groups paired audio/MIDI
-canvases above independently scrolling toolboxes, with aligned playback and
-export actions. Presets keep separate preview and apply buttons. Library rows
-keep playback and Open visible, with secondary actions in a keyboard-accessible
-menu that restores focus when closed.
+Recording retains the approved folding wizard. Editing uses the approved shared
+timeline with overlay Tune. Presets occupy one dropdown with separate Preview
+and Use actions. Key follows the same dropdown pattern, containing Auto, key
+suggestions, all 24 explicit keys, and Preview/Use actions. Controls stay in
+compact label–widget–value rows, with explanation text in tooltips.
+Tune groups Essentials, Pitch, Rhythm, and Detection, with instrument and octave
+above the groups. Rename is in the compact header; recording actions and
+text/JSON diagnostics live in its menu. Mobile retains external MIDI selection
+there as well.
 
-On narrow screens, both saved canvases stay pinned above stacked toolboxes.
-Short windows use compact pinned charts and scrolling settings rather than
-clipping the tools. Saved canvases redraw when their containers or system theme
-change.
+The pan slider sits above the floating zoom buttons so their positions stay
+fixed when panning becomes available. Both saved tracks share time zoom, pan,
+playhead, and playback following. Pitch
+starts fitted to interpreted and muted notes and can be zoomed or fitted again.
+Following and pan account for the overlay and pitch-axis inset, including the
+last note. Manual pan remains available whenever the overlay hides some of the
+time range, even at 1×.
 
-Shared timeline zoom remains future work. Current saved views show the whole
-recording and preserve the same time scale across both canvases.
+Auditions render exactly the notes sent to playback, show a preview label, and
+highlight the sounding note. The regular MIDI Stop ends auditions and restores
+the applied roll. Auditions never save or affect exports. Contextual note controls
+and keyboard navigation replace the permanent Notes list. On mobile Tune closes
+when auditioning so the roll is visible.
 
-Prototype files remain in the ignored `.superpowers/brainstorm/` directory. The
-approved Recording reference is `folding-wizard-v8.html`; prototypes are visual
-references, while production retains saving a finished take and opening it in
-the Editor.
+The visual studies are in `prototypes/editor-directions.html`; the shared timeline
+with overlay Tune is the implementation reference. The Recording reference remains
+`folding-wizard-v8.html` in the ignored `.superpowers/brainstorm/` directory.
