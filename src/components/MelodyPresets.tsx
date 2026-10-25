@@ -1,7 +1,6 @@
-import { Play, Square } from "lucide-react";
-import { PRESETS } from "../melody/knobs";
+import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
 import { MelodyDropdown } from "./MelodyDropdown";
-import { Button } from "./primitives";
+import { PreviewOption } from "./PreviewOption";
 import type { MelodyPanelProps } from "./MelodyPanel";
 
 type Props = Pick<
@@ -16,6 +15,7 @@ export function MelodyPresets(props: Props) {
       label="Preset"
       value={custom ? `Custom (from ${label})` : label}
       disabled={props.disabled}
+      onReset={() => props.applyPreset(DEFAULT_PRESET)}
     >
       {(close) => (
         <>
@@ -26,41 +26,26 @@ export function MelodyPresets(props: Props) {
               {Object.values(PRESETS)
                 .filter((preset) => preset.kind === kind)
                 .map((preset) => (
-                  <div className="editor-preset-option" key={preset.id}>
-                    <span title={preset.blurb}>
-                      {preset.label}
-                      {props.melody.preset === preset.id ? " ✓" : ""}
-                    </span>
-                    <Button
-                      disabled={props.disabled}
-                      aria-label={`Play ${preset.label}`}
-                      aria-pressed={props.previewId === `preset-${preset.id}`}
-                      onClick={() => {
-                        props.previewMelody(
-                          { preset: preset.id, overrides: {} },
-                          `preset-${preset.id}`,
-                        );
-                        close();
-                      }}
-                    >
-                      {props.previewId === `preset-${preset.id}` ? (
-                        <Square aria-hidden="true" />
-                      ) : (
-                        <Play aria-hidden="true" />
-                      )}
-                      <span>Preview</span>
-                    </Button>
-                    <Button
-                      disabled={props.disabled}
-                      aria-label={`Use ${preset.label}`}
-                      onClick={() => {
-                        props.applyPreset(preset.id);
-                        close();
-                      }}
-                    >
-                      Use
-                    </Button>
-                  </div>
+                  <PreviewOption
+                    key={preset.id}
+                    label={preset.label}
+                    title={preset.blurb}
+                    selected={props.melody.preset === preset.id}
+                    previewing={props.previewId === `preset-${preset.id}`}
+                    disabled={props.disabled}
+                    previewLabel={`Play ${preset.label}`}
+                    useLabel={`Use ${preset.label}`}
+                    onPreview={() =>
+                      props.previewMelody(
+                        { preset: preset.id, overrides: {} },
+                        `preset-${preset.id}`,
+                      )
+                    }
+                    onUse={() => {
+                      props.applyPreset(preset.id);
+                      close();
+                    }}
+                  />
                 ))}
             </div>
           ))}

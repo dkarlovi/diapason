@@ -1,6 +1,7 @@
 import type { KeyboardEvent } from "react";
-import { Download, Headphones, Play, Square, X } from "lucide-react";
+import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
+import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
@@ -25,25 +26,6 @@ function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorStat
     const item = state.items[index];
     if (item) state.selectNote(item);
   }
-}
-function NoteDetail({ state }: { state: EditorState }) {
-  const note = state.selectedNote;
-  if (!note) return null;
-  return (
-    <div className="editor-note-detail" aria-live="polite">
-      <strong>{note.name}</strong>
-      <span>
-        {note.start.toFixed(2)} s · {note.duration.toFixed(2)} s
-      </span>
-      <Button onClick={state.previewContext} aria-label="Hear in context">
-        <Headphones aria-hidden="true" />
-      </Button>
-      <Button onClick={state.muteSelected}>{state.selectedMuted ? "Unmute" : "Mute"}</Button>
-      <Button aria-label="Close note detail" onClick={state.clearSelection}>
-        <X aria-hidden="true" />
-      </Button>
-    </div>
-  );
 }
 type CanvasProps = { kind: "audio" | "midi"; state: EditorState; layout: EditorLayout };
 function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
@@ -141,9 +123,10 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
       </Button>
       <p id="roll-instructions" className="sr-only">
         Arrow keys select and preview notes. Enter or Space plays the selected note. M mutes or
-        unmutes it. Control or Command click also mutes a note.
+        unmutes it. Control or Command click also mutes a note. Middle-button drag pans the canvas.
+        Control plus wheel zooms time. Shift plus wheel zooms pitch. Escape dismisses note details.
       </p>
-      <NoteDetail state={state} />
+      <NoteDetail key={state.selectedNoteId ?? "none"} state={state} />
       <PlaybackStatus state={state} />
       <Button
         className="editor-trace-toggle"

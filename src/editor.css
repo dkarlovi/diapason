@@ -7,7 +7,7 @@
   padding: 0;
 }
 .editor-workspace {
-  --source-height: 112px;
+  --source-height: 22%;
   --tune-obstruction: 0px;
   position: relative;
   display: grid;
@@ -32,9 +32,6 @@
   border-radius: 0;
   background: var(--color-muted);
   overflow: hidden;
-}
-.editor-workspace .editor-audio {
-  border-bottom: 1px solid var(--color-border);
 }
 .editor-canvas .editor-plot {
   position: absolute;
@@ -104,6 +101,8 @@
   min-height: 25px;
   padding: 2px 12px;
   border-radius: 20px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
   font-size: 0.75rem;
   box-shadow: 0 2px 8px #0001;
 }
@@ -200,42 +199,36 @@
 .editor-presets {
   min-width: 0;
 }
-.studio-shell .editor-presets summary {
-  list-style: none;
-  display: flex;
-  align-items: center;
+.studio-shell .editor-select-trigger {
+  width: 100%;
+  min-width: 0;
   justify-content: space-between;
-  gap: 8px;
   min-height: 36px;
-  margin: 0;
   padding: 6px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  color: var(--color-foreground);
   font-size: 0.875rem;
 }
-.editor-presets summary::-webkit-details-marker {
-  display: none;
-}
-.editor-presets summary svg {
+.editor-select-trigger svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
 }
-.editor-preset-menu {
-  position: absolute;
-  z-index: 15;
-  top: calc(100% + 6px);
-  right: 0;
-  width: 100%;
-  max-height: min(420px, 50dvh);
+.editor-popover {
+  z-index: 50;
+  max-width: calc(100vw - 24px);
+  max-height: var(--radix-popover-content-available-height);
   overflow: auto;
-  padding: 14px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-card);
   color: var(--color-foreground);
-  box-shadow: 0 12px 40px #0003;
+  box-shadow:
+    0 12px 36px #0004,
+    0 2px 8px #0002;
+}
+.editor-preset-menu {
+  width: max(290px, var(--radix-popover-trigger-width));
+  max-height: min(420px, 60dvh, var(--radix-popover-content-available-height));
+  padding: 10px;
   font-size: 0.875rem;
 }
 .editor-preset-menu h3 {
@@ -249,7 +242,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 0;
+  padding: 8px 6px;
+  border-radius: 4px;
   border-bottom: 1px solid var(--color-border);
 }
 .editor-preset-option > span {
@@ -285,12 +279,13 @@
   border-radius: 5px;
 }
 .melody-categories {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin: 8px 0;
 }
 .melody-categories button {
+  flex: 1 0 auto;
   border: 0;
   border-radius: 5px;
   min-height: 30px;
@@ -314,10 +309,6 @@
   grid-template-columns: minmax(90px, 1fr) minmax(60px, 1.1fr) 3.25rem;
   gap: 8px;
   align-items: center;
-}
-.melody-controls label {
-  margin: 0;
-  font-size: 0.8125rem;
 }
 .melody-controls .val {
   grid-column: 3;
@@ -404,10 +395,6 @@
   box-shadow: 0 2px 12px #0002;
 }
 .editor-note-detail {
-  position: absolute;
-  top: 76px;
-  left: 16px;
-  z-index: 5;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -441,34 +428,15 @@
 .editor-shell .workstation-location h1 {
   flex: 1;
 }
-.editor-recording-menu {
-  position: relative;
-}
-.studio-shell .editor-recording-menu summary {
-  list-style: none;
-  margin: 0;
+.studio-shell .editor-recording-menu {
   padding: 6px;
-  display: flex;
-  align-items: center;
-  border-radius: 4px;
-}
-.editor-recording-menu summary svg {
-  width: 20px;
-  height: 20px;
+  border: 0;
 }
 .editor-recording-menu-items {
-  position: absolute;
-  right: 0;
-  top: 36px;
-  z-index: 30;
   width: 210px;
   display: flex;
   flex-direction: column;
   padding: 8px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  box-shadow: 0 12px 40px #0003;
 }
 .studio-shell .editor-recording-menu-items [data-slot="button"] {
   justify-content: flex-start;
@@ -540,8 +508,6 @@
     max-width: calc(100% - 20px);
   }
   .editor-note-detail {
-    left: 10px;
-    top: 100px;
     max-width: calc(100% - 20px);
     flex-wrap: wrap;
   }
@@ -568,7 +534,7 @@
   .editor-mobile-midi {
     display: block;
   }
-  .editor-shell .editor-recording-menu .midi-output {
+  .editor-shell .editor-recording-menu-items .midi-output {
     display: flex;
     flex-wrap: wrap;
     margin: 4px;
@@ -598,4 +564,88 @@
   .editor-preset-menu {
     max-height: min(320px, 35dvh);
   }
+}
+
+.editor-note-anchor {
+  position: absolute;
+  height: 1px;
+  pointer-events: none;
+}
+.editor-note-detail {
+  flex-wrap: wrap;
+}
+.editor-reset-label {
+  user-select: none;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  transition: color 120ms;
+}
+button.editor-reset-label {
+  padding: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  margin: 0;
+  font:
+    400 0.8125rem/1.5 system-ui,
+    sans-serif;
+}
+.studio-shell .editor-reset-label:hover:not(:disabled),
+.studio-shell .editor-reset-label:focus-visible {
+  background: transparent;
+  color: var(--color-primary);
+}
+.editor-reset-label:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.editor-preset-option[data-selected="true"] {
+  background: var(--color-primary-muted);
+}
+.editor-preset-option[data-previewing="true"] {
+  background: var(--color-primary-muted);
+  outline: 1px solid var(--color-primary);
+  outline-offset: -1px;
+}
+.editor-preset-option:hover {
+  background: var(--color-muted);
+}
+.editor-tune-footer {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--color-border);
+}
+.editor-tune-footer [data-slot="button"] {
+  width: 100%;
+}
+.editor-workspace::after {
+  content: "";
+  position: absolute;
+  width: calc(100% - var(--tune-obstruction));
+  height: 3px;
+  border-top: 3px solid var(--color-border);
+  left: 0;
+  top: var(--source-height);
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 8;
+}
+.editor-workspace:has(.editor-source-handle:hover)::after,
+.editor-workspace:has(.editor-source-handle:focus-visible)::after {
+  border-top: 3px double var(--color-primary);
+}
+.studio-shell .editor-source-handle:hover:not(:disabled),
+.studio-shell .editor-source-handle:focus-visible {
+  border: 3px double var(--color-primary);
+  padding: 0 10px;
+  background: var(--color-card);
+}
+
+.studio-shell .editor-copy-id {
+  display: grid;
+  grid-template-areas: "label";
+}
+.editor-copy-id > * {
+  grid-area: label;
+  justify-self: center;
 }

@@ -17,6 +17,14 @@ function compareStages(
   expected: DiagnosticSnapshot["report"],
   actual: ReturnType<typeof buildReportData>,
 ) {
+  // IDs are additive display metadata; older schema-3 exports used sequence order.
+  const compatible = {
+    ...expected,
+    stages: {
+      ...expected.stages,
+      items: expected.stages.items.map((item, index) => ({ ...item, id: item.id ?? index + 1 })),
+    },
+  };
   const fields = [
     "settings",
     "analysis",
@@ -28,7 +36,7 @@ function compareStages(
     "config",
   ] as const;
   return (
-    fields.map((field) => firstDifference(expected[field], actual[field], field)).find(Boolean) ??
+    fields.map((field) => firstDifference(compatible[field], actual[field], field)).find(Boolean) ??
     (expected.build.pipeline !== BUILD_INFO.pipeline ? "build.pipeline" : null)
   );
 }

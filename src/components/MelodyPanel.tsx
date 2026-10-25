@@ -54,6 +54,13 @@ export function MelodyPanel(props: PropsWithChildren<MelodyPanelProps>) {
               disabled={props.disabled}
               onChange={props.changeKnob}
               onReset={props.resetKnob}
+              previewId={props.previewId}
+              onPreview={(value) =>
+                props.previewMelody(
+                  { overrides: { ...props.melody.overrides, [key]: value } },
+                  `knob-${key}-${value}`,
+                )
+              }
             />
           );
         })}

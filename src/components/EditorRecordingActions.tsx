@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { createPortal } from "react-dom";
 import { Ellipsis } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
@@ -5,6 +7,7 @@ import { Button } from "./primitives";
 import type { EditorState } from "./editor-view-types";
 
 export function EditorRecordingActions({ state }: { state: EditorState }) {
+  const [open, setOpen] = useState(false);
   const name = (
     <input
       aria-label="Recording name"
@@ -15,24 +18,18 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
       disabled={!state.record}
     />
   );
-  const close = (control: HTMLElement) => {
-    const menu = control.closest("details");
-    if (menu) {
-      menu.open = false;
-      menu.querySelector("summary")?.focus();
-    }
-  };
   const actions = (
-    <details
-      className="editor-recording-menu"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") close(event.currentTarget);
-      }}
-    >
-      <summary aria-label="Recording actions" title="Recording actions">
-        <Ellipsis aria-hidden="true" />
-      </summary>
-      <div className="editor-recording-menu-items">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          className="editor-recording-menu"
+          aria-label="Recording actions"
+          title="Recording actions"
+        >
+          <Ellipsis aria-hidden="true" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="editor-recording-menu-items" aria-label="Recording action options">
         <div className="editor-mobile-midi">
           <MidiOutputPicker />
         </div>
@@ -47,16 +44,16 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
             key={action.label}
             disabled={!state.record}
             variant={action.label === "Delete recording" ? "danger" : undefined}
-            onClick={(event) => {
-              close(event.currentTarget);
+            onClick={() => {
+              setOpen(false);
               void action.run();
             }}
           >
             {action.label}
           </Button>
         ))}
-      </div>
-    </details>
+      </PopoverContent>
+    </Popover>
   );
   const nameSlot = document.getElementById("editor-title-slot"),
     actionSlot = document.getElementById("editor-actions-slot");

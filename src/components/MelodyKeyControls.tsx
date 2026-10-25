@@ -1,5 +1,4 @@
-import { Play, Square } from "lucide-react";
-import { Button } from "./primitives";
+import { PreviewOption } from "./PreviewOption";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { keyName, type Key } from "../melody/key";
 import type { KeyChoice } from "../melody/interpret";
@@ -23,34 +22,19 @@ function KeyOption({ choice, props, close }: { choice: KeyChoice; props: Props; 
     : props.melody.key !== "auto" && keyValue(props.melody.key) === keyValue(choice);
   const previewing = props.previewId === id;
   return (
-    <div className="editor-preset-option">
-      <span>
-        {label}
-        {selected ? " ✓" : ""}
-      </span>
-      <Button
-        disabled={props.disabled}
-        aria-label={auto ? "Play Auto key" : `Play key ${label}`}
-        aria-pressed={previewing}
-        onClick={() => {
-          props.previewMelody({ key: choice }, id);
-          close();
-        }}
-      >
-        {previewing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-        <span>Preview</span>
-      </Button>
-      <Button
-        disabled={props.disabled}
-        aria-label={auto ? "Use Auto key" : `Use key ${label}`}
-        onClick={() => {
-          props.changeKey(choice);
-          close();
-        }}
-      >
-        Use
-      </Button>
-    </div>
+    <PreviewOption
+      label={label}
+      selected={selected}
+      previewing={previewing}
+      disabled={props.disabled}
+      previewLabel={auto ? "Play Auto key" : `Play key ${label}`}
+      useLabel={auto ? "Use Auto key" : `Use key ${label}`}
+      onPreview={() => props.previewMelody({ key: choice }, id)}
+      onUse={() => {
+        props.changeKey(choice);
+        close();
+      }}
+    />
   );
 }
 export function MelodyKeyControls(props: Props) {
@@ -66,7 +50,12 @@ export function MelodyKeyControls(props: Props) {
     { label: "All keys", keys: keys.filter((key) => !suggested.has(keyValue(key))) },
   ];
   return (
-    <MelodyDropdown label="Key" value={label} disabled={props.disabled}>
+    <MelodyDropdown
+      label="Key"
+      value={label}
+      disabled={props.disabled}
+      onReset={() => props.changeKey("auto")}
+    >
       {(close) => (
         <>
           <strong>Choose a key</strong>

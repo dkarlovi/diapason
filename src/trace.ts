@@ -150,6 +150,8 @@ function drawPitchGrid(
   // Horizontal gridlines + note labels at each semitone (octaves emphasized).
   ctx.textBaseline = "middle";
   ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.textAlign = view.inset ? "right" : "left";
+  const labelX = view.inset ? traceHorizontalPadding(w, true).left - 6 : 3;
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {
     const isC = m % 12 === 0;
     const y = yOf(m);
@@ -164,9 +166,10 @@ function drawPitchGrid(
       (!view.timeLabelY || y > view.timeLabelY + 10)
     ) {
       ctx.fillStyle = colors.label;
-      ctx.fillText(midiToName(m), 3, y - 6);
+      ctx.fillText(midiToName(m), labelX, y - 6);
     }
   }
+  ctx.textAlign = "left";
 }
 
 function drawBeatGrid(

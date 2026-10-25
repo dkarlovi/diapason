@@ -8,6 +8,19 @@ export function timeWindow(duration: number, zoom: number, pan: number, visible 
   const tMin = clamp(pan, 0, 1) * (Math.max(duration, 1) - length * visible);
   return { tMin, tMax: tMin + length };
 }
+export function zoomedTime(
+  current: { duration: number; zoom: number; pan: number; visible: number },
+  factor: number,
+  anchor: number,
+) {
+  const zoom = clamp(current.zoom * factor, 1, 32);
+  const view = timeWindow(current.duration, current.zoom, current.pan, current.visible);
+  const length = Math.max(current.duration, 1) / zoom;
+  const start = view.tMin + (view.tMax - view.tMin - length) * anchor;
+  const maxStart = Math.max(current.duration, 1) - length * current.visible;
+  return { zoom, pan: maxStart > 0 ? clamp(start / maxStart, 0, 1) : 0 };
+}
+
 export function followPan(
   duration: number,
   zoom: number,

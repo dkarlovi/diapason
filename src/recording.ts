@@ -6,6 +6,7 @@ import { interpretMelody } from "./melody/interpret";
 import { melodySettingFor, type MelodySetting } from "./melody/settings";
 import { analysisOptionsFor } from "./recording-profiles";
 export interface NoteItem {
+  id: number;
   raw: NoteEvent;
   note: NoteEvent;
   muted: boolean;
@@ -26,6 +27,7 @@ export function processRecording(rec: Recording, frames: Frame[]) {
   });
   const muted = rec.muted ?? [];
   const items = interpretation.decoded.map((raw, index) => ({
+    id: index + 1,
     raw,
     note: interpretation.notes[index]!,
     muted: muted.some((anchor) => covers(anchor, raw)),
