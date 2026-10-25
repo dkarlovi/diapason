@@ -10,8 +10,9 @@ type Operation = {
   alpha: number;
   dash: number[];
   width: number;
+  align: CanvasTextAlign;
 };
-function surface() {
+function surface(width = 100) {
   const operations: Operation[] = [];
   let dash: number[] = [];
   const ctx = {
@@ -46,11 +47,12 @@ function surface() {
           alpha: ctx.globalAlpha,
           dash: [...dash],
           width: ctx.lineWidth,
+          align: ctx.textAlign,
         }),
     });
   }
   const canvas = document.createElement("canvas");
-  Object.defineProperties(canvas, { clientWidth: { value: 100 }, clientHeight: { value: 100 } });
+  Object.defineProperties(canvas, { clientWidth: { value: width }, clientHeight: { value: 100 } });
   vi.spyOn(canvas, "getContext").mockReturnValue(ctx);
   return { canvas, operations, ctx };
 }
@@ -186,4 +188,25 @@ it("highlights the sounding editor note and gives compact notes room within the 
   );
   expect(note?.fill).toBe("#b6f2dd");
   expect(note?.args[3]).toBe(17);
+});
+
+it("right-aligns inset pitch labels while keeping note text left-aligned", () => {
+  const { canvas, operations } = surface(1000);
+  drawTrace(canvas, [], {
+    ...view,
+    inset: true,
+    pitchLabels: "all",
+    notes: [{ midi: 69, name: "Selected note", start: 0.25, duration: 0.5 }],
+  });
+  const labels = operations.filter(
+    (op) => op.method === "fillText" && /^[A-G]#?\d+$/.test(String(op.args[0])),
+  );
+  expect(labels.length).toBeGreaterThan(0);
+  for (const label of labels) {
+    expect(label.align).toBe("right");
+    expect(label.args[1]).toBe(51);
+  }
+  expect(
+    operations.find((op) => op.method === "fillText" && op.args[0] === "Selected note")?.align,
+  ).toBe("left");
 });

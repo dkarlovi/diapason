@@ -141,11 +141,13 @@ export function buildReport(input: ReportInput): string {
   lines.push("");
   lines.push(`[exported notes]  (${d.notes.length})`);
   if (d.notes.length) {
-    d.notes.forEach((n, i) =>
-      lines.push(
-        `  ${String(i + 1).padStart(2)}  ${n.name.padEnd(4)} start=${f(n.start)}s  len=${f(n.duration)}s`,
-      ),
-    );
+    d.stages.items
+      .filter((item) => !item.muted)
+      .forEach(({ note: n, id }) =>
+        lines.push(
+          `  ${`#${id}`.padStart(3)}  ${n.name.padEnd(4)} start=${f(n.start)}s  len=${f(n.duration)}s`,
+        ),
+      );
   } else {
     lines.push("  (none)");
   }

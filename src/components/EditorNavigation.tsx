@@ -27,7 +27,7 @@ export function EditorNavigation({ state }: { state: EditorState }) {
         >
           −
         </Button>
-        <span>{v.zoom}×</span>
+        <span>{Number(v.zoom.toFixed(2))}×</span>
         <Button aria-label="Zoom in in time" disabled={v.zoom >= 32} onClick={() => v.zoomTime(2)}>
           +
         </Button>

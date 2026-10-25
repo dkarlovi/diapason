@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import type { PlaySettings } from "../instruments";
 import type { Recording } from "../db";
 import type { NoteEvent } from "../notes";
 import { playPcm, playNotes, type Playback } from "../playback";
@@ -101,12 +102,16 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
     [notes, stopPlayback, recordRef, pcmRef, start],
   );
   const previewSequence = useCallback(
-    (notes: NoteEvent[], id: string, duration?: number, offset = 0) => {
+    (notes: NoteEvent[], id: string, duration?: number, offset = 0, play?: PlaySettings) => {
       const current = recordRef.current;
       const wasThis = transport.current.previewId === id;
       stopPlayback();
       if (!current || wasThis) return;
-      start("midi", playNotes(notes, duration ?? current.durationSec, current.play), offset);
+      start(
+        "midi",
+        playNotes(notes, duration ?? current.durationSec, play ?? current.play),
+        offset,
+      );
       transport.current.previewId = id;
       setPreviewId(id);
     },

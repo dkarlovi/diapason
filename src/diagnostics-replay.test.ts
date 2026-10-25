@@ -84,3 +84,11 @@ it("rejects malformed saved melody choices before replaying", async () => {
   invalid.saved.melody = { preset: "clean", overrides: { keyPull: 2 }, key: "auto" };
   await expect(replayDiagnostics(invalid, await wav.arrayBuffer())).rejects.toThrow(/settings/i);
 });
+
+it("replays schema-3 exports made before note IDs were included", async () => {
+  const { report, wav } = await sample();
+  const older = JSON.parse(JSON.stringify(report));
+  for (const item of older.stages.items) delete item.id;
+  const replay = await replayDiagnostics(older, await wav.arrayBuffer());
+  expect(replay.status).toBe("match");
+});

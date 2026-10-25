@@ -68,16 +68,24 @@ All three screens share the Slate & blue system theme, compact header, readable
 type, and shared controls built with Tailwind, the shadcn/ui component pattern,
 semantic theme tokens, and Lucide icons. The Editor uses a shared timeline with
 original audio above an edge-to-edge MIDI roll. A divider handle hides or restores
-original audio; mobile starts with it hidden. Tune floats over the right side,
+original audio; mobile starts with it hidden. When shown, original audio occupies
+22% of the workspace height; the stronger divider highlights across the canvas
+when its Show/Hide handle is hovered. Tune floats over the right side,
 starts at 360px, and resizes from 286px to half the workspace. Matching Play and
 Download pairs move left of Tune. Preset and Key dropdowns contain their
-Preview/Use actions; the Key menu includes Auto, suggestions, and all 24 keys;
+Preview/Use actions, as do Mode, Timing grid, Instrument, and Octave. Preview
+keeps the menu and Tune open for comparing alternatives; Use applies and closes
+the menu. Applied and previewed options have highlighted backgrounds. Shared
+Radix popovers float above the canvas, stay inside the viewport, and dismiss
+with an outside click or Escape. The Key menu includes Auto, suggestions, and all 24 keys;
 Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
 Instrument and octave sit in Tune. Rename lives in the header, with duplicate,
 delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
 keeps external MIDI selection in that menu.
 
-Time zoom, pitch zoom, Fit notes, and shared pan float over the roll. The pan
+Time zoom, pitch zoom, Fit notes, and shared pan float over the roll. Middle-button
+drag pans both axes on either canvas; Ctrl+wheel zooms time around the pointer,
+and Shift+wheel changes note height. The pan
 slider sits above the buttons, keeping the buttons fixed when it appears. Playback
 follows the playhead through the uncovered area and highlights sounding notes.
 Real preset and key previews appear on the roll with a preview label; regular
@@ -295,16 +303,26 @@ preview. Starting another preview replaces it.
   Pitch includes key pull, Mode, Smooth leaps, and Max pitch move. Rhythm holds
   Timing grid, grid pull, Swing, Syncopation, and Note length. Detection holds
   Steadiness, Level gate, Minimum note length, and Silence gap. Changing a control
-  shows **Custom (from …)** and saves it. Double-click a label to reset that
-  control; **Reset** restores the current preset's controls and retains the key.
+  shows **Custom (from …)** and saves it. Click a label to reset that
+  control; labels are non-selectable and highlight on hover. Preset, Key,
+  Instrument, and Octave labels also reset their respective defaults.
+  **Reset**, pinned at the bottom of Tune, asks for confirmation before restoring
+  the current preset's controls and retaining the key.
   Each control uses one label–widget–value row; explanations appear in tooltips.
 
-Click a piano-roll note to hear it and show its name, start time, duration, Mute,
-and **Hear in context**. Focus the roll and use arrow keys or Home/End to select
+Click a piano-roll note to hear it and open a floating menu beside it with its
+number, name, start time, duration, **Copy ID**, Mute, and context Play/Stop.
+Copy ID briefly shows a checkmark without changing the button width. Pitch labels
+align on the right edge of the canvas gutter. The original-track divider and its
+Show/Hide button share a double border on hover.
+Click empty canvas or outside the menu, or press Escape, to dismiss it.
+Note IDs (for example, **Note #13**) follow the current detected sequence and
+also appear in JSON items and text diagnostics; muting does not renumber them.
+Detection changes that split or merge notes can renumber the sequence. Focus the roll and use arrow keys or Home/End to select
 and audition notes, Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
 also toggles mute. Muted anchors survive preset changes. Tune's divider supports
-Left/Right, Home, and End. On mobile, starting an audition closes Tune so the
-preview remains visible; reopen it to keep adjusting.
+Left/Right, Home, and End. Tuning categories share a row when space permits
+and wrap on narrower sidebars. Mobile keeps Tune open during previews too.
 
 The decoder finds notes before naming them. A dip in level (re-articulation) or a
 real silence always starts a new note; within one articulation, a sustained pitch

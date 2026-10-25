@@ -5,6 +5,7 @@ import { KNOB_DEFS } from "./melody/knobs";
 import type { NoteItem } from "./recording";
 
 const item: NoteItem = {
+  id: 1,
   raw: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
   note: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
   muted: false,

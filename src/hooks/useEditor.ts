@@ -107,8 +107,7 @@ export function useEditor(id: string) {
     },
     [frames, previewSequence, melody],
   );
-  const showingPreview =
-    !!previewId && (previewId.startsWith("preset-") || previewId.startsWith("key-"));
+  const showingPreview = /^(preset|key|knob)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
   const items = displayed?.items ?? appliedItems;
   const displayNotes = displayed?.notes ?? notes;
@@ -231,7 +230,10 @@ export function useEditor(id: string) {
   const clickRoll = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
       const item = noteAt(event);
-      if (!item) return;
+      if (!item) {
+        setSelected(null);
+        return;
+      }
       if (event.ctrlKey || event.metaKey) muteNote(item);
       else selectNote(item);
     },
@@ -261,7 +263,10 @@ export function useEditor(id: string) {
     interpretation,
     previewId,
     previewMelody,
+    previewPlay: (settings: PlaySettings, id: string) =>
+      previewSequence(notes, id, undefined, 0, settings),
     selectedNote: selectedItem?.note ?? null,
+    selectedNoteId: selectedItem?.id,
     selectedMuted: selectedItem?.muted ?? false,
     clearSelection: () => setSelected(null),
     muteSelected: () => {

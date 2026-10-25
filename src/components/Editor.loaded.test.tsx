@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -217,4 +218,97 @@ it("allows keyboard note selection and contextual muting without a note list", a
   fireEvent.keyDown(roll, { key: "m" });
   await waitFor(() => expect(saved?.muted).toMatchObject([{ midi: 69 }]));
   expect(screen.getByRole("button", { name: "Unmute" })).toBeTruthy();
+});
+
+it("dismisses recording actions outside and with Escape", async () => {
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.click(screen.getByLabelText("Recording actions"));
+  expect(screen.getByRole("button", { name: "Download JSON" })).toBeTruthy();
+  await user.click(document.body);
+  expect(screen.queryByRole("button", { name: "Download JSON" })).toBeNull();
+  fireEvent.click(screen.getByLabelText("Recording actions"));
+  fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+  expect(screen.queryByRole("button", { name: "Download JSON" })).toBeNull();
+});
+it("identifies selected notes, copies their ID and dismisses on empty canvas", async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
+  fireEvent.keyDown(roll, { key: "ArrowRight" });
+  expect(screen.getByText("Note #1")).toBeTruthy();
+  vi.useFakeTimers();
+  await act(async () => fireEvent.click(screen.getByRole("button", { name: "Copy ID" })));
+  expect(screen.getByRole("button", { name: "ID copied" })).toBeTruthy();
+  expect(screen.queryByText("Copied", { selector: "span" })).toBeNull();
+  act(() => vi.advanceTimersByTime(1999));
+  expect(screen.getByRole("button", { name: "ID copied" })).toBeTruthy();
+  act(() => vi.advanceTimersByTime(1));
+  expect(screen.getByRole("button", { name: "Copy ID" })).toBeTruthy();
+  expect(writeText).toHaveBeenCalledWith("Note #1");
+  expect(screen.queryByRole("button", { name: "Close note detail" })).toBeNull();
+  fireEvent.click(roll, { clientX: 0, clientY: 0 });
+  expect(screen.queryByRole("button", { name: "Copy ID" })).toBeNull();
+});
+it("asks before resetting Tune and preserves changes when cancelled", async () => {
+  const confirm = vi.fn().mockReturnValue(false);
+  vi.stubGlobal("confirm", confirm);
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+  expect(confirm).toHaveBeenCalledOnce();
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.9");
+  confirm.mockReturnValue(true);
+  fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).not.toBe("0.9");
+});
+
+it("previews playback settings without saving, then applies the chosen option", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.click(screen.getByRole("button", { name: "Choose octave" }));
+  fireEvent.click(screen.getByRole("button", { name: "Preview Octave −1 octave" }));
+  expect(screen.getByRole("button", { name: "Choose octave" }).textContent).toBe("Original octave");
+  expect(screen.getByRole("button", { name: "Use Octave −1 octave" })).toBeTruthy();
+  expect(saved).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Use Octave −1 octave" }));
+  expect(saved?.play?.octave).toBe(-1);
+  expect(screen.queryByRole("button", { name: "Use Octave −1 octave" })).toBeNull();
+});
+
+it("toggles context playback between Play and Stop", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
+  const play = screen.getByRole("button", { name: "Hear in context" });
+  expect(play.querySelector(".lucide-play")).toBeTruthy();
+  fireEvent.click(play);
+  const stop = screen.getByRole("button", { name: "Stop context playback" });
+  expect(stop.querySelector(".lucide-square")).toBeTruthy();
+  fireEvent.click(stop);
+  expect(screen.getByRole("button", { name: "Hear in context" })).toBeTruthy();
 });

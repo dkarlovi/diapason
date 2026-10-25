@@ -10,7 +10,7 @@ import type { KnobDef, Knobs } from "./melody/knobs";
 import { melodySettingFor } from "./melody/settings";
 import { keyName, type Key } from "./melody/key";
 import type { MelodySetting } from "./melody/settings";
-import { PRESETS, resolveKnobs } from "./melody/knobs";
+import { KNOB_DEFS, PRESETS, resolveKnobs } from "./melody/knobs";
 export function knobValueLabel(def: KnobDef, value: Knobs[keyof Knobs]): string {
   if (def.kind === "select")
     return def.options.find((option) => option.value === value)?.label ?? String(value);
@@ -91,5 +91,11 @@ export function makeReportInput(
 export function auditionLabel(id: string, melody: MelodySetting, key: Key | null): string | null {
   if (id.startsWith("preset-")) return PRESETS[melody.preset].label;
   if (id.startsWith("key-")) return key ? `Key ${keyName(key)}` : "Key Auto";
+  if (id.startsWith("knob-")) {
+    const key = id.split("-")[1] as keyof Knobs;
+    const def = KNOB_DEFS.find((def) => def.key === key);
+    if (def)
+      return `${def.label}: ${knobValueLabel(def, resolveKnobs(melody.preset, melody.overrides)[key])}`;
+  }
   return null;
 }
