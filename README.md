@@ -14,7 +14,7 @@ diapason is organized as a **library of recordings**, persisted in your browser
 (IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
 1. **Library** (`/diapason/`) — your recordings. Preview audio or MIDI,
-   open, duplicate, or delete.
+   click anywhere on a row to open its editor, duplicate, or delete.
 2. **New recording** (`/diapason/new`) — a guided setup: choose your sound →
    connect and verify your microphone → measure room noise → check your sound →
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
@@ -95,7 +95,8 @@ The Library keeps audio/MIDI
 previews and Open visible, with Duplicate and Delete in each row's actions menu.
 Each Library row has a subtle blue gradient with a compact waveform cut out
 behind the labels, preserving the original row height and controls. Recordings
-without a waveform show the gradient alone. The original-audio preview preserves pauses and relative loudness,
+without a waveform show the gradient alone. Wider, spaced waveform bars have a thin blue outline
+outside their edges, keeping the waveform visible where the gradient fades. Rows highlight on hover and keyboard focus. The original-audio preview preserves pauses and relative loudness,
 uses a compact summary saved with each new take, and survives reloads and
 duplication. Older recordings gain previews gradually in the background when
 you visit the Library; unavailable previews do not block playback.
@@ -313,7 +314,8 @@ preview. Starting another preview replaces it.
 Click a piano-roll note to hear it and open a floating menu beside it with its
 number, name, start time, duration, **Copy ID**, Mute, and context Play/Stop.
 Copy ID briefly shows a checkmark without changing the button width. Pitch labels
-align on the right edge of the canvas gutter. The original-track divider and its
+align on the right edge of the canvas gutter, with a soft background fade shared
+by the live recording view. Editor track labels have an 80% opaque background. The original-track divider and its
 Show/Hide button share a double border on hover.
 Click empty canvas or outside the menu, or press Escape, to dismiss it.
 Note IDs (for example, **Note #13**) follow the current detected sequence and

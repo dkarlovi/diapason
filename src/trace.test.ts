@@ -19,6 +19,7 @@ function surface(width = 100) {
     strokeStyle: "",
     fillStyle: "",
     globalAlpha: 1,
+    createLinearGradient: () => ({ addColorStop() {} }),
     lineWidth: 1,
     setLineDash(value: number[]) {
       dash = value;

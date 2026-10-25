@@ -36,13 +36,13 @@ it("uses native SVG viewport lengths to align the cutout with labels after resiz
   );
   const cutout = container.querySelector(".recording-waveform-cutout")!;
   expect(cutout.getAttribute("x")).toBe("70");
-  expect(cutout.getAttribute("y")).toBe("20");
+  expect(Number(cutout.getAttribute("y"))).toBeCloseTo(15.2);
   expect(cutout.getAttribute("width")).toBe("480");
-  expect(cutout.getAttribute("height")).toBe("48");
+  expect(Number(cutout.getAttribute("height"))).toBeCloseTo(57.6);
   narrow = true;
   act(() => resize());
   expect(cutout.getAttribute("x")).toBe("62");
-  expect(cutout.getAttribute("y")).toBe("16");
+  expect(Number(cutout.getAttribute("y"))).toBeCloseTo(11.2);
   expect(cutout.getAttribute("width")).toBe("300");
-  expect(cutout.getAttribute("height")).toBe("48");
+  expect(Number(cutout.getAttribute("height"))).toBeCloseTo(57.6);
 });
