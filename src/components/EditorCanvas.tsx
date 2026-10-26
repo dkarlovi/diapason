@@ -3,6 +3,7 @@ import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
 import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
+import { PitchCanvas } from "./PitchCanvas";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
 
@@ -31,19 +32,17 @@ type CanvasProps = { kind: "audio" | "midi"; state: EditorState; layout: EditorL
 function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   if (kind === "audio")
     return (
-      <canvas
-        className="trace themed-trace editor-plot"
+      <PitchCanvas
+        className="editor-plot"
         ref={state.traceRef}
-        role="img"
         aria-label="Original pitch trace"
         title="Original recorded pitch"
       />
     );
   return (
-    <canvas
-      className="trace themed-trace editor-plot"
+    <PitchCanvas
+      className="editor-plot"
       ref={state.rollRef}
-      role="img"
       aria-label="MIDI piano roll"
       tabIndex={0}
       aria-describedby="roll-instructions"

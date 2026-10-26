@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-26T14:55:24.737Z",
+  "title": "Design System: diapason",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Studio Blue",
+        "canonical": "light-dark(#0072b1, #8bc1f1)",
+        "tonalRamp": [
+          "oklch(15% 0.13 245)",
+          "oklch(26% 0.13 245)",
+          "oklch(37% 0.13 245)",
+          "oklch(49% 0.13 245)",
+          "oklch(60% 0.13 245)",
+          "oklch(72% 0.13 245)",
+          "oklch(84% 0.13 245)",
+          "oklch(95% 0.13 245)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "neutral",
+        "displayName": "Primary foreground",
+        "canonical": "light-dark(#ffffff, oklch(20% 0.025 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "warning": {
+        "role": "neutral",
+        "displayName": "Amber",
+        "canonical": "light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75))",
+        "tonalRamp": [
+          "oklch(15% 0.11 72)",
+          "oklch(26% 0.11 72)",
+          "oklch(37% 0.11 72)",
+          "oklch(49% 0.11 72)",
+          "oklch(60% 0.11 72)",
+          "oklch(72% 0.11 72)",
+          "oklch(84% 0.11 72)",
+          "oklch(95% 0.11 72)"
+        ]
+      },
+      "destructive": {
+        "role": "neutral",
+        "displayName": "Signal Red",
+        "canonical": "light-dark(oklch(48% 0.16 25), oklch(77% 0.13 25))",
+        "tonalRamp": [
+          "oklch(15% 0.11 25)",
+          "oklch(26% 0.11 25)",
+          "oklch(37% 0.11 25)",
+          "oklch(49% 0.11 25)",
+          "oklch(60% 0.11 25)",
+          "oklch(72% 0.11 25)",
+          "oklch(84% 0.11 25)",
+          "oklch(95% 0.11 25)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Confirmation Green",
+        "canonical": "light-dark(#237442, #83dca1)",
+        "tonalRamp": [
+          "oklch(15% 0.11 150)",
+          "oklch(26% 0.11 150)",
+          "oklch(37% 0.11 150)",
+          "oklch(49% 0.11 150)",
+          "oklch(60% 0.11 150)",
+          "oklch(72% 0.11 150)",
+          "oklch(84% 0.11 150)",
+          "oklch(95% 0.11 150)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Slate ground",
+        "canonical": "light-dark(oklch(98% 0.004 245), oklch(18% 0.014 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Slate text",
+        "canonical": "light-dark(oklch(25% 0.017 245), oklch(93% 0.009 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Control surface",
+        "canonical": "light-dark(oklch(100% 0 0), oklch(22% 0.017 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Canvas surface",
+        "canonical": "light-dark(oklch(96% 0.007 245), oklch(16% 0.014 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Slate divider",
+        "canonical": "light-dark(oklch(88% 0.012 245), oklch(33% 0.02 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Secondary slate text",
+        "canonical": "light-dark(oklch(45% 0.02 245), oklch(73% 0.015 245))",
+        "tonalRamp": [
+          "oklch(15% 0.014 245)",
+          "oklch(26% 0.014 245)",
+          "oklch(37% 0.014 245)",
+          "oklch(49% 0.014 245)",
+          "oklch(60% 0.014 245)",
+          "oklch(72% 0.014 245)",
+          "oklch(84% 0.014 245)",
+          "oklch(95% 0.014 245)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Library title",
+        "purpose": "Library heading; reduced on mobile."
+      },
+      "body": {
+        "displayName": "Studio body",
+        "purpose": "Workstation content."
+      },
+      "label": {
+        "displayName": "Control label",
+        "purpose": "Controls and field labels."
+      },
+      "secondary": {
+        "displayName": "Supporting information",
+        "purpose": "Metadata and secondary information."
+      },
+      "measurement": {
+        "displayName": "Time measurement",
+        "purpose": "Compact numeric timing readouts."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-widget",
+        "value": "0 2px 10px #0001",
+        "purpose": "Input level and editor zoom controls."
+      },
+      {
+        "name": "tune-overlay",
+        "value": "-8px 0 25px #0002",
+        "purpose": "Tune floating above the MIDI roll."
+      },
+      {
+        "name": "popover",
+        "value": "0 12px 36px #0004, 0 2px 8px #0002",
+        "purpose": "Editor dropdowns and contextual tools."
+      }
+    ],
+    "motion": [
+      {
+        "name": "folding-dock",
+        "value": "460ms cubic-bezier(0.22, 0.7, 0.25, 1)",
+        "purpose": "Recording dock collapse and restoration; disabled for reduced motion."
+      },
+      {
+        "name": "dock-crossfade",
+        "value": "opacity 180ms",
+        "purpose": "Recording dock state changes; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-capture",
+        "value": "1000px"
+      },
+      {
+        "name": "capture-mobile-and-library",
+        "value": "720px"
+      },
+      {
+        "name": "editor-mobile",
+        "value": "760px"
+      },
+      {
+        "name": "short-landscape-height",
+        "value": "540px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Preview button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Shared studio default action.",
+      "html": "<button class=\"ds-button-default\" type=\"button\">Preview</button>",
+      "css": ".ds-button-default{font:500 .875rem/1.5 system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid var(--color-border);border-radius:5px;background:var(--color-card);color:var(--color-foreground);font-weight:500;cursor:pointer;transition:background-color 150ms}.ds-button-default:hover:not(:disabled){background:var(--color-muted)}.ds-button-default:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-button-default:disabled{opacity:.4;cursor:default}@media(prefers-reduced-motion:reduce){.ds-button-default{transition:none}}"
+    },
+    {
+      "name": "Play button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Shared studio primary action.",
+      "html": "<button class=\"ds-button-primary\" type=\"button\">Play</button>",
+      "css": ".ds-button-primary{font:500 .875rem/1.5 system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid var(--color-primary);border-radius:5px;background:var(--color-primary);color:var(--color-primary-foreground);font-weight:600;cursor:pointer;transition:background-color 150ms}.ds-button-primary:hover:not(:disabled){background:color-mix(in oklab,var(--color-primary) 88%,var(--color-foreground))}.ds-button-primary:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-button-primary:disabled{opacity:.4;cursor:default}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none}}"
+    },
+    {
+      "name": "Delete button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Shared studio danger action.",
+      "html": "<button class=\"ds-button-danger\" type=\"button\">Delete</button>",
+      "css": ".ds-button-danger{font:500 .875rem/1.5 system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid var(--color-destructive);border-radius:5px;background:var(--color-card);color:var(--color-destructive);font-weight:500;cursor:pointer;transition:background-color 150ms}.ds-button-danger:hover:not(:disabled){background:var(--color-muted)}.ds-button-danger:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-button-danger:disabled{opacity:.4;cursor:default}@media(prefers-reduced-motion:reduce){.ds-button-danger{transition:none}}"
+    },
+    {
+      "name": "Recording name",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labeled editable recording name.",
+      "html": "<label class=\"ds-field\">Recording name<input class=\"ds-input\" type=\"text\" value=\"Whistled melody\"></label>",
+      "css": ".ds-field{font:500 .875rem/1.5 system-ui,sans-serif;display:grid;gap:8px;color:var(--color-muted-foreground)}.ds-input{font:500 .875rem/1.5 system-ui,sans-serif;min-width:0;min-height:38px;padding:7px 12px;border:1px solid var(--color-border);border-radius:5px;background:var(--color-card);color:var(--color-foreground)}.ds-input:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
+    },
+    {
+      "name": "Workstation breadcrumb",
+      "kind": "nav",
+      "refersTo": "workstation-nav",
+      "description": "Compact Library link and current recording.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">›</span><span>Whistled melody</span></nav>",
+      "css": ".ds-nav{font:500 .875rem/1.5 system-ui,sans-serif;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--color-card);color:var(--color-foreground);border-bottom:1px solid var(--color-border)}.ds-nav-link{color:var(--color-muted-foreground);text-decoration:none}.ds-nav-link:hover{color:var(--color-primary);text-decoration:underline}.ds-nav-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
+    },
+    {
+      "name": "Melody category",
+      "kind": "chip",
+      "refersTo": "active-category",
+      "description": "Selected Essentials group in Tune.",
+      "html": "<button class=\"ds-category\" type=\"button\" aria-pressed=\"true\">Essentials</button>",
+      "css": ".ds-category{font:500 .875rem/1.5 system-ui,sans-serif;min-height:30px;padding:4px 8px;font-size:.8125rem;border:0;border-radius:5px;background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 12%,var(--color-card)));color:var(--color-primary);cursor:pointer}.ds-category:hover{background:var(--color-muted)}.ds-category:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
+    },
+    {
+      "name": "Recording row",
+      "kind": "card",
+      "refersTo": "recording-row",
+      "description": "Library recording with a title and timing metadata.",
+      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM · 4/4 · 3.0s</p></article>",
+      "css": ".ds-record{padding:20px;border-bottom:1px solid var(--color-border);background:var(--color-card);color:var(--color-foreground)}.ds-record:hover,.ds-record:focus-within{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 12%,var(--color-card)))}.ds-record-link{font:550 1rem/1.5 system-ui,sans-serif;color:var(--color-foreground);text-decoration:none}.ds-record-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-record-meta{margin:4px 0 0;font:.8125rem/1.5 system-ui,sans-serif;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Pitch canvas",
+      "kind": "custom",
+      "refersTo": "pitch-canvas",
+      "description": "The shared native drawing surface; this static catalog sample does not run its rendering hook.",
+      "html": "<div class=\"ds-canvas-container\"><canvas class=\"ds-canvas\" role=\"img\" aria-label=\"Pitch trace\">Pitch trace</canvas></div>",
+      "css": ".ds-canvas-container{position:relative;height:160px}.ds-canvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border:0;border-radius:0;background:var(--color-muted)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The canvas is the work",
+    "overview": "Slate & blue, professional and restrained. Recording and editing are compact\nworkstations: the signal or melody owns the space, and controls support it.\nPreserve this established direction when refining or extending the interface.",
+    "keyCharacteristics": [
+      "Edge-to-edge work surfaces beneath one compact header.",
+      "Shared controls and semantic color roles across Library, Recording, and Editor.",
+      "System light/dark themes, with precise status and playback feedback."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic Color Rule",
+        "body": "Reuse the existing semantic tokens and `--trace-*` palette. Include text or state semantics alongside status colors.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Heading Rule",
+        "body": "Show the current screen or recording name once in the workstation breadcrumb. Do not repeat it as another workspace heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Canvas Space Rule",
+        "body": "Controls must not push the signal or melody out of the viewport. Dense toolboxes scroll internally; work surfaces retain their space.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the canvas as the primary work surface.",
+      "**Do** reuse semantic theme tokens, shared controls, and the pitch canvas.",
+      "**Do** keep original audio and MIDI aligned in time.",
+      "**Do** retain keyboard focus, accessible names, and reduced-motion behavior.",
+      "**Do** preserve Record/Stop size and position through the folding transition."
+    ],
+    "donts": [
+      "**Don't** duplicate the workstation name as a second heading.",
+      "**Don't** introduce a separate visual system for recording and editing.",
+      "**Don't** replace textual state feedback with color alone.",
+      "**Don't** couple live capture's rendering loop to the editor's playback lifecycle."
+    ]
+  }
+}

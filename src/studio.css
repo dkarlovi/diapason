@@ -1,4 +1,15 @@
 /* Shared layouts for the saved-take workstation and the recording library. */
+.studio-shell canvas.pitch-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-muted);
+}
+
 main.studio-shell {
   width: 100%;
   max-width: none;

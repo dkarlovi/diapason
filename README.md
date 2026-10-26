@@ -8,6 +8,16 @@ instrument but can carry a tune by whistling.
 > historical name for a tuning-fork pitch reference. Fitting for a tool that
 > turns your whistle into notes.
 
+Product audience, purpose, scope, and constraints are recorded in
+[`PRODUCT.md`](PRODUCT.md). The implemented visual system and shared component
+guidance live in [`DESIGN.md`](DESIGN.md), with an Impeccable component preview
+catalog in `.impeccable/design.json`. Recording, original audio, and MIDI share
+`PitchCanvas`, theme tokens, and the existing trace renderer; each screen retains
+its own recording or editing controls. For design exploration, build quick,
+runnable visual mockups in code before production implementation, as with the
+existing editor layout studies. Impeccable workflow defaults live in
+`.impeccable/config.json`.
+
 ## A recording studio
 
 diapason is organized as a **library of recordings**, persisted in your browser

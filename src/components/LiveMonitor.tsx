@@ -2,6 +2,7 @@ import type { RefObject } from "react";
 import { liveReadout, type LiveLevel } from "../capture-presentation";
 import type { TransportState } from "../metronome";
 import { LiveBeat } from "./LiveBeat";
+import { PitchCanvas } from "./PitchCanvas";
 
 type Readout = ReturnType<typeof liveReadout>;
 function LivePitch({ readout, connected }: { readout: Readout; connected: boolean }) {
@@ -71,16 +72,15 @@ export function LiveMonitor({
   return (
     <section className="live-monitor" aria-label="Live signal" data-mode={mode}>
       <div className="live-chart">
-        <canvas
-          className="trace live-trace"
+        <PitchCanvas
+          className="live-trace"
           ref={traceRef}
-          role="img"
           aria-label={
             bpm === null ? "Live pitch trace" : "Live pitch trace with scrolling beat and bar lines"
           }
         >
           Live microphone pitch trace
-        </canvas>
+        </PitchCanvas>
         <LivePitch readout={readout} connected={connected} />
         {connected && bpm !== null && (
           <>
