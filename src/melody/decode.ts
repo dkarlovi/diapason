@@ -1,3 +1,4 @@
+import type { SourceRange } from "../note-edits";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "../notes";
 import { scalePitchClasses, type Key } from "./key";
 import type { Knobs } from "./knobs";
@@ -12,6 +13,7 @@ export interface PitchContext {
 }
 /** One performed note, in seconds, with a single continuous pitch. */
 export interface Segment {
+  source: SourceRange;
   start: number;
   duration: number;
   pitch: number;
@@ -184,12 +186,24 @@ function segmentPiece(frames: Frame[], piece: Span, knobs: Knobs, options: Piece
 function inSeconds(frames: Frame[], piece: Span & { pitch: number }): Segment {
   const time = (index: number) => frames[index]?.t ?? frames.at(-1)!.t + hopOf(frames);
   return {
+    source: { start: time(piece.start), end: time(piece.end) },
     start: time(piece.start),
     duration: time(piece.end) - time(piece.start),
     pitch: piece.pitch,
   };
 }
-export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
+function protectedPieces(frames: Frame[], piece: Span, boundaries: readonly number[]): Span[] {
+  const cuts = [piece.start];
+  for (let i = piece.start + 1; i < piece.end; i++)
+    if (boundaries.includes(frames[i]!.t)) cuts.push(i);
+  cuts.push(piece.end);
+  return cuts.slice(1).map((end, i) => ({ start: cuts[i]!, end }));
+}
+export function segmentMelody(
+  frames: Frame[],
+  knobs: Knobs,
+  protectedBoundaries: readonly number[] = [],
+): Segment[] {
   const hop = hopOf(frames);
   const steadiness = Math.min(1, Math.max(0, knobs.steadiness));
   const options = {
@@ -199,6 +213,9 @@ export function segmentMelody(frames: Frame[], knobs: Knobs): Segment[] {
   };
   return voicedSpans(frames, knobs)
     .flatMap((span) => articulations(frames, span))
+    .flatMap((piece) =>
+      protectedBoundaries.length ? protectedPieces(frames, piece, protectedBoundaries) : [piece],
+    )
     .flatMap((piece) => segmentPiece(frames, piece, knobs, options))
     .map((piece) => inSeconds(frames, piece))
     .filter((segment) => segment.duration >= knobs.minNoteMs / 1000);

@@ -125,3 +125,9 @@ it.each(["happy", "sad", "dreamy", "syncopated"] as const)(
     expect(agreement(mood, baseline)).toBeLessThanOrEqual(0.35 * baseline.length);
   },
 );
+it("exposes aligned source segments and respects protected boundaries", () => {
+  const cut = take1.frames[100]!.t;
+  const result = interpretMelody(take1.frames, { ...input, protectedBoundaries: [cut] });
+  expect(result.segments).toHaveLength(result.notes.length);
+  result.segments.forEach((s) => expect(s.source.start < cut && s.source.end > cut).toBe(false));
+});
