@@ -23,6 +23,7 @@ function setup() {
       position: null,
       rollRef,
       traceRef,
+      claimsPointer: () => false,
     }),
   );
   return { canvas, ...result };

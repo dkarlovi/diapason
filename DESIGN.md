@@ -253,6 +253,13 @@ bordered steppers with the muted fill, a tabular value, and a borderless Reset t
 keeps its slot and appears only once that property is edited. Nothing moves when a
 note is muted or edited, so later rows (position, duration, velocity) slot in.
 
+Direct manipulation edits only the already-selected note and only along supported
+axes: today that is a vertical pitch drag, snapping to semitones, with an
+`ns-resize` cursor and a taller grab target (at least 24px) for touch. The roll,
+stripes, origin link and inspector value preview the drag live, and each semitone is
+auditioned; release saves one edit. Unsupported directions do nothing rather than
+moving the note.
+
 Edited notes are striped on the roll in equal-width diagonal bands; muted edited
 notes use gray bands inside their dashed outline. Stripes are a pattern rather than
 a new hue, so they survive grayscale; outlines stay reserved for selection, and

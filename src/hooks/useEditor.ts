@@ -9,6 +9,7 @@ import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
+import { rollPoint, useDraftPitch, useNoteDrag } from "./useNoteDrag";
 import { processRecording, type NoteItem } from "../recording";
 import { sameMelodySetting, type MelodySetting } from "../melody/settings";
 import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
@@ -31,7 +32,7 @@ export function useEditor(id: string) {
   const [record, setRecord] = useState<Recording | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
   const [draftName, setDraftName] = useState("");
-  const [rollHover, setRollHover] = useState(false);
+  const [rollHover, setRollHover] = useState<"note" | "drag" | null>(null);
   const [audition, setAudition] = useState<ReturnType<typeof processRecording> | null>(null);
   const [candidate, setCandidate] = useState<{
     id: string;
@@ -142,9 +143,13 @@ export function useEditor(id: string) {
   );
   const showingPreview = /^(preset|key|knob)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
-  const items = displayed?.items ?? appliedItems;
-  const displayNotes = displayed?.notes ?? notes;
-  const selectedItem = selected === null ? undefined : selectedSourceItem(items, selected);
+  const baseItems = displayed?.items ?? appliedItems;
+  const draft = useDraftPitch(
+    baseItems,
+    selected === null ? undefined : selectedSourceItem(baseItems, selected),
+    previewNote,
+  );
+  const { items, notes: displayNotes, selected: selectedItem } = draft;
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const selectNote = useCallback(
@@ -186,6 +191,8 @@ export function useEditor(id: string) {
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
   const { edited, origins } = useMemo(() => editMarks(items, selectedItem), [items, selectedItem]);
   const displayGrid = displayed?.interpretation.knobs.grid ?? grid;
+  const claimRef = useRef<(event: PointerEvent) => boolean>(() => false);
+  const claimsPointer = useCallback((event: PointerEvent) => claimRef.current(event), []);
   const viewport = useEditorPlot({
     record,
     frames,
@@ -197,6 +204,7 @@ export function useEditor(id: string) {
     position,
     traceRef,
     rollRef,
+    claimsPointer,
   });
   const rollView = viewport.view;
 
@@ -233,16 +241,25 @@ export function useEditor(id: string) {
       ? selectedSourceItem(processRecording(current, frames).items, selected)
       : undefined;
   };
-  const shiftSelectedPitch = (delta: -1 | 1) => {
-    if (auditionRef.current) return;
-    const item = currentSelected();
-    if (!item || !recordRef.current) return;
-    const midi = item.note.midi + delta;
-    if (midi < 0 || midi > 127) return;
+  const setSelectedPitch = (midi: number) => {
+    const item = auditionRef.current ? undefined : currentSelected();
+    if (!item || !recordRef.current || midi < 0 || midi > 127 || midi === item.note.midi) return;
     commitEdits(
       stepPitchEdit(recordRef.current.noteEdits, item.source, midi, item.automatic.midi, uid()),
     );
   };
+  const shiftSelectedPitch = (delta: number) => {
+    const item = currentSelected();
+    if (item) setSelectedPitch(item.note.midi + delta);
+  };
+  claimRef.current = useNoteDrag({
+    rollRef,
+    selected: selectedItem,
+    view: rollView,
+    enabled: !showingPreview,
+    preview: draft.preview,
+    commit: setSelectedPitch,
+  });
   const resetSelectedPitch = () => {
     if (auditionRef.current) return;
     const item = currentSelected();
@@ -299,13 +316,7 @@ export function useEditor(id: string) {
   const noteAt = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
       if (!record) return null;
-      const rect = event.currentTarget.getBoundingClientRect();
-      return noteAtPoint(items, rollView, {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-        width: rect.width,
-        height: rect.height,
-      });
+      return noteAtPoint(items, rollView, rollPoint(event.currentTarget, event));
     },
     [items, rollView, record],
   );
@@ -335,7 +346,10 @@ export function useEditor(id: string) {
   );
 
   const moveRoll = useCallback(
-    (event: MouseEvent<HTMLCanvasElement>) => setRollHover(!!noteAt(event)),
+    (event: MouseEvent<HTMLCanvasElement>) => {
+      const grabs = claimRef.current(event.nativeEvent as PointerEvent);
+      setRollHover(grabs ? "drag" : noteAt(event) ? "note" : null);
+    },
     [noteAt],
   );
 

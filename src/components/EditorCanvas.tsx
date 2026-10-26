@@ -18,6 +18,8 @@ function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorStat
     ArrowLeft: () => select(index - 1),
     Home: () => select(0),
     End: () => select(state.items.length - 1),
+    ArrowUp: () => state.shiftSelectedPitch(event.shiftKey ? 12 : 1),
+    ArrowDown: () => state.shiftSelectedPitch(event.shiftKey ? -12 : -1),
     m: state.muteSelected,
     M: state.muteSelected,
     " ": () => select(index),
@@ -29,6 +31,7 @@ function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorStat
   event.preventDefault();
   action();
 }
+const rollCursor = { drag: "ns-resize", note: "pointer", none: undefined };
 type CanvasProps = { kind: "audio" | "midi"; state: EditorState; layout: EditorLayout };
 function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   if (kind === "audio")
@@ -47,11 +50,11 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
       aria-label="MIDI piano roll"
       tabIndex={0}
       aria-describedby="roll-instructions"
-      title="Click a note to hear it, Ctrl+click to mute or unmute it."
+      title="Click a note to hear it, Ctrl+click to mute or unmute it. Drag the selected note up or down to change its pitch."
       onClick={state.clickRoll}
       onMouseMove={state.moveRoll}
       onKeyDown={(event) => rollKeyboard(event, state)}
-      style={{ cursor: state.rollHover ? "pointer" : undefined }}
+      style={{ cursor: rollCursor[state.rollHover ?? "none"] }}
     />
   );
 }
@@ -133,10 +136,12 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
   return (
     <>
       <p id="roll-instructions" className="sr-only">
-        Arrow keys select and preview notes. Enter or Space plays the selected note. M mutes or
-        unmutes it. Control or Command click also mutes a note. Middle-button drag pans the canvas.
-        Touch drag pans the canvas. Pinch horizontally to zoom time and vertically to zoom pitch.
-        Control plus wheel zooms time. Shift plus wheel zooms pitch. Escape dismisses note details.
+        Left and Right arrows, Home and End select and preview notes. Up and Down arrows change the
+        selected note's pitch by a semitone, or an octave with Shift. Drag the selected note up or
+        down to change its pitch. Enter or Space plays the selected note. M mutes or unmutes it.
+        Control or Command click also mutes a note. Middle-button drag pans the canvas. Touch drag
+        pans the canvas. Pinch horizontally to zoom time and vertically to zoom pitch. Control plus
+        wheel zooms time. Shift plus wheel zooms pitch. Escape dismisses note details.
       </p>
       <NoteDetail key={state.selectedNoteId ?? "none"} state={state} layout={layout} />
       <PlaybackStatus state={state} />

@@ -356,7 +356,12 @@ heading shows the note number and name, start time and duration, with context
 Play/Stop and **Mute note** (a pressed toggle while muted). Below it, the **Pitch** row
 has **Down one semitone** and **Up one semitone** steppers and a **Reset pitch**
 button that appears once the pitch is edited; the row and buttons keep their
-positions as the note is muted or edited. The selected note keeps keyboard focus on
+positions as the note is muted or edited. Once a note is selected, drag it up or
+down to change its pitch: it snaps to semitones, plays each new pitch, and shows the
+result live on the roll and in the inspector; the edit is saved on release, and
+Escape or a second finger cancels it. Only the selected note can be dragged, and only
+vertically; pressing elsewhere still selects, and touch drags elsewhere still pan.
+The selected note keeps keyboard focus on
 the roll and has a visible outline. On phones the inspector docks at the bottom of
 the roll, scrolls the selected note into the area above it, and replaces Tune while
 it is open. Note and context previews preserve synth release tails; interrupted
@@ -368,7 +373,8 @@ Click empty canvas or outside the menu, or press Escape, to dismiss it.
 Note IDs (for example, **Note #13**) follow the current detected sequence and
 also appear in JSON items and text diagnostics; muting does not renumber them.
 Detection changes that split or merge notes can renumber the sequence. Focus the roll and use arrow keys or Home/End to select
-and audition notes, Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
+and audition notes, Up/Down to change the selected note's pitch by a semitone
+(Shift for an octave), Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
 also toggles mute. Muted anchors survive preset changes. Tune's divider supports
 Left/Right, Home, and End. Tuning categories share a row when space permits
 and wrap on narrower sidebars. Mobile auditions reveal and focus the roll; reopening
@@ -427,7 +433,7 @@ notes are striped on the roll (muted ones in gray), including choices that now e
 the automatic pitch after a tuning change. A note whose pitch differs from detection
 also shows a dashed outline where it was detected, linked to its edited position;
 the selected note's link is drawn at full strength. Stepping back onto the detected
-pitch clears the edit, the same as Reset pitch.
+pitch, with a stepper, arrow key or drag, clears the edit, the same as Reset pitch.
 
 Filtering may hide an edited note without deleting its intent. Restore the detection
 settings to recover it; Recording actions shows an inactive pitch-edit count and

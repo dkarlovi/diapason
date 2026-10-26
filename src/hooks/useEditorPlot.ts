@@ -22,6 +22,7 @@ interface Options {
   position: number | null;
   traceRef: RefObject<HTMLCanvasElement | null>;
   rollRef: RefObject<HTMLCanvasElement | null>;
+  claimsPointer(event: PointerEvent): boolean;
 }
 
 function drawVisible(canvas: HTMLCanvasElement | null, frames: Frame[], view: TraceView) {
@@ -63,6 +64,7 @@ export function useEditorPlot({
   position,
   traceRef,
   rollRef,
+  claimsPointer,
 }: Options) {
   const [zoom, setZoom] = useState(1),
     [pan, setPan] = useState(0);
@@ -146,6 +148,7 @@ export function useEditorPlot({
     setPitchPan,
     zoomTime,
     zoomPitch,
+    claimsPointer,
   });
   return {
     view,

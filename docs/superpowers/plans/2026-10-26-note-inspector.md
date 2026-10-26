@@ -60,7 +60,7 @@ Mirror the Tune panel's tonal split: a darker band on top (like the Essentials/P
 
 ## Later (not in this plan)
 
-4. Note-edit undo (Ctrl+Z and a button), required before drag editing.
-5. Pitch drag (mouse body drag; touch drag starting on the selected note), ↑/↓ and Shift+↑/↓ shortcuts, audition on pitch change, ghost plus live readout while dragging.
+4. Note-edit undo (Ctrl+Z and a button), required before timing drags (move/resize).
+5. ~~Pitch drag~~ — done: vertical-only drag of the selected note (mouse or touch starting on it), ↑/↓ and Shift+↑/↓, audition on each semitone, live preview through the roll and inspector. Shipped without undo since Reset and the steppers cover a pitch-only mistake.
 6. `NoteEdits` v2 with timing coverage, then Start/Length rows, horizontal drag, and right-edge resize.
 7. Per-note velocity (currently one global value, 96).

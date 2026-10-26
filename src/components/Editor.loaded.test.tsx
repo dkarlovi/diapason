@@ -505,3 +505,42 @@ it("docks the note inspector on phones and never shows it together with Tune", a
   expect(screen.queryByRole("dialog", { name: "Note #1 A4" })).toBeNull();
   expect(screen.getByRole("region", { name: "Tune melody" })).toBeTruthy();
 });
+it("changes the selected note's pitch with arrow keys and by dragging it vertically", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" }) as HTMLCanvasElement;
+  fireEvent.keyDown(roll, { key: "ArrowUp" });
+  expect(saved?.noteEdits).toBeUndefined();
+  fireEvent.keyDown(roll, { key: "Home" });
+  fireEvent.keyDown(roll, { key: "ArrowUp" });
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
+  fireEvent.keyDown(roll, { key: "ArrowUp", shiftKey: true });
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(82);
+  fireEvent.keyDown(roll, { key: "ArrowDown", shiftKey: true });
+  fireEvent.keyDown(roll, { key: "ArrowDown" });
+  expect(saved?.noteEdits?.pitch).toEqual([]);
+
+  const rect = { left: 0, top: 0, width: 1000, height: 500 };
+  roll.getBoundingClientRect = () => rect as DOMRect;
+  Object.defineProperties(roll, { clientWidth: { value: 1000 }, clientHeight: { value: 500 } });
+  act(() => window.dispatchEvent(new Event("resize")));
+  const pointer = (type: string, x: number, y: number) => {
+    const event = new MouseEvent(type, { clientX: x, clientY: y, cancelable: true, bubbles: true });
+    Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+    act(() => roll.dispatchEvent(event));
+  };
+  const anchor = document.querySelector(".editor-note-anchor") as HTMLElement;
+  const x = parseFloat(anchor.style.left) + 10;
+  const y = parseFloat(anchor.style.top);
+  pointer("pointerdown", x, y);
+  pointer("pointermove", x, y - 200);
+  expect(screen.getByRole("dialog", { name: /Note #1 / }).textContent).not.toContain("A4");
+  expect(saved?.noteEdits?.pitch).toEqual([]);
+  pointer("pointerup", x, y - 200);
+  expect(saved?.noteEdits?.pitch).toHaveLength(1);
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBeGreaterThan(69);
+});

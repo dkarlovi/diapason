@@ -1,6 +1,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import type { TraceView } from "../trace";
 import { traceHorizontalPadding } from "../trace";
+import { listenForDrag } from "./pointer-drag";
 
 interface Options {
   canvases: RefObject<HTMLCanvasElement | null>[];
@@ -12,6 +13,8 @@ interface Options {
   setPitchPan(value: number): void;
   zoomTime(factor: number, anchor?: number): void;
   zoomPitch(factor: number): void;
+  /** Presses another interaction owns, such as dragging the selected note. */
+  claimsPointer(event: PointerEvent): boolean;
 }
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 type Point = { x: number; y: number };
@@ -24,8 +27,11 @@ function touchGestures(
   let moved = false;
   let origin: Point | null = null;
   const point = (event: PointerEvent) => ({ x: event.clientX, y: event.clientY });
+  // A first touch another interaction claims is left to it rather than panning.
+  const pans = (event: PointerEvent) =>
+    event.pointerType === "touch" && (pointers.size > 0 || !latest.current.claimsPointer(event));
   const down = (event: PointerEvent) => {
-    if (event.pointerType !== "touch") return;
+    if (!pans(event)) return;
     if (!pointers.size) {
       moved = false;
       origin = point(event);
@@ -59,21 +65,12 @@ function touchGestures(
     pointers.delete(event.pointerId);
     if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
   };
-  canvas.addEventListener("pointerdown", down, { signal });
-  canvas.addEventListener("pointermove", move, { signal, passive: false });
-  canvas.addEventListener("pointerup", end, { signal });
-  canvas.addEventListener("pointercancel", end, { signal });
+  listenForDrag(canvas, signal, { down, move, end }, () => {
+    const ended = moved;
+    moved = false;
+    return ended;
+  });
   canvas.addEventListener("lostpointercapture", end, { signal });
-  canvas.addEventListener(
-    "click",
-    (event) => {
-      if (!moved) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      moved = false;
-    },
-    { signal, capture: true },
-  );
 }
 function axisScale(before: number, after: number) {
   // Ignore tiny separations so a nearly horizontal pinch does not wildly zoom pitch.
