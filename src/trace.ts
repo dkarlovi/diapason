@@ -117,7 +117,8 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
     yOf: (midi) => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h,
   };
   ctx.textBaseline = "middle";
-  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.font =
+    view.inset || view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
   ctx.textAlign = "left";
   drawPitchGrid(ctx, geometry, view);
   drawBeatGrid(ctx, geometry, view);
@@ -181,7 +182,8 @@ function drawPitchLabels(
   ctx.fillRect(edge, 0, 16, h);
   ctx.globalAlpha = 1;
   ctx.textBaseline = "middle";
-  ctx.font = view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.font =
+    view.inset || view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
   ctx.textAlign = view.inset ? "right" : "left";
   const labelX = view.inset ? edge - 6 : 3;
   for (let m = Math.ceil(midiMin); m <= midiMax; m++) {

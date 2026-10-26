@@ -47,7 +47,7 @@ export function Capture() {
               {state.status}
             </p>
             <div className="setup-step">
-              <h2 className="sr-only" ref={wizard.heading} tabIndex={-1}>
+              <h2 className="sr-only capture-step-title" ref={wizard.heading} tabIndex={-1}>
                 {wizard.active.title}
               </h2>
               <fieldset

@@ -123,6 +123,7 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
         }
         if (traceRef.current)
           drawTrace(traceRef.current, frames, {
+            inset: true,
             tMin: t - 5,
             tMax: t + 0.2,
             ...autoRange(frames),

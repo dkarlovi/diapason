@@ -11,6 +11,7 @@ type Operation = {
   dash: number[];
   width: number;
   align: CanvasTextAlign;
+  font: string;
 };
 function surface(width = 100) {
   const operations: Operation[] = [];
@@ -49,6 +50,7 @@ function surface(width = 100) {
           dash: [...dash],
           width: ctx.lineWidth,
           align: ctx.textAlign,
+          font: ctx.font,
         }),
     });
   }
@@ -210,4 +212,18 @@ it("right-aligns inset pitch labels while keeping note text left-aligned", () =>
   expect(
     operations.find((op) => op.method === "fillText" && op.args[0] === "Selected note")?.align,
   ).toBe("left");
+});
+
+it("styles live octave labels like editor labels without crowding every semitone", () => {
+  const { canvas, operations } = surface(412);
+  drawTrace(canvas, [], { ...view, inset: true, midiMin: 60, midiMax: 84 });
+  const labels = operations.filter(
+    (op) => op.method === "fillText" && /^[A-G]#?\d+$/.test(String(op.args[0])),
+  );
+  expect(labels.map((op) => op.args[0])).toEqual(["C4", "C5", "C6"]);
+  for (const label of labels) {
+    expect(label.align).toBe("right");
+    expect(label.font).toBe("12px system-ui, sans-serif");
+    expect(label.args[1]).toBeCloseTo(35.2);
+  }
 });

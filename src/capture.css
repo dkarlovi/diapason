@@ -135,24 +135,18 @@ body:has(.studio-shell) {
   cursor: default;
 }
 .studio-shell #view-capture {
-  --capture-footer-height: 63px;
-  --capture-gap: 20px;
-  --capture-step-gap: 4px;
-  --capture-step-padding: 10px;
-  --capture-wizard-width: calc((100cqw - var(--capture-gap)) / 2);
-  --capture-record-width: calc(
-    (
-        var(--capture-wizard-width) - 2px - 2 * var(--capture-step-padding) - 5 *
-          var(--capture-step-gap)
-      ) /
-      6
-  );
+  --capture-footer-height: calc(63px + env(safe-area-inset-bottom, 0px));
+  --capture-gap: 0px;
+  --capture-step-gap: 2px;
+  --capture-step-padding: 14px;
+  --capture-wizard-width: 50cqw;
+  --capture-record-width: 84px;
   container-type: inline-size;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 16px 32px;
+  padding: 0;
 }
 .studio-shell .capture-library-fallback {
   display: none;
@@ -162,7 +156,7 @@ body:has(.studio-shell) {
   min-height: 0;
   display: grid;
   gap: var(--capture-gap);
-  grid-template-columns: minmax(0, 1fr) minmax(0, calc((100% - var(--capture-gap)) / 2));
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--capture-wizard-width));
   transition: grid-template-columns 460ms cubic-bezier(0.22, 0.7, 0.25, 1);
 }
 .capture-monitor {
@@ -173,6 +167,7 @@ body:has(.studio-shell) {
   min-height: 0;
 }
 .studio-shell .live-monitor {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -181,8 +176,8 @@ body:has(.studio-shell) {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
+  border: 0;
+  border-radius: 0;
   background: var(--color-muted);
 }
 .live-monitor .live-chart {
@@ -208,11 +203,11 @@ body:has(.studio-shell) {
 }
 .live-pitch {
   position: absolute;
-  left: 50px;
-  top: 24px;
+  left: calc(min(57px, 10cqw) + 6px);
+  top: 16px;
   display: flex;
   flex-direction: column;
-  padding: 6px 12px;
+  padding: 6px;
   border-radius: 5px;
   background: var(--color-muted);
   pointer-events: none;
@@ -228,14 +223,19 @@ body:has(.studio-shell) {
   color: var(--color-muted-foreground);
 }
 .live-monitor .live-level {
-  height: var(--capture-footer-height);
-  flex-shrink: 0;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: calc(100% - 24px);
+  min-height: 34px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 18px;
-  border-top: 1px solid var(--color-border);
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
   background: var(--color-card);
+  box-shadow: 0 2px 10px #0001;
 }
 .live-level label,
 .live-level .level-db {
@@ -271,40 +271,41 @@ body:has(.studio-shell) {
   border-radius: 1px;
   background: var(--color-border);
 }
-.clip-warning {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
+.live-level[data-clipping="true"] {
+  border-color: var(--color-destructive);
+}
+.live-level .clip-warning {
   color: var(--color-destructive);
   font-weight: 600;
-  font-size: 0.875rem;
-  padding: 5px 10px;
-  background: var(--color-muted);
-  border: 1px solid var(--color-destructive);
-  border-radius: 4px;
 }
 .live-beat {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 12px;
+  right: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  max-width: calc(100% - 160px);
+  max-width: calc(100% - 140px);
   padding: 8px 10px;
   background: var(--color-muted);
   border-radius: 5px;
 }
 .beat-pips {
+  --pip-size: 24px;
+  --pip-gap: 8px;
   display: grid;
-  grid-template-columns: repeat(var(--beat-columns), 24px);
-  gap: 8px;
+  grid-template-columns: repeat(var(--beat-columns), minmax(0, 1fr));
+  width: calc(var(--beat-columns) * var(--pip-size) + (var(--beat-columns) - 1) * var(--pip-gap));
+  max-width: 100%;
+  min-width: 0;
+  gap: var(--pip-gap);
 }
 .beat-pips span {
-  width: 24px;
-  height: 24px;
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -338,12 +339,13 @@ body:has(.studio-shell) {
   padding: 0;
   overflow: hidden;
   background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
+  border: 0;
+  border-inline-start: 1px solid var(--color-border);
+  border-radius: 0;
   transition: width 460ms cubic-bezier(0.22, 0.7, 0.25, 1);
 }
 .capture-wizard-content {
-  width: calc(var(--capture-wizard-width) - 2px);
+  width: calc(var(--capture-wizard-width) - 1px);
   height: 100%;
   min-height: 0;
   flex-shrink: 0;
@@ -399,11 +401,15 @@ body:has(.studio-shell) {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.capture-step .step-text-compact {
+  display: none;
+}
 .capture-step .step-name {
   font-size: 0.8125rem;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   line-height: 1.3;
-  max-height: 24px;
+  max-height: 2.6em;
 }
 .capture-step[aria-current="step"] .step-name {
   color: var(--color-foreground);
@@ -460,6 +466,16 @@ body:has(.studio-shell) {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+  /* Local covers reveal the edge shadows only when there is more to scroll. */
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) top / 100% 12px no-repeat local,
+    linear-gradient(var(--color-card), var(--color-card)) bottom / 100% 12px no-repeat local,
+    linear-gradient(var(--color-border), transparent) top / 100% 8px no-repeat scroll,
+    linear-gradient(transparent, var(--color-border)) bottom / 100% 8px no-repeat scroll;
+  background-color: var(--color-card);
+}
+.capture-step-title:focus {
+  outline: none;
 }
 .measurement-progress {
   appearance: none;
@@ -485,7 +501,8 @@ body:has(.studio-shell) {
 .capture-actions {
   min-height: var(--capture-footer-height);
   margin-top: auto;
-  padding: 12px 14px;
+  padding: 12px var(--capture-step-padding);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
   display: flex;
@@ -638,14 +655,17 @@ body:has(.studio-shell) {
   background: var(--color-primary-muted);
 }
 #view-capture[data-recording="true"] .capture-layout {
-  /* Retain the last step's center using its expanded width, padding, and borders. */
+  /* Fixed-width content stays right-aligned as the dock folds around Record/Stop. */
   grid-template-columns: minmax(0, 1fr) minmax(
       0,
-      calc(var(--capture-record-width) + 2 * var(--capture-step-padding) + 2px)
+      calc(var(--capture-record-width) + 2 * var(--capture-step-padding) + 1px)
     );
 }
 #view-capture[data-recording="true"] .capture-step[data-step="record"] {
   opacity: 1;
+}
+#view-capture[data-recording="true"] .capture-step:not([data-step="record"]) {
+  visibility: hidden;
 }
 #view-capture[data-recording="true"] .step-number {
   background: color-mix(in oklab, var(--color-success) 12%, var(--color-card));
@@ -662,173 +682,13 @@ body:has(.studio-shell) {
 #view-capture[data-recording="true"] .stop-symbol {
   display: none;
 }
-@media (max-width: 1000px) {
-  .workstation-header {
-    padding-inline: 16px;
-    gap: 16px;
-  }
-  .workstation-location {
-    padding-left: 16px;
-  }
-  .studio-shell #view-capture {
-    padding-inline: 16px;
-    --capture-gap: 12px;
-    --capture-step-gap: 2px;
-    --capture-step-padding: 7px;
-  }
-  .capture-layout {
-    gap: var(--capture-gap);
-  }
-  .capture-step .step-name {
-    font-size: 0.75rem;
-  }
-  .capture-wizard .field {
-    grid-template-columns: minmax(90px, 0.85fr) minmax(0, 1.4fr);
-    gap: 12px;
-  }
-  .live-pitch {
-    left: 32px;
-  }
-  .live-beat {
-    gap: 8px;
-    right: 16px;
-  }
-  .beat-pips {
-    gap: 5px;
-  }
+.capture-recording-brand {
+  display: none;
 }
-@media (max-width: 720px) {
-  .capture-toast {
-    bottom: calc(var(--capture-footer-height) + 24px);
-  }
-  .workstation-header {
-    min-height: 60px;
-    padding: 10px 12px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .studio-brand > span {
-    display: none;
-  }
-  .workstation-location {
-    gap: 6px;
-    padding-left: 12px;
-  }
-  .workstation-location h1 {
-    font-size: 0.875rem;
-  }
-  .studio-shell .midi-output {
-    gap: 4px;
-  }
-  .studio-shell .midi-output select {
-    max-width: 140px;
-  }
-  .studio-shell #view-capture {
-    padding: 10px;
-    --capture-wizard-width: 100cqw;
-  }
-  .capture-layout,
-  #view-capture[data-recording="true"] .capture-layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(140px, 35dvh) minmax(0, 1fr);
-    gap: 10px;
-  }
-  .live-pitch {
-    top: 14px;
-    left: 24px;
-  }
-  .live-pitch strong {
-    font-size: 2rem;
-  }
-  .live-beat {
-    top: auto;
-    bottom: 16px;
-    right: 12px;
-    max-width: calc(100% - 24px);
-  }
-  .live-level {
-    gap: 8px;
-    padding-inline: 10px;
-  }
-  .live-level label {
-    font-size: 0.75rem;
-  }
-  .capture-step-body {
-    padding: 14px;
-  }
-  .capture-steps {
-    padding-block: 8px;
-    gap: 2px;
-  }
-  .capture-step .step-name {
-    font-size: 11px;
-  }
-  .capture-actions .record-toggle {
-    font-size: clamp(0.625rem, 3cqw, 0.875rem);
-  }
-  .record-toggle .record-symbol {
-    display: none;
-  }
-  .capture-step small {
-    font-size: 11px;
-  }
-  .capture-wizard .field {
-    gap: 10px;
-    grid-template-columns: minmax(90px, 0.85fr) minmax(0, 1.4fr);
-  }
-  .studio-shell .capture-wizard {
-    justify-self: end;
-    margin-left: auto;
-  }
-  #view-capture[data-recording="true"] .capture-wizard {
-    width: calc(var(--capture-record-width) + 2 * var(--capture-step-padding) + 2px);
-  }
+#view-capture[data-recording="true"] .record-facts,
+#view-capture[data-recording="true"] .capture-back {
+  visibility: hidden;
 }
-@media (max-height: 540px) {
-  main.studio-shell:has(#view-capture) {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-  .studio-shell #view-capture {
-    flex: none;
-  }
-  .capture-layout {
-    min-height: 430px;
-  }
-  .capture-steps {
-    padding-block: 6px;
-  }
-  .capture-step-body {
-    padding: 14px;
-  }
-}
-@media (max-height: 540px) and (max-width: 720px) {
-  .capture-layout {
-    display: flex;
-    flex-direction: column;
-  }
-  .capture-monitor {
-    position: sticky;
-    top: 0;
-    height: 150px;
-    flex: none;
-    z-index: 2;
-  }
-  .studio-shell .capture-wizard {
-    height: 420px;
-    flex: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .capture-wizard,
-  .capture-layout,
-  .capture-wizard *,
-  .live-level .meter > div {
-    transition: none !important;
-  }
-}
-
 .studio-shell .hint,
 .studio-shell .checklist .detail {
   color: var(--color-muted-foreground);
@@ -842,15 +702,40 @@ body:has(.studio-shell) {
 .studio-shell .checklist li.fail .dot {
   background: var(--color-destructive);
 }
-
+@media (max-width: 1000px) {
+  .workstation-header {
+    padding-inline: 16px;
+    gap: 16px;
+  }
+  .workstation-location {
+    padding-left: 16px;
+  }
+  .capture-step .step-name {
+    font-size: 0.75rem;
+  }
+  .capture-wizard .field {
+    grid-template-columns: minmax(90px, 0.85fr) minmax(0, 1.4fr);
+    gap: 10px;
+  }
+  .live-beat {
+    gap: 8px;
+    right: 16px;
+  }
+}
 @media (max-width: 720px) {
   .workstation-header {
+    min-height: 60px;
+    padding: 10px 12px;
     display: grid;
     grid-template-columns: 23px minmax(0, 1fr) auto;
     gap: 8px;
   }
+  .studio-brand > span,
   .studio-shell .midi-output-label {
     display: none;
+  }
+  .studio-shell .midi-output {
+    gap: 4px;
   }
   .studio-shell .midi-output select {
     max-width: 120px;
@@ -861,74 +746,63 @@ body:has(.studio-shell) {
     padding-left: 8px;
   }
   .workstation-location h1 {
+    font-size: 0.875rem;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .live-pitch strong {
+    font-size: 2rem;
+  }
+  .capture-step-body {
+    padding: 14px;
+  }
+  .capture-steps {
+    padding-block: 8px;
+  }
   .capture-step .step-name {
     font-size: 0.8125rem;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    max-height: 2.6em;
   }
-}
-@media (max-width: 720px) and (max-height: 700px) {
-  main.studio-shell:has(#view-capture) {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-  .studio-shell #view-capture {
-    flex: none;
-  }
-  .capture-layout,
-  #view-capture[data-recording="true"] .capture-layout {
-    display: flex;
-    flex-direction: column;
-  }
-  .capture-monitor {
-    position: sticky;
-    top: 0;
-    height: clamp(140px, 30dvh, 190px);
-    flex: none;
-    z-index: 2;
-  }
-  .studio-shell .capture-wizard {
-    height: 480px;
-    flex: none;
-  }
-}
-
-.capture-recording-brand {
-  display: none;
 }
 @media (max-width: 720px) and (orientation: portrait) {
-  main.studio-shell:has(#view-capture) {
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
-  }
   .studio-shell #view-capture {
-    flex: 1;
+    --capture-wizard-width: 100cqw;
+  }
+  .capture-step[data-step="record"] {
+    flex: 1 1 0;
+  }
+  .capture-step .step-text-full {
+    display: none;
+  }
+  .capture-step .step-text-compact {
+    display: inline;
+  }
+  .capture-step .step-name {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    max-height: none;
+  }
+  .capture-step small {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-height: 1.3em;
+    max-height: 1.3em;
+    transition: opacity 180ms;
   }
   .capture-layout,
   #view-capture[data-recording="true"] .capture-layout {
-    display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(140px, 0.55fr) minmax(calc(var(--capture-footer-height) + 2px), 1fr);
-    min-height: 0;
+    /* Scale both ratios so the wizard still fills the remaining space while
+       the chart is at its minimum during the first animation frames. */
+    grid-template-rows: minmax(min(140px, 35dvh), 0.9fr) minmax(var(--capture-footer-height), 2fr);
     transition: grid-template-rows 460ms cubic-bezier(0.22, 0.7, 0.25, 1);
   }
   #view-capture[data-recording="true"] .capture-layout {
-    grid-template-rows: minmax(140px, 1.55fr) minmax(calc(var(--capture-footer-height) + 2px), 0fr);
+    grid-template-rows: minmax(min(140px, 35dvh), 2.9fr) minmax(var(--capture-footer-height), 0fr);
   }
-  .capture-monitor {
-    position: static;
-    height: auto;
-  }
-  .studio-shell .capture-wizard,
-  #view-capture[data-recording="true"] .capture-wizard {
-    width: 100%;
-    height: 100%;
+  .studio-shell .capture-wizard {
+    border-inline-start: 0;
+    /* An inset divider leaves the action row's height unchanged when collapsed. */
+    box-shadow: inset 0 1px var(--color-border);
   }
   .capture-wizard-content {
     position: relative;
@@ -944,10 +818,6 @@ body:has(.studio-shell) {
   .capture-actions {
     position: relative;
   }
-  .capture-actions .record-toggle {
-    width: 84px;
-    font-size: 0.875rem;
-  }
   .capture-recording-brand {
     position: absolute;
     left: var(--capture-step-padding);
@@ -962,8 +832,12 @@ body:has(.studio-shell) {
   .capture-recording-brand svg {
     width: 26px;
     height: 26px;
+    padding: 3px;
+    border: 1px solid var(--color-success);
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--color-success) 12%, var(--color-card));
     fill: none;
-    stroke: var(--color-primary);
+    stroke: var(--color-success);
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -971,7 +845,79 @@ body:has(.studio-shell) {
   .capture-recording-brand[data-recording="true"] {
     opacity: 1;
   }
-  #view-capture[data-recording="true"] .capture-back {
-    opacity: 0;
+  .capture-toast {
+    bottom: calc(var(--capture-footer-height) + 16px);
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .capture-steps {
+    padding-block: 6px;
+  }
+  .capture-step .step-name,
+  .capture-step small {
+    display: none;
+  }
+  .studio-shell .capture-step {
+    min-height: 44px;
+    justify-content: center;
+  }
+  .capture-step-title {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 8px 14px 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+  #view-capture[data-recording="true"] .capture-step-title {
+    visibility: hidden;
+  }
+  .capture-step-body {
+    padding: 14px;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 600px) {
+  .studio-shell #view-capture {
+    --capture-step-padding: 10px;
+  }
+  .capture-step[data-step="record"] {
+    flex-basis: 64px;
+  }
+  .capture-back-label {
+    display: none;
+  }
+  .capture-actions .capture-back button {
+    min-width: 38px;
+    gap: 0;
+  }
+}
+@container (max-width: 400px) {
+  .live-beat {
+    gap: 4px;
+    padding: 6px;
+  }
+  .beat-pips {
+    --pip-size: 20px;
+    --pip-gap: 4px;
+  }
+  .beat-pips span {
+    font-size: 0.625rem;
+  }
+  .beat-tempo,
+  .beat-time {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .capture-wizard,
+  .capture-layout,
+  .capture-wizard *,
+  .live-level .meter > div {
+    transition: none !important;
   }
 }

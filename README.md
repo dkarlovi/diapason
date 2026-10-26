@@ -33,22 +33,27 @@ diapason is organized as a **library of recordings**, persisted in your browser
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
 
 The **Recording workstation** uses a Slate & blue theme that follows your system's
-light/dark preference. Its compact header keeps the live signal in view while a
-horizontal six-step wizard shows your setup values
-directly, without a separate wizard heading or step counter. The input-level
-strip and wizard action strip share the same height. The steps mark completed
+light/dark preference. The live canvas and six-step setup dock each use half the workspace,
+without width caps, surrounding cards, or gutters. On phone portrait,
+the wizard sits below the canvas with equal-width steps, short labels, and
+aligned single-line summaries. Short landscape screens keep the two-column
+layout and hide step labels and summaries, showing the active step's heading
+instead. The input level spans the live canvas width, inset from its edges, in a floating widget matching
+the editor’s zoom controls. The steps mark completed
 setup with green checkmarks and labels, while amber summaries distinguish the
 selected values. The current step keeps a blue fill with a contrasting outer ring,
 including when revisiting a completed step. Continuing from sound selection connects the
 microphone and requests browser permission if needed; the microphone step then
 shows its settings, with a connection retry available if access fails.
-Microphone, gain, and tempo fields use compact label/control rows. The input level
-sits below the signal;
-pitch, clipping, and the audio-clock-synchronized metronome appear on the canvas.
+Microphone, gain, and tempo fields use compact label/control rows. Pitch and the
+audio-clock-synchronized metronome stay at the top of the canvas in both
+orientations. Live octave labels use the editor’s right-aligned pitch gutter;
+clipping is flagged in red within the floating level meter.
 Record is available only after setup. The same button becomes a bright red **Stop**;
-the wizard folds into a slab around the Record step, keeping its icon in place
-and replacing it with the green diapason mark. Stop matches the step width.
-The Record label and separator stay in place; only the count-in summary fades.
+the wizard folds around the Record step, giving the live canvas more space.
+The Record step's icon becomes the green diapason mark. Portrait uses the same
+green bordered badge beside Stop. Record and Stop keep
+the same size and screen position throughout collapse and expansion.
 The wizard is cropped from the left as its width changes, keeping its contents
 fixed during collapse and expansion.
 Stopping restores the layout, saves a separate take, and briefly shows
@@ -61,8 +66,9 @@ they do not shift the wizard layout. Both parts of the breadcrumb use matching
 type size and alignment.
 
 A short take or save failure leaves setup ready to retry. Clap listening and
-metronome preview also use one button to start and stop. Narrow screens stack the signal above
-setup; reduced motion preferences disable the folding animation.
+metronome preview also use one button to start and stop. Setup actions stay visible
+at the bottom; dense steps scroll internally, with edge shadows indicating more
+content. Reduced motion preferences disable the folding animation.
 
 All three screens share the Slate & blue system theme, compact header, readable
 type, and shared controls built with Tailwind, the shadcn/ui component pattern,
