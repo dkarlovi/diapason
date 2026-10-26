@@ -199,11 +199,6 @@
         "purpose": "Input level and editor zoom controls."
       },
       {
-        "name": "tune-overlay",
-        "value": "-8px 0 25px #0002",
-        "purpose": "Tune floating above the MIDI roll."
-      },
-      {
         "name": "popover",
         "value": "0 12px 36px #0004, 0 2px 8px #0002",
         "purpose": "Editor dropdowns and contextual tools."
@@ -293,7 +288,7 @@
       "kind": "nav",
       "refersTo": "workstation-nav",
       "description": "Compact Library link and current recording.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">\u203a</span><span>Whistled melody</span></nav>",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">›</span><span>Whistled melody</span></nav>",
       "css": ".ds-nav{font:500 .875rem/1.5 system-ui,sans-serif;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--color-card);color:var(--color-foreground);border-bottom:1px solid var(--color-border)}.ds-nav-link{color:var(--color-muted-foreground);text-decoration:none}.ds-nav-link:hover{color:var(--color-primary);text-decoration:underline}.ds-nav-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
     },
     {
@@ -302,14 +297,14 @@
       "refersTo": "active-category",
       "description": "Selected Essentials group in Tune.",
       "html": "<button class=\"ds-category\" type=\"button\" aria-pressed=\"true\">Essentials</button>",
-      "css": ".ds-category{font:500 .875rem/1.5 system-ui,sans-serif;min-height:30px;padding:4px 8px;font-size:.8125rem;border:0;border-radius:5px;background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)));color:var(--color-primary);cursor:pointer}.ds-category:hover{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)))}.ds-category:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
+      "css": ".ds-category{font:500 .875rem/1.5 system-ui,sans-serif;min-height:30px;padding:4px 8px;font-size:.8125rem;border:0;border-radius:5px;background:var(--color-primary);color:var(--color-primary-foreground);cursor:pointer}.ds-category:hover{background:var(--color-primary)}.ds-category:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
     },
     {
       "name": "Recording row",
       "kind": "card",
       "refersTo": "recording-row",
       "description": "Library recording with a title and timing metadata.",
-      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM \u00b7 4/4 \u00b7 3.0s</p></article>",
+      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM · 4/4 · 3.0s</p></article>",
       "css": ".ds-record{padding:20px;border-bottom:1px solid var(--color-border);background:var(--color-card);color:var(--color-foreground)}.ds-record:hover,.ds-record:focus-within{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)))}.ds-record-link{font:550 1rem/1.5 system-ui,sans-serif;color:var(--color-foreground);text-decoration:none}.ds-record-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-record-meta{margin:4px 0 0;font:.8125rem/1.5 system-ui,sans-serif;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}"
     },
     {
@@ -325,7 +320,7 @@
       "kind": "custom",
       "refersTo": "active-category",
       "description": "Applied selections remain blue; a currently auditioning candidate uses amber and explicit state text even when also applied.",
-      "html": "<div class=\"ds-audition\"><span>Gentle fix<small>Applied \u00b7 Previewing</small></span><button type=\"button\" aria-pressed=\"true\">Stop</button></div>",
+      "html": "<div class=\"ds-audition\"><span>Gentle fix<small>Applied · Previewing</small></span><button type=\"button\" aria-pressed=\"true\">Stop</button></div>",
       "css": ".ds-audition{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--color-warning);border-radius:4px;background:color-mix(in oklab,var(--color-warning) 8%,var(--color-card));font:.8125rem/1.5 system-ui,sans-serif}.ds-audition>span{flex:1;min-width:0;overflow-wrap:anywhere}.ds-audition small{display:block;color:var(--color-warning)}.ds-audition button{padding:3px 7px;border:1px solid var(--color-warning);border-radius:5px;color:var(--color-warning);background:transparent}.ds-audition button:focus-visible{outline:2px solid var(--color-warning);outline-offset:3px}"
     }
   ],

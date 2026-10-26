@@ -65,8 +65,6 @@ historical tuning-fork pitch reference. The existing mark is implemented in
 - `README.md`: implemented workflows, browser requirements, and known limitations.
 - `docs/design-principles.md`: the existing studio's design and interaction
   agreements.
-- `prototypes/editor-directions.html`: interactive editor layout studies using a
-  generated demo melody; these are prototypes, not evidence from user recordings.
 - `src/`: the shipped implementation and colocated behavior tests.
 
 ## Product Principles

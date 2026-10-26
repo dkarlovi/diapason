@@ -73,7 +73,8 @@ components:
     backgroundColor: "{colors.card}"
     textColor: "{colors.foreground}"
   active-category:
-    textColor: "{colors.primary}"
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
     rounded: "{rounded.control}"
   recording-row:
     backgroundColor: "{colors.card}"
@@ -166,7 +167,8 @@ viewport. Dense toolboxes scroll internally; work surfaces retain their space.
 
 The studio is mostly flat. Surface tones and thin borders distinguish the
 workspace, header, and toolbox. Soft shadows belong to floating controls,
-popovers, the Tune overlay, and toasts. They communicate which controls sit above
+popovers and toasts. Tune uses a flat tonal surface with a distinct header and
+category rail. Shadows communicate which controls sit above
 the canvas rather than turning every section into a raised card.
 
 Recording's principal motion is the existing folding dock (460ms), with shorter
@@ -194,7 +196,7 @@ Continuous actions use one button whose icon and label change between start and
 stop. Running playback, clap listening, and metronome controls share amber text,
 border, and tint through hover and keyboard focus. Recording Stop retains red.
 Inputs use explicit labels. Tune places a separate, named Reset icon beside each
-control; labels are noninteractive. A compact footer pairs Undo tuning change
+control with quiet resting chrome; labels are noninteractive. A compact footer pairs Undo tuning change
 with the confirmed full Reset. Undo restores melody/playback settings while
 preserving note edits, muting, names, and original audio.
 
@@ -219,6 +221,14 @@ and instruction references as native props. Call the existing renderer from the
 owning hook; the primitive does not schedule rendering or own audio data.
 
 ### Floating tools and menus
+
+Tune has two explicit groups in DOM and reading order. Playback sound contains
+Instrument and Octave. Melody correction contains Preset and Key directly above
+the Essentials/Pitch/Rhythm/Detection category rail and its sliders. Presets own
+the slider recipe; Key is its musical context. Playback settings remain separate
+from exported-note correction. The category selection uses the primary fill and
+primary foreground, and measurements use tabular numerals. The toolbox uses a
+muted ground, a card header, and clear spacing between its two groups.
 
 Use the shared Radix popover primitives for viewport-aware placement, Escape,
 and outside-click dismissal. Melody options distinguish Preview from Use;

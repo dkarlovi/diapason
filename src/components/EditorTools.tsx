@@ -68,12 +68,15 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
               audition(() => state.previewMelody(change, id), id);
             }}
           >
-            <PlaybackSettings
-              state={state}
-              onPreview={(settings, id, label) =>
-                audition(() => state.previewPlay(settings, id, label), id)
-              }
-            />
+            <section className="editor-tune-group" aria-label="Playback sound">
+              <h3>Playback sound</h3>
+              <PlaybackSettings
+                state={state}
+                onPreview={(settings, id, label) =>
+                  audition(() => state.previewPlay(settings, id, label), id)
+                }
+              />
+            </section>
           </MelodyPanel>
         </div>
         <div className="editor-tune-footer">

@@ -102,7 +102,10 @@ than an applied recipe. Shared
 Radix popovers float above the canvas, stay inside the viewport, and dismiss
 with an outside click or Escape. The Key menu includes Auto, suggestions, and all 24 keys;
 Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
-Instrument and octave sit in Tune. Rename lives in the header, with duplicate,
+Tune uses a tonal toolbox with a strong blue category selection and quieter reset
+controls. **Playback sound** groups Instrument and Octave. **Melody correction**
+places Preset and Key directly above the correction tabs and sliders, keeping the
+recipe beside the values it controls. Rename lives in the header, with duplicate,
 delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
 keeps external MIDI selection in that menu.
 
@@ -177,26 +180,6 @@ available if microphone tempo detection fails. Microphone access needs localhost
 or HTTPS. Audio and recordings remain local in IndexedDB.
 
 ## Running it
-
-Three interactive **editor layout studies** are available at
-[`/diapason/prototypes/editor-directions.html`](http://localhost:5173/diapason/prototypes/editor-directions.html)
-while the development server is running. Compare a 25/75 audio–MIDI split, a shared
-timeline with a slim original track, and a MIDI canvas with tools shown on demand.
-The shared-timeline study now opens by default. Its original track can be hidden
-(hidden initially on mobile); matching Play/Download pairs sit at each track's
-top right, instrument and octave live in the toolbox, and zoom floats over the
-canvas. The divider handle restores or hides the original track without removing
-the MIDI canvas. Download log is under Recording actions.
-Tune starts wider and can be dragged from 286px up to half the workspace, or
-switched between docked and overlay placement. Preset auditions appear on the
-roll with a preview label and sounding-note highlights; the regular Stop button
-ends the preview and restores the applied version. Zoomed playback follows the
-playhead across both tracks.
-Try the preset dropdown's Preview/Use actions, grouped tuning controls, note
-selection and muting, and time/pitch zoom. These are standalone design prototypes
-with a generated demo melody and synth audio; they do not load or modify saved
-recordings, run the melody correction engine, or export MIDI. The shipped Editor implements the approved shared-timeline overlay direction. See [the study notes](prototypes/editor-directions.md)
-for tradeoffs and review details.
 
 Requires Node 22+.
 

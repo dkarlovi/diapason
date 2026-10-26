@@ -114,8 +114,11 @@ are noninteractive. Tune's footer offers one-step Undo tuning change beside
 the confirmed full Reset. Undo affects melody/playback settings and preserves
 manual note edits, muting, recording names, and original audio. Its history
 belongs to the open take.
-Tune groups Essentials, Pitch, Rhythm, and Detection, with instrument and octave
-above the groups. Rename is in the compact header; recording actions and
+Tune separates Playback sound (Instrument, Octave) from Melody correction.
+Preset and Key sit immediately above Essentials, Pitch, Rhythm, and Detection,
+so the recipe stays next to the controls it sets. The tonal toolbox, stronger
+category rail, and quieter reset controls follow the approved Bolder study.
+Rename is in the compact header; recording actions and
 text/JSON diagnostics live in its menu. Mobile retains external MIDI selection
 there as well.
 
@@ -137,6 +140,5 @@ and keyboard navigation replace the permanent Notes list. On mobile Tune and its
 when auditioning and focus moves to the roll. Reopening Tune restores the last
 menu; desktop keeps the controls visible for comparison.
 
-The visual studies are in `prototypes/editor-directions.html`; the shared timeline
-with overlay Tune is the implementation reference. The Recording reference remains
+The Recording reference remains
 `folding-wizard-v8.html` in the ignored `.superpowers/brainstorm/` directory.

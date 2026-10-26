@@ -60,10 +60,9 @@
 }
 .editor-track-label h2 {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   line-height: 1.5;
 }
 .editor-track-label > span,
@@ -73,6 +72,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.editor-track-label > span {
+  margin-top: 2px;
 }
 .editor-track-label time {
   font-family: ui-monospace, monospace;
@@ -133,19 +135,21 @@
   border: 0;
   border-left: 1px solid var(--color-border);
   border-radius: 0;
-  background: var(--color-card);
-  box-shadow: -8px 0 25px #0002;
+  background: var(--color-muted);
+  box-shadow: none;
 }
 .editor-tune-heading {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px 0;
+  padding: 16px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
 }
 .editor-tune-heading h2 {
   margin: 0 auto 0 0;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 650;
 }
 .studio-shell .editor-tune-heading [data-slot="button"] {
   border: 0;
@@ -155,7 +159,7 @@
   padding: 2px 5px;
 }
 .editor-tune-body {
-  padding: 16px 14px;
+  padding: 16px;
   overflow: auto;
   flex: 1;
   min-height: 0;
@@ -193,10 +197,28 @@
   border: 0;
   background: transparent;
 }
+.studio-shell .editor-tune-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.editor-tune-group h3 {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+.studio-shell .editor-correction-group {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
 .editor-preset-field {
   position: relative;
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 28px;
+  grid-template-columns: 72px minmax(0, 1fr) 28px;
   gap: 8px;
   align-items: center;
   margin-bottom: 12px;
@@ -213,6 +235,9 @@
   min-height: 36px;
   padding: 6px 10px;
   font-size: 0.875rem;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.35;
 }
 .editor-select-trigger svg {
   width: 14px;
@@ -248,8 +273,8 @@
 .editor-preset-option {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 6px;
+  gap: 8px;
+  padding: 10px 8px;
   border-radius: 4px;
   border-bottom: 1px solid var(--color-border);
 }
@@ -260,7 +285,7 @@
   flex-direction: column;
   gap: 2px;
   margin-right: auto;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
 .preview-option-state {
@@ -280,7 +305,7 @@
   height: 12px;
 }
 .studio-shell .editor-tune .field {
-  grid-template-columns: 64px minmax(0, 1fr) 28px;
+  grid-template-columns: 72px minmax(0, 1fr) 28px;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -302,7 +327,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin: 8px 0;
+  margin: 16px -16px 16px;
+  padding: 8px 16px;
+  border-block: 1px solid var(--color-border);
+  background: var(--color-card);
 }
 .melody-categories button {
   flex: 1 0 auto;
@@ -316,8 +344,9 @@
   cursor: pointer;
 }
 .melody-categories [aria-pressed="true"] {
-  color: var(--color-primary);
-  background: var(--color-primary-muted);
+  color: var(--color-primary-foreground);
+  background: var(--color-primary);
+  font-weight: 600;
 }
 .melody-controls {
   display: flex;
@@ -326,7 +355,7 @@
 }
 .melody-controls .ctl {
   display: grid;
-  grid-template-columns: minmax(70px, 1fr) minmax(40px, 1fr) 2.75rem 28px;
+  grid-template-columns: minmax(72px, 1fr) minmax(40px, 1fr) 2.75rem 28px;
   gap: 6px;
   align-items: center;
 }
@@ -335,6 +364,7 @@
   grid-row: 1;
   font-size: 0.75rem;
   color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
 }
 .melody-controls input,
 .melody-controls select {
@@ -525,6 +555,9 @@
   .editor-track-label > span {
     font-size: 0.6875rem;
   }
+  .editor-track-label h2 {
+    font-size: 0.75rem;
+  }
   .editor-track-actions {
     right: 10px;
   }
@@ -533,18 +566,20 @@
     left: 10px;
   }
   .editor-playing {
-    bottom: 90px;
+    bottom: 96px;
     left: 10px;
     font-size: 0.75rem;
     max-width: calc(100% - 20px);
   }
   .editor-navigation {
     right: 8px;
-    max-width: calc(100% - 130px);
+    max-width: calc(100% - 24px);
+    bottom: 52px;
   }
   .editor-zoom-actions {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-end;
+    gap: 4px;
   }
   .studio-shell .editor-zoom-actions [data-slot="button"] {
     padding-inline: 4px;
@@ -637,6 +672,13 @@
   min-height: 28px;
   padding: 5px;
   color: var(--color-muted-foreground);
+  border-color: transparent;
+  background: transparent;
+}
+.studio-shell [data-slot="button"].editor-reset:hover:not(:disabled) {
+  border-color: var(--color-border);
+  background: var(--color-card);
+  color: var(--color-foreground);
 }
 .editor-reset svg {
   width: 14px;
@@ -671,12 +713,18 @@
   flex-shrink: 0;
   padding: 12px 14px;
   border-top: 1px solid var(--color-border);
+  background: var(--color-card);
 }
 .studio-shell .editor-tune-footer [data-slot="button"] {
   flex: 1 0 auto;
   min-width: 0;
   padding-inline: 8px;
   font-size: 0.8125rem;
+}
+.studio-shell .editor-tune-footer [data-slot="button"]:last-child {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-muted-foreground);
 }
 .editor-workspace::after {
   content: "";
