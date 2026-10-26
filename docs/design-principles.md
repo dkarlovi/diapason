@@ -35,8 +35,10 @@ audio is a shallow track above an edge-to-edge MIDI roll, with exactly aligned
 time coordinates. Original audio can be hidden entirely and starts hidden on
 mobile. A handle straddles the divider to hide or restore it.
 
-Each track has identically sized Play/Stop and Download controls in the same
-order and at the same top-right offset. Open Tune moves both pairs left together
+Both tracks share matching Play/Stop and Download controls in the same order and
+at the same top-right offset. Download is the primary tool action, with a visible
+label. Play is secondary preview: labeled on desktop and icon-only on small
+screens so Download keeps its label. Open Tune moves both pairs left together
 so playback remains accessible. Tune overlays the workarea, starts at 360px, and
 can be resized from 286px to 50% using its divider or keyboard. Zoom and pan float
 at bottom right; metadata and note details are overlays, never dedicated rows.
@@ -65,7 +67,11 @@ action, without promotional headings, repeated instructions, or scrolling prose.
 One button starts and stops a continuous action. Its icon, label, and active
 state change to show what pressing it will do. Use this consistently for
 recording, audio/MIDI playback, clap listening, metronome preview, and any other
-continuous action. Do not add a separate Stop button beside its start button.
+continuous action. Running playback/audition, clap listening, and metronome
+controls use amber text, border, and tint, including hover and keyboard focus.
+Applied options and active categories remain blue; Download stays the primary
+blue action. Recording Stop remains red. Show state in text as well as color.
+Do not add a separate Stop button beside its start button.
 
 Preserve the conceptual relationships:
 
@@ -102,7 +108,12 @@ Recording retains the approved folding wizard. Editing uses the approved shared
 timeline with overlay Tune. Presets occupy one dropdown with separate Preview
 and Use actions. Key follows the same dropdown pattern, containing Auto, key
 suggestions, all 24 explicit keys, and Preview/Use actions. Controls stay in
-compact label–widget–value rows, with explanation text in tooltips.
+compact label–widget–value rows, with explanation text in tooltips. Each control
+has a separate Reset button with an accessible name and tooltip; field labels
+are noninteractive. Tune's footer offers one-step Undo tuning change beside
+the confirmed full Reset. Undo affects melody/playback settings and preserves
+manual note edits, muting, recording names, and original audio. Its history
+belongs to the open take.
 Tune groups Essentials, Pitch, Rhythm, and Detection, with instrument and octave
 above the groups. Rename is in the compact header; recording actions and
 text/JSON diagnostics live in its menu. Mobile retains external MIDI selection
@@ -116,11 +127,15 @@ Following and pan account for the overlay and pitch-axis inset, including the
 last note. Manual pan remains available whenever the overlay hides some of the
 time range, even at 1×.
 
-Auditions render exactly the notes sent to playback, show a preview label, and
-highlight the sounding note. The regular MIDI Stop ends auditions and restores
+Auditions render exactly the notes sent to playback, name the candidate and
+its Applied/Not applied status, and highlight the sounding note. Option rows
+label Applied, Previewing, or Base preset explicitly. A preset with custom
+overrides is a base recipe rather than Applied. Blue applied rows become amber
+while previewing; hover retains the preview cue. The regular MIDI Stop ends auditions and restores
 the applied roll. Auditions never save or affect exports. Contextual note controls
-and keyboard navigation replace the permanent Notes list. On mobile Tune closes
-when auditioning so the roll is visible.
+and keyboard navigation replace the permanent Notes list. On mobile Tune and its menu close
+when auditioning and focus moves to the roll. Reopening Tune restores the last
+menu; desktop keeps the controls visible for comparison.
 
 The visual studies are in `prototypes/editor-directions.html`; the shared timeline
 with overlay Tune is the implementation reference. The Recording reference remains

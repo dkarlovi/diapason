@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useContext, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "./primitives";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { ResetControl } from "./ResetControl";
+import { AuditionMenuContext } from "./AuditionMenuContext";
 
 interface Props {
   label: string;
@@ -11,18 +13,14 @@ interface Props {
   children(close: () => void): ReactNode;
 }
 export function MelodyDropdown({ label, value, disabled, onReset, children }: Props) {
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const context = useContext(AuditionMenuContext);
+  const open = context ? context.visible && context.menu === label : localOpen;
+  const setOpen = (next: boolean) =>
+    context ? context.setMenu(next ? label : null) : setLocalOpen(next);
   return (
     <div className="editor-preset-field">
-      <button
-        type="button"
-        className="editor-reset-label"
-        disabled={disabled}
-        title={`Reset ${label.toLowerCase()} to default`}
-        onClick={onReset}
-      >
-        {label}
-      </button>
+      <span className="editor-field-label">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -34,10 +32,17 @@ export function MelodyDropdown({ label, value, disabled, onReset, children }: Pr
             <ChevronDown aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="editor-preset-menu" aria-label={`${label} options`}>
+        <PopoverContent
+          className="editor-preset-menu"
+          aria-label={`${label} options`}
+          onCloseAutoFocus={(event) => {
+            if (context && !context.visible) event.preventDefault();
+          }}
+        >
           {children(() => setOpen(false))}
         </PopoverContent>
       </Popover>
+      <ResetControl label={label} disabled={disabled} onReset={onReset} />
     </div>
   );
 }

@@ -14,6 +14,16 @@ export interface MelodySetting {
   overrides: Partial<Knobs>;
   key: KeyChoice;
 }
+
+/** Compare recipes, including explicit overrides, without relying on property order. */
+export function sameMelodySetting(left: MelodySetting, right: MelodySetting): boolean {
+  const recipe = (setting: MelodySetting) => [
+    setting.preset,
+    setting.key === "auto" ? "auto" : [setting.key.tonic, setting.key.mode],
+    Object.entries(setting.overrides).sort(([a], [b]) => a.localeCompare(b)),
+  ];
+  return JSON.stringify(recipe(left)) === JSON.stringify(recipe(right));
+}
 export function newRecordingMelody(levelGate: number): MelodySetting {
   return {
     preset: DEFAULT_PRESET,

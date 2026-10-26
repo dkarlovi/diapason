@@ -201,10 +201,16 @@ main.studio-shell.library-shell {
   align-items: center;
   gap: 7px;
 }
-.library-record-actions [aria-pressed="true"] {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-muted);
+/* Continuous playback uses amber in every workstation, including its Stop action. */
+.studio-shell [data-slot="button"].playback-control[aria-pressed="true"],
+.studio-shell [data-slot="button"].playback-control[aria-pressed="true"]:hover:not(:disabled),
+.studio-shell [data-slot="button"].playback-control[aria-pressed="true"]:focus-visible {
+  border-color: var(--color-playback);
+  color: var(--color-playback);
+  background: var(--color-playback-muted);
+}
+.studio-shell .playback-control[aria-pressed="true"]:focus-visible {
+  outline-color: var(--color-playback);
 }
 .recording-menu {
   position: relative;

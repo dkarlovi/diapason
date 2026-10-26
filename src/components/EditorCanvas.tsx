@@ -88,22 +88,26 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         </Button>
       )}
       <Button
-        variant="primary"
+        className="editor-play playback-control"
         disabled={!state.record}
         aria-label={`${playing ? "Stop" : "Play"} ${label}`}
+        title={`${playing ? "Stop" : "Play"} ${label}`}
         aria-pressed={playing}
         onClick={() => state.togglePlayback(kind)}
       >
         {playing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-        {playing ? "Stop" : "Play"}
+        <span className="editor-play-label">{playing ? "Stop" : "Play"}</span>
       </Button>
       <Button
+        variant="primary"
+        className="editor-download"
         aria-label={download}
         title={download}
         disabled={!state.record}
         onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
       >
         <Download aria-hidden="true" />
+        <span>Download</span>
       </Button>
     </div>
   );
@@ -112,7 +116,8 @@ function PlaybackStatus({ state }: { state: EditorState }) {
   if (!state.playing) return null;
   let label = state.playing === "audio" ? "Playing original recording" : "Playing MIDI melody";
   if (state.previewId) label = "Playing note in context";
-  if (state.previewLabel) label = `Playing preview · ${state.previewLabel} · Not applied`;
+  if (state.previewLabel)
+    label = `Playing preview · ${state.previewLabel} · ${state.previewApplied ? "Applied" : "Not applied"}`;
   return (
     <div className="editor-playing" role="status">
       {label}

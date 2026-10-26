@@ -41,12 +41,13 @@ function RecordingCard({
           return (
             <Button
               key={kind}
+              className="playback-control"
               aria-pressed={active}
               aria-label={(active ? "Stop " : "Play ") + kind + ": " + record.name}
               onClick={() => onPlay(record, kind)}
             >
               {active ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-              {kind === "audio" ? "Audio" : "MIDI"}
+              {active ? "Stop" : kind === "audio" ? "Audio" : "MIDI"}
             </Button>
           );
         })}

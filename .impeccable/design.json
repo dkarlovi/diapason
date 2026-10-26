@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-26T14:55:24.737Z",
+  "generatedAt": "2026-10-26T16:00:00.000Z",
   "title": "Design System: diapason",
   "extensions": {
     "colorMeta": {
@@ -238,7 +238,14 @@
         "name": "short-landscape-height",
         "value": "540px"
       }
-    ]
+    ],
+    "interactionStates": {
+      "applied": "Studio Blue, with Applied text; custom recipes show Base preset.",
+      "playback": "Amber warning palette, with running state text and Stop; hover and keyboard focus preserve the cue.",
+      "recording": "Signal Red Stop.",
+      "mobileAudition": "Close Tune and its menu, focus the roll, and restore the last menu when Tune reopens.",
+      "reset": "Separate named Reset icons; one-step Undo tuning change preserves note edits and other recording data."
+    }
   },
   "components": [
     {
@@ -250,11 +257,19 @@
       "css": ".ds-button-default{font:500 .875rem/1.5 system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid var(--color-border);border-radius:5px;background:var(--color-card);color:var(--color-foreground);font-weight:500;cursor:pointer;transition:background-color 150ms}.ds-button-default:hover:not(:disabled){background:var(--color-muted)}.ds-button-default:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-button-default:disabled{opacity:.4;cursor:default}@media(prefers-reduced-motion:reduce){.ds-button-default{transition:none}}"
     },
     {
-      "name": "Play button",
+      "name": "Running playback",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Amber running playback and its Stop action, shared by Library, Editor, option auditions and tempo controls. Recording Stop remains red.",
+      "html": "<button class=\"ds-playback\" type=\"button\" aria-pressed=\"true\">Stop</button>",
+      "css": ".ds-playback,.ds-playback:hover{font:500 .875rem/1.5 system-ui,sans-serif;min-height:38px;padding:7px 12px;border:1px solid var(--color-warning);border-radius:5px;color:var(--color-warning);background:color-mix(in oklab,var(--color-warning) 8%,var(--color-card));cursor:pointer}.ds-playback:focus-visible{outline:2px solid var(--color-warning);outline-offset:3px}"
+    },
+    {
+      "name": "Download button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Shared studio primary action.",
-      "html": "<button class=\"ds-button-primary\" type=\"button\">Play</button>",
+      "description": "Primary editor action: download the resulting MIDI or original audio.",
+      "html": "<button class=\"ds-button-primary\" type=\"button\">Download</button>",
       "css": ".ds-button-primary{font:500 .875rem/1.5 system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid var(--color-primary);border-radius:5px;background:var(--color-primary);color:var(--color-primary-foreground);font-weight:600;cursor:pointer;transition:background-color 150ms}.ds-button-primary:hover:not(:disabled){background:color-mix(in oklab,var(--color-primary) 88%,var(--color-foreground))}.ds-button-primary:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-button-primary:disabled{opacity:.4;cursor:default}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none}}"
     },
     {
@@ -278,7 +293,7 @@
       "kind": "nav",
       "refersTo": "workstation-nav",
       "description": "Compact Library link and current recording.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">›</span><span>Whistled melody</span></nav>",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">\u203a</span><span>Whistled melody</span></nav>",
       "css": ".ds-nav{font:500 .875rem/1.5 system-ui,sans-serif;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--color-card);color:var(--color-foreground);border-bottom:1px solid var(--color-border)}.ds-nav-link{color:var(--color-muted-foreground);text-decoration:none}.ds-nav-link:hover{color:var(--color-primary);text-decoration:underline}.ds-nav-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
     },
     {
@@ -287,15 +302,15 @@
       "refersTo": "active-category",
       "description": "Selected Essentials group in Tune.",
       "html": "<button class=\"ds-category\" type=\"button\" aria-pressed=\"true\">Essentials</button>",
-      "css": ".ds-category{font:500 .875rem/1.5 system-ui,sans-serif;min-height:30px;padding:4px 8px;font-size:.8125rem;border:0;border-radius:5px;background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 12%,var(--color-card)));color:var(--color-primary);cursor:pointer}.ds-category:hover{background:var(--color-muted)}.ds-category:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
+      "css": ".ds-category{font:500 .875rem/1.5 system-ui,sans-serif;min-height:30px;padding:4px 8px;font-size:.8125rem;border:0;border-radius:5px;background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)));color:var(--color-primary);cursor:pointer}.ds-category:hover{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)))}.ds-category:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
     },
     {
       "name": "Recording row",
       "kind": "card",
       "refersTo": "recording-row",
       "description": "Library recording with a title and timing metadata.",
-      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM · 4/4 · 3.0s</p></article>",
-      "css": ".ds-record{padding:20px;border-bottom:1px solid var(--color-border);background:var(--color-card);color:var(--color-foreground)}.ds-record:hover,.ds-record:focus-within{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 12%,var(--color-card)))}.ds-record-link{font:550 1rem/1.5 system-ui,sans-serif;color:var(--color-foreground);text-decoration:none}.ds-record-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-record-meta{margin:4px 0 0;font:.8125rem/1.5 system-ui,sans-serif;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}"
+      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM \u00b7 4/4 \u00b7 3.0s</p></article>",
+      "css": ".ds-record{padding:20px;border-bottom:1px solid var(--color-border);background:var(--color-card);color:var(--color-foreground)}.ds-record:hover,.ds-record:focus-within{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)))}.ds-record-link{font:550 1rem/1.5 system-ui,sans-serif;color:var(--color-foreground);text-decoration:none}.ds-record-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-record-meta{margin:4px 0 0;font:.8125rem/1.5 system-ui,sans-serif;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}"
     },
     {
       "name": "Pitch canvas",
@@ -304,6 +319,14 @@
       "description": "The shared native drawing surface; this static catalog sample does not run its rendering hook.",
       "html": "<div class=\"ds-canvas-container\"><canvas class=\"ds-canvas\" role=\"img\" aria-label=\"Pitch trace\">Pitch trace</canvas></div>",
       "css": ".ds-canvas-container{position:relative;height:160px}.ds-canvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border:0;border-radius:0;background:var(--color-muted)}"
+    },
+    {
+      "name": "Audition state",
+      "kind": "custom",
+      "refersTo": "active-category",
+      "description": "Applied selections remain blue; a currently auditioning candidate uses amber and explicit state text even when also applied.",
+      "html": "<div class=\"ds-audition\"><span>Gentle fix<small>Applied \u00b7 Previewing</small></span><button type=\"button\" aria-pressed=\"true\">Stop</button></div>",
+      "css": ".ds-audition{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--color-warning);border-radius:4px;background:color-mix(in oklab,var(--color-warning) 8%,var(--color-card));font:.8125rem/1.5 system-ui,sans-serif}.ds-audition>span{flex:1;min-width:0;overflow-wrap:anywhere}.ds-audition small{display:block;color:var(--color-warning)}.ds-audition button{padding:3px 7px;border:1px solid var(--color-warning);border-radius:5px;color:var(--color-warning);background:transparent}.ds-audition button:focus-visible{outline:2px solid var(--color-warning);outline-offset:3px}"
     }
   ],
   "narrative": {

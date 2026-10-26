@@ -108,9 +108,9 @@ The palette combines quiet slate surfaces with a blue action and pitch accent.
 Frontmatter preserves the source's paired light/dark values; the studio follows
 the system preference through `color-scheme: light dark`.
 
-- **Studio Blue** (`primary`): primary actions, active controls, live pitch, and
+- **Studio Blue** (`primary`): primary actions, applied selections, active categories, live pitch, and
   interpreted MIDI notes. The primary foreground maintains their text contrast.
-- **Amber** (`warning`): setup summaries, playback feedback, and the original
+- **Amber** (`warning`): setup summaries, running playback/audition controls (including Stop), and the original
   recording trace, distinguishing the performance from the interpreted notes.
 - **Signal Red** (`destructive`): clipping, errors, destructive actions, and Stop
   during recording, with context-specific treatments in the recording stylesheet.
@@ -122,7 +122,9 @@ the system preference through `color-scheme: light dark`.
   primary text, secondary information, and dividers.
 
 **The Semantic Color Rule.** Reuse the existing semantic tokens and `--trace-*`
-palette. Include text or state semantics alongside status colors.
+palette. `--color-playback` aliases amber and `--color-playback-muted` supplies
+its tint; blue applied states use an 8% `--color-primary-muted` mix for readable
+text. Include text or state semantics alongside status colors.
 
 ## Typography
 
@@ -185,8 +187,16 @@ Dividers, small handles, and consistent Lucide strokes supply structure.
 Use `src/components/primitives.tsx` for screen buttons and label/control fields;
 its Button delegates to the variant-based primitive in `src/components/ui/button.tsx`.
 Default, primary, and danger variants preserve focus-visible and disabled states.
+In the editor, Download is the primary action and retains its visible label.
+Play/Stop is secondary preview; its label is hidden on small screens while its
+accessible name and tooltip retain the current action.
 Continuous actions use one button whose icon and label change between start and
-stop. Inputs use explicit labels; the compact field arrangement aligns controls.
+stop. Running playback, clap listening, and metronome controls share amber text,
+border, and tint through hover and keyboard focus. Recording Stop retains red.
+Inputs use explicit labels. Tune places a separate, named Reset icon beside each
+control; labels are noninteractive. A compact footer pairs Undo tuning change
+with the confirmed full Reset. Undo restores melody/playback settings while
+preserving note edits, muting, names, and original audio.
 
 ### Pitch canvas
 
@@ -212,7 +222,13 @@ owning hook; the primitive does not schedule rendering or own audio data.
 
 Use the shared Radix popover primitives for viewport-aware placement, Escape,
 and outside-click dismissal. Melody options distinguish Preview from Use;
-preview does not save or change exports. Zoom, pan, and level widgets use the
+preview does not save or change exports. Blue marks an applied option; amber
+marks an auditioning option, with Applied, Previewing, or Base preset text.
+A preset with custom overrides is identified as the base preset rather than Applied.
+Individual setting options compare their effective value, including preset defaults.
+The roll names the audible candidate and its applied status. Preview highlights persist on hover. On mobile,
+audition closes Tune and its menu and focuses the roll; reopening Tune restores
+the last menu. Desktop keeps controls visible for comparison. Zoom, pan, and level widgets use the
 same panel, border, and modest shadow vocabulary.
 
 ### Recording rows and status

@@ -76,7 +76,8 @@ they do not shift the wizard layout. Both parts of the breadcrumb use matching
 type size and alignment.
 
 A short take or save failure leaves setup ready to retry. Clap listening and
-metronome preview also use one button to start and stop. Setup actions stay visible
+metronome preview also use one button to start and stop. Running playback and
+tempo actions use amber, while recording Stop remains red. Setup actions stay visible
 at the bottom; dense steps scroll internally, with edge shadows indicating more
 content. Reduced motion preferences disable the folding animation.
 
@@ -88,10 +89,16 @@ original audio; mobile starts with it hidden. When shown, original audio occupie
 22% of the workspace height; the stronger divider highlights across the canvas
 when its Show/Hide handle is hovered. Tune floats over the right side,
 starts at 360px, and resizes from 286px to half the workspace. Matching Play and
-Download pairs move left of Tune. Preset and Key dropdowns contain their
-Preview/Use actions, as do Mode, Timing grid, Instrument, and Octave. Preview
-keeps the menu and Tune open for comparing alternatives; Use applies and closes
-the menu. Applied and previewed options have highlighted backgrounds. Shared
+Download pairs move left of Tune. Download is the primary action and keeps its
+visible label; Play is a secondary preview action with an icon-only button on
+small screens. Preset and Key dropdowns contain their Preview/Use actions, as do
+Mode, Timing grid, Instrument, and Octave. Desktop previews keep the menu and
+Tune open for comparison; on mobile an audition closes both and focuses the roll.
+Reopening Tune restores the last menu. Use applies and closes the menu. Applied
+options are blue; running auditions and their Stop buttons are amber. Options
+include explicit Applied/Previewing labels, and the roll names the audition and
+whether it is applied. A preset with custom overrides is a base preset rather
+than an applied recipe. Shared
 Radix popovers float above the canvas, stay inside the viewport, and dismiss
 with an outside click or Escape. The Key menu includes Auto, suggestions, and all 24 keys;
 Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
@@ -103,7 +110,7 @@ Time zoom, pitch zoom, Fit, and shared pan float over the roll. Middle-button
 drag pans both axes on either canvas; Ctrl+wheel zooms time around the pointer,
 and Shift+wheel changes note height. On touchscreens, drag to pan and pinch horizontally
 to zoom time or vertically to change note height, without zooming the page. Tune
-stays visible before Play and Download, matches Play’s size, and toggles its panel
+stays visible before Play and Download, matches Play’s desktop size, and toggles its panel
 with an active highlight. Trace overlay stays at bottom left. The pan
 slider sits above the buttons, keeping the buttons fixed when it appears. Playback
 follows the playhead through the uncovered area and highlights sounding notes.
@@ -325,12 +332,14 @@ preview. Starting another preview replaces it.
   Pitch includes key pull, Mode, Smooth leaps, and Max pitch move. Rhythm holds
   Timing grid, grid pull, Swing, Syncopation, and Note length. Detection holds
   Steadiness, Level gate, Minimum note length, and Silence gap. Changing a control
-  shows **Custom (from …)** and saves it. Click a label to reset that
-  control; labels are non-selectable and highlight on hover. Preset, Key,
-  Instrument, and Octave labels also reset their respective defaults.
-  **Reset**, pinned at the bottom of Tune, asks for confirmation before restoring
-  the current preset's controls and retaining the key.
-  Each control uses one label–widget–value row; explanations appear in tooltips.
+  shows **Custom (from …)** and saves it. Each control has an explicit Reset
+  button with a tooltip and accessible name; labels remain ordinary field labels.
+  Preset, Key, Instrument, and Octave also have scoped Reset buttons.
+  **Undo tuning change**, pinned at the bottom of Tune, reverses the last melody
+  or playback-setting change while preserving note edits, muting, and the name.
+  Undo history is local to the open take. The adjacent **Reset** asks for confirmation
+  before restoring the current preset's controls and retaining the key.
+  Compact control rows retain their values and resets; explanations appear in tooltips.
 
 Click a piano-roll note to hear it and open a floating menu beside it with its
 number, name, start time, duration, **Copy ID**, Mute, context Play/Stop,
@@ -349,7 +358,8 @@ Detection changes that split or merge notes can renumber the sequence. Focus the
 and audition notes, Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
 also toggles mute. Muted anchors survive preset changes. Tune's divider supports
 Left/Right, Home, and End. Tuning categories share a row when space permits
-and wrap on narrower sidebars. Mobile keeps Tune open during previews too.
+and wrap on narrower sidebars. Mobile auditions reveal and focus the roll; reopening
+Tune returns to the last menu.
 
 The decoder finds notes before naming them. A dip in level (re-articulation) or a
 real silence always starts a new note; within one articulation, a sustained pitch

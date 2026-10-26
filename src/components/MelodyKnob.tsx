@@ -4,6 +4,7 @@ import { PreviewOption } from "./PreviewOption";
 import type { KnobDef, Knobs } from "../melody/knobs";
 import { knobValueLabel } from "../editor-model";
 import type { MelodyPanelProps } from "./MelodyPanel";
+import { ResetControl } from "./ResetControl";
 export function MelodyKnob({
   def,
   value,
@@ -56,18 +57,9 @@ export function MelodyKnob({
     );
   return (
     <div className="ctl">
-      <button
-        type="button"
-        id={`${id}-label`}
-        disabled={disabled}
-        className="editor-reset-label"
-        title={`${def.tip} Click to reset to default.`}
-        onClick={() => {
-          if (!disabled) onReset(def.key);
-        }}
-      >
+      <label id={`${id}-label`} htmlFor={id} className="editor-field-label" title={def.tip}>
         {def.label}
-      </button>
+      </label>
 
       <input
         id={id}
@@ -83,6 +75,7 @@ export function MelodyKnob({
         onChange={(event) => onChange(def.key, Number(event.target.value))}
       />
       <span className="val">{text}</span>
+      <ResetControl label={def.label} disabled={disabled} onReset={() => onReset(def.key)} />
     </div>
   );
 }

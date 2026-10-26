@@ -3,7 +3,13 @@ import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
 import type { EditorState } from "./editor-view-types";
 
-export function PlaybackSettings({ state }: { state: EditorState }) {
+export function PlaybackSettings({
+  state,
+  onPreview = state.previewPlay,
+}: {
+  state: EditorState;
+  onPreview?: EditorState["previewPlay"];
+}) {
   const fields = [
     {
       label: "Instrument",
@@ -50,9 +56,10 @@ export function PlaybackSettings({ state }: { state: EditorState }) {
                 previewLabel={`Preview ${field.label} ${option.label}`}
                 useLabel={`Use ${field.label} ${option.label}`}
                 onPreview={() =>
-                  state.previewPlay(
+                  onPreview(
                     { ...state.play, [field.key]: option.value },
                     `play-${field.key}-${option.value}`,
+                    `${field.label}: ${option.label}`,
                   )
                 }
                 onUse={() => {

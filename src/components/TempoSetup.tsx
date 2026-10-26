@@ -47,6 +47,7 @@ export function TempoSetup({
             Tap a beat <small>or press Space</small>
           </Button>
           <Button
+            className="playback-control"
             onClick={() => (tempo.listening ? tempo.stop() : void tempo.startClap())}
             disabled={tempo.pending}
             aria-pressed={tempo.listening}
@@ -91,6 +92,7 @@ export function TempoSetup({
             Double tempo
           </Button>
           <Button
+            className="playback-control"
             disabled={
               !Number.isInteger(bpm) ||
               bpm < 40 ||

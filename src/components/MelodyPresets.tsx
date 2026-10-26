@@ -30,7 +30,8 @@ export function MelodyPresets(props: Props) {
                     key={preset.id}
                     label={preset.label}
                     title={preset.blurb}
-                    selected={props.melody.preset === preset.id}
+                    selected={props.melody.preset === preset.id && !custom}
+                    base={props.melody.preset === preset.id && custom}
                     previewing={props.previewId === `preset-${preset.id}`}
                     disabled={props.disabled}
                     previewLabel={`Play ${preset.label}`}

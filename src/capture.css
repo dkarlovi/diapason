@@ -639,7 +639,7 @@ body:has(.studio-shell) {
 .capture-wizard .hint {
   font-size: 0.8125rem;
 }
-.capture-wizard [aria-pressed="true"]:not(.record-toggle) {
+.capture-wizard [aria-pressed="true"]:not(.record-toggle, .playback-control) {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-muted);

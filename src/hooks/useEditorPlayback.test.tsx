@@ -432,6 +432,63 @@ it("applying a preset clears custom controls and saves the chosen preset", async
   expect(state.saves.at(-1)?.melody).toEqual({ preset: "gentle", key: "auto", overrides: {} });
 });
 
+it("identifies applied recipes separately from unapplied and playback-setting auditions", async () => {
+  const { result } = await editor();
+  act(() => result.current.applyPreset("gentle"));
+  act(() => result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"));
+  expect(result.current.previewApplied).toBe(true);
+  act(() => result.current.stopPlayback());
+  act(() => result.current.changeKnob("steadiness", 0.9));
+  act(() => result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"));
+  expect(result.current.previewApplied).toBe(false);
+  act(() =>
+    result.current.previewPlay(
+      { instrument: "flute", octave: 0 },
+      "play-instrument-flute",
+      "Instrument: Flute",
+    ),
+  );
+  expect(result.current.previewLabel).toBe("Instrument: Flute");
+  expect(result.current.previewApplied).toBe(false);
+  expect(result.current.play.instrument).toBe("beep");
+  act(() => result.current.stopPlayback());
+  expect(result.current.previewLabel).toBeNull();
+});
+
+it("undoes tuning replacements without reverting a later name or note edit", async () => {
+  const { result } = await editor();
+  act(() => result.current.changeKnob("steadiness", 0.9));
+  act(() => result.current.applyPreset("clean"));
+  act(() => result.current.setDraftName("Keep this name"));
+  act(() => result.current.commitName());
+  act(() => result.current.selectNote(result.current.items[0]!));
+  act(() => result.current.shiftSelectedPitch(1));
+  const edits = result.current.record?.noteEdits;
+  act(() => result.current.undoTuning());
+  expect(result.current.melody.overrides.steadiness).toBe(0.9);
+  expect(result.current.record?.name).toBe("Keep this name");
+  expect(result.current.record?.noteEdits).toEqual(edits);
+  expect(result.current.canUndoTuning).toBe(false);
+  expect(state.saves.at(-1)?.melody?.overrides.steadiness).toBe(0.9);
+});
+
+it("recognizes the currently selected effective grid when its default is not an override", async () => {
+  const { result } = await editor();
+  act(() => result.current.applyPreset("clean"));
+  expect(result.current.melody.overrides.grid).toBeUndefined();
+  act(() => result.current.previewMelody({ overrides: { grid: 2 } }, "knob-grid-2"));
+  expect(result.current.previewApplied).toBe(true);
+});
+
+it("does not carry tuning undo into another recording", async () => {
+  const hook = await editor();
+  act(() => hook.result.current.applyPreset("gentle"));
+  expect(hook.result.current.canUndoTuning).toBe(true);
+  hook.rerender({ id: "two" });
+  await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
+  expect(hook.result.current.canUndoTuning).toBe(false);
+});
+
 it("stops a note preview before scheduling a new sequence", async () => {
   const hook = await editor();
   act(() => hook.result.current.selectNote(hook.result.current.items[0]!));

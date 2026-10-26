@@ -309,6 +309,45 @@ it("previews playback settings without saving, then applies the chosen option", 
   expect(screen.queryByRole("button", { name: "Use Octave −1 octave" })).toBeNull();
 });
 
+it("exposes the phone roll while auditioning and restores the candidate menu on return", async () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("760px"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  fireEvent.click(screen.getByRole("button", { name: "Choose preset" }));
+  fireEvent.click(screen.getByRole("button", { name: "Play Gentle fix" }));
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use Gentle fix" })).toBeNull();
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole("img", { name: "MIDI piano roll" })),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  expect(screen.getByRole("button", { name: "Use Gentle fix" })).toBeTruthy();
+});
+
+it("offers an explicit scoped reset and can restore the replaced tuning", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  expect(screen.queryByRole("button", { name: "Preset" })).toBeNull();
+  fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset steadiness" }));
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).not.toBe("0.9");
+  fireEvent.click(screen.getByRole("button", { name: "Undo tuning change" }));
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.9");
+});
+
 it("toggles context playback between Play and Stop", async () => {
   render(
     <MemoryRouter>
