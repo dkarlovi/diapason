@@ -54,6 +54,7 @@ unregistered lowercase id works). Padded to even length per RIFF rules. Shape
 {
   "app": "diapason",
   "schemaVersion": 1,
+  "kind": "recording",
   "recording": {
     "id": "mvl403tu-z13urb",
     "name": "Recording Oct 23, 05:12 PM",
@@ -118,6 +119,13 @@ new ones; **Cancel** saves nothing. The original steps below describe what Impor
    `putRecording`, reload the library, and show a success notice.
 4. Multiple files dropped at once: import each in turn (builder's call; one is fine
    to start, but must not crash on several).
+
+## Kind
+
+`kind: "recording"` marks a payload that rebuilds a take. Import requires it and
+refuses any other kind ("This diapason WAV is not a recording, so it can't be
+imported."), so a future tagged render of the MIDI can never be imported as a
+recording by this build.
 
 ## Import record
 

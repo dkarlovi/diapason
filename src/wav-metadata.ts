@@ -20,6 +20,8 @@ export type ExportContext = Omit<RecordingOrigin, "build">;
 export interface WavMetadata {
   app: "diapason";
   schemaVersion: 1;
+  /** Only recordings rebuild a take; other kinds (such as a rendered melody) must never import as one. */
+  kind: "recording";
   recording: {
     id: string;
     name: string;
@@ -37,6 +39,7 @@ export interface WavMetadata {
 const UNTAGGED = "Only WAVs exported from diapason can be imported for now.";
 const NEWER = "This WAV was exported by a newer diapason. Update diapason and try again.";
 const DAMAGED = "This WAV's diapason data is damaged or unsupported.";
+const NOT_RECORDING = "This diapason WAV is not a recording, so it can't be imported.";
 
 export function recordingMetadata(record: Recording, context: ExportContext): WavMetadata {
   const whistle = getSoundProfile("whistle");
@@ -46,6 +49,7 @@ export function recordingMetadata(record: Recording, context: ExportContext): Wa
     ...previous,
     app: "diapason",
     schemaVersion: METADATA_SCHEMA,
+    kind: "recording",
     recording: {
       ...previous?.recording,
       id: record.id,
@@ -203,6 +207,8 @@ export async function recordingFromTaggedWav(
   const { sampleRate, pcm, payload } = readPayload(bytes);
   if (!finite(payload.schemaVersion)) throw new Error(DAMAGED);
   if (payload.schemaVersion > METADATA_SCHEMA) throw new Error(NEWER);
+  if (typeof payload.kind !== "string") throw new Error(DAMAGED);
+  if (payload.kind !== "recording") throw new Error(NOT_RECORDING);
   const meta = payload as unknown as WavMetadata;
   if (!validMetadata(meta, pcm.length)) throw new Error(DAMAGED);
   const { id, name, createdAt, bpm, beatsPerBar, downbeatSample, source, capture } = meta.recording;

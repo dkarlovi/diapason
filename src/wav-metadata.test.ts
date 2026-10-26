@@ -162,7 +162,7 @@ describe("tagged WAV", () => {
   });
 
   it("round-trips a non-ASCII name with odd-length payload", async () => {
-    const name = ["Pjesma č", "Pjesma čć"].find(
+    const name = ["Pjesma č", "Pjesma č!"].find(
       (candidate) =>
         new TextEncoder().encode(
           JSON.stringify(recordingMetadata(take({ name: candidate }), context)),
@@ -178,6 +178,16 @@ describe("tagged WAV", () => {
     await expect(parse(await bytes(encodeWav(pcm, 48000)))).rejects.toThrow(UNTAGGED);
     await expect(parse(Uint8Array.of(1, 2, 3, 4).buffer)).rejects.toThrow(UNTAGGED);
     await expect(parse(await withPayload({ app: "other" }))).rejects.toThrow(UNTAGGED);
+  });
+
+  it("marks exports as recordings and refuses other kinds", async () => {
+    expect(recordingMetadata(take(), context).kind).toBe("recording");
+    await expect(
+      parse(await tamper((meta) => Object.assign(meta, { kind: "render" }))),
+    ).rejects.toThrow("This diapason WAV is not a recording, so it can't be imported.");
+    await expect(
+      parse(await tamper((meta) => delete (meta as Partial<WavMetadata>).kind)),
+    ).rejects.toThrow(DAMAGED);
   });
 
   it("rejects newer schema", async () => {

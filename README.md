@@ -159,7 +159,8 @@ Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
 
 The editor's **Download WAV** is a complete recording: send it to someone and they
 import it into their own diapason, in any browser, to get the same take. Next to the
-unchanged mono 16-bit audio, the file carries a versioned `dpsn` chunk with what was
+unchanged mono 16-bit audio, the file carries a versioned `dpsn` chunk, marked as a
+recording, with what was
 known when the take was recorded: tempo, beats per bar, the downbeat, the level gate,
 the sound profile and analysis settings, capture info (gain, peak, noise floor,
 browser DSP), and provenance (name, recording time, original id, diapason version and
