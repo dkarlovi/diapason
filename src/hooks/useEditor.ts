@@ -10,9 +10,10 @@ import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
 import { processRecording, type NoteItem } from "../recording";
-import type { MelodySetting } from "../melody/settings";
-import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
+import { sameMelodySetting, type MelodySetting } from "../melody/settings";
+import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
+import { useTuningHistory } from "./useTuningHistory";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import { auditionLabel, noteAtPoint, selectedSourceItem, toggleMuted } from "../editor-model";
@@ -26,6 +27,16 @@ export function useEditor(id: string) {
   const [draftName, setDraftName] = useState("");
   const [rollHover, setRollHover] = useState(false);
   const [audition, setAudition] = useState<ReturnType<typeof processRecording> | null>(null);
+  const [candidate, setCandidate] = useState<{
+    id: string;
+    label: string;
+    applied: boolean;
+  } | null>(null);
+  const {
+    previous: previousTuning,
+    remember: rememberTuning,
+    clear: clearTuningHistory,
+  } = useTuningHistory();
 
   const recordRef = useRef<Recording | null>(null);
   const pcm = useRef(new Float32Array(0));
@@ -35,10 +46,14 @@ export function useEditor(id: string) {
   const [selected, setSelected] = useState<number | null>(null);
   const mounted = useRef(false);
 
-  const replaceRecord = useCallback((next: Recording) => {
-    recordRef.current = next;
-    setRecord(next);
-  }, []);
+  const replaceRecord = useCallback(
+    (next: Recording) => {
+      rememberTuning(recordRef.current, next);
+      recordRef.current = next;
+      setRecord(next);
+    },
+    [rememberTuning],
+  );
 
   const {
     flush: flushMelody,
@@ -102,8 +117,19 @@ export function useEditor(id: string) {
     (change: Partial<MelodySetting>, previewId: string) => {
       const current = recordRef.current;
       if (!current) return;
-      const result = processRecording({ ...current, melody: { ...melody, ...change } }, frames);
+      const target = { ...melody, ...change };
+      const result = processRecording({ ...current, melody: target }, frames);
       setAudition(result);
+      setCandidate({
+        id: previewId,
+        label:
+          auditionLabel(previewId, result.settings.melody, result.interpretation.key.chosen) ??
+          "Melody",
+        applied: previewId.startsWith("knob-")
+          ? JSON.stringify(resolveKnobs(melody.preset, melody.overrides)) ===
+            JSON.stringify(resolveKnobs(target.preset, target.overrides))
+          : sameMelodySetting(melody, target),
+      });
       previewSequence(result.notes, previewId);
     },
     [frames, previewSequence, melody],
@@ -113,9 +139,8 @@ export function useEditor(id: string) {
   const items = displayed?.items ?? appliedItems;
   const displayNotes = displayed?.notes ?? notes;
   const selectedItem = selected === null ? undefined : selectedSourceItem(items, selected);
-  const previewLabel = audition
-    ? auditionLabel(previewId ?? "", audition.settings.melody, audition.interpretation.key.chosen)
-    : null;
+  const activeCandidate = candidate?.id === previewId ? candidate : null;
+  const previewLabel = activeCandidate?.label ?? null;
   const selectNote = useCallback(
     (item: NoteItem) => {
       rollRef.current?.focus({ preventScroll: true });
@@ -170,6 +195,20 @@ export function useEditor(id: string) {
   const persist = useCallback((next: Recording) => {
     void putRecording(next);
   }, []);
+  const undoTuning = () => {
+    const current = recordRef.current;
+    if (!current || previousTuning?.id !== current.id) return;
+    stopPlayback();
+    flushMelody();
+    const next = { ...current };
+    if (previousTuning.melody) next.melody = previousTuning.melody;
+    else delete next.melody;
+    if (previousTuning.play) next.play = previousTuning.play;
+    else delete next.play;
+    replaceRecord(next);
+    clearTuningHistory();
+    persist(next);
+  };
   const auditionRef = useRef(false);
   auditionRef.current = showingPreview;
   const commitEdits = (noteEdits: NoteEdits) => {
@@ -301,6 +340,9 @@ export function useEditor(id: string) {
       processed?.editCoverage.filter((edit) => edit.status !== "active").length ?? 0,
     displayNotes,
     previewLabel,
+    previewApplied: activeCandidate?.applied ?? false,
+    canUndoTuning: previousTuning?.id === record?.id && !!record,
+    undoTuning,
     stopPlayback,
     viewport,
     draftName,
@@ -315,8 +357,14 @@ export function useEditor(id: string) {
     interpretation,
     previewId,
     previewMelody,
-    previewPlay: (settings: PlaySettings, id: string) =>
-      previewSequence(notes, id, undefined, 0, settings),
+    previewPlay: (settings: PlaySettings, id: string, label: string) => {
+      setCandidate({
+        id,
+        label,
+        applied: settings.instrument === play.instrument && settings.octave === play.octave,
+      });
+      previewSequence(notes, id, undefined, 0, settings);
+    },
     selectedNote: selectedItem?.note ?? null,
     selectedNoteId: selectedItem?.id,
     selectedMuted: selectedItem?.muted ?? false,

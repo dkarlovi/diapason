@@ -9,9 +9,11 @@
   --color-muted-foreground: light-dark(oklch(45% 0.02 245), oklch(73% 0.015 245));
   --color-primary: light-dark(#0072b1, #8bc1f1);
   --color-primary-foreground: light-dark(#ffffff, oklch(20% 0.025 245));
-  --color-primary-muted: color-mix(in oklab, var(--color-primary) 12%, var(--color-card));
+  --color-primary-muted: color-mix(in oklab, var(--color-primary) 8%, var(--color-card));
   --color-destructive: light-dark(oklch(48% 0.16 25), oklch(77% 0.13 25));
   --color-warning: light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75));
+  --color-playback: var(--color-warning);
+  --color-playback-muted: color-mix(in oklab, var(--color-playback) 8%, var(--color-card));
   --color-ring: var(--color-primary);
 }
 

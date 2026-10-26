@@ -1,13 +1,23 @@
 import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { PlaybackSettings } from "./PlaybackSettings";
 import { Button } from "./primitives";
 import { MelodyPanel } from "./MelodyPanel";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
+import { AuditionMenuContext } from "./AuditionMenuContext";
 
 export function MelodyTools({ state, layout }: { state: EditorState; layout: EditorLayout }) {
+  const [menu, setMenu] = useState<string | null>(null);
+  const audition = (action: () => void, id: string) => {
+    action();
+    if (layout.mobile && state.previewId !== id) layout.setOpen(false);
+  };
+  useEffect(() => {
+    if (layout.mobile && !layout.open && state.previewId) state.rollRef.current?.focus();
+  }, [layout.mobile, layout.open, state.previewId, state.rollRef]);
   return (
-    <>
+    <AuditionMenuContext.Provider value={{ visible: layout.open, menu, setMenu }}>
       <div
         className="editor-tune-resizer"
         role="separator"
@@ -55,13 +65,28 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
               state.changeKey(key);
             }}
             previewMelody={(change, id) => {
-              state.previewMelody(change, id);
+              audition(() => state.previewMelody(change, id), id);
             }}
           >
-            <PlaybackSettings state={state} />
+            <section className="editor-tune-group" aria-label="Playback sound">
+              <h3>Playback sound</h3>
+              <PlaybackSettings
+                state={state}
+                onPreview={(settings, id, label) =>
+                  audition(() => state.previewPlay(settings, id, label), id)
+                }
+              />
+            </section>
           </MelodyPanel>
         </div>
         <div className="editor-tune-footer">
+          <Button
+            disabled={!state.canUndoTuning}
+            aria-label="Undo tuning change"
+            onClick={state.undoTuning}
+          >
+            Undo
+          </Button>
           <Button
             disabled={!state.record}
             onClick={() => {
@@ -74,6 +99,6 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
           </Button>
         </div>
       </section>
-    </>
+    </AuditionMenuContext.Provider>
   );
 }

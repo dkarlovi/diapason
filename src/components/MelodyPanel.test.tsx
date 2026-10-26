@@ -56,6 +56,22 @@ it("using a preset clears overrides and editing a knob shows Custom", () => {
   fireEvent.change(screen.getByLabelText("Pull into key"), { target: { value: ".3" } });
   expect(screen.getByText("Custom (from Clean)")).toBeTruthy();
 });
+
+it("identifies a custom recipe's base without marking the plain preset applied", () => {
+  render(<Harness />);
+  fireEvent.click(screen.getByLabelText("Choose preset"));
+  const row = screen
+    .getByRole("button", { name: "Use Gentle fix" })
+    .closest(".editor-preset-option");
+  expect(row?.getAttribute("data-selected")).toBe("false");
+  expect(row?.textContent).toContain("Base preset");
+  fireEvent.click(screen.getByRole("button", { name: "Use Gentle fix" }));
+  fireEvent.click(screen.getByLabelText("Choose preset"));
+  expect(
+    screen.getByRole("button", { name: "Use Gentle fix" }).closest(".editor-preset-option")
+      ?.textContent,
+  ).toContain("Applied");
+});
 it("keeps automatic, suggested and all explicit key actions inside the key dropdown", () => {
   render(<Harness />);
   expect(screen.queryByText("Key alternatives")).toBeNull();

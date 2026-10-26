@@ -27,44 +27,47 @@ export function MelodyPanel(props: PropsWithChildren<MelodyPanelProps>) {
   const [group, setGroup] = useState<keyof typeof groups>("Essentials");
   const knobs = resolveKnobs(props.melody.preset, props.melody.overrides);
   return (
-    <section className="melody-panel" aria-label="Melody correction">
-      <MelodyPresets {...props} />
-      <MelodyKeyControls {...props} />
+    <div className="melody-panel">
       {props.children}
-      <nav className="melody-categories" aria-label="Tuning category">
-        {Object.keys(groups).map((name) => (
-          <button
-            key={name}
-            type="button"
-            aria-pressed={group === name}
-            onClick={() => setGroup(name as keyof typeof groups)}
-          >
-            {name}
-          </button>
-        ))}
-      </nav>
-      <div className="melody-controls">
-        {groups[group].map((key) => {
-          const def = KNOB_DEFS.find((def) => def.key === key)!;
-          return (
-            <MelodyKnob
-              key={key}
-              def={def}
-              value={knobs[key]}
-              disabled={props.disabled}
-              onChange={props.changeKnob}
-              onReset={props.resetKnob}
-              previewId={props.previewId}
-              onPreview={(value) =>
-                props.previewMelody(
-                  { overrides: { ...props.melody.overrides, [key]: value } },
-                  `knob-${key}-${value}`,
-                )
-              }
-            />
-          );
-        })}
-      </div>
-    </section>
+      <section className="editor-tune-group editor-correction-group" aria-label="Melody correction">
+        <h3>Melody correction</h3>
+        <MelodyPresets {...props} />
+        <MelodyKeyControls {...props} />
+        <nav className="melody-categories" aria-label="Tuning category">
+          {Object.keys(groups).map((name) => (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={group === name}
+              onClick={() => setGroup(name as keyof typeof groups)}
+            >
+              {name}
+            </button>
+          ))}
+        </nav>
+        <div className="melody-controls">
+          {groups[group].map((key) => {
+            const def = KNOB_DEFS.find((def) => def.key === key)!;
+            return (
+              <MelodyKnob
+                key={key}
+                def={def}
+                value={knobs[key]}
+                disabled={props.disabled}
+                onChange={props.changeKnob}
+                onReset={props.resetKnob}
+                previewId={props.previewId}
+                onPreview={(value) =>
+                  props.previewMelody(
+                    { overrides: { ...props.melody.overrides, [key]: value } },
+                    `knob-${key}-${value}`,
+                  )
+                }
+              />
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }

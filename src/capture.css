@@ -186,16 +186,6 @@ body:has(.studio-shell) {
   position: relative;
   overflow: hidden;
 }
-.live-monitor canvas.trace {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  background: var(--color-muted);
-}
 .live-monitor .live-chart-placeholder {
   font-size: 0.875rem;
   color: var(--color-muted-foreground);
@@ -649,7 +639,7 @@ body:has(.studio-shell) {
 .capture-wizard .hint {
   font-size: 0.8125rem;
 }
-.capture-wizard [aria-pressed="true"]:not(.record-toggle) {
+.capture-wizard [aria-pressed="true"]:not(.record-toggle, .playback-control) {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-muted);

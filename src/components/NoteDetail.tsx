@@ -90,6 +90,7 @@ export function NoteDetail({ state }: { state: EditorState }) {
             {copyStatus === "Copy failed" && <span aria-hidden="true">!</span>}
           </Button>
           <Button
+            className="playback-control"
             onClick={contextPlaying ? state.stopPlayback : state.previewContext}
             aria-label={contextPlaying ? "Stop context playback" : "Hear in context"}
             aria-pressed={contextPlaying}

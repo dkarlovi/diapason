@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Recording } from "../db";
@@ -66,6 +66,37 @@ it("loads a recording and applies a melody preset through React controls", async
   await waitFor(() =>
     expect(saved?.melody).toEqual({ preset: "gentle", overrides: {}, key: "auto" }),
   );
+});
+
+it("groups playback separately from the preset, key, and the controls they shape", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const playback = screen.getByRole("region", { name: "Playback sound" });
+  const correction = screen.getByRole("region", { name: "Melody correction" });
+  expect(within(playback).getByRole("button", { name: "Choose instrument" })).toBeTruthy();
+  expect(within(playback).getByRole("button", { name: "Choose octave" })).toBeTruthy();
+  expect(within(playback).queryByRole("button", { name: "Choose key" })).toBeNull();
+  const preset = within(correction).getByRole("button", { name: "Choose preset" });
+  const key = within(correction).getByRole("button", { name: "Choose key" });
+  const categories = within(correction).getByRole("navigation", { name: "Tuning category" });
+  expect(
+    playback.compareDocumentPosition(correction) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  expect(preset.compareDocumentPosition(key) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(key.compareDocumentPosition(categories) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  fireEvent.click(within(playback).getByRole("button", { name: "Choose instrument" }));
+  fireEvent.click(screen.getByRole("button", { name: "Use Instrument Flute" }));
+  fireEvent.click(key);
+  fireEvent.click(screen.getByRole("button", { name: "Use key G major" }));
+  fireEvent.click(preset);
+  fireEvent.click(screen.getByRole("button", { name: "Use Clean" }));
+  expect((within(correction).getByLabelText("Steadiness") as HTMLInputElement).value).toBe("1");
+  expect(saved?.play?.instrument).toBe("flute");
+  expect(saved?.melody?.key).toEqual({ tonic: 7, mode: "major" });
 });
 
 it("keeps one recording title above paired audio and MIDI canvas regions", async () => {
@@ -307,6 +338,45 @@ it("previews playback settings without saving, then applies the chosen option", 
   fireEvent.click(screen.getByRole("button", { name: "Use Octave −1 octave" }));
   expect(saved?.play?.octave).toBe(-1);
   expect(screen.queryByRole("button", { name: "Use Octave −1 octave" })).toBeNull();
+});
+
+it("exposes the phone roll while auditioning and restores the candidate menu on return", async () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("760px"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  fireEvent.click(screen.getByRole("button", { name: "Choose preset" }));
+  fireEvent.click(screen.getByRole("button", { name: "Play Gentle fix" }));
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use Gentle fix" })).toBeNull();
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole("img", { name: "MIDI piano roll" })),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  expect(screen.getByRole("button", { name: "Use Gentle fix" })).toBeTruthy();
+});
+
+it("offers an explicit scoped reset and can restore the replaced tuning", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  expect(screen.queryByRole("button", { name: "Preset" })).toBeNull();
+  fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset steadiness" }));
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).not.toBe("0.9");
+  fireEvent.click(screen.getByRole("button", { name: "Undo tuning change" }));
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.9");
 });
 
 it("toggles context playback between Play and Stop", async () => {

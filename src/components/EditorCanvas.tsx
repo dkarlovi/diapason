@@ -3,6 +3,7 @@ import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
 import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
+import { PitchCanvas } from "./PitchCanvas";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
 
@@ -31,19 +32,17 @@ type CanvasProps = { kind: "audio" | "midi"; state: EditorState; layout: EditorL
 function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   if (kind === "audio")
     return (
-      <canvas
-        className="trace themed-trace editor-plot"
+      <PitchCanvas
+        className="editor-plot"
         ref={state.traceRef}
-        role="img"
         aria-label="Original pitch trace"
         title="Original recorded pitch"
       />
     );
   return (
-    <canvas
-      className="trace themed-trace editor-plot"
+    <PitchCanvas
+      className="editor-plot"
       ref={state.rollRef}
-      role="img"
       aria-label="MIDI piano roll"
       tabIndex={0}
       aria-describedby="roll-instructions"
@@ -89,22 +88,26 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         </Button>
       )}
       <Button
-        variant="primary"
+        className="editor-play playback-control"
         disabled={!state.record}
         aria-label={`${playing ? "Stop" : "Play"} ${label}`}
+        title={`${playing ? "Stop" : "Play"} ${label}`}
         aria-pressed={playing}
         onClick={() => state.togglePlayback(kind)}
       >
         {playing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-        {playing ? "Stop" : "Play"}
+        <span className="editor-play-label">{playing ? "Stop" : "Play"}</span>
       </Button>
       <Button
+        variant="primary"
+        className="editor-download"
         aria-label={download}
         title={download}
         disabled={!state.record}
         onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
       >
         <Download aria-hidden="true" />
+        <span>Download</span>
       </Button>
     </div>
   );
@@ -113,7 +116,8 @@ function PlaybackStatus({ state }: { state: EditorState }) {
   if (!state.playing) return null;
   let label = state.playing === "audio" ? "Playing original recording" : "Playing MIDI melody";
   if (state.previewId) label = "Playing note in context";
-  if (state.previewLabel) label = `Playing preview · ${state.previewLabel} · Not applied`;
+  if (state.previewLabel)
+    label = `Playing preview · ${state.previewLabel} · ${state.previewApplied ? "Applied" : "Not applied"}`;
   return (
     <div className="editor-playing" role="status">
       {label}
