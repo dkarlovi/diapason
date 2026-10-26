@@ -37,3 +37,31 @@ it("loads legacy records and persists typed waveform data without replacing newe
   expect(await saveWaveform(record.id, waveform)).toBeUndefined();
   expect(await getRecording(record.id)).toBeUndefined();
 });
+
+it("round trips pitch intent and fully reset layers alongside legacy data", async () => {
+  const legacy = {
+    id: "edits",
+    name: "Edits",
+    createdAt: 2,
+    sampleRate: 8000,
+    durationSec: 2,
+    bpm: 90,
+    beatsPerBar: 4,
+    audio: new Blob(),
+    capture: { gain: 1, peak: 1, noiseFloor: 0, dspOff: true },
+  };
+  await putRecording(legacy);
+  expect((await getRecording(legacy.id))?.noteEdits).toBeUndefined();
+  const noteEdits = {
+    version: 1 as const,
+    pitch: [{ id: "pitch", midi: 73, ranges: [{ start: 0, end: 2 }] }],
+  };
+  await putRecording({ ...legacy, noteEdits });
+  expect((await getRecording(legacy.id))?.noteEdits).toEqual(noteEdits);
+  await putRecording({ ...legacy, noteEdits: { version: 1, pitch: [] } });
+  expect(await getRecording(legacy.id)).toMatchObject({
+    name: "Edits",
+    bpm: 90,
+    noteEdits: { version: 1, pitch: [] },
+  });
+});
