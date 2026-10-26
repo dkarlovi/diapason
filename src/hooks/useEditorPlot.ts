@@ -10,6 +10,7 @@ interface Options {
   frames: Frame[];
   notes: NoteEvent[];
   muted: NoteEvent[];
+  edited?: NoteEvent[];
   grid: number;
   position: number | null;
   traceRef: RefObject<HTMLCanvasElement | null>;
@@ -49,6 +50,7 @@ export function useEditorPlot({
   frames,
   notes,
   muted,
+  edited,
   grid,
   position,
   traceRef,
@@ -97,8 +99,13 @@ export function useEditorPlot({
       pitchLabels: "none",
       showTimeLabels: false,
     });
-    drawVisible(rollRef.current, traceOverlay ? frames : [], { ...shared, notes, muted });
-  }, [record, view, grid, position, frames, notes, muted, traceOverlay, traceRef, rollRef]);
+    drawVisible(rollRef.current, traceOverlay ? frames : [], {
+      ...shared,
+      notes,
+      muted,
+      ...(edited ? { edited } : {}),
+    });
+  }, [record, view, grid, position, frames, notes, muted, edited, traceOverlay, traceRef, rollRef]);
   usePlotRedraw(draw, traceRef, rollRef);
   const zoomTime = (factor: number, anchor = 0) => {
     const next = zoomedTime({ duration, zoom, pan, visible }, factor, anchor);

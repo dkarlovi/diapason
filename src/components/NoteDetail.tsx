@@ -98,6 +98,29 @@ export function NoteDetail({ state }: { state: EditorState }) {
           </Button>
           <Button onClick={state.muteSelected}>{state.selectedMuted ? "Unmute" : "Mute"}</Button>
         </div>
+        <div className="editor-note-actions">
+          <Button
+            aria-label="Down one semitone"
+            disabled={!state.canEditPitch || note.midi <= 0}
+            onClick={() => state.shiftSelectedPitch(-1)}
+          >
+            −1 st
+          </Button>
+          <Button
+            aria-label="Up one semitone"
+            disabled={!state.canEditPitch || note.midi >= 127}
+            onClick={() => state.shiftSelectedPitch(1)}
+          >
+            +1 st
+          </Button>
+          <Button
+            disabled={!state.canEditPitch || !state.selectedPitchEdited}
+            onClick={state.resetSelectedPitch}
+          >
+            Reset pitch
+          </Button>
+        </div>
+        {state.selectedPitchEdited && <span>Pitch edited</span>}
         <div className="editor-note-info">
           <strong>Note #{state.selectedNoteId}</strong>
           <strong>{note.name}</strong>

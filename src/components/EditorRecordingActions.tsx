@@ -33,6 +33,15 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
         <div className="editor-mobile-midi">
           <MidiOutputPicker />
         </div>
+        <Button
+          disabled={!state.canEditPitch || !state.record?.noteEdits?.pitch.length}
+          onClick={state.resetAllNoteEdits}
+        >
+          Reset all note edits
+        </Button>
+        {state.inactivePitchEditCount > 0 && (
+          <span>{state.inactivePitchEditCount} inactive pitch edits</span>
+        )}
         {[
           { label: "Download log", run: state.downloadLog },
           { label: "Download JSON", run: state.downloadJson },

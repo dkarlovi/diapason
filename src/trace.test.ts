@@ -227,3 +227,18 @@ it("styles live octave labels like editor labels without crowding every semitone
     expect(label.args[1]).toBeCloseTo(35.2);
   }
 });
+it.each([false, true])(
+  "marks explicit edits including muted=%s independently of sounding state",
+  (muted) => {
+    const { canvas, operations } = surface();
+    const note = { midi: 69, name: "A4", start: 0.1, duration: 0.5 };
+    drawTrace(canvas, [], {
+      ...view,
+      notes: muted ? [] : [note],
+      muted: muted ? [note] : [],
+      edited: [note],
+      playheadTime: 0.2,
+    });
+    expect(operations.some((op) => op.method === "fillText" && op.args[0] === "•")).toBe(true);
+  },
+);

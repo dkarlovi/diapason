@@ -325,3 +325,54 @@ it("toggles context playback between Play and Stop", async () => {
   fireEvent.click(stop);
   expect(screen.getByRole("button", { name: "Hear in context" })).toBeTruthy();
 });
+it("edits pitch rapidly, preserves pending tuning and retains equal-valued intent until reset", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
+  fireEvent.keyDown(roll, { key: "Home" });
+  expect((screen.getByRole("button", { name: "Reset pitch" }) as HTMLButtonElement).disabled).toBe(
+    true,
+  );
+  vi.useFakeTimers();
+  fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
+  fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
+  fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
+  fireEvent.click(screen.getByRole("button", { name: "Down one semitone" }));
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
+  expect(saved?.noteEdits?.pitch[0]?.ranges).toEqual([{ start: 0, end: 0.6000000000000001 }]);
+  act(() => vi.advanceTimersByTime(300));
+  expect(saved?.melody?.overrides.steadiness).toBe(0.9);
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
+  expect(screen.getByRole("button", { name: "Reset pitch" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Down one semitone" }));
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(69);
+  expect(screen.getByText("Pitch edited")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Reset pitch" }));
+  expect(saved?.noteEdits).toEqual({ version: 1, pitch: [] });
+});
+it("keeps edited muted notes and confirms only bulk reset", async () => {
+  const confirm = vi.fn().mockReturnValue(false);
+  vi.stubGlobal("confirm", confirm);
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
+  fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+  fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
+  expect(saved?.muted).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "Unmute" })).toBeTruthy();
+  fireEvent.click(screen.getByLabelText("Recording actions"));
+  fireEvent.click(screen.getByRole("button", { name: "Reset all note edits" }));
+  expect(saved?.noteEdits?.pitch).toHaveLength(1);
+  confirm.mockReturnValue(true);
+  fireEvent.click(screen.getByRole("button", { name: "Reset all note edits" }));
+  expect(saved?.noteEdits?.pitch).toHaveLength(0);
+  expect(saved?.muted).toHaveLength(1);
+});
