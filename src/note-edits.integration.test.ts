@@ -81,3 +81,25 @@ it("subtracts represented intervals for active, partial and inactive coverage", 
   expect(summarizePitchEdits(edits, [{ start: 0, end: 3 }])[0]?.status).toBe("active");
   expect(summarizePitchEdits(edits, [])[0]?.status).toBe("inactive");
 });
+it.each([73, 75])(
+  "keeps independent neighboring targets at %s across tuning paths",
+  (rightPitch) => {
+    const a = setPitchEdit(undefined, { start: 0, end: 0.4 }, 73, "left");
+    const noteEdits = setPitchEdit(a, { start: 0.4, end: 1 }, rightPitch, "right");
+    const saved = JSON.stringify(noteEdits);
+    const settings = [
+      { preset: "clean" as const, key: "auto" as const, overrides: {} },
+      { preset: "dreamy" as const, key: { tonic: 4, mode: "minor" as const }, overrides: {} },
+      { preset: "syncopated" as const, key: "auto" as const, overrides: { steadiness: 1 } },
+    ];
+    const run = (melody: (typeof settings)[number]) =>
+      processRecording({ ...rec, noteEdits, melody }, frames);
+    const path = settings.map(run);
+    expect(run(settings[2]!)).toEqual(path[2]);
+    for (const result of path) {
+      expect(result.items[0]).toMatchObject({ source: { start: 0, end: 0.4 }, note: { midi: 73 } });
+      expect(result.items.slice(1).every((item) => item.note.midi === rightPitch)).toBe(true);
+    }
+    expect(JSON.stringify(noteEdits)).toBe(saved);
+  },
+);

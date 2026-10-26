@@ -54,10 +54,10 @@ it("reports legacy evidence as incomplete and rejects malformed current schemas"
     readFileSync(new URL("./fixtures/whistle-regression/original.json", import.meta.url), "utf8"),
   );
   expect((await replayDiagnostics(old, new ArrayBuffer(0))).status).toBe("incomplete");
-  await expect(replayDiagnostics({ schemaVersion: 4 }, new ArrayBuffer(0))).rejects.toThrow(
+  await expect(replayDiagnostics({ schemaVersion: 5 }, new ArrayBuffer(0))).rejects.toThrow(
     /schema/i,
   );
-  await expect(replayDiagnostics({ schemaVersion: 3 }, new ArrayBuffer(0))).rejects.toThrow(
+  await expect(replayDiagnostics({ schemaVersion: 4 }, new ArrayBuffer(0))).rejects.toThrow(
     /invalid/i,
   );
 });
@@ -85,10 +85,39 @@ it("rejects malformed saved melody choices before replaying", async () => {
   await expect(replayDiagnostics(invalid, await wav.arrayBuffer())).rejects.toThrow(/settings/i);
 });
 
-it("replays schema-3 exports made before note IDs were included", async () => {
+it("reports schema-3 exports as incomplete older-pipeline evidence", async () => {
   const { report, wav } = await sample();
   const older = JSON.parse(JSON.stringify(report));
-  for (const item of older.stages.items) delete item.id;
+  older.schemaVersion = 3;
   const replay = await replayDiagnostics(older, await wav.arrayBuffer());
+  expect(replay.status).toBe("incomplete");
+});
+
+it("replays frozen edited evidence with identical MIDI and rejects malformed intent", async () => {
+  const base = await sample();
+  const rec = { ...base.report.saved, audio: new Blob() };
+  const first = base.report.stages.items[0]!;
+  rec.noteEdits = {
+    version: 1,
+    pitch: [{ id: "manual", midi: 73, ranges: [{ ...first.source }] }],
+  };
+  const { decodeWav } = await import("./wav-reader");
+  const { notesToMidi } = await import("./midi");
+  const { pcm } = decodeWav(await base.wav.arrayBuffer());
+  const frames = analyzeRecording(pcm, rec.sampleRate, rec);
+  const pending = diagnosticSnapshot(makeReportInput(rec, frames, qualityStats(frames, pcm)), pcm);
+  rec.noteEdits.pitch = [];
+  const { report, wav } = await pending;
+  expect(report.saved.noteEdits?.pitch).toHaveLength(1);
+  expect(report.stages.items[0]!.note.midi).toBe(73);
+  expect(report.stages.items[0]!.automatic.midi).not.toBe(73);
+  const replay = await replayDiagnostics(
+    JSON.parse(JSON.stringify(report)),
+    await wav.arrayBuffer(),
+  );
   expect(replay.status).toBe("match");
+  const expected = notesToMidi(report.notes, { bpm: rec.bpm });
+  expect(await replay.midi!.arrayBuffer()).toEqual(await expected.arrayBuffer());
+  report.saved.noteEdits!.pitch[0]!.midi = 128;
+  await expect(replayDiagnostics(report, await wav.arrayBuffer())).rejects.toThrow(/note edits/i);
 });

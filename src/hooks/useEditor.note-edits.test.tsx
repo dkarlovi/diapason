@@ -58,3 +58,27 @@ it("guards direct mutation/reset during auditions and restores the applied selec
   act(() => result.current.resetSelectedPitch());
   expect(result.current.selectedNote?.midi).toBe(69);
 });
+it("keeps independently cloned edits when duplicating and survives reload", async () => {
+  const { result, unmount } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  act(() => result.current.selectNote(result.current.items[0]!));
+  act(() => result.current.shiftSelectedPitch(1));
+  const original = saved!;
+  await act(async () => result.current.duplicate());
+  expect(saved!.id).not.toBe(original.id);
+  expect(saved!.noteEdits).toEqual(original.noteEdits);
+  expect(saved!.noteEdits).not.toBe(original.noteEdits);
+  saved!.noteEdits!.pitch[0]!.ranges[0]!.end = 0.5;
+  expect(original.noteEdits!.pitch[0]!.ranges[0]!.end).toBe(1);
+  unmount();
+});
+it.each([0, 127])("makes MIDI endpoint %s moves no-ops", async (midi) => {
+  rec.noteEdits = { version: 1, pitch: [{ id: "endpoint", midi, ranges: [{ start: 0, end: 1 }] }] };
+  const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  act(() => result.current.selectNote(result.current.items[0]!));
+  act(() => result.current.shiftSelectedPitch(midi === 0 ? -1 : 1));
+  expect(saved).toBeUndefined();
+  expect(result.current.selectedNote?.midi).toBe(midi);
+  delete rec.noteEdits;
+});

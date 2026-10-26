@@ -65,3 +65,10 @@ it("selects by half-open source containment independently of output pitch and ti
   expect(selectedSourceItem([shifted], 0.75)).toBeUndefined();
   expect(selectedSourceItem([], 0.5)).toBeUndefined();
 });
+it("retains a source reference through splits and temporary disappearance", () => {
+  const left = { ...item, source: { start: 0.25, end: 0.5 } };
+  const right = { ...item, id: 2, source: { start: 0.5, end: 0.75 } };
+  expect(selectedSourceItem([left, right], 0.5)).toBe(right);
+  expect(selectedSourceItem([left], 0.5)).toBeUndefined();
+  expect(selectedSourceItem([left, right], 0.5)).toBe(right);
+});

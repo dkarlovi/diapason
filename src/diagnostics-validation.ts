@@ -1,3 +1,4 @@
+import { isNoteEdits } from "./note-edits";
 import { isMelodySetting } from "./melody/settings";
 import type { DiagnosticSnapshot } from "./diagnostic-snapshot";
 
@@ -39,12 +40,14 @@ function validateRecording(record: JsonObject, pair: JsonObject, configured: Jso
   ) {
     throw new Error("Invalid diagnostic recording settings.");
   }
+  if (record.noteEdits !== undefined && !isNoteEdits(record.noteEdits, Number(record.durationSec)))
+    throw new Error("Invalid diagnostic note edits.");
   if (configured.sampleRate !== pair.sampleRate || record.sampleRate !== pair.sampleRate) {
     throw new Error("Invalid diagnostic sample rate.");
   }
 }
 
-/** Fail closed on incomplete schema-3 evidence; legacy reports are handled separately. */
+/** Fail closed on incomplete schema-4 evidence; legacy reports are handled separately. */
 export function validateDiagnostics(value: unknown): asserts value is DiagnosticSnapshot["report"] {
   if (!isObject(value) || !finiteJson(value)) throw new Error("Invalid diagnostic report.");
   const { audio, saved, build, config, settings, analysis, stages } = value;
@@ -60,6 +63,8 @@ export function validateDiagnostics(value: unknown): asserts value is Diagnostic
       value.frames,
       value.notes,
       value.midiEvents,
+      (stages as JsonObject).segments,
+      (stages as JsonObject).editCoverage,
       (stages as JsonObject).decoded,
       (stages as JsonObject).items,
     ].every(Array.isArray)

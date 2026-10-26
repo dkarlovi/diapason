@@ -272,11 +272,12 @@ Each recording can be exported from the editor's **Recording** panel:
 - **Copy log** — the same report as compact text, for pasting inline; processing
   stages appear as counts, with full detail left to the JSON.
 
-Schema-3 JSON includes saved and effective melody settings, preset overrides,
+Schema-4 JSON includes saved and effective melody settings, preset overrides,
 resolved weights, automatic/explicit key and alternatives, implied harmony,
 faithful and corrected notes, muted anchors, playback settings, build identity,
 full-precision pitch frames, and final enabled notes with absolute MIDI tick events.
-The top-level `notes` are the notes exported to MIDI. Schema-2 exports report an
+Saved pitch edits, source scopes, automatic/effective notes, and inactive coverage
+are included. The top-level `notes` are the notes exported to MIDI. Schema-3 and older exports report an
 older pipeline and cannot replay exactly through the new engine.
 Exports from `npm run dev` record the build revision and source as unknown, because
 the dev server serves edited sources live; use a production build for comparable exports.
@@ -322,7 +323,8 @@ preview. Starting another preview replaces it.
   Each control uses one label–widget–value row; explanations appear in tooltips.
 
 Click a piano-roll note to hear it and open a floating menu beside it with its
-number, name, start time, duration, **Copy ID**, Mute, and context Play/Stop.
+number, name, start time, duration, **Copy ID**, Mute, context Play/Stop,
+**Up one semitone**, **Down one semitone**, and **Reset pitch**.
 The selected note keeps keyboard focus on the roll and has a visible outline.
 The menu places actions above note information on mobile. Note and context
 previews preserve synth release tails; interrupted synth playback fades out.
@@ -376,6 +378,24 @@ must export its approved `clean.mid` byte for byte.
 
 Feature ideas and planned work are tracked in
 [GitHub issues](https://github.com/dkarlovi/diapason/issues).
+
+Manual pitch editing follows the
+[source-based design](docs/superpowers/specs/2026-10-26-note-editing-design.md)
+and [implementation plan](docs/superpowers/plans/2026-10-26-note-editing.md).
+A chosen MIDI pitch survives key, tuning, grid and preset changes. Splits inherit
+it; resetting one child clears only that child's source coverage. Edited coverage
+protects note boundaries from merges, even when neighboring pitches agree. A dot
+on the roll marks explicit edits, including muted notes and choices that equal the
+automatic pitch. Up then down remains an edit until Reset pitch.
+
+Filtering may hide an edited note without deleting its intent. Restore the detection
+settings to recover it; Recording actions shows an inactive pitch-edit count and
+**Reset all note edits**, with confirmation, to clear active and hidden edits.
+Tune reset preserves manual edits. Pitch controls are disabled during tuning
+previews; Stop restores applied notes and selection. Playback octave shifts edited
+notes once, for both browser and external MIDI playback, without changing the roll,
+stored pitch, or exported MIDI. Original audio stays untouched. Timing and velocity
+editing remain deferred.
 
 ## Runtime test coverage
 
