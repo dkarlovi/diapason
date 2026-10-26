@@ -133,5 +133,5 @@ export function useLibrary() {
     [reload, stopPlayback],
   );
 
-  return { recordings, storage, playing, togglePlay, duplicate, remove };
+  return { recordings, storage, playing, reload, togglePlay, duplicate, remove };
 }

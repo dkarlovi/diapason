@@ -1,3 +1,4 @@
+import { wavChunks } from "../wav-reader";
 import { webcrypto } from "node:crypto";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
@@ -202,6 +203,7 @@ it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", a
   const wavBytes = new DataView(await read(wav!.blob));
   expect(wavBytes.getUint32(24, true)).toBe(48000);
   expect(wavBytes.getUint32(40, true)).toBe(96000);
+  expect(wavChunks(wavBytes.buffer as ArrayBuffer).map((chunk) => chunk.id)).toContain("dpsn");
   const data = JSON.parse(new TextDecoder().decode(await read(json!.blob)));
   expect(data).toMatchObject({ title: "one", config: { sampleRate: 48000 } });
 });

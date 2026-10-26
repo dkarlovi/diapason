@@ -10,16 +10,14 @@ import { fmtDate } from "../ui";
 import { dspStatus, peakLevel, roundTripLatency, trimCountIn } from "../capture-model";
 import { getSoundProfile } from "../recording-profiles";
 import { canRecord, type SetupState } from "../recording-setup";
+import { useNotice } from "./useNotice";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useCapture() {
   const [recording, setRecording] = useState(false);
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
-  const [notice, setNotice] = useState<{
-    kind: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [notice, setNotice] = useNotice();
   const [transport, setTransport] = useState<TransportState | null>(null);
   const [beat, setBeat] = useState("");
   const recorder = useRef<Recorder | null>(null);
@@ -29,15 +27,13 @@ export function useCapture() {
   const captureStart = useRef(0);
   const snapshot = useRef<SetupState | null>(null);
   const stopDependents = useRef<() => void>(() => {});
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), notice.kind === "error" ? 6000 : 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-  const setError = useCallback((message: string) => {
-    setStatus("");
-    setNotice(message ? { kind: "error", message } : null);
-  }, []);
+  const setError = useCallback(
+    (message: string) => {
+      setStatus("");
+      setNotice(message ? { kind: "error", message } : null);
+    },
+    [setNotice],
+  );
   const releaseCapture = useCallback(() => {
     metro.current?.stop();
     metro.current = null;

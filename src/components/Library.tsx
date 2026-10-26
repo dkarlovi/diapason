@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Link } from "react-router";
-import { ChevronRight, Ellipsis, FileAudio, Plus, Play, Square } from "lucide-react";
+import { Ban, ChevronRight, Ellipsis, FileAudio, Plus, Play, Square, Upload } from "lucide-react";
 import { useLibrary, type Playing } from "../hooks/useLibrary";
+import { importable, useWavImport, type ImportCandidate } from "../hooks/useWavImport";
+import { useWavDrop } from "../hooks/useWavDrop";
 import type { Recording } from "../db";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
@@ -92,16 +94,121 @@ function RecordingCard({
   );
 }
 
+function ImportItem({ candidate }: { candidate: ImportCandidate }) {
+  const { record, existing, error } = candidate;
+  return (
+    <li className="library-import-item" data-kind={error ? "error" : existing ? "existing" : "new"}>
+      <strong>{record?.name ?? candidate.file}</strong>
+      {record && (
+        <span>
+          {fmtDate(record.createdAt)} · {record.bpm} BPM · {record.beatsPerBar}/4 · diapason{" "}
+          {record.imported?.metadata.provenance.build.version ?? "unknown"}
+        </span>
+      )}
+      {error && <span className="library-import-error">{error}</span>}
+      {existing && (
+        <span>
+          Already in your library <Link to={recordingPath(existing.id)}>Open</Link>
+        </span>
+      )}
+    </li>
+  );
+}
+
+function ImportPopover({
+  candidates,
+  onConfirm,
+  onCancel,
+}: {
+  candidates: ImportCandidate[] | null;
+  onConfirm(): void;
+  onCancel(): void;
+}) {
+  const count = importable(candidates ?? []).length;
+  return (
+    <PopoverContent
+      className="library-import"
+      aria-label="Import recordings"
+      onOpenAutoFocus={(event) => {
+        // Land on the action, not the first link in the list.
+        event.preventDefault();
+        const actions = (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>(
+          ".library-import-actions button:not(:disabled)",
+        );
+        actions[actions.length - 1]?.focus();
+      }}
+    >
+      <h2>Import recordings</h2>
+      <ul>
+        {candidates?.map((candidate, index) => (
+          <ImportItem key={index} candidate={candidate} />
+        ))}
+      </ul>
+      <div className="library-import-actions">
+        <Button onClick={onCancel}>Cancel</Button>
+        <Button className="primary" disabled={!count} onClick={onConfirm}>
+          {(candidates?.length ?? 0) > 1 ? `Import ${count}` : "Import"}
+        </Button>
+      </div>
+    </PopoverContent>
+  );
+}
+
+const HEADER = ".workstation-header";
+/** The drop area covers the page below the header, which is not a drop target. */
+const belowHeader = () =>
+  (document.querySelector(HEADER)?.getBoundingClientRect().bottom ?? 0) + 12;
+
 export function Library() {
-  const { recordings, storage, playing, togglePlay, duplicate, remove } = useLibrary();
+  const { recordings, storage, playing, reload, togglePlay, duplicate, remove } = useLibrary();
+  const wavImport = useWavImport(reload);
+  const dropState = useWavDrop((files) => void wavImport.offer(files), HEADER);
   return (
     <div id="view-library">
-      <div className="library-heading">
-        <h1>Your recordings</h1>
-        <Link className="button primary" to="/new">
-          <Plus aria-hidden="true" /> New recording
-        </Link>
-      </div>
+      {dropState !== "idle" && (
+        <div className="library-drop-area" data-kind={dropState} style={{ top: belowHeader() }}>
+          {dropState === "reject" ? <Ban aria-hidden="true" /> : <Upload aria-hidden="true" />}
+          {dropState === "reject"
+            ? "Only WAV files can be imported"
+            : "Drop diapason WAVs to import"}
+        </div>
+      )}
+      <Popover
+        open={!!wavImport.candidates}
+        onOpenChange={(open) => {
+          if (!open) wavImport.cancel();
+        }}
+      >
+        <PopoverAnchor asChild>
+          <div className="library-heading">
+            <h1>Your recordings</h1>
+            <div className="library-heading-actions">
+              <label className="button">
+                <Upload aria-hidden="true" /> Import WAV
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept=".wav,audio/wav"
+                  multiple
+                  onChange={(event) => {
+                    const files = [...(event.currentTarget.files ?? [])];
+                    event.currentTarget.value = "";
+                    if (files.length) void wavImport.offer(files);
+                  }}
+                />
+              </label>
+              <Link className="button primary" to="/new">
+                <Plus aria-hidden="true" /> New recording
+              </Link>
+            </div>
+          </div>
+        </PopoverAnchor>
+        <ImportPopover
+          candidates={wavImport.candidates}
+          onConfirm={() => void wavImport.confirm()}
+          onCancel={wavImport.cancel}
+        />
+      </Popover>
       {recordings.length ? (
         <div className="recordings">
           {recordings.map((record) => (
@@ -123,6 +230,15 @@ export function Library() {
         </Panel>
       )}
       <p className="library-storage">{storage}</p>
+      {wavImport.notice && (
+        <div
+          className="capture-toast library-toast"
+          data-kind={wavImport.notice.kind}
+          role={wavImport.notice.kind === "error" ? "alert" : "status"}
+        >
+          {wavImport.notice.message}
+        </div>
+      )}
     </div>
   );
 }

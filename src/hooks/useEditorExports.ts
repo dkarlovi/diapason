@@ -4,7 +4,7 @@ import type { Recording } from "../db";
 import type { Frame } from "../notes";
 import type { QualityStats } from "../recorder";
 import { notesToMidi } from "../midi";
-import { encodeWav } from "../wav";
+import { encodeTaggedWav, taggedWavChunks, type ExportContext } from "../wav-metadata";
 import { buildReport } from "../diagnostics";
 import { diagnosticSnapshot } from "../diagnostic-snapshot";
 import { downloadBlob } from "../ui";
@@ -12,6 +12,12 @@ import { exportSlug, makeReportInput } from "../editor-model";
 import { recordingNotes } from "../recording";
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+const exportContext = (): ExportContext => ({
+  browser: navigator.userAgent,
+  audioOutput: "unknown",
+  midiOutput: activeOutput()?.name ?? "Browser synth",
+});
 
 interface Options {
   recordingId: string;
@@ -42,11 +48,7 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
   const reportInput = useCallback(
     (current: Recording, stats: QualityStats) => ({
       ...makeReportInput(current, frames, stats),
-      context: {
-        browser: navigator.userAgent,
-        audioOutput: "unknown",
-        midiOutput: activeOutput()?.name ?? "Browser synth",
-      },
+      context: exportContext(),
     }),
     [frames],
   );
@@ -64,7 +66,8 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
   }, [filename, frames, recordRef]);
   const downloadWav = useCallback(() => {
     const current = recordRef.current;
-    if (current) downloadBlob(encodeWav(pcmRef.current, current.sampleRate), filename("wav"));
+    if (current)
+      downloadBlob(encodeTaggedWav(current, pcmRef.current, exportContext()), filename("wav"));
   }, [filename, recordRef, pcmRef]);
   const downloadJson = useCallback(async () => {
     const current = recordRef.current;
@@ -75,6 +78,7 @@ export function useEditorExports({ recordingId, recordRef, pcmRef, frames, stats
       const { report } = await diagnosticSnapshot(
         reportInput(current, statsRef.current),
         pcmRef.current,
+        taggedWavChunks(current, pcmRef.current, exportContext()),
       );
       if (token !== generation.current) return;
       downloadBlob(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), name);
