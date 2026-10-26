@@ -99,3 +99,7 @@ export function auditionLabel(id: string, melody: MelodySetting, key: Key | null
   }
   return null;
 }
+
+export function selectedSourceItem(items: readonly NoteItem[], t: number): NoteItem | undefined {
+  return items.find((item) => item.source.start <= t && t < item.source.end);
+}
