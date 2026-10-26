@@ -32,7 +32,7 @@ export function EditorNavigation({ state }: { state: EditorState }) {
           +
         </Button>
         <Button onClick={v.fitTime}>Whole take</Button>
-        <Button onClick={v.fitPitch}>Fit notes ↕</Button>
+        <Button onClick={v.fitPitch}>Fit</Button>
         <Button aria-label="Show more pitches" onClick={() => v.zoomPitch(0.75)}>
           ↕ −
         </Button>

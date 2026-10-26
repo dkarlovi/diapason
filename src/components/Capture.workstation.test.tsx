@@ -82,6 +82,7 @@ it("keeps the live canvas and record toggle mounted while the wizard folds and r
   expect(recordStep.querySelector("svg")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Stop recording" })).toBe(toggle);
   expect(toggle.getAttribute("aria-pressed")).toBe("true");
+  expect(document.querySelector(".capture-recording-brand svg")).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Record" })).toBeNull();
   expect(screen.getByRole("img")).toBe(canvas);
   act(() => fixture.metro?.onBeat?.(-4));

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Link } from "react-router";
 import { ChevronRight, Ellipsis, FileAudio, Plus, Play, Square } from "lucide-react";
 import { useLibrary, type Playing } from "../hooks/useLibrary";
@@ -6,12 +8,6 @@ import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { Button, Panel } from "./primitives";
 import { WaveformThumbnail } from "./WaveformThumbnail";
-
-function closeRecordingMenu(control: HTMLElement) {
-  const menu = control.closest("details");
-  menu?.removeAttribute("open");
-  menu?.querySelector("summary")?.focus();
-}
 
 function RecordingCard({
   record,
@@ -26,6 +22,7 @@ function RecordingCard({
   onDuplicate(id: string): void;
   onDelete(record: Recording): void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <article className="library-record">
       <WaveformThumbnail summary={record.waveform} />
@@ -56,19 +53,23 @@ function RecordingCard({
         <Link className="button recording-open" to={recordingPath(record.id)}>
           Open <ChevronRight aria-hidden="true" />
         </Link>
-        <details
-          className="recording-menu"
-          onKeyDown={(event) => {
-            if (event.key === "Escape") closeRecordingMenu(event.currentTarget);
-          }}
-        >
-          <summary aria-label={"Actions for " + record.name} title="Recording actions">
-            <Ellipsis aria-hidden="true" />
-          </summary>
-          <div className="recording-menu-items">
+        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+          <PopoverTrigger asChild>
             <Button
-              onClick={(event) => {
-                closeRecordingMenu(event.currentTarget);
+              className="recording-menu"
+              aria-label={"Actions for " + record.name}
+              title="Recording actions"
+            >
+              <Ellipsis aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="recording-menu-items"
+            aria-label={"Actions for " + record.name}
+          >
+            <Button
+              onClick={() => {
+                setMenuOpen(false);
                 onDuplicate(record.id);
               }}
             >
@@ -76,15 +77,15 @@ function RecordingCard({
             </Button>
             <Button
               variant="danger"
-              onClick={(event) => {
-                closeRecordingMenu(event.currentTarget);
+              onClick={() => {
+                setMenuOpen(false);
                 onDelete(record);
               }}
             >
               Delete
             </Button>
-          </div>
-        </details>
+          </PopoverContent>
+        </Popover>
       </div>
     </article>
   );

@@ -175,8 +175,13 @@ it("provides a resizable Tune overlay and a removable original track", async () 
   expect(screen.getByRole("region", { name: "Original recording" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Close Tune" }));
   expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Open Tune" }));
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
   expect(screen.getByRole("region", { name: "Tune melody" })).toBeTruthy();
+  const tune = screen.getByRole("button", { name: "Toggle Tune" });
+  expect(tune.getAttribute("aria-pressed")).toBe("true");
+  fireEvent.click(tune);
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  expect(tune.getAttribute("aria-pressed")).toBe("false");
   expect(screen.queryByText("Notes")).toBeNull();
 });
 
@@ -203,7 +208,11 @@ it("starts mobile with original audio and Tune closed", async () => {
   await screen.findByDisplayValue("Melody");
   expect(screen.queryByRole("region", { name: "Original recording" })).toBeNull();
   expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
-  expect(screen.getByRole("button", { name: "Open Tune" })).toBeTruthy();
+  const tune = screen.getByRole("button", { name: "Toggle Tune" });
+  const controls = tune.parentElement!;
+  expect(
+    [...controls.querySelectorAll("button")].map((button) => button.getAttribute("aria-label")),
+  ).toEqual(["Toggle Tune", "Play MIDI", "Download MIDI"]);
 });
 it("allows keyboard note selection and contextual muting without a note list", async () => {
   render(
@@ -248,6 +257,10 @@ it("identifies selected notes, copies their ID and dismisses on empty canvas", a
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   fireEvent.keyDown(roll, { key: "ArrowRight" });
   expect(screen.getByText("Note #1")).toBeTruthy();
+  expect(document.activeElement).toBe(roll);
+  expect(
+    document.querySelector(".editor-note-anchor")?.classList.contains("editor-note-active"),
+  ).toBe(true);
   vi.useFakeTimers();
   await act(async () => fireEvent.click(screen.getByRole("button", { name: "Copy ID" })));
   expect(screen.getByRole("button", { name: "ID copied" })).toBeTruthy();

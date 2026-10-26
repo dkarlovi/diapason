@@ -84,6 +84,9 @@ describe("library", () => {
     expect(thumbnail?.parentElement?.className).toBe("library-record");
     expect(decodeAudio).not.toHaveBeenCalled();
     await userEvent.click(screen.getByLabelText("Actions for Melody"));
+    await userEvent.click(document.body);
+    expect(screen.queryByRole("button", { name: "Duplicate" })).toBeNull();
+    await userEvent.click(screen.getByLabelText("Actions for Melody"));
     await userEvent.click(screen.getByRole("button", { name: "Duplicate" }));
     expect(await screen.findByText("Melody (copy)")).toBeTruthy();
     expect(document.querySelectorAll(".recording-waveform")).toHaveLength(2);

@@ -135,7 +135,7 @@ main.studio-shell.library-shell {
 .library-record:last-child {
   border-bottom: 0;
 }
-.library-record:has(.recording-menu[open]) {
+.library-record:has(.recording-menu[data-state="open"]) {
   z-index: 1;
 }
 .recording-icon {
@@ -198,31 +198,17 @@ main.studio-shell.library-shell {
 .recording-menu {
   position: relative;
 }
-.studio-shell .recording-menu summary {
-  margin: 0;
-  list-style: none;
+.studio-shell .recording-menu {
   width: 34px;
   height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 5px;
+  padding: 6px;
+  border: 0;
+  background: transparent;
 }
-.recording-menu summary::-webkit-details-marker {
-  display: none;
-}
-.recording-menu summary svg {
-  width: 18px;
-  height: 18px;
-}
-.recording-menu[open] summary,
-.recording-menu summary:hover {
+.recording-menu[data-state="open"] {
   background: var(--color-muted);
 }
 .recording-menu-items {
-  position: absolute;
-  right: 0;
-  top: 42px;
-  z-index: 4;
   width: 150px;
   padding: 5px;
   background: var(--color-card);

@@ -20,7 +20,12 @@ function context(): AudioContext {
   return ctx;
 }
 
-function track(c: AudioContext, duration: number, nodes: AudioScheduledSourceNode[]): Playback {
+function track(
+  c: AudioContext,
+  duration: number,
+  nodes: AudioScheduledSourceNode[],
+  output?: GainNode,
+): Playback {
   const t0 = c.currentTime + 0.05;
   let stopped = false;
   return {
@@ -31,9 +36,18 @@ function track(c: AudioContext, duration: number, nodes: AudioScheduledSourceNod
     stop: () => {
       if (stopped) return;
       stopped = true;
+      // Finished synth voices still own their release tails. Transport cleanup
+      // must not cut them off at the nominal note end.
+      if (output && c.currentTime >= t0 + duration) return;
+      const stopAt = c.currentTime + (output ? 0.015 : 0);
+      if (output) {
+        output.gain.cancelScheduledValues(c.currentTime);
+        output.gain.setValueAtTime(output.gain.value, c.currentTime);
+        output.gain.linearRampToValueAtTime(0, stopAt);
+      }
       for (const n of nodes) {
         try {
-          n.stop();
+          n.stop(stopAt);
         } catch {
           // not started yet / already stopped
         }
@@ -76,5 +90,5 @@ export function playNotes(
     srcs.push(...voice(c, out, freq, t0 + n.start, n.duration));
   }
   const end = notes.reduce((m, n) => Math.max(m, n.start + n.duration), 0);
-  return track(c, Math.max(duration, end), srcs);
+  return track(c, Math.max(duration, end), srcs, out);
 }
