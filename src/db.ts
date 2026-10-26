@@ -5,6 +5,7 @@ import type { SoundProfile } from "./recording-profiles";
 import type { MelodySetting } from "./melody/settings";
 import type { PlaySettings } from "./instruments";
 import type { WaveformSummary } from "./waveform";
+import type { WavMetadata } from "./wav-metadata";
 
 const DB_NAME = "diapason";
 const DB_VERSION = 1;
@@ -16,6 +17,14 @@ export interface CaptureMeta {
   noiseFloor: number;
   rmsGate?: number;
   dspOff: boolean;
+}
+
+/** Where a recording was first made: the build and the browser it was recorded in. */
+export interface RecordingOrigin {
+  build: { version: string; revision: string; source: string; pipeline: number };
+  browser: string;
+  audioOutput: string;
+  midiOutput: string;
 }
 
 /** A note the user switched off. Anchored to the midpoint of the raw (unquantized) note
@@ -60,6 +69,17 @@ export interface Recording {
   quantize?: QuantizeSetting;
   /** How ▶ MIDI sounds for this recording (playback only; the .mid is unaffected). */
   play?: PlaySettings;
+  /** Set when the recording came from a diapason WAV. */
+  imported?: RecordingImport;
+}
+
+export interface RecordingImport {
+  /** When it was saved into this library. */
+  at: number;
+  fileName: string;
+  /** The file's embedded metadata exactly as it arrived, including fields this build does not
+   *  know. Its provenance is written back unchanged when the recording is exported again. */
+  metadata: WavMetadata;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;

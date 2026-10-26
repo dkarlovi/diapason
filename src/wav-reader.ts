@@ -33,18 +33,28 @@ function wavView(bytes: ArrayBuffer) {
   return { view, tag };
 }
 
-/** Decode diagnostic WAVs, while allowing ordinary padded RIFF chunks. */
-export function decodeWav(bytes: ArrayBuffer) {
+/** Walk the RIFF chunks, allowing ordinary padded chunks. */
+export function wavChunks(bytes: ArrayBuffer) {
   const { view, tag } = wavView(bytes);
-  let sampleRate = 0;
-  let data: Int16Array | undefined;
+  const chunks: { id: string; start: number; length: number }[] = [];
   for (let offset = 12; offset + 8 <= bytes.byteLength;) {
     const length = view.getUint32(offset + 4, true);
     const start = offset + 8;
     if (start + length > bytes.byteLength) throw new Error("Truncated WAV chunk.");
-    if (tag(offset) === "fmt ") sampleRate = readFormat(view, start, length);
-    if (tag(offset) === "data") data = readSamples(view, start, length);
+    chunks.push({ id: tag(offset), start, length });
     offset = start + length + (length % 2);
+  }
+  return chunks;
+}
+
+/** Decode diagnostic WAVs, while allowing ordinary padded RIFF chunks. */
+export function decodeWav(bytes: ArrayBuffer) {
+  const view = new DataView(bytes);
+  let sampleRate = 0;
+  let data: Int16Array | undefined;
+  for (const { id, start, length } of wavChunks(bytes)) {
+    if (id === "fmt ") sampleRate = readFormat(view, start, length);
+    if (id === "data") data = readSamples(view, start, length);
   }
   if (!sampleRate || !data) throw new Error("WAV is missing format or sample data.");
   return { sampleRate, pcm: pcm16ToFloat(data) };

@@ -24,7 +24,11 @@ diapason is organized as a **library of recordings**, persisted in your browser
 (IndexedDB) so a refresh never loses them. Three views, routed by URL path:
 
 1. **Library** (`/diapason/`) — your recordings. Preview audio or MIDI,
-   click anywhere on a row to open its editor, duplicate, or delete.
+   click anywhere on a row to open its editor, duplicate, or delete. **Import WAV**
+   (or drag files anywhere below the header while the Library is open; a drop area shows
+   while they hover and refuses files the browser reports as something other than WAV) opens
+   a popover listing each file's name, recording time, tempo, meter and diapason
+   version before anything is saved.
 2. **New recording** (`/diapason/new`) — a guided setup: choose your sound →
    connect and verify your microphone → measure room noise → check your sound →
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
@@ -150,6 +154,29 @@ change the exported MIDI file.
 
 Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
 `CompressionStream`, no dependencies). Downloads are lossless WAV.
+
+### Sharing recordings as WAV
+
+The editor's **Download WAV** is a complete recording: send it to someone and they
+import it into their own diapason, in any browser, to get the same take. Next to the
+unchanged mono 16-bit audio, the file carries a versioned `dpsn` chunk, marked as a
+recording, with what was
+known when the take was recorded: tempo, beats per bar, the downbeat, the level gate,
+the sound profile and analysis settings, capture info (gain, peak, noise floor,
+browser DSP), and provenance (name, recording time, original id, diapason version and
+revision, browser and MIDI output). Editor work is not included, so the receiver opens
+the unedited take with default melody settings; its notes and MIDI match what the
+sender saw before editing. A standard `LIST/INFO` chunk (title, date, software,
+comment) and an `acid` chunk (tempo and meter) make the basics visible in audio tools
+and DAWs that read them. The diagnostics JSON hashes these same tagged bytes.
+
+Importing keeps the original id, name and recording time. The import popover marks
+files that cannot be imported, with the reason, and recordings already in your
+library, with a link to open them; those are never duplicated or overwritten. An
+imported recording stores when it was imported, the file name, and the file's
+embedded metadata exactly as it arrived (including fields this version does not
+know). Exporting an imported recording gives back the same file byte for byte
+(audio, metadata and provenance), and keeps any fields a newer diapason added.
 
 ## Why calibration comes first
 
@@ -376,8 +403,13 @@ must export its approved `clean.mid` byte for byte.
 - Pitch detection remains monophonic and band-limited to 250–3000 Hz for whistles.
 - Existing recordings can sound different with the new engine. Legacy hysteresis,
   debounce, and median-window settings no longer control note decisions.
-- Capturing and correcting notes is local to the browser; audio file import and
-  user-defined saved presets are not yet available.
+- Capturing and correcting notes is local to the browser. Only WAVs exported by
+  diapason can be imported; plain WAV, MP3 and other files, and user-defined saved
+  presets, are not yet available.
+- Audio editors often drop unknown chunks when re-saving, so a diapason WAV edited
+  elsewhere can no longer be imported.
+- An imported take gives identical notes only when both sides run the same
+  analysis version; imports from other versions are accepted as they are.
 
 Feature ideas and planned work are tracked in
 [GitHub issues](https://github.com/dkarlovi/diapason/issues).
