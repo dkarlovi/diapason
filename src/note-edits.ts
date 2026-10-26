@@ -107,3 +107,25 @@ export function pitchEditFor(
     }
   return match;
 }
+export interface PitchEditCoverage {
+  id: string;
+  status: "active" | "partial" | "inactive";
+  missing: SourceRange[];
+}
+export function summarizePitchEdits(
+  edits: NoteEdits | undefined,
+  sources: readonly SourceRange[],
+): PitchEditCoverage[] {
+  return (edits?.pitch ?? []).map((edit) => {
+    let missing = edit.ranges.map((range) => ({ ...range }));
+    const represented = sources.some((source) =>
+      edit.ranges.some((range) => source.start < range.end && source.end > range.start),
+    );
+    for (const source of sources) missing = subtract(missing, source);
+    return {
+      id: edit.id,
+      status: !missing.length ? "active" : represented ? "partial" : "inactive",
+      missing,
+    };
+  });
+}
