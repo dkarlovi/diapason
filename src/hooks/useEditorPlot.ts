@@ -2,8 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { useEditorGestures } from "./useEditorGestures";
 import type { Recording } from "../db";
 import type { Frame, NoteEvent } from "../notes";
-import { drawTrace, type TraceView } from "../trace";
-import { fittedPitch, followPan, timeWindow, zoomedTime } from "../editor-viewport";
+import { drawTrace, type NoteOrigin, type TraceView } from "../trace";
+import {
+  fittedPitch,
+  followPan,
+  revealPitchShift,
+  timeWindow,
+  zoomedTime,
+} from "../editor-viewport";
 
 interface Options {
   record: Recording | null;
@@ -11,6 +17,7 @@ interface Options {
   notes: NoteEvent[];
   muted: NoteEvent[];
   edited?: NoteEvent[];
+  origins?: NoteOrigin[];
   grid: number;
   position: number | null;
   traceRef: RefObject<HTMLCanvasElement | null>;
@@ -51,6 +58,7 @@ export function useEditorPlot({
   notes,
   muted,
   edited,
+  origins,
   grid,
   position,
   traceRef,
@@ -104,8 +112,22 @@ export function useEditorPlot({
       notes,
       muted,
       ...(edited ? { edited } : {}),
+      ...(origins ? { origins } : {}),
     });
-  }, [record, view, grid, position, frames, notes, muted, edited, traceOverlay, traceRef, rollRef]);
+  }, [
+    record,
+    view,
+    grid,
+    position,
+    frames,
+    notes,
+    muted,
+    edited,
+    origins,
+    traceOverlay,
+    traceRef,
+    rollRef,
+  ]);
   usePlotRedraw(draw, traceRef, rollRef);
   const zoomTime = (factor: number, anchor = 0) => {
     const next = zoomedTime({ duration, zoom, pan, visible }, factor, anchor);
@@ -143,6 +165,10 @@ export function useEditorPlot({
     fitPitch: () => {
       setPitchZoom(1);
       setPitchPan(0);
+    },
+    revealPitch: (midi: number, covered: number) => {
+      const shift = revealPitchShift(view, midi, covered);
+      if (shift) setPitchPan((current) => current + shift);
     },
   };
 }

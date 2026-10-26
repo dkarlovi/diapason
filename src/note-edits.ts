@@ -84,6 +84,18 @@ export function setPitchEdit(
   next.pitch.push({ id, midi, ranges: [{ ...scope }] });
   return next;
 }
+/** A stepper change: landing back on the detected pitch removes the edit instead of pinning it. */
+export function stepPitchEdit(
+  edits: NoteEdits | undefined,
+  scope: SourceRange,
+  midi: number,
+  automaticMidi: number,
+  id: string,
+): NoteEdits {
+  return midi === automaticMidi
+    ? resetPitchEdit(edits, scope)
+    : setPitchEdit(edits, scope, midi, id);
+}
 export function protectedNoteBoundaries(edits: NoteEdits | undefined): number[] {
   return [
     ...new Set(

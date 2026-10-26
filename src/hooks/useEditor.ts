@@ -1,4 +1,4 @@
-import { resetPitchEdit, setPitchEdit, type NoteEdits } from "../note-edits";
+import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
 import { resolveAnalysisOptions } from "../recording-analysis";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
@@ -16,7 +16,13 @@ import { useMelodySettings } from "./useMelodySettings";
 import { useTuningHistory } from "./useTuningHistory";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
-import { auditionLabel, noteAtPoint, selectedSourceItem, toggleMuted } from "../editor-model";
+import {
+  auditionLabel,
+  editMarks,
+  noteAtPoint,
+  selectedSourceItem,
+  toggleMuted,
+} from "../editor-model";
 
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -178,13 +184,15 @@ export function useEditor(id: string) {
   } = useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
 
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
+  const { edited, origins } = useMemo(() => editMarks(items, selectedItem), [items, selectedItem]);
   const displayGrid = displayed?.interpretation.knobs.grid ?? grid;
   const viewport = useEditorPlot({
     record,
     frames,
     notes: displayNotes,
     muted,
-    edited: items.filter((item) => item.editState.axes.includes("pitch")).map((item) => item.note),
+    edited,
+    origins,
     grid: displayGrid,
     position,
     traceRef,
@@ -231,7 +239,9 @@ export function useEditor(id: string) {
     if (!item || !recordRef.current) return;
     const midi = item.note.midi + delta;
     if (midi < 0 || midi > 127) return;
-    commitEdits(setPitchEdit(recordRef.current.noteEdits, item.source, midi, uid()));
+    commitEdits(
+      stepPitchEdit(recordRef.current.noteEdits, item.source, midi, item.automatic.midi, uid()),
+    );
   };
   const resetSelectedPitch = () => {
     if (auditionRef.current) return;

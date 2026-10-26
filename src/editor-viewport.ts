@@ -57,3 +57,19 @@ export function uncoveredTimeFraction(workspace: number, overlay: number) {
     (workspace - overlay - padding.left - 12) / (workspace - padding.left - padding.right),
   );
 }
+/**
+ * The pitch-pan change that keeps a note clear of an overlay covering the bottom
+ * `covered` fraction of the plot, or 0 when the note is already visible.
+ */
+export function revealPitchShift(
+  view: { midiMin: number; midiMax: number },
+  midi: number,
+  covered: number,
+) {
+  const span = view.midiMax - view.midiMin || 1;
+  const fraction = (view.midiMax - midi) / span;
+  const clear = 1 - covered;
+  if (fraction >= 0.05 && fraction <= clear - 0.05) return 0;
+  // Centre the note within the uncovered area: shift the view's top so it lands at clear / 2.
+  return midi + (clear / 2) * span - view.midiMax;
+}

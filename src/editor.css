@@ -446,21 +446,6 @@
   font-size: 0.8125rem;
   box-shadow: 0 2px 12px #0002;
 }
-.editor-note-detail {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  font-size: 0.8125rem;
-}
-.studio-shell .editor-note-detail [data-slot="button"] {
-  min-height: 27px;
-  padding: 2px 7px;
-  font-size: 0.75rem;
-}
 .editor-recording-name {
   min-width: 0;
   width: 100%;
@@ -643,21 +628,137 @@
   outline-offset: 2px;
   border-radius: 2px;
 }
-.editor-note-detail {
+.studio-shell .editor-note-detail {
   width: max-content;
-  flex-direction: column;
-  align-items: stretch;
-  flex-wrap: nowrap;
+  padding: 0;
+  overflow: hidden;
+  font-size: 0.8125rem;
 }
-.editor-note-actions,
-.editor-note-info {
+/* Like Tune's category rail: a darker band above controls on the neutral surface. */
+.editor-note-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 5px 6px 5px 12px;
+  background: var(--color-muted);
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
-.editor-note-actions {
-  justify-content: flex-end;
+.editor-note-heading strong {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.editor-note-time {
+  margin-right: auto;
+  padding-right: 6px;
+  color: var(--color-muted-foreground);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.studio-shell [data-slot="button"].editor-note-toggle {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+}
+.studio-shell [data-slot="button"].editor-note-toggle:not(.playback-control)[aria-pressed="true"] {
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+  border-color: var(--color-primary);
+}
+.editor-note-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+.editor-note-properties {
+  padding: 4px 10px 6px;
+}
+.editor-note-property {
+  display: grid;
+  grid-template-columns: 10px 64px 28px minmax(56px, 1fr) 28px 28px;
+  align-items: center;
+  column-gap: 4px;
+  min-height: 34px;
+}
+.editor-note-property-label {
+  color: var(--color-muted-foreground);
+}
+.editor-note-property[data-edited="true"] .editor-note-property-label {
+  color: var(--color-foreground);
+  font-weight: 500;
+}
+/* Matches the stripes drawn on edited notes in the roll. */
+.editor-edit-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-primary) 0 2px,
+    color-mix(in oklab, var(--color-primary) 40%, var(--color-card)) 2px 4px
+  );
+}
+.editor-note-property[data-edited="false"] :is(.editor-edit-swatch, .editor-reset) {
+  visibility: hidden;
+}
+.editor-note-value {
+  text-align: center;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.studio-shell [data-slot="button"].editor-note-step {
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+  background: var(--color-muted);
+}
+.studio-shell [data-slot="button"].editor-note-step:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-border) 55%, var(--color-muted));
+}
+.editor-note-step svg {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 760px) {
+  .studio-shell .editor-note-sheet {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    border: 1px solid var(--color-border);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: var(--color-card);
+    box-shadow: 0 -8px 24px #0002;
+  }
+  .editor-note-sheet .editor-note-heading {
+    gap: 8px;
+    padding: 6px 12px 6px 16px;
+  }
+  .editor-note-sheet .editor-note-heading strong {
+    font-size: 1rem;
+  }
+  .editor-note-sheet .editor-note-time {
+    font-size: 0.8125rem;
+  }
+  .editor-note-sheet .editor-note-properties {
+    padding: 4px 16px 14px;
+  }
+  .editor-note-sheet .editor-note-property {
+    grid-template-columns: 10px 72px 44px minmax(56px, 1fr) 44px 44px;
+    column-gap: 6px;
+    min-height: 52px;
+  }
+  .editor-note-sheet .editor-note-value {
+    font-size: 1rem;
+  }
+  .studio-shell
+    .editor-note-sheet
+    [data-slot="button"]:is(.editor-note-toggle, .editor-note-step, .editor-reset) {
+    width: 44px;
+    min-height: 44px;
+  }
 }
 .editor-field-label {
   min-width: 0;
@@ -747,13 +848,4 @@
   border: 3px double var(--color-primary);
   padding: 0 10px;
   background: var(--color-card);
-}
-
-.studio-shell .editor-copy-id {
-  display: grid;
-  grid-template-areas: "label";
-}
-.editor-copy-id > * {
-  grid-area: label;
-  justify-self: center;
 }

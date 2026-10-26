@@ -351,13 +351,16 @@ preview. Starting another preview replaces it.
   before restoring the current preset's controls and retaining the key.
   Compact control rows retain their values and resets; explanations appear in tooltips.
 
-Click a piano-roll note to hear it and open a floating menu beside it with its
-number, name, start time, duration, **Copy ID**, Mute, context Play/Stop,
-**Up one semitone**, **Down one semitone**, and **Reset pitch**.
-The selected note keeps keyboard focus on the roll and has a visible outline.
-The menu places actions above note information on mobile. Note and context
-previews preserve synth release tails; interrupted synth playback fades out.
-Copy ID briefly shows a checkmark without changing the button width. Pitch labels
+Click a piano-roll note to hear it and open a note inspector beside it. Its darker
+heading shows the note number and name, start time and duration, with context
+Play/Stop and **Mute note** (a pressed toggle while muted). Below it, the **Pitch** row
+has **Down one semitone** and **Up one semitone** steppers and a **Reset pitch**
+button that appears once the pitch is edited; the row and buttons keep their
+positions as the note is muted or edited. The selected note keeps keyboard focus on
+the roll and has a visible outline. On phones the inspector docks at the bottom of
+the roll, scrolls the selected note into the area above it, and replaces Tune while
+it is open. Note and context previews preserve synth release tails; interrupted
+synth playback fades out. Pitch labels
 align on the right edge of the canvas gutter, with a soft background fade shared
 by the live recording view. Editor track labels have an 80% opaque background. The original-track divider and its
 Show/Hide button share a double border on hover.
@@ -419,9 +422,12 @@ Manual pitch editing follows the
 and [implementation plan](docs/superpowers/plans/2026-10-26-note-editing.md).
 A chosen MIDI pitch survives key, tuning, grid and preset changes. Splits inherit
 it; resetting one child clears only that child's source coverage. Edited coverage
-protects note boundaries from merges, even when neighboring pitches agree. A dot
-on the roll marks explicit edits, including muted notes and choices that equal the
-automatic pitch. Up then down remains an edit until Reset pitch.
+protects note boundaries from merges, even when neighboring pitches agree. Edited
+notes are striped on the roll (muted ones in gray), including choices that now equal
+the automatic pitch after a tuning change. A note whose pitch differs from detection
+also shows a dashed outline where it was detected, linked to its edited position;
+the selected note's link is drawn at full strength. Stepping back onto the detected
+pitch clears the edit, the same as Reset pitch.
 
 Filtering may hide an edited note without deleting its intent. Restore the detection
 settings to recover it; Recording actions shows an inactive pitch-edit count and

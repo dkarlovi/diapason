@@ -103,3 +103,13 @@ export function auditionLabel(id: string, melody: MelodySetting, key: Key | null
 export function selectedSourceItem(items: readonly NoteItem[], t: number): NoteItem | undefined {
   return items.find((item) => item.source.start <= t && t < item.source.end);
 }
+
+/** Notes drawn as edited, and the automatic origins of edits that changed something. */
+export function editMarks(items: readonly NoteItem[], selected: NoteItem | undefined) {
+  return {
+    edited: items.filter((item) => item.editState.axes.length).map((item) => item.note),
+    origins: items
+      .filter((item) => item.editState.differingAxes.length)
+      .map((item) => ({ from: item.automatic, to: item.note, emphasis: item === selected })),
+  };
+}

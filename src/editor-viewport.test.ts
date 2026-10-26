@@ -1,5 +1,11 @@
 import { expect, it } from "vitest";
-import { fittedPitch, followPan, sidebarWidth, timeWindow } from "./editor-viewport";
+import {
+  fittedPitch,
+  followPan,
+  revealPitchShift,
+  sidebarWidth,
+  timeWindow,
+} from "./editor-viewport";
 
 it("shares a finite window and pans far enough to uncover the end beneath Tune", () => {
   expect(timeWindow(20, 2, 1, 0.5)).toEqual({ tMin: 15, tMax: 25 });
@@ -31,4 +37,13 @@ it("keeps the ending visibly left of an overlay even with the plot's axis paddin
   const view = timeWindow(20, 1, followPan(20, 1, 0, 20, visible), visible);
   const endingX = 57 + ((20 - view.tMin) / (view.tMax - view.tMin)) * (800 - 57 - 18);
   expect(endingX).toBeLessThan(400);
+});
+it("pans pitch only when a note would sit under a bottom overlay", () => {
+  const view = { midiMin: 60, midiMax: 80 };
+  expect(revealPitchShift(view, 75, 0.4)).toBe(0);
+  const shift = revealPitchShift(view, 62, 0.4);
+  expect(shift).toBeLessThan(0);
+  // The note lands in the middle of the uncovered top 60%.
+  expect((view.midiMax + shift - 62) / 20).toBeCloseTo(0.3);
+  expect(revealPitchShift(view, 80, 0)).toBeGreaterThan(0);
 });
