@@ -36,11 +36,16 @@ export function liveReadout(level: LiveLevel) {
   };
 }
 
-export const CAPTURE_STEPS: { id: SetupStep; label: string; title: string }[] = [
+export const CAPTURE_STEPS: {
+  id: SetupStep;
+  label: string;
+  compactLabel?: string;
+  title: string;
+}[] = [
   { id: "sound", label: "Sound", title: "Choose your sound" },
-  { id: "microphone", label: "Microphone", title: "Set up your microphone" },
-  { id: "room", label: "Room noise", title: "Measure room noise" },
-  { id: "sound-check", label: "Sound check", title: "Check your sound" },
+  { id: "microphone", label: "Microphone", compactLabel: "Mic", title: "Set up your microphone" },
+  { id: "room", label: "Room noise", compactLabel: "Room", title: "Measure room noise" },
+  { id: "sound-check", label: "Sound check", compactLabel: "Check", title: "Check your sound" },
   { id: "tempo", label: "Tempo", title: "Find your tempo" },
   { id: "record", label: "Record", title: "Record" },
 ];
@@ -64,4 +69,14 @@ export function stepSummary(step: SetupStep, setup: SetupState, microphone: stri
     case "record":
       return "1 bar count-in";
   }
+}
+
+export function compactStepSummary(step: SetupStep, setup: SetupState, microphone: string): string {
+  const summaries: Partial<Record<SetupStep, string>> = {
+    microphone: setup.micReady ? microphone : "Input",
+    "sound-check": setup.sound?.pass ? "Clear" : "Pitch",
+    tempo: validTempo(setup.bpm, setup.beatsPerBar) ? `${setup.bpm} BPM` : "Pulse",
+    record: "1 bar",
+  };
+  return summaries[step] ?? stepSummary(step, setup, microphone);
 }

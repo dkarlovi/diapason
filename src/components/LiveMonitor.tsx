@@ -14,7 +14,6 @@ function LivePitch({ readout, connected }: { readout: Readout; connected: boolea
         <span>{readout.frequency}</span>
       </div>
       <span className="sr-only">{readout.message}</span>
-      {readout.clipping && <span className="clip-warning">Clipping</span>}
     </>
   );
 }
@@ -22,7 +21,7 @@ function LivePitch({ readout, connected }: { readout: Readout; connected: boolea
 function InputLevel({ readout, connected }: { readout: Readout; connected: boolean }) {
   const value = connected ? readout.db : "Microphone disconnected";
   return (
-    <div className="live-level">
+    <div className="live-level" data-clipping={readout.clipping}>
       <label id="input-level-label">Input level</label>
       <div
         role="meter"
@@ -35,7 +34,9 @@ function InputLevel({ readout, connected }: { readout: Readout; connected: boole
       >
         <div style={{ width: readout.percent + "%" }} />
       </div>
-      <span className="level-db">{connected ? readout.db : "—"}</span>
+      <span className={"level-db" + (readout.clipping ? " clip-warning" : "")}>
+        {readout.clipping ? "Clipping" : connected ? readout.db : "—"}
+      </span>
       <span
         className={"clip-light" + (readout.clipping ? " active" : "")}
         title={readout.clipping ? "Clipping" : "No clipping"}
@@ -89,8 +90,8 @@ export function LiveMonitor({
             <LiveBeat bpm={bpm} beatsPerBar={beatsPerBar} transport={transport} clock={clock} />
           </>
         )}
+        <InputLevel readout={readout} connected={connected} />
       </div>
-      <InputLevel readout={readout} connected={connected} />
     </section>
   );
 }

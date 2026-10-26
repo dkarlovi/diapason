@@ -21,6 +21,7 @@ it("distinguishes sound without pitch and supplies an accessible level meter", (
     "40",
   );
   expect(screen.getByText(/Preview grid/)).toBeTruthy();
+  expect(screen.getByRole("img").parentElement?.contains(screen.getByRole("meter"))).toBe(true);
   expect(
     screen.getByRole("img").compareDocumentPosition(screen.getByRole("meter")) &
       Node.DOCUMENT_POSITION_FOLLOWING,

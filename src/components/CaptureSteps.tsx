@@ -1,4 +1,4 @@
-import { CAPTURE_STEPS, stepSummary } from "../capture-presentation";
+import { CAPTURE_STEPS, compactStepSummary, stepSummary } from "../capture-presentation";
 import type { SetupState, SetupStep } from "../recording-setup";
 import { DiapasonMark } from "./DiapasonMark";
 
@@ -42,9 +42,15 @@ export function CaptureSteps({
               index + 1
             )}
           </span>
-          <span className="step-name">{step.label}</span>
+          <span className="step-name">
+            <span className="step-text-full">{step.label}</span>
+            <span className="step-text-compact">{step.compactLabel ?? step.label}</span>
+          </span>
           <small title={stepSummary(step.id, setup, microphone)}>
-            {stepSummary(step.id, setup, microphone)}
+            <span className="step-text-full">{stepSummary(step.id, setup, microphone)}</span>
+            <span className="step-text-compact">
+              {compactStepSummary(step.id, setup, microphone)}
+            </span>
           </small>
         </button>
       ))}
