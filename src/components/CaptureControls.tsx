@@ -135,7 +135,7 @@ function RecordControls({ state, back }: Pick<ControlProps, "state" | "back">) {
           <strong>1 bar</strong>
         </div>
       </div>
-      <CaptureActions back={back}>
+      <CaptureActions back={back} recording={state.recording}>
         <Button
           variant="primary"
           className="record-toggle"

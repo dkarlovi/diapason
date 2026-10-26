@@ -83,9 +83,12 @@ Instrument and octave sit in Tune. Rename lives in the header, with duplicate,
 delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
 keeps external MIDI selection in that menu.
 
-Time zoom, pitch zoom, Fit notes, and shared pan float over the roll. Middle-button
+Time zoom, pitch zoom, Fit, and shared pan float over the roll. Middle-button
 drag pans both axes on either canvas; Ctrl+wheel zooms time around the pointer,
-and Shift+wheel changes note height. The pan
+and Shift+wheel changes note height. On touchscreens, drag to pan and pinch horizontally
+to zoom time or vertically to change note height, without zooming the page. Tune
+stays visible before Play and Download, matches Play’s size, and toggles its panel
+with an active highlight. Trace overlay stays at bottom left. The pan
 slider sits above the buttons, keeping the buttons fixed when it appears. Playback
 follows the playhead through the uncovered area and highlights sounding notes.
 Real preset and key previews appear on the roll with a preview label; regular
@@ -93,6 +96,7 @@ Stop ends the audition and restores applied notes. Previewing never saves or
 changes exports. Saved charts redraw when the theme or container changes.
 The Library keeps audio/MIDI
 previews and Open visible, with Duplicate and Delete in each row's actions menu.
+Library action menus dismiss on outside taps and Escape.
 Each Library row has a subtle blue gradient with a compact waveform cut out
 behind the labels, preserving the original row height and controls. Recordings
 without a waveform show the gradient alone. Wider, spaced waveform bars have a thin blue outline
@@ -313,6 +317,9 @@ preview. Starting another preview replaces it.
 
 Click a piano-roll note to hear it and open a floating menu beside it with its
 number, name, start time, duration, **Copy ID**, Mute, and context Play/Stop.
+The selected note keeps keyboard focus on the roll and has a visible outline.
+The menu places actions above note information on mobile. Note and context
+previews preserve synth release tails; interrupted synth playback fades out.
 Copy ID briefly shows a checkmark without changing the button width. Pitch labels
 align on the right edge of the canvas gutter, with a soft background fade shared
 by the live recording view. Editor track labels have an 80% opaque background. The original-track divider and its
@@ -367,3 +374,6 @@ Feature ideas and planned work are tracked in
 ## Runtime test coverage
 
 `npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and reports coverage-aware metrics. No percentage gate is imposed before establishing a baseline.
+
+In portrait recording, the live monitor grows down toward the fixed Stop row.
+The setup controls fold away and Back crossfades to the logo in that row.

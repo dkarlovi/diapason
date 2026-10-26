@@ -117,6 +117,7 @@ export function useEditor(id: string) {
     : null;
   const selectNote = useCallback(
     (item: NoteItem) => {
+      rollRef.current?.focus({ preventScroll: true });
       setSelected({ t: item.raw.start + item.raw.duration / 2, midi: item.raw.midi });
       previewNote(item.note);
     },

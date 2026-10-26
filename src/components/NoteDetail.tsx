@@ -41,8 +41,13 @@ export function NoteDetail({ state }: { state: EditorState }) {
     >
       <PopoverAnchor asChild>
         <span
-          className="editor-note-anchor"
-          style={{ left, top, width: Math.max(1, width) }}
+          className="editor-note-anchor editor-note-active"
+          style={{
+            left,
+            top,
+            width: Math.max(2, width),
+            height: (size.height / (view.midiMax - view.midiMin)) * (view.noteHeight ?? 1),
+          }}
           aria-hidden="true"
         />
       </PopoverAnchor>
@@ -61,41 +66,45 @@ export function NoteDetail({ state }: { state: EditorState }) {
           if (event.target === state.rollRef.current) event.preventDefault();
         }}
       >
-        <strong>Note #{state.selectedNoteId}</strong>
-        <strong>{note.name}</strong>
-        <span>
-          {note.start.toFixed(2)} s · {note.duration.toFixed(2)} s
-        </span>
-        <Button
-          className="editor-copy-id"
-          aria-label={copyStatus || "Copy ID"}
-          onClick={() => {
-            void (async () => {
-              try {
-                await navigator.clipboard.writeText(`Note #${state.selectedNoteId}`);
-                setCopyStatus("ID copied");
-              } catch {
-                setCopyStatus("Copy failed");
-              }
-              window.clearTimeout(copyTimer.current);
-              copyTimer.current = window.setTimeout(() => setCopyStatus(""), 2000);
-            })();
-          }}
-        >
-          <span aria-hidden="true" style={{ visibility: copyStatus ? "hidden" : "visible" }}>
-            Copy ID
+        <div className="editor-note-actions">
+          <Button
+            className="editor-copy-id"
+            aria-label={copyStatus || "Copy ID"}
+            onClick={() => {
+              void (async () => {
+                try {
+                  await navigator.clipboard.writeText(`Note #${state.selectedNoteId}`);
+                  setCopyStatus("ID copied");
+                } catch {
+                  setCopyStatus("Copy failed");
+                }
+                window.clearTimeout(copyTimer.current);
+                copyTimer.current = window.setTimeout(() => setCopyStatus(""), 2000);
+              })();
+            }}
+          >
+            <span aria-hidden="true" style={{ visibility: copyStatus ? "hidden" : "visible" }}>
+              Copy ID
+            </span>
+            {copyStatus === "ID copied" && <Check aria-hidden="true" />}
+            {copyStatus === "Copy failed" && <span aria-hidden="true">!</span>}
+          </Button>
+          <Button
+            onClick={contextPlaying ? state.stopPlayback : state.previewContext}
+            aria-label={contextPlaying ? "Stop context playback" : "Hear in context"}
+            aria-pressed={contextPlaying}
+          >
+            {contextPlaying ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
+          </Button>
+          <Button onClick={state.muteSelected}>{state.selectedMuted ? "Unmute" : "Mute"}</Button>
+        </div>
+        <div className="editor-note-info">
+          <strong>Note #{state.selectedNoteId}</strong>
+          <strong>{note.name}</strong>
+          <span>
+            {note.start.toFixed(2)} s · {note.duration.toFixed(2)} s
           </span>
-          {copyStatus === "ID copied" && <Check aria-hidden="true" />}
-          {copyStatus === "Copy failed" && <span aria-hidden="true">!</span>}
-        </Button>
-        <Button
-          onClick={contextPlaying ? state.stopPlayback : state.previewContext}
-          aria-label={contextPlaying ? "Stop context playback" : "Hear in context"}
-          aria-pressed={contextPlaying}
-        >
-          {contextPlaying ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-        </Button>
-        <Button onClick={state.muteSelected}>{state.selectedMuted ? "Unmute" : "Mute"}</Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

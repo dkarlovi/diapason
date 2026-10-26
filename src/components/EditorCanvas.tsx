@@ -71,12 +71,23 @@ function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     </div>
   );
 }
-function TrackActions({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
+function TrackActions({ kind, state, layout }: CanvasProps) {
   const playing = state.playing === kind;
   const download = kind === "midi" ? "Download MIDI" : "Download WAV";
   const label = kind === "midi" ? "MIDI" : "audio";
   return (
     <div className="editor-track-actions">
+      {kind === "midi" && (
+        <Button
+          className="editor-open-tune"
+          aria-label="Toggle Tune"
+          aria-expanded={layout.open}
+          aria-pressed={layout.open}
+          onClick={() => layout.setOpen(!layout.open)}
+        >
+          Tune ☷
+        </Button>
+      )}
       <Button
         variant="primary"
         disabled={!state.record}
@@ -109,21 +120,13 @@ function PlaybackStatus({ state }: { state: EditorState }) {
     </div>
   );
 }
-function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) {
+function MidiOverlays({ state }: Pick<CanvasProps, "state">) {
   return (
     <>
-      <Button
-        className="editor-open-tune"
-        aria-label="Open Tune"
-        aria-expanded={layout.open}
-        onClick={() => layout.setOpen(true)}
-        hidden={layout.open}
-      >
-        Tune ☷
-      </Button>
       <p id="roll-instructions" className="sr-only">
         Arrow keys select and preview notes. Enter or Space plays the selected note. M mutes or
         unmutes it. Control or Command click also mutes a note. Middle-button drag pans the canvas.
+        Touch drag pans the canvas. Pinch horizontally to zoom time and vertically to zoom pitch.
         Control plus wheel zooms time. Shift plus wheel zooms pitch. Escape dismisses note details.
       </p>
       <NoteDetail key={state.selectedNoteId ?? "none"} state={state} />
@@ -149,8 +152,8 @@ export function EditorCanvas(props: CanvasProps) {
     >
       <CanvasPlot kind={kind} state={state} />
       <TrackLabel kind={kind} state={state} />
-      <TrackActions kind={kind} state={state} />
-      {kind === "midi" && <MidiOverlays state={state} layout={layout} />}
+      <TrackActions kind={kind} state={state} layout={layout} />
+      {kind === "midi" && <MidiOverlays state={state} />}
     </section>
   );
 }

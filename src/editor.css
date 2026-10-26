@@ -42,6 +42,9 @@
   border: 0;
   border-radius: 0;
   background: var(--color-muted);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .editor-track-label {
   position: absolute;
@@ -92,7 +95,7 @@
   min-height: 36px;
   padding: 6px 10px;
 }
-.studio-shell .editor-track-actions [data-slot="button"]:first-child {
+.studio-shell .editor-track-actions [data-slot="button"].primary {
   width: 84px;
 }
 .studio-shell .editor-track-actions [data-slot="button"]:last-child {
@@ -113,11 +116,14 @@
   font-size: 0.75rem;
   box-shadow: 0 2px 8px #0001;
 }
-.studio-shell .editor-open-tune {
-  position: absolute;
-  right: 152px;
-  top: 13px;
-  min-height: 36px;
+.studio-shell .editor-track-actions .editor-open-tune {
+  width: 84px;
+}
+.studio-shell [data-slot="button"].editor-open-tune[aria-pressed="true"],
+.studio-shell [data-slot="button"].editor-trace-toggle[aria-pressed="true"] {
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+  border-color: var(--color-primary);
 }
 .studio-shell .editor-tune {
   position: absolute;
@@ -488,7 +494,7 @@
   }
   .editor-track-label {
     left: 10px;
-    max-width: calc(100% - 150px);
+    max-width: calc(100% - 240px);
   }
   .editor-track-label h2,
   .editor-track-label > span {
@@ -497,15 +503,8 @@
   .editor-track-actions {
     right: 10px;
   }
-  .studio-shell .editor-open-tune {
-    right: 10px;
-    top: 56px;
-    min-height: 28px;
-    padding: 2px 7px;
-    font-size: 0.8125rem;
-  }
   .studio-shell .editor-trace-toggle {
-    bottom: 52px;
+    bottom: 12px;
     left: 10px;
   }
   .editor-playing {
@@ -514,13 +513,13 @@
     font-size: 0.75rem;
     max-width: calc(100% - 20px);
   }
-  .editor-note-detail {
-    max-width: calc(100% - 20px);
-    flex-wrap: wrap;
-  }
   .editor-navigation {
     right: 8px;
-    max-width: calc(100% - 16px);
+    max-width: calc(100% - 130px);
+  }
+  .editor-zoom-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .studio-shell .editor-zoom-actions [data-slot="button"] {
     padding-inline: 4px;
@@ -578,8 +577,27 @@
   height: 1px;
   pointer-events: none;
 }
+.editor-note-active {
+  transform: translateY(-50%);
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 .editor-note-detail {
-  flex-wrap: wrap;
+  width: max-content;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+}
+.editor-note-actions,
+.editor-note-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.editor-note-actions {
+  justify-content: flex-end;
 }
 .editor-reset-label {
   user-select: none;
