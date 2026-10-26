@@ -5,9 +5,18 @@ import {
   protectedNoteBoundaries,
   resetPitchEdit,
   setPitchEdit,
+  stepPitchEdit,
 } from "./note-edits";
 const range = (start: number, end: number) => ({ start, end });
 describe("source pitch intent", () => {
+  it("removes a stepped edit that returns to the detected pitch and keeps other edits", () => {
+    const other = setPitchEdit(undefined, range(2, 3), 60, "other");
+    const raised = stepPitchEdit(other, range(0, 1), 70, 69, "up");
+    expect(pitchEditFor(raised, range(0, 1))?.midi).toBe(70);
+    const back = stepPitchEdit(raised, range(0, 1), 69, 69, "down");
+    expect(pitchEditFor(back, range(0, 1))).toBeUndefined();
+    expect(back.pitch).toEqual(other.pitch);
+  });
   it("inherits through splits and resets only the selected child", () => {
     const original = setPitchEdit(undefined, range(0, 2), 73, "parent");
     const snapshot = JSON.stringify(original);

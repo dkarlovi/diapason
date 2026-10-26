@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Check, Play, Square } from "lucide-react";
+import { Minus, Play, Plus, RotateCcw, Square, Volume2, VolumeX } from "lucide-react";
 import { Button } from "./primitives";
 import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
 import { traceHorizontalPadding } from "../trace";
 import type { EditorState } from "./editor-view-types";
+import type { EditorLayout } from "../hooks/useEditorLayout";
 
-export function NoteDetail({ state }: { state: EditorState }) {
+export function NoteDetail({ state, layout }: { state: EditorState; layout: EditorLayout }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
     const canvas = state.rollRef.current;
@@ -21,17 +22,33 @@ export function NoteDetail({ state }: { state: EditorState }) {
     };
   }, [state.rollRef]);
   const note = state.selectedNote;
-  const [copyStatus, setCopyStatus] = useState("");
-  const copyTimer = useRef(0);
-  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
   if (!note) return null;
-  const contextPlaying = state.previewId === `note-${note.start}`;
   const view = state.viewport.view;
   const padding = traceHorizontalPadding(size.width, view.inset);
   const plotWidth = size.width - padding.left - padding.right;
   const left = padding.left + ((note.start - view.tMin) / (view.tMax - view.tMin)) * plotWidth;
   const width = (note.duration / (view.tMax - view.tMin)) * plotWidth;
   const top = ((view.midiMax - note.midi) / (view.midiMax - view.midiMin)) * size.height;
+  const anchor = (
+    <span
+      className="editor-note-anchor editor-note-active"
+      style={{
+        left,
+        top,
+        width: Math.max(2, width),
+        height: (size.height / (view.midiMax - view.midiMin)) * (view.noteHeight ?? 1),
+      }}
+      aria-hidden="true"
+    />
+  );
+  const label = `Note #${state.selectedNoteId} ${note.name}`;
+  if (layout.mobile)
+    return (
+      <>
+        {anchor}
+        <NoteSheet state={state} layout={layout} label={label} midi={note.midi} />
+      </>
+    );
   return (
     <Popover
       open
@@ -39,21 +56,10 @@ export function NoteDetail({ state }: { state: EditorState }) {
         if (!open) state.clearSelection();
       }}
     >
-      <PopoverAnchor asChild>
-        <span
-          className="editor-note-anchor editor-note-active"
-          style={{
-            left,
-            top,
-            width: Math.max(2, width),
-            height: (size.height / (view.midiMax - view.midiMin)) * (view.noteHeight ?? 1),
-          }}
-          aria-hidden="true"
-        />
-      </PopoverAnchor>
+      <PopoverAnchor asChild>{anchor}</PopoverAnchor>
       <PopoverContent
         className="editor-note-detail"
-        aria-label={`Note #${state.selectedNoteId} ${note.name}`}
+        aria-label={label}
         align="start"
         side="bottom"
         sideOffset={12}
@@ -66,78 +72,169 @@ export function NoteDetail({ state }: { state: EditorState }) {
           if (event.target === state.rollRef.current) event.preventDefault();
         }}
       >
-        <div className="editor-note-actions">
-          <Button
-            className="editor-copy-id"
-            aria-label={copyStatus || "Copy ID"}
-            onClick={() => {
-              void (async () => {
-                try {
-                  await navigator.clipboard.writeText(`Note #${state.selectedNoteId}`);
-                  setCopyStatus("ID copied");
-                } catch {
-                  setCopyStatus("Copy failed");
-                }
-                window.clearTimeout(copyTimer.current);
-                copyTimer.current = window.setTimeout(() => setCopyStatus(""), 2000);
-              })();
-            }}
-          >
-            <span aria-hidden="true" style={{ visibility: copyStatus ? "hidden" : "visible" }}>
-              Copy ID
-            </span>
-            {copyStatus === "ID copied" && <Check aria-hidden="true" />}
-            {copyStatus === "Copy failed" && <span aria-hidden="true">!</span>}
-          </Button>
-          <Button
-            className="playback-control"
-            onClick={contextPlaying ? state.stopPlayback : state.previewContext}
-            aria-label={contextPlaying ? "Stop context playback" : "Hear in context"}
-            aria-pressed={contextPlaying}
-          >
-            {contextPlaying ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-          </Button>
-          <Button onClick={state.muteSelected}>{state.selectedMuted ? "Unmute" : "Mute"}</Button>
-        </div>
-        <PitchControls state={state} midi={note.midi} />
-        <div className="editor-note-info">
-          <strong>Note #{state.selectedNoteId}</strong>
-          <strong>{note.name}</strong>
-          <span>
-            {note.start.toFixed(2)} s · {note.duration.toFixed(2)} s
-          </span>
-        </div>
+        <NoteInspector state={state} />
       </PopoverContent>
     </Popover>
   );
 }
 
-function PitchControls({ state, midi }: { state: EditorState; midi: number }) {
+/** Phones dock the inspector below the roll and keep the selected note above it. */
+function NoteSheet({
+  state,
+  layout,
+  label,
+  midi,
+}: {
+  state: EditorState;
+  layout: EditorLayout;
+  label: string;
+  midi: number;
+}) {
+  const sheetRef = useRef<HTMLElement>(null);
+  const { open, setOpen } = layout;
+  useEffect(() => {
+    if (open) setOpen(false);
+  }, [open, setOpen]);
+  const { revealPitch } = state.viewport;
+  const revealRef = useRef(revealPitch);
+  revealRef.current = revealPitch;
+  useLayoutEffect(() => {
+    const roll = state.rollRef.current?.clientHeight;
+    const sheet = sheetRef.current?.offsetHeight;
+    if (roll && sheet) revealRef.current(midi, Math.min(0.8, sheet / roll));
+  }, [midi, state.rollRef]);
+  return (
+    <section
+      ref={sheetRef}
+      className="editor-note-detail editor-note-sheet"
+      role="dialog"
+      aria-label={label}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        state.clearSelection();
+        state.rollRef.current?.focus();
+      }}
+    >
+      <NoteInspector state={state} />
+    </section>
+  );
+}
+
+function NoteInspector({ state }: { state: EditorState }) {
+  const note = state.selectedNote!;
+  const contextPlaying = state.previewId === `note-${note.start}`;
+  const contextLabel = contextPlaying ? "Stop context playback" : "Hear in context";
   return (
     <>
-      <div className="editor-note-actions">
+      <div className="editor-note-heading">
+        <strong>
+          #{state.selectedNoteId} · {note.name}
+        </strong>
+        <span className="editor-note-time">
+          {note.start.toFixed(2)} s · {note.duration.toFixed(2)} s
+        </span>
         <Button
-          aria-label="Down one semitone"
-          disabled={!state.canEditPitch || midi <= 0}
-          onClick={() => state.shiftSelectedPitch(-1)}
+          className="editor-note-toggle playback-control"
+          onClick={contextPlaying ? state.stopPlayback : state.previewContext}
+          aria-label={contextLabel}
+          title={contextLabel}
+          aria-pressed={contextPlaying}
         >
-          −1 st
+          {contextPlaying ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
         </Button>
         <Button
-          aria-label="Up one semitone"
-          disabled={!state.canEditPitch || midi >= 127}
-          onClick={() => state.shiftSelectedPitch(1)}
+          className="editor-note-toggle"
+          onClick={state.muteSelected}
+          aria-label="Mute note"
+          title={state.selectedMuted ? "Muted (M)" : "Mute (M)"}
+          aria-pressed={state.selectedMuted}
         >
-          +1 st
-        </Button>
-        <Button
-          disabled={!state.canEditPitch || !state.selectedPitchEdited}
-          onClick={state.resetSelectedPitch}
-        >
-          Reset pitch
+          {state.selectedMuted ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
         </Button>
       </div>
-      {state.selectedPitchEdited && <span>Pitch edited</span>}
+      <div className="editor-note-properties">
+        <NoteProperty
+          label="Pitch"
+          value={note.name}
+          edited={state.selectedPitchEdited}
+          decrease={{
+            label: "Down one semitone",
+            disabled: !state.canEditPitch || note.midi <= 0,
+            run: () => state.shiftSelectedPitch(-1),
+          }}
+          increase={{
+            label: "Up one semitone",
+            disabled: !state.canEditPitch || note.midi >= 127,
+            run: () => state.shiftSelectedPitch(1),
+          }}
+          reset={{
+            label: "Reset pitch",
+            disabled: !state.canEditPitch,
+            run: state.resetSelectedPitch,
+          }}
+        />
+      </div>
     </>
+  );
+}
+
+interface PropertyAction {
+  label: string;
+  disabled: boolean;
+  run(): void;
+}
+
+/** One editable note property; every row keeps the same columns whether or not it is edited. */
+function NoteProperty({
+  label,
+  value,
+  edited,
+  decrease,
+  increase,
+  reset,
+}: {
+  label: string;
+  value: string;
+  edited: boolean;
+  decrease: PropertyAction;
+  increase: PropertyAction;
+  reset: PropertyAction;
+}) {
+  return (
+    <div className="editor-note-property" data-edited={edited}>
+      <span className="editor-edit-swatch" aria-hidden="true" />
+      <span className="editor-note-property-label">
+        {label}
+        {edited && <span className="sr-only">, edited</span>}
+      </span>
+      <Button
+        className="editor-note-step"
+        aria-label={decrease.label}
+        title={decrease.label}
+        disabled={decrease.disabled}
+        onClick={decrease.run}
+      >
+        <Minus aria-hidden="true" />
+      </Button>
+      <output className="editor-note-value">{value}</output>
+      <Button
+        className="editor-note-step"
+        aria-label={increase.label}
+        title={increase.label}
+        disabled={increase.disabled}
+        onClick={increase.run}
+      >
+        <Plus aria-hidden="true" />
+      </Button>
+      <Button
+        className="editor-reset"
+        aria-label={reset.label}
+        title={reset.label}
+        disabled={reset.disabled || !edited}
+        onClick={reset.run}
+      >
+        <RotateCcw aria-hidden="true" />
+      </Button>
+    </div>
   );
 }

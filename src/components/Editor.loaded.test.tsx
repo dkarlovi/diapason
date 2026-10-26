@@ -255,9 +255,13 @@ it("allows keyboard note selection and contextual muting without a note list", a
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   fireEvent.keyDown(roll, { key: "ArrowRight" });
   expect(screen.getByRole("button", { name: "Hear in context" })).toBeTruthy();
+  const mute = screen.getByRole("button", { name: "Mute note" });
+  expect(mute.getAttribute("aria-pressed")).toBe("false");
   fireEvent.keyDown(roll, { key: "m" });
   await waitFor(() => expect(saved?.muted).toMatchObject([{ midi: 69 }]));
-  expect(screen.getByRole("button", { name: "Unmute" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Mute note" }).getAttribute("aria-pressed")).toBe(
+    "true",
+  );
 });
 
 it("dismisses recording actions outside and with Escape", async () => {
@@ -276,9 +280,7 @@ it("dismisses recording actions outside and with Escape", async () => {
   fireEvent.keyDown(document.activeElement!, { key: "Escape" });
   expect(screen.queryByRole("button", { name: "Download JSON" })).toBeNull();
 });
-it("identifies selected notes, copies their ID and dismisses on empty canvas", async () => {
-  const writeText = vi.fn().mockResolvedValue(undefined);
-  vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+it("identifies selected notes once and dismisses on Escape or empty canvas", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
@@ -287,23 +289,48 @@ it("identifies selected notes, copies their ID and dismisses on empty canvas", a
   await screen.findByDisplayValue("Melody");
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   fireEvent.keyDown(roll, { key: "ArrowRight" });
-  expect(screen.getByText("Note #1")).toBeTruthy();
+  const detail = screen.getByRole("dialog", { name: "Note #1 A4" });
+  expect(within(detail).getByText("#1 · A4")).toBeTruthy();
+  expect(within(detail).getAllByText(/Note #1|#1 ·/)).toHaveLength(1);
+  expect(within(detail).queryByRole("button", { name: /copy/i })).toBeNull();
   expect(document.activeElement).toBe(roll);
   expect(
     document.querySelector(".editor-note-anchor")?.classList.contains("editor-note-active"),
   ).toBe(true);
-  vi.useFakeTimers();
-  await act(async () => fireEvent.click(screen.getByRole("button", { name: "Copy ID" })));
-  expect(screen.getByRole("button", { name: "ID copied" })).toBeTruthy();
-  expect(screen.queryByText("Copied", { selector: "span" })).toBeNull();
-  act(() => vi.advanceTimersByTime(1999));
-  expect(screen.getByRole("button", { name: "ID copied" })).toBeTruthy();
-  act(() => vi.advanceTimersByTime(1));
-  expect(screen.getByRole("button", { name: "Copy ID" })).toBeTruthy();
-  expect(writeText).toHaveBeenCalledWith("Note #1");
-  expect(screen.queryByRole("button", { name: "Close note detail" })).toBeNull();
+  fireEvent.keyDown(roll, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Note #1 A4" })).toBeNull();
+  fireEvent.keyDown(roll, { key: "Home" });
+  expect(screen.getByRole("dialog", { name: "Note #1 A4" })).toBeTruthy();
   fireEvent.click(roll, { clientX: 0, clientY: 0 });
-  expect(screen.queryByRole("button", { name: "Copy ID" })).toBeNull();
+  expect(screen.queryByRole("dialog", { name: "Note #1 A4" })).toBeNull();
+});
+it("keeps the inspector's controls and rows stable while toggling and editing", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
+  const names = () =>
+    [...document.querySelectorAll(".editor-note-detail button")].map((button) =>
+      button.getAttribute("aria-label"),
+    );
+  const before = names();
+  expect(before).toEqual([
+    "Hear in context",
+    "Mute note",
+    "Down one semitone",
+    "Up one semitone",
+    "Reset pitch",
+  ]);
+  const row = () => document.querySelector(".editor-note-property") as HTMLElement;
+  expect(row().dataset.edited).toBe("false");
+  fireEvent.click(screen.getByRole("button", { name: "Mute note" }));
+  fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
+  expect(names()).toEqual(before);
+  expect(row().dataset.edited).toBe("true");
+  expect(within(row()).getByText(", edited")).toBeTruthy();
 });
 it("asks before resetting Tune and preserves changes when cancelled", async () => {
   const confirm = vi.fn().mockReturnValue(false);
@@ -395,7 +422,7 @@ it("toggles context playback between Play and Stop", async () => {
   fireEvent.click(stop);
   expect(screen.getByRole("button", { name: "Hear in context" })).toBeTruthy();
 });
-it("edits pitch rapidly, preserves pending tuning and retains equal-valued intent until reset", async () => {
+it("edits pitch rapidly, preserves pending tuning and clears the edit when stepping back to the detected pitch", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
@@ -418,11 +445,15 @@ it("edits pitch rapidly, preserves pending tuning and retains equal-valued inten
   expect(saved?.melody?.overrides.steadiness).toBe(0.9);
   expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
   expect(screen.getByRole("button", { name: "Reset pitch" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Down one semitone" }));
-  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(69);
-  expect(screen.getByText("Pitch edited")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Reset pitch" }));
   expect(saved?.noteEdits).toEqual({ version: 1, pitch: [] });
+  fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
+  fireEvent.click(screen.getByRole("button", { name: "Down one semitone" }));
+  expect(saved?.noteEdits).toEqual({ version: 1, pitch: [] });
+  expect((screen.getByRole("button", { name: "Reset pitch" }) as HTMLButtonElement).disabled).toBe(
+    true,
+  );
 });
 it("keeps edited muted notes and confirms only bulk reset", async () => {
   const confirm = vi.fn().mockReturnValue(false);
@@ -434,10 +465,12 @@ it("keeps edited muted notes and confirms only bulk reset", async () => {
   );
   await screen.findByDisplayValue("Melody");
   fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
-  fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+  fireEvent.click(screen.getByRole("button", { name: "Mute note" }));
   fireEvent.click(screen.getByRole("button", { name: "Up one semitone" }));
   expect(saved?.muted).toHaveLength(1);
-  expect(screen.getByRole("button", { name: "Unmute" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Mute note" }).getAttribute("aria-pressed")).toBe(
+    "true",
+  );
   fireEvent.click(screen.getByLabelText("Recording actions"));
   fireEvent.click(screen.getByRole("button", { name: "Reset all note edits" }));
   expect(saved?.noteEdits?.pitch).toHaveLength(1);
@@ -445,4 +478,69 @@ it("keeps edited muted notes and confirms only bulk reset", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Reset all note edits" }));
   expect(saved?.noteEdits?.pitch).toHaveLength(0);
   expect(saved?.muted).toHaveLength(1);
+});
+it("docks the note inspector on phones and never shows it together with Tune", async () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("760px"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  expect(screen.getByRole("region", { name: "Tune melody" })).toBeTruthy();
+  fireEvent.keyDown(roll, { key: "Home" });
+  const sheet = screen.getByRole("dialog", { name: "Note #1 A4" });
+  expect(sheet.classList.contains("editor-note-sheet")).toBe(true);
+  expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
+  fireEvent.keyDown(within(sheet).getByRole("button", { name: "Mute note" }), { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Note #1 A4" })).toBeNull();
+  fireEvent.keyDown(roll, { key: "Home" });
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
+  expect(screen.queryByRole("dialog", { name: "Note #1 A4" })).toBeNull();
+  expect(screen.getByRole("region", { name: "Tune melody" })).toBeTruthy();
+});
+it("changes the selected note's pitch with arrow keys and by dragging it vertically", async () => {
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" }) as HTMLCanvasElement;
+  fireEvent.keyDown(roll, { key: "ArrowUp" });
+  expect(saved?.noteEdits).toBeUndefined();
+  fireEvent.keyDown(roll, { key: "Home" });
+  fireEvent.keyDown(roll, { key: "ArrowUp" });
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
+  fireEvent.keyDown(roll, { key: "ArrowUp", shiftKey: true });
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBe(82);
+  fireEvent.keyDown(roll, { key: "ArrowDown", shiftKey: true });
+  fireEvent.keyDown(roll, { key: "ArrowDown" });
+  expect(saved?.noteEdits?.pitch).toEqual([]);
+
+  const rect = { left: 0, top: 0, width: 1000, height: 500 };
+  roll.getBoundingClientRect = () => rect as DOMRect;
+  Object.defineProperties(roll, { clientWidth: { value: 1000 }, clientHeight: { value: 500 } });
+  act(() => window.dispatchEvent(new Event("resize")));
+  const pointer = (type: string, x: number, y: number) => {
+    const event = new MouseEvent(type, { clientX: x, clientY: y, cancelable: true, bubbles: true });
+    Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+    act(() => roll.dispatchEvent(event));
+  };
+  const anchor = document.querySelector(".editor-note-anchor") as HTMLElement;
+  const x = parseFloat(anchor.style.left) + 10;
+  const y = parseFloat(anchor.style.top);
+  pointer("pointerdown", x, y);
+  pointer("pointermove", x, y - 200);
+  expect(screen.getByRole("dialog", { name: /Note #1 / }).textContent).not.toContain("A4");
+  expect(saved?.noteEdits?.pitch).toEqual([]);
+  pointer("pointerup", x, y - 200);
+  expect(saved?.noteEdits?.pitch).toHaveLength(1);
+  expect(saved?.noteEdits?.pitch[0]?.midi).toBeGreaterThan(69);
 });

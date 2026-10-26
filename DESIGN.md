@@ -241,6 +241,33 @@ audition closes Tune and its menu and focuses the roll; reopening Tune restores
 the last menu. Desktop keeps controls visible for comparison. Zoom, pan, and level widgets use the
 same panel, border, and modest shadow vocabulary.
 
+### Note inspector and edited notes
+
+Selecting a roll note opens one inspector, anchored below the note on desktop and
+docked at the bottom of the roll on phones (where it replaces Tune and pans the note
+into view above it). It mirrors Tune's tonal split: a darker one-line heading band
+holds the identity once (`#3 · C5`), start and duration, then fixed-size secondary
+icon buttons for Play in context (amber while running) and Mute note (`aria-pressed`,
+blue tint). Property rows sit on the neutral surface and share one grid: label,
+bordered steppers with the muted fill, a tabular value, and a borderless Reset that
+keeps its slot and appears only once that property is edited. Nothing moves when a
+note is muted or edited, so later rows (position, duration, velocity) slot in.
+
+Direct manipulation edits only the already-selected note and only along supported
+axes: today that is a vertical pitch drag, snapping to semitones, with an
+`ns-resize` cursor and a taller grab target (at least 24px) for touch. The roll,
+stripes, origin link and inspector value preview the drag live, and each semitone is
+auditioned; release saves one edit. Unsupported directions do nothing rather than
+moving the note.
+
+Edited notes are striped on the roll in equal-width diagonal bands; muted edited
+notes use gray bands inside their dashed outline. Stripes are a pattern rather than
+a new hue, so they survive grayscale; outlines stay reserved for selection, and
+sounding playback overrides the stripes. A note whose value differs from detection
+also shows a dashed outline at its detected position, linked to the edit, faint
+except for the selected note. The inspector repeats the stripe as a small swatch on
+each edited row.
+
 ### Recording rows and status
 
 Library rows retain visible preview/Open actions and an actions menu, with hover

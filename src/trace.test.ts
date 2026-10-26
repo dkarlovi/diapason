@@ -38,6 +38,10 @@ function surface(width = 100) {
     "arc",
     "fill",
     "strokeRect",
+    "save",
+    "restore",
+    "rect",
+    "clip",
   ] as const) {
     Object.assign(ctx, {
       [method]: (...args: unknown[]) =>
@@ -56,6 +60,7 @@ function surface(width = 100) {
   }
   const canvas = document.createElement("canvas");
   Object.defineProperties(canvas, { clientWidth: { value: width }, clientHeight: { value: 100 } });
+  Object.assign(ctx, { measureText: (text: string) => ({ width: text.length * 6 }) });
   vi.spyOn(canvas, "getContext").mockReturnValue(ctx);
   return { canvas, operations, ctx };
 }
@@ -227,18 +232,63 @@ it("styles live octave labels like editor labels without crowding every semitone
     expect(label.args[1]).toBeCloseTo(35.2);
   }
 });
-it.each([false, true])(
-  "marks explicit edits including muted=%s independently of sounding state",
-  (muted) => {
-    const { canvas, operations } = surface();
+it.each([
+  { muted: false, playheadTime: undefined, stripes: 0.6 },
+  { muted: true, playheadTime: undefined, stripes: 0.35 },
+  { muted: true, playheadTime: 0.2, stripes: 0.35 },
+  { muted: false, playheadTime: 0.2, stripes: undefined },
+])(
+  "stripes edited notes (muted=$muted, playhead=$playheadTime) unless they are sounding",
+  ({ muted, playheadTime, stripes }) => {
+    const { canvas, operations, ctx } = surface();
     const note = { midi: 69, name: "A4", start: 0.1, duration: 0.5 };
     drawTrace(canvas, [], {
       ...view,
       notes: muted ? [] : [note],
       muted: muted ? [note] : [],
       edited: [note],
-      playheadTime: 0.2,
+      ...(playheadTime === undefined ? {} : { playheadTime }),
     });
-    expect(operations.some((op) => op.method === "fillText" && op.args[0] === "•")).toBe(true);
+    const bands = operations.filter((op) => op.method === "stroke" && op.width === 4);
+    expect(bands.map((op) => op.alpha)).toEqual(stripes === undefined ? [] : [stripes]);
+    expect(operations.filter((op) => op.method === "clip")).toHaveLength(bands.length);
+    expect(operations.some((op) => op.method === "fillText" && op.args[0] === "•")).toBe(false);
+    expect(ctx.globalAlpha).toBe(1);
   },
 );
+it("keeps the name of an edited note readable on a plate above its stripes", () => {
+  const { canvas, operations } = surface(400);
+  const note = { midi: 69, name: "A4", start: 0.1, duration: 0.5 };
+  drawTrace(canvas, [], { ...view, noteHeight: 1, notes: [note], edited: [note] });
+  const label = operations.findIndex((op) => op.method === "fillText" && op.args[0] === "A4");
+  const bands = operations.findIndex((op) => op.method === "stroke" && op.width === 4);
+  const plate = operations
+    .slice(0, label)
+    .map((op) => op.method)
+    .lastIndexOf("fillRect");
+  expect(bands).toBeGreaterThan(-1);
+  expect(plate).toBeGreaterThan(bands);
+  expect(operations[plate]?.args[2]).toBe(17);
+});
+it("outlines automatic positions of changed notes and links them to the edit", () => {
+  const { canvas, operations } = surface();
+  const from = { midi: 69, name: "A4", start: 0.1, duration: 0.5 };
+  const to = { ...from, midi: 71, name: "B4" };
+  const other = { ...from, start: 0.7, duration: 0.2 };
+  drawTrace(canvas, [], {
+    ...view,
+    notes: [to, { ...other, midi: 70 }],
+    origins: [
+      { from, to, emphasis: true },
+      { from: other, to: { ...other, midi: 70 } },
+    ],
+  });
+  const ghosts = operations.filter(
+    (op) => op.method === "strokeRect" && op.dash.length && op.stroke === "#8a94a3",
+  );
+  expect(ghosts.map((op) => op.alpha)).toEqual([1, 0.55]);
+  const tethers = operations.filter((op) => op.method === "stroke" && op.width === 1.5);
+  expect(tethers.map((op) => op.alpha)).toEqual([1, 0.55]);
+  const firstNote = operations.findIndex((op) => op.method === "fillRect" && op.alpha === 0.85);
+  expect(firstNote).toBeGreaterThan(operations.indexOf(tethers.at(-1)!));
+});

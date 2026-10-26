@@ -24,8 +24,17 @@ export interface TraceView {
   notes?: NoteEvent[];
   /** Notes switched off by the user: drawn as dashed outlines. */
   muted?: NoteEvent[];
-  /** Explicit pitch intent, including equal-valued and muted notes. */
+  /** Notes carrying a saved edit, including equal-valued and muted notes: drawn striped. */
   edited?: NoteEvent[];
+  /** Automatic positions of edited notes, outlined and linked to the edited note. */
+  origins?: NoteOrigin[];
+}
+
+export interface NoteOrigin {
+  from: NoteEvent;
+  to: NoteEvent;
+  /** Full strength for the selected note; others are drawn faintly. */
+  emphasis?: boolean;
 }
 
 const DEFAULT_COLORS = {
@@ -295,30 +304,105 @@ function drawNoteBars(
 ): void {
   const { xOf, yOf, colors } = geometry;
   const { notes, muted } = view;
+  const edited = new Set(view.edited);
+  drawOrigins(ctx, geometry, view);
   // Piano-roll note bars, one semitone tall, centred on the note.
   const semi = geometry.semitoneHeight;
   if (muted) {
     ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = colors.label;
     for (const n of muted) {
       const x0 = xOf(n.start);
-      const x1 = xOf(n.start + n.duration);
-      ctx.strokeRect(x0 + 0.5, yOf(n.midi) - semi / 2 + 0.5, Math.max(2, x1 - x0) - 1, semi - 1);
+      const width = Math.max(2, xOf(n.start + n.duration) - x0);
+      const y = yOf(n.midi) - semi / 2;
+      if (edited.has(n)) paintStripes(ctx, x0, y, width, semi, colors.label, 0.35);
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = colors.label;
+      ctx.strokeRect(x0 + 0.5, y + 0.5, width - 1, semi - 1);
+      ctx.setLineDash([]);
     }
-    ctx.setLineDash([]);
   }
   if (notes) {
     ctx.lineWidth = 1;
     for (const n of notes) {
-      paintNote(ctx, geometry, view, n);
+      paintNote(ctx, geometry, view, n, edited.has(n));
     }
   }
-  ctx.fillStyle = colors.label;
-  ctx.textBaseline = "middle";
-  for (const note of view.edited ?? []) {
-    ctx.fillText("•", xOf(note.start) + 3, yOf(note.midi));
+}
+
+/** Where an edited note was detected, linked to where it is now. */
+function drawOrigins(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  const { xOf, yOf, colors, semitoneHeight } = geometry;
+  const height = semitoneHeight * (view.noteHeight ?? 1);
+  ctx.strokeStyle = colors.label;
+  ctx.setLineDash([3, 3]);
+  for (const { from, to, emphasis } of view.origins ?? []) {
+    ctx.globalAlpha = emphasis ? 1 : 0.55;
+    const x = xOf(from.start);
+    const width = Math.max(2, xOf(from.start + from.duration) - x);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, yOf(from.midi) - height / 2 + 0.5, width - 1, height - 1);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + 6, yOf(from.midi));
+    ctx.lineTo(xOf(to.start) + 6, yOf(to.midi));
+    ctx.stroke();
   }
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+}
+
+function isSounding(playhead: number | undefined, note: NoteEvent) {
+  return playhead !== undefined && playhead >= note.start && playhead < note.start + note.duration;
+}
+
+function paintLabel(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  name: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  plate: string | null,
+) {
+  if (plate) {
+    // A solid plate keeps the name readable over the stripes.
+    ctx.fillStyle = plate;
+    ctx.fillRect(x + 1, y + 1, Math.min(width - 2, ctx.measureText(name).width + 5), height - 2);
+  }
+  ctx.fillStyle = color;
+  ctx.textBaseline = "middle";
+  ctx.fillText(name, x + 3, y + height / 2);
+}
+
+const STRIPE = 4;
+/** Diagonal bands that mark a note carrying a saved edit. */
+function paintStripes(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+  alpha: number,
+) {
+  // Bands are STRIPE wide with STRIPE gaps, measured across the 45° stripe direction.
+  const step = STRIPE * 2 * Math.SQRT2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = STRIPE;
+  ctx.beginPath();
+  for (let k = Math.floor((x - height) / step) * step; k < x + width; k += step) {
+    ctx.moveTo(k, y + height);
+    ctx.lineTo(k + height, y);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 function paintNote(
@@ -326,27 +410,25 @@ function paintNote(
   geometry: TraceGeometry,
   view: TraceView,
   note: NoteEvent,
+  edited: boolean,
 ) {
   const { xOf, yOf, colors, semitoneHeight } = geometry;
   const x = xOf(note.start),
     width = Math.max(2, xOf(note.start + note.duration) - x);
   const height = semitoneHeight * (view.noteHeight ?? 1);
   const y = yOf(note.midi) - height / 2;
-  const sounding =
-    view.playheadTime !== undefined &&
-    view.playheadTime >= note.start &&
-    view.playheadTime < note.start + note.duration;
-  ctx.fillStyle = sounding ? colors.playhead : colors.note;
+  const sounding = isSounding(view.playheadTime, note);
+  const fill = sounding ? colors.playhead : colors.note;
+  const striped = edited && !sounding;
+  ctx.fillStyle = fill;
   ctx.globalAlpha = 0.85;
   ctx.fillRect(x, y, width, height);
   ctx.globalAlpha = 1;
+  if (striped) paintStripes(ctx, x, y, width, height, colors.noteText, 0.6);
   ctx.strokeStyle = colors.noteEdge;
   ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
-  if (width > 22 && height >= 9) {
-    ctx.fillStyle = colors.noteText;
-    ctx.textBaseline = "middle";
-    ctx.fillText(note.name, x + 3, y + height / 2);
-  }
+  if (width > 22 && height >= 9)
+    paintLabel(ctx, colors.noteText, note.name, x, y, width, height, striped ? fill : null);
 }
 
 function drawBeatLine(
