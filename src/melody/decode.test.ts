@@ -225,3 +225,35 @@ it("still fixes a stepwise clash that lands on the beat", () => {
   const fixed = decodeMelody(held, { ...gentle, maxMoveSemitones: 2 }, cMajorChord);
   expect(fixed.map((n) => n.midi)).toEqual([60, 64, 64]);
 });
+it("protects original frame endpoints before smoothing and slip absorption", () => {
+  const input = frames([
+    [0.5, 79],
+    [0.1, 79.51],
+    [0.5, 79],
+  ]);
+  const low = segmentMelody(input, { ...gentle, steadiness: 0 });
+  expect(low).toHaveLength(3);
+  const cuts = low.flatMap((s) => [s.start, s.start + s.duration]);
+  const high = segmentMelody(input, { ...gentle, steadiness: 0.6 }, cuts);
+  expect(high.map((s) => s.source)).toEqual(low.map((s) => s.source));
+  expect(high.map((s) => s.source.end)).toEqual(
+    high.map((s) => input.find((f) => f.t === s.source.end)?.t ?? input.at(-1)!.t + 512 / 48000),
+  );
+});
+it("protects equal pitches, ignores external/duplicate cuts, and retains filtering", () => {
+  const input = frames([[1, 76]]);
+  const cut = input[40]!.t;
+  const notes = segmentMelody(input, gentle, [-1, 0, cut, cut, 100]);
+  expect(notes).toHaveLength(2);
+  expect(notes[0]!.source.end).toBe(cut);
+  expect(notes[1]!.source.start).toBe(cut);
+  expect(segmentMelody([], gentle, [cut])).toEqual([]);
+  expect(
+    segmentMelody(
+      input.map((f) => ({ ...f, freq: null })),
+      gentle,
+      [cut],
+    ),
+  ).toEqual([]);
+  expect(segmentMelody(input, { ...gentle, minNoteMs: 2000 }, [cut])).toEqual([]);
+});

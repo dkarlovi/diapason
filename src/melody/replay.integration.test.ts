@@ -12,7 +12,7 @@ const take = loadFixture("whistle-take2");
 const pcm = take.pcm.slice(0, take.sampleRate * 2);
 const frames = analyzeRecording(pcm, take.sampleRate, take.record);
 it.each(Object.keys(PRESETS) as PresetId[])(
-  "replays schema-3 %s with identical MIDI bytes",
+  "replays schema-4 %s with identical MIDI bytes",
   async (preset) => {
     const rec = {
       ...take.record,
@@ -23,7 +23,7 @@ it.each(Object.keys(PRESETS) as PresetId[])(
       makeReportInput(rec, frames, qualityStats(frames, pcm)),
       pcm,
     );
-    expect(report.schemaVersion).toBe(3);
+    expect(report.schemaVersion).toBe(4);
     const replay = await replayDiagnostics(
       JSON.parse(JSON.stringify(report)),
       await wav.arrayBuffer(),

@@ -1,3 +1,4 @@
+import type { NoteEdits } from "./note-edits";
 // Minimal IndexedDB wrapper for the recordings library. No dependencies.
 
 import type { SoundProfile } from "./recording-profiles";
@@ -31,6 +32,7 @@ export interface QuantizeSetting {
 }
 
 export interface Recording {
+  noteEdits?: NoteEdits;
   source?: { profileId: string; analysis: SoundProfile["analysis"] };
   id: string;
   name: string;

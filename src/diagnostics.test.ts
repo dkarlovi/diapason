@@ -23,7 +23,7 @@ it("reports final enabled notes and all saved/effective settings, rather than de
   const report = JSON.parse(
     JSON.stringify(buildReportData(makeReportInput(rec, frames, qualityStats(frames)))),
   );
-  expect(report.schemaVersion).toBe(3);
+  expect(report.schemaVersion).toBe(4);
   expect(report.notes).toEqual([]);
   expect(report.settings).toMatchObject({
     melody: { overrides: { minNoteMs: 120, grid: 1, gridPull: 1 } },
@@ -86,4 +86,16 @@ it("records preset, overrides, effective knobs, key choice and harmony", () => {
     report.stages.notes,
   ])
     expect(stage).toBeInstanceOf(Array);
+});
+
+it("includes pitch intent, source provenance and inactive coverage in evidence", () => {
+  const rec = recording({
+    durationSec: 2,
+    noteEdits: { version: 1, pitch: [{ id: "hidden", midi: 73, ranges: [{ start: 1, end: 2 }] }] },
+  });
+  const report = buildReportData(makeReportInput(rec, [], qualityStats([])));
+  expect(report.stages.editCoverage).toEqual([
+    { id: "hidden", status: "inactive", missing: [{ start: 1, end: 2 }] },
+  ]);
+  expect(buildReport(makeReportInput(rec, [], qualityStats([])))).toMatch(/hidden.*inactive/);
 });

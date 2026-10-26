@@ -1,11 +1,21 @@
+import {
+  isNoteEdits,
+  pitchEditFor,
+  protectedNoteBoundaries,
+  summarizePitchEdits,
+  type SourceRange,
+} from "./note-edits";
 import type { MutedNote, Recording } from "./db";
-import { freqToMidi, type Frame, type NoteEvent } from "./notes";
+import { freqToMidi, midiToName, type Frame, type NoteEvent } from "./notes";
 import { resolveRecordingSettings } from "./recording-settings";
 import { resolveKnobs } from "./melody/knobs";
 import { interpretMelody } from "./melody/interpret";
 import { melodySettingFor, type MelodySetting } from "./melody/settings";
 import { analysisOptionsFor } from "./recording-profiles";
 export interface NoteItem {
+  source: SourceRange;
+  automatic: NoteEvent;
+  editState: { ids: string[]; axes: "pitch"[]; differingAxes: "pitch"[] };
   id: number;
   raw: NoteEvent;
   note: NoteEvent;
@@ -16,23 +26,42 @@ export const covers = (anchor: MutedNote, raw: NoteEvent): boolean =>
   anchor.t <= raw.start + raw.duration &&
   Math.abs(anchor.midi - raw.midi) <= 1;
 export function processRecording(rec: Recording, frames: Frame[]) {
+  if (rec.noteEdits !== undefined && !isNoteEdits(rec.noteEdits, rec.durationSec))
+    throw new Error("Invalid saved note edits");
   const settings = resolveRecordingSettings(rec);
   const { preset, overrides, key } = settings.melody;
   const { minFreq, maxFreq } = analysisOptionsFor(rec);
   const interpretation = interpretMelody(frames, {
+    protectedBoundaries: protectedNoteBoundaries(rec.noteEdits),
     knobs: resolveKnobs(preset, overrides),
     key,
     timing: { bpm: rec.bpm, beatsPerBar: rec.beatsPerBar },
     range: { minMidi: freqToMidi(minFreq), maxMidi: freqToMidi(maxFreq) },
   });
   const muted = rec.muted ?? [];
-  const items = interpretation.decoded.map((raw, index) => ({
-    id: index + 1,
-    raw,
-    note: interpretation.notes[index]!,
-    muted: muted.some((anchor) => covers(anchor, raw)),
-  }));
+  const items: NoteItem[] = interpretation.decoded.map((raw, index) => {
+    const source = interpretation.segments[index]!.source;
+    const automatic = interpretation.notes[index]!;
+    const edit = pitchEditFor(rec.noteEdits, source);
+    return {
+      id: index + 1,
+      raw,
+      source,
+      automatic,
+      note: edit ? { ...automatic, midi: edit.midi, name: midiToName(edit.midi) } : automatic,
+      editState: {
+        ids: edit ? [edit.id] : [],
+        axes: edit ? ["pitch"] : [],
+        differingAxes: edit && edit.midi !== automatic.midi ? ["pitch"] : [],
+      },
+      muted: muted.some((anchor) => covers(anchor, raw)),
+    };
+  });
   return {
+    editCoverage: summarizePitchEdits(
+      rec.noteEdits,
+      items.map((item) => item.source),
+    ),
     settings,
     interpretation,
     items,

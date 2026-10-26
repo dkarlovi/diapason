@@ -24,6 +24,8 @@ export interface TraceView {
   notes?: NoteEvent[];
   /** Notes switched off by the user: drawn as dashed outlines. */
   muted?: NoteEvent[];
+  /** Explicit pitch intent, including equal-valued and muted notes. */
+  edited?: NoteEvent[];
 }
 
 const DEFAULT_COLORS = {
@@ -311,6 +313,11 @@ function drawNoteBars(
     for (const n of notes) {
       paintNote(ctx, geometry, view, n);
     }
+  }
+  ctx.fillStyle = colors.label;
+  ctx.textBaseline = "middle";
+  for (const note of view.edited ?? []) {
+    ctx.fillText("•", xOf(note.start) + 3, yOf(note.midi));
   }
 }
 

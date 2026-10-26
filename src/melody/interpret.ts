@@ -1,5 +1,5 @@
 import type { Frame, NoteEvent } from "../notes";
-import { nearestNotes, notesFromSegments, segmentMelody } from "./decode";
+import { nearestNotes, notesFromSegments, segmentMelody, type Segment } from "./decode";
 import { inferHarmony, type ChordSpan } from "./harmony";
 import {
   fitTuning,
@@ -13,6 +13,7 @@ import type { Knobs } from "./knobs";
 import { applyFeel, gridLag } from "./rhythm";
 export type KeyChoice = "auto" | Key;
 export interface Interpretation {
+  segments: Segment[];
   knobs: Knobs;
   key: { chosen: Key | null; auto: boolean; ranked: KeyScore[] };
   harmony: ChordSpan[];
@@ -25,6 +26,7 @@ export interface Interpretation {
 export function interpretMelody(
   frames: Frame[],
   input: {
+    protectedBoundaries?: readonly number[];
     knobs: Knobs;
     key: KeyChoice;
     timing: { bpm: number; beatsPerBar: number };
@@ -32,7 +34,7 @@ export function interpretMelody(
   },
 ): Interpretation {
   const { knobs, range, timing } = input;
-  const segments = segmentMelody(frames, knobs);
+  const segments = segmentMelody(frames, knobs, input.protectedBoundaries);
   const performedTuning = fitTuning(segments);
   const faithful = nearestNotes(segments, performedTuning);
   const ranked = rankKeys(faithful);
@@ -58,6 +60,7 @@ export function interpretMelody(
     meter,
   });
   return {
+    segments,
     knobs,
     key: { chosen, auto: input.key === "auto", ranked },
     harmony,

@@ -1,10 +1,19 @@
 import { recording } from "./test-support/recording";
 import { describe, expect, it } from "vitest";
-import { knobValueLabel, noteAtPoint, toggleMuted, makeReportInput } from "./editor-model";
+import {
+  knobValueLabel,
+  noteAtPoint,
+  toggleMuted,
+  makeReportInput,
+  selectedSourceItem,
+} from "./editor-model";
 import { KNOB_DEFS } from "./melody/knobs";
 import type { NoteItem } from "./recording";
 
 const item: NoteItem = {
+  source: { start: 0.25, end: 0.75 },
+  automatic: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
+  editState: { ids: [], axes: [], differingAxes: [] },
   id: 1,
   raw: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
   note: { midi: 69, name: "A4", start: 0.25, duration: 0.5 },
@@ -48,4 +57,18 @@ describe("editor calculations", () => {
       stats,
     });
   });
+});
+
+it("selects by half-open source containment independently of output pitch and time", () => {
+  const shifted = { ...item, note: { ...item.note, midi: 75, start: 2 } };
+  expect(selectedSourceItem([shifted], 0.5)).toBe(shifted);
+  expect(selectedSourceItem([shifted], 0.75)).toBeUndefined();
+  expect(selectedSourceItem([], 0.5)).toBeUndefined();
+});
+it("retains a source reference through splits and temporary disappearance", () => {
+  const left = { ...item, source: { start: 0.25, end: 0.5 } };
+  const right = { ...item, id: 2, source: { start: 0.5, end: 0.75 } };
+  expect(selectedSourceItem([left, right], 0.5)).toBe(right);
+  expect(selectedSourceItem([left], 0.5)).toBeUndefined();
+  expect(selectedSourceItem([left, right], 0.5)).toBe(right);
 });

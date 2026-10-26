@@ -11,7 +11,7 @@ import { resolveAnalysisOptions } from "./recording-analysis";
 import { BUILD_INFO } from "./build-info";
 import type { QualityStats } from "./recorder";
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export interface ReportInput {
   recording: Recording;
@@ -45,6 +45,7 @@ export function buildReportData(input: ReportInput) {
       ...chord,
       pitchClasses: [...chord.pitchClasses],
     })),
+    editCoverage: processed.editCoverage,
     items: processed.items,
     notes: processed.notes,
   };
@@ -134,6 +135,12 @@ export function buildReport(input: ReportInput): string {
   lines.push(
     `[stages] preset=${d.settings.melody.preset} key=${s.key.chosen ? keyName(s.key.chosen) : "none"} (${s.key.auto ? "auto" : "chosen"}) faithful=${s.faithful.length} decoded=${s.decoded.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length}`,
   );
+  for (const edit of d.saved.noteEdits?.pitch ?? []) {
+    const coverage = s.editCoverage.find((entry) => entry.id === edit.id);
+    lines.push(
+      `[pitch edit] ${edit.id} midi=${edit.midi} source=${JSON.stringify(edit.ranges)} status=${coverage?.status} missing=${JSON.stringify(coverage?.missing)}`,
+    );
+  }
   lines.push("[quality]");
   lines.push(
     `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? " CLIPPING!" : ""}`,

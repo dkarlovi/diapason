@@ -93,3 +93,22 @@ it("ends short notes before a following note instead of enforcing a 20ms overlap
   playNotesMidi({ send } as unknown as MIDIOutput, [note(69, 0, 0.01), note(70, 0.01, 0.01)], 1, 0);
   expect(send.mock.calls[1]![1]).toBeLessThanOrEqual(send.mock.calls[2]![1]);
 });
+it("shifts source-edited pitches once without mutating saved or exported pitch", async () => {
+  const { processRecording } = await import("./recording");
+  const { recording } = await import("./test-support/recording");
+  const rec = recording({
+    noteEdits: { version: 1, pitch: [{ id: "manual", midi: 73, ranges: [{ start: 0, end: 1 }] }] },
+  });
+  const frames = Array.from({ length: 100 }, (_, i) => ({
+    t: i * 0.01,
+    freq: 440,
+    rms: 0.1,
+    clarity: 0.99,
+  }));
+  const notes = processRecording(rec, frames).notes;
+  const send = vi.fn();
+  playNotesMidi({ send } as unknown as MIDIOutput, notes, 1, 1);
+  expect(send.mock.calls[0]?.[0]).toEqual([0x90, 85, 100]);
+  expect(notes[0]?.midi).toBe(73);
+  expect(rec.noteEdits?.pitch[0]?.midi).toBe(73);
+});
