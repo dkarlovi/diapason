@@ -81,7 +81,7 @@ export function playNotes(
 ): Playback {
   const { instrument, octave } = settings;
   const port = activeOutput();
-  if (port) return playNotesMidi(port, notes, duration, octave);
+  if (port) return playNotesMidi(port, notes, duration, octave, instrument);
 
   const c = context();
   const voice = VOICES[instrument] ?? VOICES.beep;

@@ -8,6 +8,13 @@ import type { Recording } from "../db";
 import { Editor } from "./Editor";
 import { AppShell } from "./AppShell";
 
+let externalMidi = false;
+vi.mock("../midiout", async (original) => ({
+  ...(await original<typeof import("../midiout")>()),
+  activeOutput: () => (externalMidi ? { id: "fluidsynth", name: "FluidSynth" } : null),
+  onOutputChange: () => () => {},
+}));
+
 let saved: Recording | null = null;
 let playPosition: number | null = null;
 const recording: Recording = {
@@ -52,6 +59,7 @@ vi.mock("../trace", async (importOriginal) => {
 });
 
 beforeEach(() => {
+  externalMidi = false;
   saved = null;
   playPosition = null;
 });
@@ -766,4 +774,17 @@ it("keeps history beside Tune on the canvas and Versions inside recording action
   await userEvent.click(screen.getByRole("button", { name: "Back to recording actions" }));
   expect(screen.getByRole("button", { name: "Download JSON" })).toBeTruthy();
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "Versions" }));
+});
+
+it("allows selecting an instrument while an external MIDI output is connected", async () => {
+  externalMidi = true;
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  await userEvent.click(screen.getByRole("button", { name: "Choose instrument" }));
+  await userEvent.click(screen.getByRole("button", { name: "Use Instrument Flute" }));
+  await waitFor(() => expect(saved?.play?.instrument).toBe("flute"));
 });

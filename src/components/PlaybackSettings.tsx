@@ -14,7 +14,7 @@ export function PlaybackSettings({
     {
       label: "Instrument",
       key: "instrument" as const,
-      disabled: state.editingDisabled || state.externalOutput,
+      disabled: state.editingDisabled,
       options: INSTRUMENTS.map(({ id, label }) => ({ value: id, label })),
     },
     {
