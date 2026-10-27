@@ -7,6 +7,7 @@ import { Editor } from "./Editor";
 import { AppShell } from "./AppShell";
 
 let saved: Recording | null = null;
+let playPosition: number | null = null;
 const recording: Recording = {
   id: "one",
   name: "Melody",
@@ -27,7 +28,7 @@ vi.mock("../db", () => ({
   deleteRecording: async () => undefined,
 }));
 vi.mock("../playback", () => ({
-  playNotes: () => ({ position: () => null, stop() {} }),
+  playNotes: () => ({ position: () => playPosition, stop() {} }),
   playPcm: () => ({ position: () => null, stop() {} }),
 }));
 vi.mock("../codec", () => ({ decodeAudio: async () => new Float32Array(48000) }));
@@ -46,6 +47,7 @@ vi.mock("../trace", async (importOriginal) => {
 
 beforeEach(() => {
   saved = null;
+  playPosition = null;
 });
 afterEach(() => {
   cleanup();
@@ -543,4 +545,24 @@ it("changes the selected note's pitch with arrow keys and by dragging it vertica
   pointer("pointerup", x, y - 200);
   expect(saved?.noteEdits?.pitch).toHaveLength(1);
   expect(saved?.noteEdits?.pitch[0]?.midi).toBeGreaterThan(69);
+});
+
+it("advances the time readout from the playhead and clears it on stop", async () => {
+  const frames: FrameRequestCallback[] = [];
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
+  vi.stubGlobal("cancelAnimationFrame", () => undefined);
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const midi = screen.getByRole("region", { name: "MIDI melody" });
+  expect(within(midi).getByText("0.0 / 1.0 s")).toBeTruthy();
+  playPosition = 0.42;
+  fireEvent.click(within(midi).getByRole("button", { name: "Play MIDI" }));
+  act(() => frames.shift()?.(0));
+  expect(within(midi).getByText("0.4 / 1.0 s")).toBeTruthy();
+  fireEvent.click(within(midi).getByRole("button", { name: "Stop MIDI" }));
+  expect(within(midi).getByText("0.0 / 1.0 s")).toBeTruthy();
 });

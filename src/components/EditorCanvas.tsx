@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
 import { NoteDetail } from "./NoteDetail";
@@ -6,6 +6,7 @@ import { EditorNavigation } from "./EditorNavigation";
 import { PitchCanvas } from "./PitchCanvas";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
+import type { PlayheadStore } from "../playhead-store";
 
 function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorState) {
   const index = state.items.findIndex((item) => item.note === state.selectedNote);
@@ -58,6 +59,28 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     />
   );
 }
+// Writes the readout straight from the playhead store so playback never re-renders React.
+function PlayheadTime({
+  playhead,
+  duration,
+}: {
+  playhead: PlayheadStore;
+  duration: number | undefined;
+}) {
+  const ref = useRef<HTMLTimeElement>(null);
+  useLayoutEffect(() => {
+    const total = duration?.toFixed(1) ?? "0";
+    let shown = "";
+    const show = ({ position }: { position: number | null }) => {
+      const text = `${(position ?? 0).toFixed(1)} / ${total} s`;
+      if (text === shown || !ref.current) return;
+      ref.current.textContent = shown = text;
+    };
+    show(playhead.getState());
+    return playhead.subscribe(show);
+  }, [playhead, duration]);
+  return <time ref={ref} />;
+}
 function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   const midi = kind === "midi";
   const label = midi ? state.notesLabel : state.meta;
@@ -66,11 +89,7 @@ function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     <div className="editor-track-label">
       <h2>{title}</h2>
       <span title={label}>{label}</span>
-      {midi && (
-        <time>
-          {(state.position ?? 0).toFixed(1)} / {state.record?.durationSec.toFixed(1) ?? "0"} s
-        </time>
-      )}
+      {midi && <PlayheadTime playhead={state.playhead} duration={state.record?.durationSec} />}
     </div>
   );
 }

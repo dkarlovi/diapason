@@ -4,6 +4,7 @@ import type { Recording } from "../db";
 import type { NoteEvent } from "../notes";
 import { playPcm, playNotes, type Playback } from "../playback";
 import { onOutputChange, activeOutput } from "../midiout";
+import { createPlayheadStore } from "../playhead-store";
 
 interface Options {
   recordingId: string;
@@ -15,7 +16,7 @@ interface Options {
 export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Options) {
   const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const [position, setPosition] = useState<number | null>(null);
+  const [playhead] = useState(createPlayheadStore);
   const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
   const playback = useRef<Playback | null>(null);
   const transport = useRef({
@@ -31,23 +32,23 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
     transport.current.previewId = null;
     transport.current.kind = null;
     cancelAnimationFrame(transport.current.raf);
+    playhead.getState().set(null);
     if (transport.current.mounted) {
       setPlaying(null);
       setPreviewId(null);
-      setPosition(null);
     }
-  }, []);
+  }, [playhead]);
 
   useEffect(() => {
     transport.current.mounted = true;
     setPlaying(null);
-    setPosition(null);
+    playhead.getState().set(null);
     setPreviewId(null);
     return () => {
       transport.current.mounted = false;
       stopPlayback();
     };
-  }, [recordingId, stopPlayback]);
+  }, [recordingId, playhead, stopPlayback]);
 
   useEffect(
     () =>
@@ -70,12 +71,12 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
           stopPlayback();
           return;
         }
-        setPosition(value + offset);
+        playhead.getState().set(value + offset);
         transport.current.raf = requestAnimationFrame(tick);
       };
       transport.current.raf = requestAnimationFrame(tick);
     },
-    [stopPlayback],
+    [playhead, stopPlayback],
   );
   const previewNote = useCallback(
     (note: NoteEvent) => {
@@ -120,7 +121,7 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
 
   return {
     playing,
-    position,
+    playhead,
     externalOutput,
     togglePlayback,
     previewNote,

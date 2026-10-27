@@ -100,22 +100,44 @@ export function traceHorizontalPadding(width: number, inset = false) {
   };
 }
 
-export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: TraceView): void {
+/**
+ * Static background of a trace (grid, beats and pitch frames), kept between draws so a
+ * moving playhead repaints only the notes, playhead and labels above it.
+ */
+export interface TraceLayer {
+  canvas?: HTMLCanvasElement;
+  /** Resolved palette; clear it to pick up a theme change. */
+  colors?: TraceColors | undefined;
+  frames?: Frame[];
+  key?: string;
+}
+
+/**
+ * Sizes the canvas in whole device pixels. Assigning a fractional size (e.g. at 125% zoom)
+ * truncates, so comparing against the unrounded size would reallocate the canvas every draw.
+ */
+function fitBackingStore(canvas: HTMLCanvasElement, width: number, height: number, dpr: number) {
+  const pixelWidth = Math.round(width * dpr);
+  const pixelHeight = Math.round(height * dpr);
+  if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+  if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
+}
+
+export function drawTrace(
+  canvas: HTMLCanvasElement,
+  frames: Frame[],
+  view: TraceView,
+  layer?: TraceLayer,
+): void {
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
-  if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-  }
+  fitBackingStore(canvas, w, h, dpr);
   const ctx = canvas.getContext("2d")!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
-  const colors = traceColors(canvas);
-  ctx.fillStyle = colors.bg;
-  ctx.fillRect(0, 0, w, h);
-
+  const colors = layer ? (layer.colors ??= traceColors(canvas)) : traceColors(canvas);
   const { tMin, tMax, midiMin, midiMax } = view;
   const padding = traceHorizontalPadding(w, view.inset);
   const geometry: TraceGeometry = {
@@ -127,13 +149,10 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
       padding.left + ((t - tMin) / (tMax - tMin || 1)) * (w - padding.left - padding.right),
     yOf: (midi) => h - ((midi - midiMin) / (midiMax - midiMin || 1)) * h,
   };
-  ctx.textBaseline = "middle";
-  ctx.font =
-    view.inset || view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
-  ctx.textAlign = "left";
-  drawPitchGrid(ctx, geometry, view);
-  drawBeatGrid(ctx, geometry, view);
-  drawPitchFrames(ctx, geometry, frames, view);
+  const background = layer && cachedBackground(layer, geometry, frames, view, dpr);
+  if (background) ctx.drawImage(background, 0, 0, w, h);
+  else drawBackground(ctx, geometry, frames, view);
+  setLabelFont(ctx, view);
   drawNoteBars(ctx, geometry, view);
   if (view.playheadTime !== undefined) {
     ctx.strokeStyle = colors.playhead;
@@ -145,6 +164,65 @@ export function drawTrace(canvas: HTMLCanvasElement, frames: Frame[], view: Trac
     ctx.stroke();
   }
   drawPitchLabels(ctx, geometry, view);
+}
+
+function setLabelFont(ctx: CanvasRenderingContext2D, view: TraceView) {
+  ctx.textBaseline = "middle";
+  ctx.font =
+    view.inset || view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
+  ctx.textAlign = "left";
+}
+
+function drawBackground(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  frames: Frame[],
+  view: TraceView,
+) {
+  ctx.fillStyle = geometry.colors.bg;
+  ctx.fillRect(0, 0, geometry.width, geometry.height);
+  setLabelFont(ctx, view);
+  drawPitchGrid(ctx, geometry, view);
+  drawBeatGrid(ctx, geometry, view);
+  drawPitchFrames(ctx, geometry, frames, view);
+}
+
+/** Repaints the layer only when something it shows has changed; null when it can't be drawn. */
+function cachedBackground(
+  layer: TraceLayer,
+  geometry: TraceGeometry,
+  frames: Frame[],
+  view: TraceView,
+  dpr: number,
+): HTMLCanvasElement | null {
+  const { width, height, colors } = geometry;
+  const { tMin, tMax, midiMin, midiMax, beats, beatOrigin, showTimeLabels, timeLabelY } = view;
+  const key = JSON.stringify([
+    width,
+    height,
+    dpr,
+    tMin,
+    tMax,
+    midiMin,
+    midiMax,
+    beats,
+    beatOrigin,
+    showTimeLabels,
+    timeLabelY,
+    view.inset,
+    view.pitchLabels,
+    !!view.notes,
+    Object.values(colors),
+  ]);
+  if (layer.canvas && layer.key === key && layer.frames === frames) return layer.canvas;
+  const canvas = layer.canvas ?? document.createElement("canvas");
+  fitBackingStore(canvas, width, height, dpr);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawBackground(ctx, geometry, frames, view);
+  Object.assign(layer, { canvas, key, frames });
+  return canvas;
 }
 
 interface TraceGeometry {

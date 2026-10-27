@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { autoRange, drawTrace, type TraceView } from "./trace";
+import { autoRange, drawTrace, type TraceLayer, type TraceView } from "./trace";
 import type { Frame } from "./notes";
 
 type Operation = {
@@ -42,6 +42,7 @@ function surface(width = 100) {
     "restore",
     "rect",
     "clip",
+    "drawImage",
   ] as const) {
     Object.assign(ctx, {
       [method]: (...args: unknown[]) =>
@@ -291,4 +292,42 @@ it("outlines automatic positions of changed notes and links them to the edit", (
   expect(tethers.map((op) => op.alpha)).toEqual([1, 0.55]);
   const firstNote = operations.findIndex((op) => op.method === "fillRect" && op.alpha === 0.85);
   expect(firstNote).toBeGreaterThan(operations.indexOf(tethers.at(-1)!));
+});
+it("reuses the cached background while only the playhead moves", () => {
+  const screen = surface();
+  const background = surface();
+  const layer: TraceLayer = { canvas: background.canvas };
+  const frames = [frame(0), frame(0.1)];
+  const roll = { ...view, notes: [{ midi: 69, name: "A4", start: 0.25, duration: 0.5 }] };
+  drawTrace(screen.canvas, frames, { ...roll, playheadTime: 0.1 }, layer);
+  const painted = background.operations.length;
+  expect(background.operations).toContainEqual(expect.objectContaining({ stroke: "#355f52" }));
+  expect(screen.operations).toContainEqual(expect.objectContaining({ method: "drawImage" }));
+  expect(screen.operations).not.toContainEqual(expect.objectContaining({ stroke: "#355f52" }));
+  drawTrace(screen.canvas, frames, { ...roll, playheadTime: 0.5 }, layer);
+  expect(background.operations).toHaveLength(painted);
+  const notes = screen.operations.filter((o) => o.method === "fillRect" && o.args[0] === 25);
+  expect(notes.map((o) => o.fill)).toEqual(["#5ad1a8", "#b6f2dd"]);
+  drawTrace(screen.canvas, frames, { ...roll, tMax: 2, playheadTime: 0.5 }, layer);
+  expect(background.operations.length).toBeGreaterThan(painted);
+  const repainted = background.operations.length;
+  drawTrace(screen.canvas, [...frames], { ...roll, tMax: 2, playheadTime: 0.6 }, layer);
+  expect(background.operations.length).toBeGreaterThan(repainted);
+});
+it("keeps the canvas allocation stable at fractional device pixel ratios", () => {
+  vi.stubGlobal("devicePixelRatio", 1.25);
+  const { canvas } = surface(101);
+  let resizes = 0;
+  const width = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, "width")!;
+  Object.defineProperty(canvas, "width", {
+    get: () => width.get!.call(canvas),
+    set: (value: number) => {
+      resizes++;
+      width.set!.call(canvas, value);
+    },
+  });
+  drawTrace(canvas, [], view);
+  drawTrace(canvas, [], view);
+  expect(canvas.width).toBe(126);
+  expect(resizes).toBe(1);
 });

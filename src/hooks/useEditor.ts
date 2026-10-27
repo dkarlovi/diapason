@@ -112,7 +112,7 @@ export function useEditor(id: string) {
 
   const {
     playing,
-    position,
+    playhead,
     externalOutput,
     togglePlayback,
     previewNote,
@@ -201,7 +201,7 @@ export function useEditor(id: string) {
     edited,
     origins,
     grid: displayGrid,
-    position,
+    playhead,
     traceRef,
     rollRef,
     claimsPointer,
@@ -405,7 +405,7 @@ export function useEditor(id: string) {
       ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
       : "",
     playing,
-    position,
+    playhead,
     rollHover,
     externalOutput,
     applyPreset,
