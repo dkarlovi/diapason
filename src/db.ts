@@ -1,3 +1,5 @@
+import { databaseTransaction, openDatabase } from "./db-connection";
+import type { EditHead } from "./edit-storage";
 import type { NoteEdits } from "./note-edits";
 // Minimal IndexedDB wrapper for the recordings library. No dependencies.
 
@@ -7,8 +9,6 @@ import type { PlaySettings } from "./instruments";
 import type { WaveformSummary } from "./waveform";
 import type { WavMetadata } from "./wav-metadata";
 
-const DB_NAME = "diapason";
-const DB_VERSION = 1;
 const STORE = "recordings";
 
 export interface CaptureMeta {
@@ -41,6 +41,7 @@ export interface QuantizeSetting {
 }
 
 export interface Recording {
+  editHead?: EditHead;
   noteEdits?: NoteEdits;
   source?: { profileId: string; analysis: SoundProfile["analysis"] };
   id: string;
@@ -82,35 +83,11 @@ export interface RecordingImport {
   metadata: WavMetadata;
 }
 
-let dbPromise: Promise<IDBDatabase> | null = null;
-
-function openDb(): Promise<IDBDatabase> {
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(STORE)) {
-          db.createObjectStore(STORE, { keyPath: "id" });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  return dbPromise;
-}
-
 function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  return openDb().then(
-    (db) =>
-      new Promise<T>((resolve, reject) => {
-        const t = db.transaction(STORE, mode);
-        const req = fn(t.objectStore(STORE));
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      }),
-  );
+  return databaseTransaction([STORE], mode, (t, result) => {
+    const req = fn(t.objectStore(STORE));
+    req.onsuccess = () => result(req.result);
+  });
 }
 
 export function allRecordings(): Promise<Recording[]> {
@@ -131,7 +108,18 @@ export function putRecording(r: Recording): Promise<unknown> {
 }
 
 export function deleteRecording(id: string): Promise<unknown> {
-  return tx("readwrite", (s) => s.delete(id));
+  return databaseTransaction([STORE, "versions"], "readwrite", (t, result) => {
+    t.objectStore(STORE).delete(id);
+    const cursor = t.objectStore("versions").index("recordingId").openCursor(IDBKeyRange.only(id));
+    cursor.onsuccess = () => {
+      const row = cursor.result;
+      if (row) {
+        row.delete();
+        row.continue();
+      }
+    };
+    result(undefined);
+  });
 }
 
 /** Merge in one transaction so backfill cannot overwrite edits or resurrect deletions. */
@@ -139,7 +127,7 @@ export async function saveWaveform(
   id: string,
   waveform: WaveformSummary,
 ): Promise<WaveformSummary | undefined> {
-  const db = await openDb();
+  const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE, "readwrite");
     const store = transaction.objectStore(STORE);
