@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { draggedPitch, hitsSelectedNote, withDraftPitch, type RollPoint } from "../editor-model";
-import { midiToName, type NoteEvent } from "../notes";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { draggedPitch, hitsSelectedNote, type RollPoint } from "../editor-model";
+import type { EditGesture } from "./useSliderCommit";
 import { listenForDrag } from "./pointer-drag";
 import type { NoteItem } from "../recording";
 import type { TraceView } from "../trace";
@@ -10,9 +10,7 @@ interface Options {
   selected: NoteItem | undefined;
   view: TraceView;
   enabled: boolean;
-  /** The pitch being dragged to, or null when the drag ends or is cancelled. */
-  preview(midi: number | null): void;
-  commit(midi: number): void;
+  gesture: EditGesture;
 }
 
 export function rollPoint(
@@ -47,6 +45,10 @@ export function useNoteDrag(options: Options) {
       hitsSelectedNote(selected, view, rollPoint(canvas, event))
     );
   }, []);
+  const resetDrag = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!options.gesture.active) resetDrag.current();
+  }, [options.gesture.active]);
   const { rollRef } = options;
   useEffect(() => {
     const canvas = rollRef.current;
@@ -57,8 +59,11 @@ export function useNoteDrag(options: Options) {
       if (!drag) return;
       const { from, midi } = drag;
       drag = null;
-      if (moved) latest.current.preview(null);
-      if (save && moved && midi !== from) latest.current.commit(midi);
+      if (save && moved && midi !== from) latest.current.gesture.commit();
+      else latest.current.gesture.cancel();
+    };
+    resetDrag.current = () => {
+      drag = null;
     };
     const down = (event: PointerEvent) => {
       // A second finger hands the gesture back to pinch and pan.
@@ -74,6 +79,7 @@ export function useNoteDrag(options: Options) {
         midi: selected!.note.midi,
         semitone: canvas.clientHeight / (view.midiMax - view.midiMin || 1),
       };
+      latest.current.gesture.begin();
       canvas.setPointerCapture?.(event.pointerId);
     };
     const move = (event: PointerEvent) => {
@@ -85,7 +91,7 @@ export function useNoteDrag(options: Options) {
       const midi = draggedPitch(drag.from, dy, drag.semitone);
       if (midi === drag.midi) return;
       drag.midi = midi;
-      latest.current.preview(midi);
+      latest.current.gesture.update(midi);
     };
     const up = (event: PointerEvent) => {
       if (drag?.id !== event.pointerId) return;
@@ -107,35 +113,9 @@ export function useNoteDrag(options: Options) {
       moved = false;
       return ended;
     });
+    canvas.addEventListener("lostpointercapture", () => finish(false), { signal });
     window.addEventListener("keydown", key, { signal, capture: true });
     return () => controller.abort();
   }, [rollRef, claims]);
   return claims;
-}
-
-/**
- * The roll's items with the selected note shown at a dragged pitch, which is only
- * auditioned until the drag is released.
- */
-export function useDraftPitch(
-  items: NoteItem[],
-  selected: NoteItem | undefined,
-  previewNote: (note: NoteEvent) => void,
-) {
-  const [pitch, setPitch] = useState<number | null>(null);
-  const shown = useMemo(() => withDraftPitch(items, selected, pitch), [items, selected, pitch]);
-  const notes = useMemo(
-    () => shown.filter((item) => !item.muted).map((item) => item.note),
-    [shown],
-  );
-  return {
-    items: shown,
-    notes,
-    selected: selected && shown[items.indexOf(selected)],
-    preview: (midi: number | null) => {
-      setPitch(midi);
-      if (midi !== null && selected)
-        previewNote({ ...selected.note, midi, name: midiToName(midi) });
-    },
-  };
 }

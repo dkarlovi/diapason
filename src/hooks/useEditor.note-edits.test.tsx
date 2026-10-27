@@ -90,3 +90,20 @@ it.each([0, 127])("makes MIDI endpoint %s moves no-ops", async (midi) => {
   expect(result.current.selectedNote?.midi).toBe(midi);
   delete rec.noteEdits;
 });
+it("does not pin a new override when a slider returns to its starting value", async () => {
+  const { resolveKnobs } = await import("../melody/knobs");
+  const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  const initial = resolveKnobs(
+    result.current.melody.preset,
+    result.current.melody.overrides,
+  ).steadiness;
+  await act(async () => {
+    result.current.beginKnob("steadiness");
+    result.current.draftKnob("steadiness", 0.7);
+    result.current.draftKnob("steadiness", initial);
+    result.current.commitGesture();
+  });
+  expect(result.current.canUndo).toBe(false);
+  expect(result.current.record?.melody?.overrides.steadiness).toBeUndefined();
+});

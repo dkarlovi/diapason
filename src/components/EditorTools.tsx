@@ -45,6 +45,11 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
         <div className="editor-tune-body">
           <MelodyPanel
             melody={state.melody}
+            drafting={state.drafting}
+            beginKnob={state.beginKnob}
+            draftKnob={state.draftKnob}
+            commitGesture={state.commitGesture}
+            cancelGesture={state.cancelGesture}
             interpretation={state.interpretation}
             disabled={!state.record}
             previewId={state.previewId}

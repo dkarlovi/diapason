@@ -1,3 +1,5 @@
+import { captureEditSnapshot } from "../edit-state";
+import { KNOB_DEFS, isKnobs, type Knobs } from "../melody/knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
 import { resolveAnalysisOptions } from "../recording-analysis";
 import { useEditorPlayback } from "./useEditorPlayback";
@@ -9,9 +11,9 @@ import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
-import { rollPoint, useDraftPitch, useNoteDrag } from "./useNoteDrag";
+import { rollPoint, useNoteDrag } from "./useNoteDrag";
 import { processRecording, type NoteItem } from "../recording";
-import { sameMelodySetting, type MelodySetting } from "../melody/settings";
+import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
 import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
@@ -137,12 +139,12 @@ export function useEditor(id: string) {
   const showingPreview = /^(preset|key|knob)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
   const baseItems = displayed?.items ?? appliedItems;
-  const draft = useDraftPitch(
-    baseItems,
-    selected === null ? undefined : selectedSourceItem(baseItems, selected),
-    previewNote,
+  const items = baseItems;
+  const displayNotes = useMemo(
+    () => items.filter((item) => !item.muted).map((item) => item.note),
+    [items],
   );
-  const { items, notes: displayNotes, selected: selectedItem } = draft;
+  const selectedItem = selected === null ? undefined : selectedSourceItem(items, selected);
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const selectNote = useCallback(
@@ -226,13 +228,48 @@ export function useEditor(id: string) {
     const item = currentSelected();
     if (item) setSelectedPitch(item.note.midi + delta);
   };
+  const knobBaseline = useRef<Recording | null>(null);
+  const pitchBaseline = useRef<{ record: Recording; item: NoteItem } | null>(null);
   claimRef.current = useNoteDrag({
     rollRef,
     selected: selectedItem,
     view: rollView,
     enabled: !showingPreview,
-    preview: draft.preview,
-    commit: setSelectedPitch,
+    gesture: {
+      active: history.drafting,
+      begin() {
+        history.finish();
+        const item = currentSelected(),
+          current = recordRef.current;
+        if (!item || !current) return;
+        pitchBaseline.current = { record: current, item };
+        history.begin("Edit pitch");
+      },
+      update(midi) {
+        const baseline = pitchBaseline.current;
+        if (!baseline) return;
+        const { record: initial, item } = baseline;
+        history.update(
+          captureEditSnapshot(
+            midi === item.note.midi
+              ? initial
+              : {
+                  ...initial,
+                  noteEdits: stepPitchEdit(
+                    initial.noteEdits,
+                    item.source,
+                    midi,
+                    item.automatic.midi,
+                    uid(),
+                  ),
+                },
+          ),
+        );
+        previewNote({ ...item.note, midi });
+      },
+      commit: history.commit,
+      cancel: history.cancel,
+    },
   });
   const resetSelectedPitch = () => {
     if (auditionRef.current) return;
@@ -328,6 +365,29 @@ export function useEditor(id: string) {
 
   return {
     record,
+    drafting: history.drafting,
+    beginKnob: (key: keyof Knobs) => {
+      history.finish();
+      knobBaseline.current = recordRef.current;
+      history.begin(`Change ${KNOB_DEFS.find((def) => def.key === key)?.label ?? key}`);
+    },
+    draftKnob: (key: keyof Knobs, value: number) => {
+      const current = knobBaseline.current;
+      if (!current || !isKnobs({ [key]: value })) return;
+      const melody = melodySettingFor(current);
+      history.update(
+        captureEditSnapshot(
+          value === resolveKnobs(melody.preset, melody.overrides)[key]
+            ? current
+            : {
+                ...current,
+                melody: { ...melody, overrides: { ...melody.overrides, [key]: value } },
+              },
+        ),
+      );
+    },
+    commitGesture: history.commit,
+    cancelGesture: history.cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
     canEditPitch: !showingPreview,
     shiftSelectedPitch,

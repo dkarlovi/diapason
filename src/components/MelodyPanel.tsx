@@ -11,6 +11,11 @@ export interface MelodyPanelProps {
   disabled: boolean;
   previewId: string | null;
   applyPreset: (id: PresetId) => void;
+  drafting: boolean;
+  beginKnob(key: keyof Knobs): void;
+  draftKnob(key: keyof Knobs, value: number): void;
+  commitGesture(): void;
+  cancelGesture(): void;
   changeKnob: (key: keyof Knobs, value: number | string) => void;
   resetKnob: (key?: keyof Knobs) => void;
   changeKey: (key: KeyChoice) => void;
@@ -55,6 +60,13 @@ export function MelodyPanel(props: PropsWithChildren<MelodyPanelProps>) {
                 value={knobs[key]}
                 disabled={props.disabled}
                 onChange={props.changeKnob}
+                gesture={{
+                  active: props.drafting,
+                  begin: () => props.beginKnob(key),
+                  update: (value) => props.draftKnob(key, value),
+                  commit: props.commitGesture,
+                  cancel: props.cancelGesture,
+                }}
                 onReset={props.resetKnob}
                 previewId={props.previewId}
                 onPreview={(value) =>
