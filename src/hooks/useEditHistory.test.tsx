@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { StrictMode, useState, type PropsWithChildren } from "react";
+import { StrictMode, useState, useLayoutEffect, type PropsWithChildren } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { useEditHistory } from "./useEditHistory";
@@ -81,4 +81,20 @@ it("does not manufacture a commit under StrictMode", async () => {
   await waitFor(() => expect(result.current.current).not.toBeNull());
   expect(result.current.canUndo).toBe(false);
   expect((await getRecording(initial.id))?.editHead).toBeUndefined();
+});
+
+it("accepts the first edit as soon as the loaded controls reach the layout phase", async () => {
+  const initial = recording({ id: "first-visible-edit" });
+  await putRecording(initial);
+  const { result } = renderHook(() => {
+    const value = harness(initial);
+    useLayoutEffect(() => {
+      value.change("Change octave", (r) => ({ ...r, play: { instrument: "flute", octave: -1 } }));
+    }, []);
+    return value;
+  });
+  expect(result.current.record.play).toEqual({ instrument: "flute", octave: -1 });
+  expect(result.current.canUndo).toBe(true);
+  await act(() => result.current.flush());
+  expect((await getRecording(initial.id))?.play?.octave).toBe(-1);
 });

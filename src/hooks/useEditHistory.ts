@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Recording } from "../db";
 import { applyEditSnapshot, captureEditSnapshot, type EditSnapshot } from "../edit-state";
 import {
@@ -44,7 +44,7 @@ export function useEditHistory(options: Options) {
     latest.current.beforeChange();
     send({ type: "cancel" });
   }, [send]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const initial = record.current;
     if (!initial) return;
     const session = createEditHistory({

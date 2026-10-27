@@ -509,6 +509,15 @@ it("offers an explicit scoped reset and can restore the replaced tuning", async 
 });
 
 it("toggles context playback between Play and Stop", async () => {
+  playPosition = 0;
+  let nextFrame: FrameRequestCallback | undefined;
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    nextFrame = callback;
+    return 1;
+  });
+  vi.stubGlobal("cancelAnimationFrame", () => {
+    nextFrame = undefined;
+  });
   render(
     <MemoryRouter>
       <Editor id="one" />
@@ -522,6 +531,11 @@ it("toggles context playback between Play and Stop", async () => {
   expect(play.querySelector(".lucide-play")).toBeTruthy();
   await act(async () => {
     fireEvent.click(play);
+  });
+  await act(async () => {
+    const tick = nextFrame;
+    nextFrame = undefined;
+    tick?.(16);
   });
   const stop = screen.getByRole("button", { name: "Stop context playback" });
   expect(stop.querySelector(".lucide-square")).toBeTruthy();
