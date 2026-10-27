@@ -1,6 +1,8 @@
 import { isNoteEdits } from "./note-edits";
 import { isMelodySetting } from "./melody/settings";
 import type { DiagnosticSnapshot } from "./diagnostic-snapshot";
+import { analysisOptionsFor } from "./recording-profiles";
+import type { Recording } from "./db";
 
 type JsonObject = Record<string, unknown>;
 export const isObject = (value: unknown): value is JsonObject =>
@@ -42,6 +44,15 @@ function validateRecording(record: JsonObject, pair: JsonObject, configured: Jso
   }
   if (record.noteEdits !== undefined && !isNoteEdits(record.noteEdits, Number(record.durationSec)))
     throw new Error("Invalid diagnostic note edits.");
+  const source = record.source;
+  if (
+    source !== undefined &&
+    (!isObject(source) ||
+      !isObject(source.analysis) ||
+      analysisOptionsFor({ source: source as NonNullable<Recording["source"]> }) !==
+        source.analysis)
+  )
+    throw new Error("Invalid diagnostic analysis settings.");
   if (configured.sampleRate !== pair.sampleRate || record.sampleRate !== pair.sampleRate) {
     throw new Error("Invalid diagnostic sample rate.");
   }

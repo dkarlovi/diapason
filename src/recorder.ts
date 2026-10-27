@@ -3,7 +3,7 @@ import { ensureAudioWorklet } from "./audio-worklet";
 // (tune detection without whistling live) and replay it. Uses an AudioWorklet,
 // whose processor source is inlined via a Blob URL so there's no extra build step.
 
-import { createPitchDetector } from "./pitch";
+import { createPitchDetector, type PitchOptions } from "./pitch";
 import { freqToMidi, type Frame } from "./notes";
 
 const WORKLET_SRC = `
@@ -86,14 +86,11 @@ export async function createRecorder(ctx: AudioContext, source: AudioNode): Prom
 
 const ANALYZE_DEFAULTS = { windowSize: 2048, hop: 512 } as const;
 
-export interface AnalyzeOptions {
+export interface AnalyzeOptions extends PitchOptions {
   /** Analysis window size in samples. Default 2048. */
   windowSize?: number;
   /** Hop between windows in samples. Default windowSize / 4 (smooth trace). */
   hop?: number;
-  minFreq?: number;
-  maxFreq?: number;
-  clarityThreshold?: number;
 }
 
 // Slide the pitch detector across a recorded buffer, producing the same Frame
@@ -105,11 +102,7 @@ export function analyzeBuffer(
 ): Frame[] {
   const windowSize = opts.windowSize ?? ANALYZE_DEFAULTS.windowSize;
   const hop = opts.hop ?? Math.floor(windowSize / 4);
-  const detect = createPitchDetector(sampleRate, {
-    ...(opts.minFreq !== undefined ? { minFreq: opts.minFreq } : {}),
-    ...(opts.maxFreq !== undefined ? { maxFreq: opts.maxFreq } : {}),
-    ...(opts.clarityThreshold !== undefined ? { clarityThreshold: opts.clarityThreshold } : {}),
-  });
+  const detect = createPitchDetector(sampleRate, opts);
 
   const frames: Frame[] = [];
   const win = new Float32Array(windowSize);

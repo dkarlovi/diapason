@@ -1,13 +1,17 @@
 import type { Recording } from "./db";
 import type { AnalyzeOptions } from "./recorder";
+import type { PitchRange } from "./pitch";
+import { isPitchRange } from "./voice-range";
+
+export type AnalysisSettings = Required<
+  Pick<AnalyzeOptions, "windowSize" | "hop" | "minFreq" | "maxFreq" | "clarityThreshold">
+> & { preferredRange?: PitchRange };
 
 export interface SoundProfile {
   id: string;
   label: string;
   instruction: string;
-  analysis: Required<
-    Pick<AnalyzeOptions, "windowSize" | "hop" | "minFreq" | "maxFreq" | "clarityThreshold">
-  >;
+  analysis: AnalysisSettings;
   checks: { voicedRatio: number; clarity: number; noiseRatio: number };
 }
 export const SOUND_PROFILES: readonly SoundProfile[] = [
@@ -17,6 +21,13 @@ export const SOUND_PROFILES: readonly SoundProfile[] = [
     instruction: "Whistle a steady note at your normal volume.",
     analysis: { windowSize: 2048, hop: 512, minFreq: 250, maxFreq: 3000, clarityThreshold: 0.9 },
     checks: { voicedRatio: 0.25, clarity: 0.9, noiseRatio: 3 },
+  },
+  {
+    id: "voice-experimental",
+    label: "Singing / humming (experimental)",
+    instruction: "Sing or hum a steady note at your normal volume.",
+    analysis: { windowSize: 4096, hop: 512, minFreq: 65, maxFreq: 1500, clarityThreshold: 0.8 },
+    checks: { voicedRatio: 0.25, clarity: 0.8, noiseRatio: 3 },
   },
 ];
 export function getSoundProfile(id: string): SoundProfile {
@@ -29,7 +40,8 @@ export function analysisOptionsFor(record: Pick<Recording, "source">): SoundProf
   const a = source.analysis;
   if (
     !a ||
-    !Object.values(a).every(Number.isFinite) ||
+    ![a.minFreq, a.maxFreq, a.clarityThreshold, a.windowSize, a.hop].every(Number.isFinite) ||
+    (a.preferredRange !== undefined && !isPitchRange(a.preferredRange, a)) ||
     a.minFreq <= 0 ||
     a.maxFreq <= a.minFreq ||
     a.maxFreq > 20000 ||

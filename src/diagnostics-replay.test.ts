@@ -8,6 +8,8 @@ import { qualityStats } from "./recorder";
 import { makeReportInput } from "./editor-model";
 import { recording } from "./test-support/recording";
 import { pcm16ToFloat, floatToPcm16 } from "./pcm";
+import { getSoundProfile } from "./recording-profiles";
+import { decodeWav } from "./wav-reader";
 
 async function sample() {
   const pcm = pcm16ToFloat(
@@ -29,6 +31,30 @@ it("replays a serialized JSON/WAV pair through the real processing pipeline", as
   expect(replay.status).toBe("match");
   expect(replay.notes).toEqual(report.notes);
   expect(replay.midi).toBeInstanceOf(Blob);
+});
+
+it("retains personal voice preferences in serialized evidence and rejects malformed bounds", async () => {
+  const base = await sample();
+  const { pcm } = decodeWav(await base.wav.arrayBuffer());
+  const source = {
+    profileId: "voice-experimental",
+    analysis: {
+      ...getSoundProfile("voice-experimental").analysis,
+      preferredRange: { minFreq: 100, maxFreq: 500 },
+    },
+  };
+  const rec = { ...base.report.saved, source, audio: new Blob() };
+  const frames = analyzeRecording(pcm, rec.sampleRate, rec);
+  const { report, wav } = await diagnosticSnapshot(
+    makeReportInput(rec, frames, qualityStats(frames, pcm)),
+    pcm,
+  );
+  expect(report.analysis.preferredRange).toEqual({ minFreq: 100, maxFreq: 500 });
+  expect(
+    (await replayDiagnostics(JSON.parse(JSON.stringify(report)), await wav.arrayBuffer())).status,
+  ).toBe("match");
+  report.saved.source!.analysis.preferredRange = { minFreq: 500, maxFreq: 100 };
+  await expect(replayDiagnostics(report, await wav.arrayBuffer())).rejects.toThrow(/analysis/i);
 });
 
 it("rejects mismatched audio before trusting note evidence", async () => {

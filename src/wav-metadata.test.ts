@@ -14,6 +14,7 @@ import {
   type WavMetadata,
 } from "./wav-metadata";
 import { wavChunks } from "./wav-reader";
+import { getSoundProfile } from "./recording-profiles";
 
 const context = { browser: "UA", audioOutput: "unknown", midiOutput: "Browser synth" };
 const pcm = Float32Array.from([0, 0.25, -0.5, 0.5, -0.25], (sample) => sample);
@@ -54,6 +55,29 @@ const UNTAGGED = "Only WAVs exported from diapason can be imported for now.";
 const DAMAGED = "This WAV's diapason data is damaged or unsupported.";
 
 describe("tagged WAV", () => {
+  it("preserves a calibrated voice range and refuses malformed preferred bounds", async () => {
+    const source = {
+      profileId: "voice-experimental",
+      analysis: {
+        ...getSoundProfile("voice-experimental").analysis,
+        preferredRange: { minFreq: 100, maxFreq: 500 },
+      },
+    };
+    const rec = take({ source });
+    const result = await parse(await bytes(encodeTaggedWav(rec, pcm, context)));
+    expect(result.source).toEqual(source);
+    const meta = recordingMetadata(rec, context);
+    for (const preferredRange of [
+      { minFreq: 500, maxFreq: 100 },
+      { minFreq: 1, maxFreq: 500 },
+      { minFreq: 100, maxFreq: 1600 },
+      { minFreq: 100 },
+    ]) {
+      const invalid = structuredClone(meta);
+      Object.assign(invalid.recording.source.analysis, { preferredRange });
+      await expect(parse(await withPayload(invalid))).rejects.toThrow(DAMAGED);
+    }
+  });
   it("round-trips recording-time fields", async () => {
     const before = Date.now();
     const result = await parse(await bytes(encodeTaggedWav(take(), pcm, context)), "take.wav");

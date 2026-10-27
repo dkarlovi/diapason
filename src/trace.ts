@@ -2,8 +2,10 @@
 // calibration view and for inspecting recorded samples. Dependency-free 2D canvas.
 
 import { midiToName, freqToMidi, type Frame, type NoteEvent } from "./notes";
+import type { PitchRange } from "./pitch";
 
 export interface TraceView {
+  preferredRange?: PitchRange;
   inset?: boolean;
   pitchLabels?: "all" | "none";
   timeLabelY?: number;
@@ -85,8 +87,13 @@ function traceColors(canvas: HTMLCanvasElement): TraceColors {
 }
 
 /** Pick a y-axis range that fits the voiced frames, padded and clamped to sane whistle bounds. */
-export function autoRange(frames: Frame[]): { midiMin: number; midiMax: number } {
+export function autoRange(
+  frames: Frame[],
+  preferredRange?: PitchRange,
+): { midiMin: number; midiMax: number } {
   const notes = frames.filter((f) => f.freq !== null).map((f) => freqToMidi(f.freq!));
+  if (preferredRange)
+    notes.push(freqToMidi(preferredRange.minFreq), freqToMidi(preferredRange.maxFreq));
   if (!notes.length) return { midiMin: 67, midiMax: 96 }; // G4..C7 default
   const lo = Math.floor(Math.min(...notes)) - 2;
   const hi = Math.ceil(Math.max(...notes)) + 2;
@@ -164,6 +171,7 @@ export function drawTrace(
     ctx.stroke();
   }
   drawPitchLabels(ctx, geometry, view);
+  drawRangeLabels(ctx, geometry, view);
 }
 
 function setLabelFont(ctx: CanvasRenderingContext2D, view: TraceView) {
@@ -184,6 +192,7 @@ function drawBackground(
   setLabelFont(ctx, view);
   drawPitchGrid(ctx, geometry, view);
   drawBeatGrid(ctx, geometry, view);
+  drawRangeBand(ctx, geometry, view);
   drawPitchFrames(ctx, geometry, frames, view);
 }
 
@@ -211,6 +220,7 @@ function cachedBackground(
     timeLabelY,
     view.inset,
     view.pitchLabels,
+    view.preferredRange,
     !!view.notes,
     Object.values(colors),
   ]);
@@ -232,6 +242,60 @@ interface TraceGeometry {
   semitoneHeight: number;
   xOf(t: number): number;
   yOf(midi: number): number;
+}
+
+function drawRangeBand(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  const range = view.preferredRange;
+  if (!range) return;
+  const { yOf, width, colors } = geometry;
+  const top = yOf(freqToMidi(range.maxFreq));
+  const bottom = yOf(freqToMidi(range.minFreq));
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = colors.line;
+  ctx.fillRect(0, top, width, bottom - top);
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = colors.line;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  for (const y of [top, bottom]) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+}
+
+function drawRangeLabels(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  const range = view.preferredRange;
+  if (!range) return;
+  const { yOf, width, colors } = geometry;
+  ctx.font = "12px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (const [label, freq] of [
+    ["Low", range.minFreq],
+    ["High", range.maxFreq],
+  ] as const) {
+    const text = `${label} · ${midiToName(Math.round(freqToMidi(freq)))}`;
+    const y = Math.max(
+      12,
+      Math.min(geometry.height - (view.inset ? 56 : 12), yOf(freqToMidi(freq)) - 9),
+    );
+    ctx.fillStyle = colors.bg;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(
+      width - ctx.measureText(text).width - 12,
+      y - 8,
+      ctx.measureText(text).width + 8,
+      16,
+    );
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = colors.line;
+    ctx.fillText(text, width - 8, y);
+  }
+  ctx.textAlign = "left";
 }
 
 function drawPitchGrid(

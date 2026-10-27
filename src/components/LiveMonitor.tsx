@@ -3,6 +3,8 @@ import { liveReadout, type LiveLevel } from "../capture-presentation";
 import type { TransportState } from "../metronome";
 import { LiveBeat } from "./LiveBeat";
 import { PitchCanvas } from "./PitchCanvas";
+import type { PitchRange } from "../pitch";
+import { rangeLabel } from "../voice-range";
 
 type Readout = ReturnType<typeof liveReadout>;
 function LivePitch({ readout, connected }: { readout: Readout; connected: boolean }) {
@@ -57,6 +59,7 @@ export function LiveMonitor({
   connected,
   transport = null,
   clock = null,
+  preferredRange,
 }: {
   level: LiveLevel;
   traceRef: RefObject<HTMLCanvasElement | null>;
@@ -67,6 +70,7 @@ export function LiveMonitor({
   connected: boolean;
   transport?: TransportState | null;
   clock?: Pick<AudioContext, "currentTime"> | null;
+  preferredRange?: PitchRange | undefined;
 }) {
   const readout = liveReadout(level);
   return (
@@ -82,6 +86,12 @@ export function LiveMonitor({
           Live microphone pitch trace
         </PitchCanvas>
         <LivePitch readout={readout} connected={connected} />
+        {preferredRange && (
+          <span className="sr-only">
+            Calibrated range: {rangeLabel(preferredRange)}, including margin. The shaded band guides
+            detection; notes outside it can still be recorded.
+          </span>
+        )}
         {connected && bpm !== null && (
           <>
             <span className="sr-only">

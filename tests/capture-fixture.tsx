@@ -6,7 +6,10 @@ import type { MetronomeOptions } from "../src/metronome";
 const fixture = vi.hoisted(() => ({
   time: 0,
   tone: false,
+  frequency: 440,
   denied: false,
+  openPending: null as Promise<void> | null,
+  openRequests: [] as Array<{ fftSize?: number }>,
   settings: {
     echoCancellation: false,
     noiseSuppression: false,
@@ -29,7 +32,9 @@ const fixture = vi.hoisted(() => ({
 }));
 vi.mock("../src/audio", () => ({
   listInputDevices: async () => [{ deviceId: "mic-1", label: "Studio mic", kind: "audioinput" }],
-  openMic: async () => {
+  openMic: async (options: { fftSize?: number }) => {
+    fixture.openRequests.push(options);
+    if (fixture.openPending) await fixture.openPending;
     if (fixture.denied) throw new Error("permission denied");
     return {
       sampleRate: 48000,
@@ -58,7 +63,7 @@ vi.mock("../src/audio", () => ({
 }));
 vi.mock("../src/pitch", () => ({
   createPitchDetector: () => () => ({
-    freq: fixture.tone ? 440 : null,
+    freq: fixture.tone ? fixture.frequency : null,
     clarity: fixture.tone ? 0.99 : 0,
     rms: fixture.tone ? 0.03 : 0.001,
   }),
@@ -98,7 +103,10 @@ export function resetFixture() {
   vi.useFakeTimers();
   fixture.time = 0;
   fixture.tone = false;
+  fixture.frequency = 440;
   fixture.denied = false;
+  fixture.openPending = null;
+  fixture.openRequests = [];
   fixture.settings = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
   fixture.saved = null;
   fixture.encodeFailure = false;

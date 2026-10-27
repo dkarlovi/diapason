@@ -203,6 +203,32 @@ analysis settings with each new recording, preparing for future humming and
 instrument support. These future choices are not yet offered. The detector is
 monophonic; mixed music and chords are outside its current scope.
 
+The dev server also offers **Singing / humming (experimental)**. It uses provisional
+65–1500 Hz detection with a 4096-sample window. In the existing **Check your sound**
+step, hold your lowest comfortable note for two seconds, then your highest. Each
+measurement starts when you press its button and can be retried separately. Use a
+comfortable voice without straining; a gliding or unclear note needs another try.
+The footer guides you through low and high measurements. Results use the same
+compact rows as microphone settings, with secondary Retry controls. Revisiting a
+passed sound check offers **Continue**, preserving the measured range. Before
+calibration passes, **Use default range** is a secondary option inside the panel;
+it performs the normal sound check without personal range calibration.
+
+After both notes pass, a shaded band on the live canvas shows your range plus
+three semitones of margin at either end, within the source profile's bounds.
+The low/high limits stay visible during silence. The detector uses this range
+only to resolve ambiguous pitches; clear notes outside it can still be recorded.
+Changing the source, microphone, gain or room calibration clears the range;
+changing tempo keeps it. Retrying either endpoint removes the band until both
+measurements pass again. Each take saves its effective preference for editor and
+library analysis, diagnostics, WAV sharing and replay.
+
+One adult male humming sample and one singing sample have been checked, including
+exact diagnostics replay. Higher-register recordings still need validation, so
+this source remains experimental and is offered only in development builds.
+Existing saved voice takes remain readable in production. Export WAV and JSON
+from the editor to contribute another validation sample.
+
 Clap listening is explicitly started and stops before metronome preview or
 recording. It requires AudioWorklet support; tapping and numeric input remain
 available if microphone tempo detection fails. Microphone access needs localhost

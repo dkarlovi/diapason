@@ -97,13 +97,18 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
           onError("Microphone disconnected — reconnect to continue.");
         });
       void refreshDevices();
-      const detect = createPitchDetector(opened.sampleRate, profile.current.analysis);
+      let analysis = profile.current.analysis;
+      let detect = createPitchDetector(opened.sampleRate, analysis);
       const frames: Frame[] = [];
       let lastUpdate = -Infinity;
       const loop = () => {
         if (owner.current.mic !== opened) return;
         raf.current = requestAnimationFrame(loop);
         const t = opened.context.currentTime;
+        if (analysis !== profile.current.analysis) {
+          analysis = profile.current.analysis;
+          detect = createPitchDetector(opened.sampleRate, analysis);
+        }
         const samples = opened.readFrame();
         const detected = detect(samples);
         const frame: Frame = {
@@ -126,7 +131,8 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
             inset: true,
             tMin: t - 5,
             tMax: t + 0.2,
-            ...autoRange(frames),
+            ...autoRange(frames, analysis.preferredRange),
+            ...(analysis.preferredRange ? { preferredRange: analysis.preferredRange } : {}),
             playheadTime: t,
             showTimeLabels: monitor.current?.showTimeLabels ?? false,
             ...(monitor.current

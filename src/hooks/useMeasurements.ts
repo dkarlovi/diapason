@@ -2,8 +2,9 @@ import type { MicHandle } from "../audio";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CALIBRATION, evaluateRoom, evaluateSound } from "../capture-model";
 import type { SoundProfile } from "../recording-profiles";
-import type { MeasurementResult, RoomResult } from "../recording-setup";
+import type { RoomResult } from "../recording-setup";
 import type { Observation } from "./useMicrophone";
+import { measureVoiceEndpoint, type EndpointResult } from "../voice-range";
 
 /** Bounded tests own their subscriptions/timers; completed results belong to setup. */
 export function useMeasurements(
@@ -77,16 +78,22 @@ export function useMeasurements(
     [collect],
   );
   const startSound = useCallback(
-    (floor: number, profile: SoundProfile, complete: (result: MeasurementResult) => void) =>
+    (
+      floor: number,
+      profile: SoundProfile,
+      complete: (result: EndpointResult) => void,
+      endpoint = false,
+    ) =>
       collect("sound", CALIBRATION.soundMs, (observations) =>
-        complete(
-          evaluateSound(
+        complete({
+          frequency: null,
+          ...(endpoint ? measureVoiceEndpoint : evaluateSound)(
             observations.map((value) => value.frame),
             observations.reduce((peak, value) => Math.max(peak, value.peak), 0),
             floor,
             profile,
           ),
-        ),
+        }),
       ),
     [collect],
   );

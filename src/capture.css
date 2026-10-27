@@ -604,6 +604,21 @@ body:has(.studio-shell) {
 .capture-wizard .device-actions [data-slot="button"] {
   font-size: 0.8125rem;
 }
+.voice-range-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.voice-range-value output {
+  color: var(--color-muted-foreground);
+}
+.voice-range-value [data-slot="button"] {
+  flex-shrink: 0;
+}
 .capture-wizard .record-facts > div {
   display: grid;
   grid-template-columns: 0.85fr 1.4fr;

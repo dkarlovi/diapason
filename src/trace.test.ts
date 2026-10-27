@@ -77,6 +77,42 @@ it("fits voiced pitches and supplies an empty-input range", () => {
   expect(autoRange([])).toEqual({ midiMin: 67, midiMax: 96 });
   expect(autoRange([frame(0), frame(1, null)])).toEqual({ midiMin: 67, midiMax: 73 });
 });
+it("keeps a calibrated band in view during silence and fits pitches outside it", () => {
+  const range = { minFreq: 220, maxFreq: 440 };
+  expect(autoRange([], range)).toEqual({ midiMin: 55, midiMax: 71 });
+  expect(autoRange([frame(0, 880)], range)).toEqual({ midiMin: 55, midiMax: 83 });
+});
+it("keeps the low range label clear of the live input meter", () => {
+  const { canvas, operations } = surface(390);
+  drawTrace(canvas, [], {
+    ...view,
+    inset: true,
+    midiMin: 50,
+    midiMax: 75,
+    preferredRange: { minFreq: 130, maxFreq: 440 },
+  });
+  const label = operations.find(
+    (o) => o.method === "fillText" && String(o.args[0]).startsWith("Low ·"),
+  );
+  expect(Number(label?.args[2])).toBeLessThanOrEqual(44);
+});
+it("shades and labels range limits behind a trace that crosses outside the band", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [frame(0, 220), frame(0.1, 880)], {
+    ...view,
+    midiMin: 50,
+    midiMax: 85,
+    preferredRange: { minFreq: 220, maxFreq: 440 },
+  });
+  const band = operations.findIndex((o) => o.method === "fillRect" && o.alpha === 0.08);
+  expect(band).toBeGreaterThan(-1);
+  const pitch = operations.findIndex((o) => o.method === "arc");
+  expect(pitch).toBeGreaterThan(band);
+  expect(operations.filter((o) => o.method === "arc")).toHaveLength(2);
+  expect(operations.filter((o) => o.method === "fillText").map((o) => o.args[0])).toEqual(
+    expect.arrayContaining(["Low · A3", "High · A4"]),
+  );
+});
 it("sizes for device pixels and places beat subdivisions on the time axis", () => {
   vi.stubGlobal("devicePixelRatio", 2);
   const { canvas, operations } = surface();
