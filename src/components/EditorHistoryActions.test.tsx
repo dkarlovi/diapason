@@ -18,19 +18,6 @@ it("exposes global chronological undo and redo without Tune", () => {
             undo: () => set(false),
             redo: () => set(true),
             editingDisabled: false,
-            record: null,
-            previewId: null,
-            stopPlayback() {},
-            versions: {
-              versions: [],
-              busy: false,
-              error: null,
-              async saveVersion() {},
-              async renameVersion() {},
-              async deleteVersion() {},
-              previewVersion() {},
-              restoreVersion() {},
-            },
           }}
         />
       </>

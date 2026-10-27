@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./primitives";
 import type { EditorState } from "./editor-view-types";
 import type { SavedVersion } from "../edit-storage";
@@ -92,47 +91,41 @@ export function EditorVersions({ state }: { state: VersionState }) {
   const [name, setName] = useState("");
   const { versions } = state;
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button disabled={!state.record} aria-label="Versions">
-          Versions
+    <>
+      <h2>Versions</h2>
+      <p>Name a state to keep it after this editing session.</p>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void versions
+            .saveVersion(name)
+            .then(() => setName(""))
+            .catch(() => {});
+        }}
+      >
+        <label>
+          Version name
+          <input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            disabled={versions.busy}
+          />
+        </label>
+        <Button type="submit" disabled={versions.busy || !name.trim()}>
+          Save version
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="editor-versions" aria-label="Saved versions">
-        <h2>Versions</h2>
-        <p>Name a state to keep it after this editing session.</p>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            void versions
-              .saveVersion(name)
-              .then(() => setName(""))
-              .catch(() => {});
-          }}
-        >
-          <label>
-            Version name
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              disabled={versions.busy}
-            />
-          </label>
-          <Button type="submit" disabled={versions.busy || !name.trim()}>
-            Save version
-          </Button>
-        </form>
-        {versions.error && <p role="alert">{versions.error}</p>}
-        {versions.versions.length ? (
-          <ul>
-            {versions.versions.map((version) => (
-              <VersionRow key={version.id} version={version} state={state} />
-            ))}
-          </ul>
-        ) : (
-          <p>No saved versions yet.</p>
-        )}
-      </PopoverContent>
-    </Popover>
+      </form>
+      {versions.error && <p role="alert">{versions.error}</p>}
+      {versions.versions.length ? (
+        <ul>
+          {versions.versions.map((version) => (
+            <VersionRow key={version.id} version={version} state={state} />
+          ))}
+        </ul>
+      ) : (
+        <p>No saved versions yet.</p>
+      )}
+    </>
   );
 }

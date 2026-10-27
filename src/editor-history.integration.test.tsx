@@ -64,11 +64,12 @@ it("retains only current intent and named versions when the editor is reopened",
   await act(async () => {
     fireEvent.keyDown(roll, { key: "ArrowUp" });
   });
+  await user.click(screen.getByRole("button", { name: "Recording actions" }));
   await user.click(screen.getByRole("button", { name: "Versions" }));
   await user.type(screen.getByLabelText("Version name"), "First idea");
   await user.click(screen.getByRole("button", { name: "Save version" }));
   await screen.findByText("First idea");
-  await user.click(screen.getByRole("button", { name: "Versions" }));
+  await user.keyboard("{Escape}");
   await act(async () => {
     fireEvent.keyDown(roll, { key: "Home" });
   });
@@ -83,11 +84,12 @@ it("retains only current intent and named versions when the editor is reopened",
   await screen.findByDisplayValue("Lifecycle");
   expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole("button", { name: "Redo" }) as HTMLButtonElement).disabled).toBe(true);
+  await user.click(screen.getByRole("button", { name: "Recording actions" }));
   await user.click(screen.getByRole("button", { name: "Versions" }));
   await user.click(await screen.findByRole("button", { name: "Restore version First idea" }));
   await act(() => flushEditorSaves());
   expect((await getRecording(rec.id))?.noteEdits?.pitch[0]?.midi).toBe(70);
-  await user.click(screen.getByRole("button", { name: "Versions" }));
+  await user.keyboard("{Escape}");
   await user.click(screen.getByRole("button", { name: "Undo restore version First idea" }));
   await act(() => flushEditorSaves());
   expect((await getRecording(rec.id))?.noteEdits?.pitch[0]?.midi).toBe(71);
@@ -162,6 +164,7 @@ it("previews a version with its own instrument while leaving applied intent unto
   mount(rec.id);
   await screen.findByDisplayValue("Preview version");
   const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Recording actions" }));
   await user.click(screen.getByRole("button", { name: "Versions" }));
   await user.click(await screen.findByRole("button", { name: "Preview version Flute" }));
   expect(played.sound).toEqual({ instrument: "flute", octave: -2 });

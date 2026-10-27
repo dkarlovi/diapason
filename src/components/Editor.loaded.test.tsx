@@ -295,7 +295,7 @@ it("starts mobile with original audio and Tune closed", async () => {
   const controls = tune.parentElement!;
   expect(
     [...controls.querySelectorAll("button")].map((button) => button.getAttribute("aria-label")),
-  ).toEqual(["Toggle Tune", "Play MIDI", "Download MIDI"]);
+  ).toEqual(["Undo", "Redo", "Toggle Tune", "Play MIDI", "Download MIDI"]);
 });
 it("allows keyboard note selection and contextual muting without a note list", async () => {
   render(
@@ -725,4 +725,31 @@ it("advances the time readout from the playhead and clears it on stop", async ()
     fireEvent.click(within(midi).getByRole("button", { name: "Stop MIDI" }));
   });
   expect(within(midi).getByText("0.0 / 1.0 s")).toBeTruthy();
+});
+
+it("keeps history beside Tune on the canvas and Versions inside recording actions", async () => {
+  render(
+    <MemoryRouter initialEntries={["/recording/one"]}>
+      <AppShell>
+        <Editor id="one" />
+      </AppShell>
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Melody");
+  const midi = screen.getByRole("region", { name: "MIDI melody" });
+  const undo = within(midi).getByRole("button", { name: "Undo" });
+  const redo = within(midi).getByRole("button", { name: "Redo" });
+  const tune = within(midi).getByRole("button", { name: "Toggle Tune" });
+  expect(undo.compareDocumentPosition(redo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(redo.compareDocumentPosition(tune) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(
+    within(screen.getByRole("banner")).queryByRole("group", { name: "Editing history" }),
+  ).toBeNull();
+  expect(screen.queryByRole("button", { name: "Versions" })).toBeNull();
+  await userEvent.click(screen.getByRole("button", { name: "Recording actions" }));
+  await userEvent.click(screen.getByRole("button", { name: "Versions" }));
+  expect(document.activeElement).toBe(screen.getByLabelText("Version name"));
+  await userEvent.click(screen.getByRole("button", { name: "Back to recording actions" }));
+  expect(screen.getByRole("button", { name: "Download JSON" })).toBeTruthy();
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Versions" }));
 });

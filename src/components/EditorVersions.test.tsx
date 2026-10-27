@@ -25,7 +25,6 @@ it("saves and renames versions with usable errors and no Git terminology", async
   }
   render(<Harness />);
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "Versions" }));
   await user.type(screen.getByLabelText("Version name"), "First idea");
   await user.click(screen.getByRole("button", { name: "Save version" }));
   await screen.findByText("First idea");

@@ -93,9 +93,9 @@ original audio; mobile starts with it hidden. When shown, original audio occupie
 22% of the workspace height; the stronger divider highlights across the canvas
 when its Show/Hide handle is hovered. Tune floats over the right side,
 starts at 360px, and resizes from 286px to half the workspace. Matching Play and
-Download pairs move left of Tune. Download is the primary action and keeps its
-visible label; Play is a secondary preview action with an icon-only button on
-small screens. Preset and Key dropdowns contain their Preview/Use actions, as do
+Download pairs move left of Tune. Download is the primary action; both audio and MIDI downloads become icon-only
+when the uncovered canvas is narrow. Play is a secondary preview action with an
+icon-only button in compact layouts. Preset and Key dropdowns contain their Preview/Use actions, as do
 Mode, Timing grid, Instrument, and Octave. Desktop previews keep the menu and
 Tune open for comparison; on mobile an audition closes both and focuses the roll.
 Reopening Tune restores the last menu. Use applies and closes the menu. Applied
@@ -109,7 +109,7 @@ Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
 Tune uses a tonal toolbox with a strong blue category selection and quieter reset
 controls. **Playback sound** groups Instrument and Octave. **Melody correction**
 places Preset and Key directly above the correction tabs and sliders, keeping the
-recipe beside the values it controls. Rename lives in the header, with duplicate,
+recipe beside the values it controls. Rename lives in the header, with Versions, duplicate,
 delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
 keeps external MIDI selection in that menu.
 
@@ -118,7 +118,9 @@ drag pans both axes on either canvas; Ctrl+wheel zooms time around the pointer,
 and Shift+wheel changes note height. On touchscreens, drag to pan and pinch horizontally
 to zoom time or vertically to change note height, without zooming the page. Tune
 stays visible before Play and Download, matches Play’s desktop size, and toggles its panel
-with an active highlight. Trace overlay stays at bottom left. The pan
+with an active highlight. Undo and Redo sit immediately left of Tune on the MIDI
+canvas. Trace overlay stays at bottom left, beside the zoom controls whenever they
+fit; the controls wrap only when space runs out. The pan
 slider sits above the buttons, keeping the buttons fixed when it appears. Playback
 follows the playhead through the uncovered area and highlights sounding notes.
 Real preset and key previews appear on the roll with a preview label; regular
@@ -352,7 +354,8 @@ preview. Starting another preview replaces it.
 
 ### Undo, redo, and saved versions
 
-Global **Undo** and **Redo** remain available with Tune closed. They walk completed
+Global **Undo** and **Redo** sit left of Tune on the MIDI canvas and remain
+available with Tune closed. They walk completed
 musical edits in order: pitch changes, muting, tuning, playback settings, resets,
 and version restores. Dragging a slider or note updates the result live and saves
 one edit when released. Escape cancels a drag; a held slider adjustment key commits
@@ -365,7 +368,7 @@ Text fields retain their own native undo. A changed edit after Undo replaces the
 forward redo path. Reset means back to the control's default; Undo restores the
 custom values that preceded it.
 
-**Versions** lets you save the applied state under a name, preview or restore it,
+**Versions** in the top-right Recording actions menu lets you save the applied state under a name, preview or restore it,
 rename it, or delete it. Names must be nonempty and unique within the recording
 (case-insensitively). Restoring a version is an undoable edit. Saved versions
 remain available even when you edit after undoing past them.
