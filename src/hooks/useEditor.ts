@@ -21,7 +21,12 @@ import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
 import { saveRecordingName } from "../edit-storage";
-import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
+import {
+  flushEditorSaves,
+  getEditorSaveStatuses,
+  subscribeEditorSaves,
+  stopEditorSaves,
+} from "../editor-save-queue";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import {
@@ -88,11 +93,16 @@ export function useEditor(id: string) {
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
+    let loading = false;
+    let blocked = false;
     recordRef.current = null;
     setRecord(null);
     setFrames([]);
     setSelected(null);
-    void (async () => {
+    const load = async () => {
+      if (cancelled || loading) return;
+      loading = true;
+      blocked = false;
       try {
         await flushEditorSaves(id);
         const found = await getRecording(id);
@@ -110,10 +120,22 @@ export function useEditor(id: string) {
         replaceRecord(found);
         setDraftName(found.name);
       } catch {
-        /* Unsaved/conflict status in the shell supplies recovery. */
+        blocked = true;
+        /* Retry in the shell can resume this load once pending saves recover. */
+      } finally {
+        loading = false;
       }
-    })();
+    };
+    const unsubscribe = subscribeEditorSaves(() => {
+      if (!blocked || cancelled) return;
+      const pending = getEditorSaveStatuses().some(
+        (status) => status.recordingId === id && status.state !== "saved",
+      );
+      if (!pending) void load();
+    });
+    void load();
     return () => {
+      unsubscribe();
       cancelled = true;
       mounted.current = false;
     };

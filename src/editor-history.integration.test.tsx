@@ -233,3 +233,30 @@ it("rejects an editor save when another tab has replaced its expected state", as
   expect((await getRecording(rec.id))?.editHead?.commitId).toBe("other-tab");
   expect((await getRecording(rec.id))?.melody).toBeUndefined();
 });
+it("resumes a blocked editor load after a pending save is recovered", async () => {
+  const rec = recording({ id: "recover-reopened", name: "Recovered editor" });
+  await putRecording(rec);
+  const first = mount(rec.id);
+  await screen.findByDisplayValue("Recovered editor");
+  vi.spyOn(editStorage, "saveEditCommit")
+    .mockRejectedValueOnce(new Error("Storage full"))
+    .mockRejectedValueOnce(new Error("Still full"));
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.6" } });
+  });
+  await screen.findByRole("button", { name: "Retry save" });
+  first.unmount();
+  mount(rec.id);
+  await act(async () => {});
+  expect(screen.queryByDisplayValue("Recovered editor")).toBeNull();
+  await userEvent.click(screen.getByRole("button", { name: "Retry save" }));
+  await screen.findByText(/Still full/);
+  expect(screen.queryByDisplayValue("Recovered editor")).toBeNull();
+  await userEvent.click(screen.getByRole("button", { name: "Retry save" }));
+  await waitFor(async () =>
+    expect((await getRecording(rec.id))?.melody?.overrides.steadiness).toBe(0.6),
+  );
+  await screen.findByDisplayValue("Recovered editor");
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.6");
+  expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
+});

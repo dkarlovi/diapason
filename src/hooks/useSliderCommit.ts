@@ -31,6 +31,7 @@ export function useSliderCommit(
 > {
   const mode = useRef<"pointer" | "keyboard" | null>(null);
   const blocked = useRef(false);
+  const pointer = useRef<number | null>(null);
   useEffect(() => {
     if (!gesture.active && mode.current) {
       mode.current = null;
@@ -48,26 +49,36 @@ export function useSliderCommit(
   };
   return {
     onPointerDown(event) {
-      if (mode.current === "pointer") {
+      if (event.button > 0) return;
+      if (pointer.current !== null && pointer.current !== event.pointerId) {
         finish(false);
         return;
       }
-      if (event.button > 0 || event.isPrimary === false) return;
+      if (event.isPrimary === false) return;
       finish(true);
       blocked.current = false;
       mode.current = "pointer";
+      pointer.current = event.pointerId;
       gesture.begin();
       event.currentTarget.setPointerCapture?.(event.pointerId);
     },
-    onPointerUp() {
+    onPointerUp(event) {
+      if (pointer.current !== event.pointerId) return;
       finish(true);
+      pointer.current = null;
       blocked.current = false;
     },
-    onPointerCancel() {
-      finish(false);
+    onPointerCancel(event) {
+      if (pointer.current === event.pointerId) {
+        finish(false);
+        pointer.current = null;
+      }
     },
-    onLostPointerCapture() {
-      finish(false);
+    onLostPointerCapture(event) {
+      if (pointer.current === event.pointerId) {
+        finish(false);
+        pointer.current = null;
+      }
     },
     onKeyDown(event) {
       if (event.key === "Escape" && mode.current) {
@@ -95,10 +106,11 @@ export function useSliderCommit(
     },
     onChange(event) {
       if (blocked.current) return;
-      if (mode.current) gesture.update(Number(event.currentTarget.value));
+      const value = Number(event.currentTarget.value);
+      if (mode.current) gesture.update(value);
       else {
         gesture.begin();
-        gesture.update(Number(event.currentTarget.value));
+        gesture.update(value);
         gesture.commit();
       }
     },
