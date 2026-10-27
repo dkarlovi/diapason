@@ -7,10 +7,12 @@ import { getSoundProfile } from "../recording-profiles";
 import type { TransportState } from "../metronome";
 import {
   canRecord,
+  effectiveAnalysis,
   initialSetup,
   setupReducer,
   validTempo,
   type SetupAction,
+  type VoiceTarget,
 } from "../recording-setup";
 export function useRecordingSetup({
   isBusy,
@@ -59,9 +61,12 @@ export function useRecordingSetup({
     onError: setStatus,
   });
   useEffect(() => {
-    microphone.profile.current = getSoundProfile(setup.profileId);
+    microphone.profile.current = {
+      ...getSoundProfile(setup.profileId),
+      analysis: effectiveAnalysis(setup),
+    };
     microphone.gate.current = setup.room?.gate ?? 0.003;
-  }, [microphone.profile, microphone.gate, setup.profileId, setup.room]);
+  }, [microphone.profile, microphone.gate, setup]);
   useEffect(() => {
     const clock = transport ?? tempo.transport;
     microphone.monitor.current = validTempo(setup.bpm, setup.beatsPerBar)
@@ -128,14 +133,17 @@ export function useRecordingSetup({
   const chooseSound = (id: string) => {
     if (busy.current) return;
     const profile = getSoundProfile(id);
-    if (profile.id !== setupRef.current.profileId) {
+    const changed = profile.id !== setupRef.current.profileId;
+    if (changed) {
       measurements.cancel();
       tempo.stop();
     }
+    microphone.profile.current = profile;
     update({ type: "source", id: profile.id });
-    if (!currentMic() && !microphone.opening) void openDevice(setupRef.current.deviceId);
+    if (changed || (!currentMic() && !microphone.opening))
+      void openDevice(setupRef.current.deviceId);
   };
-  const runMeasurement = async (kind: "room" | "sound") => {
+  const runMeasurement = async (kind: "room" | "sound", target?: VoiceTarget) => {
     const opened = currentMic(),
       current = setupRef.current;
     if (!opened || busy.current || (kind === "room" ? !current.micReady : !current.room?.pass))
@@ -143,12 +151,26 @@ export function useRecordingSetup({
     measurements.cancel();
     tempo.stop();
     setStatus("");
-    const revision = update({ type: kind === "room" ? "room-start" : "sound-start" }).revision;
+    const next = update(
+      target
+        ? { type: "endpoint-start", target }
+        : { type: kind === "room" ? "room-start" : "sound-start" },
+    );
+    // Calibration always listens with the unbiased broad profile, including retries.
+    microphone.profile.current = getSoundProfile(current.profileId);
+    const revision = next.revision;
     try {
       await opened.context.resume();
       if (!isCurrentMic(opened) || setupRef.current.revision !== revision) return;
       if (kind === "room")
         measurements.startRoom((result) => update({ type: "room-result", revision, result }));
+      else if (target)
+        measurements.startSound(
+          current.room!.floor,
+          getSoundProfile(current.profileId),
+          (result) => update({ type: "endpoint-result", target, revision, result }),
+          true,
+        );
       else
         measurements.startSound(current.room!.floor, getSoundProfile(current.profileId), (result) =>
           update({ type: "sound-result", revision, result }),
@@ -162,6 +184,7 @@ export function useRecordingSetup({
   };
   const measureRoom = () => runMeasurement("room");
   const checkSound = () => runMeasurement("sound");
+  const checkEndpoint = (target: VoiceTarget) => runMeasurement("sound", target);
 
   const onClose = useCallback(() => {
     measurements.cancel();
@@ -195,6 +218,8 @@ export function useRecordingSetup({
     confirmMicrophone,
     measureRoom,
     checkSound,
+    checkEndpoint,
+    analysis: effectiveAnalysis(setup),
     measuring: setup.measuring,
     tempo,
     onClose,

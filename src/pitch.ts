@@ -20,9 +20,16 @@ export interface PitchOptions {
   maxFreq?: number;
   /** NSDF peak required to accept a frame. Default 0.9. */
   clarityThreshold?: number;
+  /** A soft calibration preference; clear fundamentals outside it remain valid. */
+  preferredRange?: PitchRange;
 }
 
-const DEFAULTS: Required<PitchOptions> = {
+export interface PitchRange {
+  minFreq: number;
+  maxFreq: number;
+}
+
+const DEFAULTS = {
   minFreq: 250,
   maxFreq: 3000, // human whistling tops out well below this; capping rejects HF noise latching
   clarityThreshold: 0.9,
@@ -86,6 +93,27 @@ export function createPitchDetector(sampleRate: number, opts: PitchOptions = {})
       }
     }
     if (chosenTau < 0) return { freq: null, clarity: globalMax, rms };
+
+    // A personal range only resolves ambiguity: a near-perfect periodic signal
+    // must not be moved onto one of its in-range harmonics or subharmonics.
+    const preferred = cfg.preferredRange;
+    if (preferred && chosenVal < 0.95) {
+      const first = Math.max(minLag, Math.ceil(sampleRate / preferred.maxFreq));
+      const last = Math.min(hi - 1, Math.floor(sampleRate / preferred.minFreq));
+      for (let lag = first; lag <= last; lag++) {
+        const v = nsdf[lag]!;
+        if (
+          v >= nsdf[lag - 1]! &&
+          v >= nsdf[lag + 1]! &&
+          v >= globalMax * 0.98 &&
+          v > chosenVal + 0.02
+        ) {
+          chosenTau = lag;
+          chosenVal = v;
+          break;
+        }
+      }
+    }
 
     // Parabolic interpolation around the chosen peak for sub-sample lag precision.
     const t = chosenTau;

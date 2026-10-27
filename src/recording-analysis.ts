@@ -1,11 +1,9 @@
 import type { Recording } from "./db";
-import { analysisOptionsFor } from "./recording-profiles";
-import { analyzeBuffer, type AnalyzeOptions } from "./recorder";
+import { analysisOptionsFor, type AnalysisSettings } from "./recording-profiles";
+import { analyzeBuffer } from "./recorder";
 
 /** Resolve only acoustic settings. A scheduled metronome is not microphone evidence. */
-export function resolveAnalysisOptions(
-  record: Pick<Recording, "source">,
-): Required<AnalyzeOptions> {
+export function resolveAnalysisOptions(record: Pick<Recording, "source">): AnalysisSettings {
   return { ...analysisOptionsFor(record) };
 }
 

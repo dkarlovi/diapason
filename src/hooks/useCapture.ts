@@ -9,7 +9,7 @@ import { newRecordingMelody } from "../melody/settings";
 import { fmtDate } from "../ui";
 import { dspStatus, peakLevel, roundTripLatency, trimCountIn } from "../capture-model";
 import { getSoundProfile } from "../recording-profiles";
-import { canRecord, type SetupState } from "../recording-setup";
+import { canRecord, effectiveAnalysis, type SetupState } from "../recording-setup";
 import { useNotice } from "./useNotice";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useCapture() {
@@ -173,7 +173,7 @@ export function useCapture() {
         durationSec: trimmed.length / opened.sampleRate,
         bpm: settings.bpm,
         beatsPerBar: settings.beatsPerBar,
-        source: { profileId: profile.id, analysis: { ...profile.analysis } },
+        source: { profileId: profile.id, analysis: { ...effectiveAnalysis(settings) } },
         audio: await encodeAudio(trimmed),
         waveform: summarizeWaveform(trimmed),
         capture: {

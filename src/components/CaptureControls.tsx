@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { useCapture } from "../hooks/useCapture";
 import type { SetupStep } from "../recording-setup";
 import { SOUND_PROFILES } from "../recording-profiles";
@@ -5,6 +6,7 @@ import { Button, Field } from "./primitives";
 import { CaptureActions } from "./CaptureActions";
 import { StatusChecklist } from "./StatusChecklist";
 import { TempoSetup } from "./TempoSetup";
+import { VoiceSoundCheck } from "./VoiceSoundCheck";
 
 type CaptureState = ReturnType<typeof useCapture>;
 interface ControlProps {
@@ -14,12 +16,21 @@ interface ControlProps {
 }
 
 function SoundChoice({ state, advance, back }: ControlProps) {
+  const [source, setSource] = useState(state.profile.id);
+  const profiles = SOUND_PROFILES.filter(
+    (profile) => import.meta.env.DEV || profile.id === "whistle",
+  );
+  const selected = profiles.find((profile) => profile.id === source) ?? profiles[0]!;
   return (
     <>
       <div className="capture-step-body">
         <Field label="What will you record?" htmlFor="cap-source">
-          <select id="cap-source" defaultValue={state.profile.id}>
-            {SOUND_PROFILES.map((profile) => (
+          <select
+            id="cap-source"
+            value={selected.id}
+            onChange={(event) => setSource(event.target.value)}
+          >
+            {profiles.map((profile) => (
               <option key={profile.id} value={profile.id}>
                 {profile.label}
               </option>
@@ -28,8 +39,10 @@ function SoundChoice({ state, advance, back }: ControlProps) {
         </Field>
       </div>
       <CaptureActions back={back}>
-        <Button variant="primary" onClick={() => advance(() => state.chooseSound("whistle"))}>
-          Continue with whistling
+        <Button variant="primary" onClick={() => advance(() => state.chooseSound(selected.id))}>
+          {selected.id === "whistle"
+            ? "Continue with whistling"
+            : "Continue with singing / humming"}
         </Button>
       </CaptureActions>
     </>
@@ -179,7 +192,9 @@ function AcousticSetup({
   return (
     <>
       <div className="capture-step-body">
-        <p className="setup-instruction">{config.instruction}</p>
+        <p className="setup-instruction">
+          {kind === "sound" ? state.profile.instruction : config.instruction}
+        </p>
         {kind === "room" && <InputGain state={state} />}
         {state.measuring && (
           <progress
@@ -218,7 +233,11 @@ export function CaptureControls({
     case "room":
       return <AcousticSetup state={state} kind="room" back={back} />;
     case "sound-check":
-      return <AcousticSetup state={state} kind="sound" back={back} />;
+      return state.profile.id === "whistle" ? (
+        <AcousticSetup state={state} kind="sound" back={back} />
+      ) : (
+        <VoiceSoundCheck state={state} back={back} onContinue={() => advance(() => {})} />
+      );
     case "tempo":
       return (
         <TempoSetup

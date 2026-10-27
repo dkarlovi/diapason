@@ -30,6 +30,7 @@ export function Capture() {
             connected={state.sampleRate > 0}
             transport={state.transport ?? state.tempo.transport}
             clock={state.currentMic()?.context ?? null}
+            preferredRange={state.analysis.preferredRange}
           />
         </div>
         <section className="capture-wizard" aria-label="Recording setup">
