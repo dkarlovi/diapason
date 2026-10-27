@@ -5,12 +5,14 @@ import { DEFAULT_PLAY, type InstrumentId } from "./instruments";
 const CHANNEL = 0; // MIDI channel 1
 
 // General MIDI programs (zero-based): square lead, electric piano, steel-string guitar,
-// flute, warm pad. External soundfonts approximate the browser synth voices.
+// flute, trumpet, alto sax, warm pad. External soundfonts approximate the browser synth voices.
 const PROGRAMS: Record<InstrumentId, number> = {
   beep: 80,
   epiano: 4,
   pluck: 25,
   flute: 73,
+  trumpet: 56,
+  saxophone: 65,
   pad: 89,
 };
 

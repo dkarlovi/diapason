@@ -776,7 +776,11 @@ it("keeps history beside Tune on the canvas and Versions inside recording action
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "Versions" }));
 });
 
-it("allows selecting an instrument while an external MIDI output is connected", async () => {
+it.each([
+  ["Flute", "flute"],
+  ["Trumpet", "trumpet"],
+  ["Saxophone", "saxophone"],
+])("allows selecting %s while an external MIDI output is connected", async (label, instrument) => {
   externalMidi = true;
   render(
     <MemoryRouter>
@@ -785,6 +789,6 @@ it("allows selecting an instrument while an external MIDI output is connected", 
   );
   await screen.findByDisplayValue("Melody");
   await userEvent.click(screen.getByRole("button", { name: "Choose instrument" }));
-  await userEvent.click(screen.getByRole("button", { name: "Use Instrument Flute" }));
-  await waitFor(() => expect(saved?.play?.instrument).toBe("flute"));
+  await userEvent.click(screen.getByRole("button", { name: `Use Instrument ${label}` }));
+  await waitFor(() => expect(saved?.play?.instrument).toBe(instrument));
 });

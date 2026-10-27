@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import type { InstrumentId } from "./instruments";
 
 vi.mock("./midiout", () => ({ activeOutput: () => null }));
 afterEach(() => {
@@ -30,11 +31,21 @@ async function fakeAudio() {
       };
       return node;
     },
+    createPeriodicWave: (real: Float32Array, imaginary: Float32Array) => ({ real, imaginary }),
+    createBiquadFilter: () => {
+      const node = {
+        frequency: { setValueAtTime() {}, linearRampToValueAtTime() {}, setTargetAtTime() {} },
+        Q: { value: 0 },
+        connect: (other: unknown) => other,
+      };
+      return node;
+    },
     createOscillator: () => {
       const frequency = { value: 0 };
       frequencies.push(frequency);
       const node = {
         frequency,
+        setPeriodicWave() {},
         connect: (other: unknown) => other,
         start: (at: number) => starts.push(at),
         stop: (...args: number[]) => stops.push(args),
@@ -116,3 +127,20 @@ it("stops refilling once every note is scheduled", async () => {
   expect(starts).toEqual([2.55]);
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it.each<InstrumentId>(["trumpet", "saxophone"])(
+  "plays %s at the selected octave with a sustained voice and cancellable release",
+  async (instrument) => {
+    const { audio, starts, stops, frequencies, ramps, playNotes } = await fakeAudio();
+    const note = { start: 0, duration: 0.5, midi: 67, name: "G4" };
+    const playback = playNotes([note], 0.5, { instrument, octave: -1 });
+    expect(frequencies[0]?.value).toBeCloseTo(196, 0);
+    expect(starts).toEqual([0.05, 0.05]);
+    expect(stops.every(([end]) => end! > 0.65)).toBe(true);
+    audio.currentTime = 0.3;
+    playback.stop();
+    expect(ramps.at(-1)?.[0]).toBe(0);
+    expect(stops.slice(-2).map(([at]) => at)).toEqual([0.315, 0.315]);
+    expect(note.midi).toBe(67);
+  },
+);

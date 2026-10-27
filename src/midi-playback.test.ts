@@ -65,6 +65,8 @@ it.each<[InstrumentId, number]>([
   ["epiano", 4],
   ["pluck", 25],
   ["flute", 73],
+  ["trumpet", 56],
+  ["saxophone", 65],
   ["pad", 89],
 ])("selects the General MIDI program for %s before playing notes", async (instrument, program) => {
   vi.resetModules();

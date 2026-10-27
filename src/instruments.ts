@@ -1,13 +1,15 @@
 // Small synthesized instruments for MIDI playback. Pure Web Audio, no samples, so it
 // works offline. Each voice schedules one note and returns its source nodes (for stop()).
 
-export type InstrumentId = "epiano" | "pluck" | "flute" | "pad" | "beep";
+export type InstrumentId = "epiano" | "pluck" | "flute" | "pad" | "beep" | "trumpet" | "saxophone";
 
 export const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
   { id: "beep", label: "Plain beep" },
   { id: "epiano", label: "Electric piano" },
   { id: "pluck", label: "Acoustic guitar" },
   { id: "flute", label: "Flute" },
+  { id: "trumpet", label: "Trumpet" },
+  { id: "saxophone", label: "Saxophone" },
   { id: "pad", label: "Soft pad" },
 ];
 
@@ -45,6 +47,34 @@ function envelope(
   return [g, off + release];
 }
 
+function scheduleSources(
+  sources: AudioScheduledSourceNode[],
+  at: number,
+  end: number,
+): AudioScheduledSourceNode[] {
+  for (const source of sources) {
+    source.start(at);
+    source.stop(end);
+  }
+  return sources;
+}
+
+function pitchVibrato(
+  c: AudioContext,
+  target: AudioParam,
+  at: number,
+  depth: number,
+  rate = 5,
+): OscillatorNode {
+  const vibrato = c.createOscillator();
+  vibrato.frequency.value = rate;
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0, at);
+  gain.gain.linearRampToValueAtTime(depth, at + 0.3);
+  vibrato.connect(gain).connect(target);
+  return vibrato;
+}
+
 const beep: Voice = (c, out, freq, at, dur) => {
   const osc = c.createOscillator();
   osc.type = "triangle";
@@ -72,11 +102,7 @@ const epiano: Voice = (c, out, freq, at, dur) => {
   decay.gain.setValueAtTime(1, at);
   decay.gain.setTargetAtTime(0.35, at, 0.6);
   car.connect(decay).connect(env).connect(out);
-  for (const o of [car, mod]) {
-    o.start(at);
-    o.stop(end);
-  }
-  return [car, mod];
+  return scheduleSources([car, mod], at, end);
 };
 
 /** Karplus–Strong string, rendered into a buffer; playbackRate corrects the integer-delay tuning. */
@@ -118,13 +144,7 @@ const flute: Voice = (c, out, freq, at, dur) => {
   const h2g = c.createGain();
   h2g.gain.value = 0.12;
 
-  const vib = c.createOscillator();
-  vib.frequency.value = 5;
-  const vibDepth = c.createGain();
-  vibDepth.gain.setValueAtTime(0, at);
-  vibDepth.gain.linearRampToValueAtTime(freq * 0.006, at + 0.3);
-  vib.connect(vibDepth);
-  vibDepth.connect(tone.frequency);
+  const vib = pitchVibrato(c, tone.frequency, at, freq * 0.006);
 
   const breath = c.createBufferSource();
   breath.buffer = noiseBuffer(c);
@@ -141,13 +161,35 @@ const flute: Voice = (c, out, freq, at, dur) => {
   h2.connect(h2g).connect(env);
   breath.connect(bp).connect(bg).connect(env);
   env.connect(out);
-  const srcs = [tone, h2, vib, breath];
-  for (const s of srcs) {
-    s.start(at);
-    s.stop(end);
-  }
-  return srcs;
+  return scheduleSources([tone, h2, vib, breath], at, end);
 };
+
+/** Harmonic wind tone with a brightening attack and gentle delayed vibrato. */
+function windVoice(harmonics: number[], attack: number, release: number): Voice {
+  return (c, out, freq, at, dur) => {
+    const tone = c.createOscillator();
+    tone.frequency.value = freq;
+    tone.setPeriodicWave(
+      c.createPeriodicWave(new Float32Array(harmonics.length), new Float32Array(harmonics)),
+    );
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.Q.value = 0.7;
+    filter.frequency.setValueAtTime(Math.min(8000, freq * 2), at);
+    filter.frequency.linearRampToValueAtTime(Math.min(8000, freq * 6), at + attack);
+    filter.frequency.setTargetAtTime(Math.min(8000, freq * 4), at + attack, 0.15);
+
+    const vibrato = pitchVibrato(c, tone.frequency, at, freq * 0.004, 5.5);
+
+    const [env, end] = envelope(c, at, dur, attack, release, 0.65);
+    tone.connect(filter).connect(env).connect(out);
+    return scheduleSources([tone, vibrato], at, end);
+  };
+}
+
+// Trumpet keeps bright upper harmonics; sax emphasizes the fundamental and reed-like odd partials.
+const trumpet = windVoice([0, 1, 0.75, 0.6, 0.45, 0.3, 0.18, 0.1], 0.035, 0.16);
+const saxophone = windVoice([0, 1, 0.35, 0.65, 0.18, 0.3, 0.08, 0.12], 0.045, 0.18);
 
 /** Two detuned saws through a low-pass, slow attack and release. */
 const pad: Voice = (c, out, freq, at, dur) => {
@@ -170,4 +212,12 @@ const pad: Voice = (c, out, freq, at, dur) => {
   return oscs;
 };
 
-export const VOICES: Record<InstrumentId, Voice> = { epiano, pluck, flute, pad, beep };
+export const VOICES: Record<InstrumentId, Voice> = {
+  epiano,
+  pluck,
+  flute,
+  trumpet,
+  saxophone,
+  pad,
+  beep,
+};
