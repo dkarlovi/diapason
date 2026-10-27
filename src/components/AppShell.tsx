@@ -1,3 +1,4 @@
+import { EditorSaveStatus } from "./EditorSaveStatus";
 import { useState, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router";
 import { ChevronRight } from "lucide-react";
@@ -37,6 +38,7 @@ export function AppShell({ children }: PropsWithChildren) {
           <MidiOutputPicker />
           {editor && <div id="editor-actions-slot" />}
         </header>
+        <EditorSaveStatus />
         {children}
       </main>
     </StudioTitleContext.Provider>

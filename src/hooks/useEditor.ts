@@ -1,3 +1,8 @@
+import { useEditorVersions } from "./useEditorVersions";
+import { applyEditSnapshot } from "../edit-state";
+import { validateEditSnapshot } from "../edit-storage";
+import { captureEditSnapshot } from "../edit-state";
+import { KNOB_DEFS, isKnobs, type Knobs } from "../melody/knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
 import { resolveAnalysisOptions } from "../recording-analysis";
 import { useEditorPlayback } from "./useEditorPlayback";
@@ -9,12 +14,19 @@ import { decodeAudio } from "../codec";
 import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
-import { rollPoint, useDraftPitch, useNoteDrag } from "./useNoteDrag";
+import { rollPoint, useNoteDrag } from "./useNoteDrag";
 import { processRecording, type NoteItem } from "../recording";
-import { sameMelodySetting, type MelodySetting } from "../melody/settings";
+import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
 import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
-import { useTuningHistory } from "./useTuningHistory";
+import { useEditHistory } from "./useEditHistory";
+import { saveRecordingName } from "../edit-storage";
+import {
+  flushEditorSaves,
+  getEditorSaveStatuses,
+  subscribeEditorSaves,
+  stopEditorSaves,
+} from "../editor-save-queue";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import {
@@ -39,12 +51,6 @@ export function useEditor(id: string) {
     label: string;
     applied: boolean;
   } | null>(null);
-  const {
-    previous: previousTuning,
-    remember: rememberTuning,
-    clear: clearTuningHistory,
-  } = useTuningHistory();
-
   const recordRef = useRef<Recording | null>(null);
   const pcm = useRef(new Float32Array(0));
   const stats = useRef<QualityStats | null>(null);
@@ -53,51 +59,10 @@ export function useEditor(id: string) {
   const [selected, setSelected] = useState<number | null>(null);
   const mounted = useRef(false);
 
-  const replaceRecord = useCallback(
-    (next: Recording) => {
-      rememberTuning(recordRef.current, next);
-      recordRef.current = next;
-      setRecord(next);
-    },
-    [rememberTuning],
-  );
-
-  const {
-    flush: flushMelody,
-    applyPreset,
-    changeKnob,
-    resetKnob,
-    changeKey,
-  } = useMelodySettings(recordRef, replaceRecord);
-  useEffect(() => {
-    mounted.current = true;
-    let cancelled = false;
-    recordRef.current = null;
-    setRecord(null);
-    setFrames([]);
-    setSelected(null);
-    void (async () => {
-      const found = await getRecording(id);
-      if (cancelled) return;
-      if (!found) {
-        navigate("/");
-        return;
-      }
-      const decoded = await decodeAudio(found.audio);
-      if (cancelled) return;
-      pcm.current = decoded;
-      const analyzed = analyzeBuffer(decoded, found.sampleRate, resolveAnalysisOptions(found));
-      stats.current = qualityStats(analyzed, decoded);
-      setFrames(analyzed);
-      replaceRecord(found);
-      setDraftName(found.name);
-    })();
-    return () => {
-      cancelled = true;
-      mounted.current = false;
-      flushMelody();
-    };
-  }, [flushMelody, id, navigate, replaceRecord]);
+  const replaceRecord = useCallback((next: Recording) => {
+    recordRef.current = next;
+    setRecord(next);
+  }, []);
 
   const play = record?.play ?? DEFAULT_PLAY;
   const processed = useMemo(
@@ -120,6 +85,61 @@ export function useEditor(id: string) {
     previewId,
     stopPlayback,
   } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
+  const history = useEditHistory({ record, replaceRecord, beforeChange: stopPlayback });
+  const { applyPreset, changeKnob, resetKnob, changeKey } = useMelodySettings(
+    recordRef,
+    history.change,
+  );
+  useEffect(() => {
+    mounted.current = true;
+    let cancelled = false;
+    let loading = false;
+    let blocked = false;
+    recordRef.current = null;
+    setRecord(null);
+    setFrames([]);
+    setSelected(null);
+    const load = async () => {
+      if (cancelled || loading) return;
+      loading = true;
+      blocked = false;
+      try {
+        await flushEditorSaves(id);
+        const found = await getRecording(id);
+        if (cancelled) return;
+        if (!found) {
+          navigate("/");
+          return;
+        }
+        const decoded = await decodeAudio(found.audio);
+        if (cancelled) return;
+        pcm.current = decoded;
+        const analyzed = analyzeBuffer(decoded, found.sampleRate, resolveAnalysisOptions(found));
+        stats.current = qualityStats(analyzed, decoded);
+        setFrames(analyzed);
+        replaceRecord(found);
+        setDraftName(found.name);
+      } catch {
+        blocked = true;
+        /* Retry in the shell can resume this load once pending saves recover. */
+      } finally {
+        loading = false;
+      }
+    };
+    const unsubscribe = subscribeEditorSaves(() => {
+      if (!blocked || cancelled) return;
+      const pending = getEditorSaveStatuses().some(
+        (status) => status.recordingId === id && status.state !== "saved",
+      );
+      if (!pending) void load();
+    });
+    void load();
+    return () => {
+      unsubscribe();
+      cancelled = true;
+      mounted.current = false;
+    };
+  }, [id, navigate, replaceRecord]);
   const previewMelody = useCallback(
     (change: Partial<MelodySetting>, previewId: string) => {
       const current = recordRef.current;
@@ -141,15 +161,40 @@ export function useEditor(id: string) {
     },
     [frames, previewSequence, melody],
   );
-  const showingPreview = /^(preset|key|knob)-/.test(previewId ?? "");
+  const versions = useEditorVersions({
+    recordingId: id,
+    history,
+    beforeAction: stopPlayback,
+    preview(version) {
+      const current = recordRef.current;
+      if (!current) return;
+      validateEditSnapshot(version.commit.snapshot, current.durationSec);
+      const target = applyEditSnapshot(current, version.commit.snapshot);
+      const result = processRecording(target, frames);
+      const previewId = `version-${version.id}`;
+      setAudition(result);
+      setCandidate({ id: previewId, label: version.name, applied: false });
+      previewSequence(result.notes, previewId, undefined, 0, target.play ?? DEFAULT_PLAY);
+    },
+  });
+  const showingPreview = /^(preset|key|knob|version)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
   const baseItems = displayed?.items ?? appliedItems;
-  const draft = useDraftPitch(
-    baseItems,
-    selected === null ? undefined : selectedSourceItem(baseItems, selected),
-    previewNote,
+  const items = baseItems;
+  const displayNotes = useMemo(
+    () => items.filter((item) => !item.muted).map((item) => item.note),
+    [items],
   );
-  const { items, notes: displayNotes, selected: selectedItem } = draft;
+  const selectedItem = selected === null ? undefined : selectedSourceItem(items, selected);
+  useEffect(() => {
+    if (
+      !showingPreview &&
+      !history.drafting &&
+      selected !== null &&
+      !selectedSourceItem(appliedItems, selected)
+    )
+      setSelected(null);
+  }, [showingPreview, history.drafting, selected, appliedItems]);
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const selectNote = useCallback(
@@ -208,32 +253,13 @@ export function useEditor(id: string) {
   });
   const rollView = viewport.view;
 
-  const persist = useCallback((next: Recording) => {
-    void putRecording(next);
-  }, []);
-  const undoTuning = () => {
-    const current = recordRef.current;
-    if (!current || previousTuning?.id !== current.id) return;
-    stopPlayback();
-    flushMelody();
-    const next = { ...current };
-    if (previousTuning.melody) next.melody = previousTuning.melody;
-    else delete next.melody;
-    if (previousTuning.play) next.play = previousTuning.play;
-    else delete next.play;
-    replaceRecord(next);
-    clearTuningHistory();
-    persist(next);
-  };
   const auditionRef = useRef(false);
   auditionRef.current = showingPreview;
-  const commitEdits = (noteEdits: NoteEdits) => {
+  const commitEdits = (noteEdits: NoteEdits, label = "Edit pitch") => {
     const current = recordRef.current;
     if (!current || auditionRef.current) return;
     stopPlayback();
-    const next = { ...current, noteEdits };
-    replaceRecord(next);
-    persist(next);
+    history.change(label, (value) => ({ ...value, noteEdits }));
   };
   const currentSelected = () => {
     const current = recordRef.current;
@@ -252,34 +278,67 @@ export function useEditor(id: string) {
     const item = currentSelected();
     if (item) setSelectedPitch(item.note.midi + delta);
   };
+  const knobBaseline = useRef<Recording | null>(null);
+  const pitchBaseline = useRef<{ record: Recording; item: NoteItem } | null>(null);
   claimRef.current = useNoteDrag({
     rollRef,
     selected: selectedItem,
     view: rollView,
     enabled: !showingPreview,
-    preview: draft.preview,
-    commit: setSelectedPitch,
+    gesture: {
+      active: history.drafting,
+      begin() {
+        history.finish();
+        const item = currentSelected(),
+          current = recordRef.current;
+        if (!item || !current) return;
+        pitchBaseline.current = { record: current, item };
+        history.begin("Edit pitch");
+      },
+      update(midi) {
+        const baseline = pitchBaseline.current;
+        if (!baseline) return;
+        const { record: initial, item } = baseline;
+        history.update(
+          captureEditSnapshot(
+            midi === item.note.midi
+              ? initial
+              : {
+                  ...initial,
+                  noteEdits: stepPitchEdit(
+                    initial.noteEdits,
+                    item.source,
+                    midi,
+                    item.automatic.midi,
+                    uid(),
+                  ),
+                },
+          ),
+        );
+        previewNote({ ...item.note, midi });
+      },
+      commit: history.commit,
+      cancel: history.cancel,
+    },
   });
   const resetSelectedPitch = () => {
     if (auditionRef.current) return;
     const item = currentSelected();
     if (item && recordRef.current && item.editState.axes.includes("pitch"))
-      commitEdits(resetPitchEdit(recordRef.current.noteEdits, item.source));
+      commitEdits(resetPitchEdit(recordRef.current.noteEdits, item.source), "Reset pitch");
   };
   const resetAllNoteEdits = () => {
     if (auditionRef.current || !recordRef.current?.noteEdits?.pitch.length) return;
     if (confirm("Reset all note edits, including inactive edits?"))
-      commitEdits({ version: 1, pitch: [] });
+      commitEdits({ version: 1, pitch: [] }, "Reset all note edits");
   };
   const changePlay = useCallback(
     (settings: PlaySettings) => {
       const current = recordRef.current;
       if (!current) return;
-      const next = { ...current, play: settings };
-      replaceRecord(next);
-      persist(next);
+      history.change("Change playback sound", (value) => ({ ...value, play: settings }));
     },
-    [replaceRecord, persist],
+    [history.change],
   );
 
   const commitName = useCallback(() => {
@@ -289,10 +348,12 @@ export function useEditor(id: string) {
     setDraftName(name);
     const next = { ...current, name };
     replaceRecord(next);
-    persist(next);
-  }, [draftName, persist, replaceRecord]);
+    void saveRecordingName(current.id, name).catch(() => {});
+  }, [draftName, replaceRecord]);
 
   const duplicate = useCallback(async () => {
+    history.finish();
+    await history.flush();
     const current = recordRef.current;
     if (!current) return;
     const copy = {
@@ -302,16 +363,19 @@ export function useEditor(id: string) {
       name: `${current.name} (copy)`,
       createdAt: Date.now(),
     };
+    delete copy.editHead;
     await putRecording(copy);
     if (mounted.current) navigate(recordingPath(copy.id));
-  }, [navigate]);
+  }, [navigate, history.finish, history.flush]);
 
   const remove = useCallback(async () => {
     const current = recordRef.current;
     if (!current || !confirm(`Delete “${current.name}”?`)) return;
+    history.cancel();
+    await stopEditorSaves(current.id);
     await deleteRecording(current.id);
     if (mounted.current) navigate("/");
-  }, [navigate]);
+  }, [navigate, history.cancel]);
 
   const noteAt = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
@@ -324,13 +388,14 @@ export function useEditor(id: string) {
   const muteNote = useCallback(
     (item: NoteItem) => {
       const current = recordRef.current;
-      if (!current) return;
+      if (!current || auditionRef.current) return;
       stopPlayback();
-      const next = { ...current, muted: toggleMuted(current.muted ?? [], item) };
-      replaceRecord(next);
-      persist(next);
+      history.change(item.muted ? "Unmute note" : "Mute note", (value) => ({
+        ...value,
+        muted: toggleMuted(value.muted ?? [], item),
+      }));
     },
-    [stopPlayback, replaceRecord, persist],
+    [stopPlayback, history.change],
   );
   const clickRoll = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
@@ -355,8 +420,33 @@ export function useEditor(id: string) {
 
   return {
     record,
+    versions,
+    editingDisabled: !record || versions.busy,
+    drafting: history.drafting,
+    beginKnob: (key: keyof Knobs) => {
+      history.finish();
+      knobBaseline.current = recordRef.current;
+      history.begin(`Change ${KNOB_DEFS.find((def) => def.key === key)?.label ?? key}`);
+    },
+    draftKnob: (key: keyof Knobs, value: number) => {
+      const current = knobBaseline.current;
+      if (!current || !isKnobs({ [key]: value })) return;
+      const melody = melodySettingFor(current);
+      history.update(
+        captureEditSnapshot(
+          value === resolveKnobs(melody.preset, melody.overrides)[key]
+            ? current
+            : {
+                ...current,
+                melody: { ...melody, overrides: { ...melody.overrides, [key]: value } },
+              },
+        ),
+      );
+    },
+    commitGesture: history.commit,
+    cancelGesture: history.cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
-    canEditPitch: !showingPreview,
+    canEditPitch: !showingPreview && !versions.busy,
     shiftSelectedPitch,
     resetSelectedPitch,
     resetAllNoteEdits,
@@ -365,8 +455,12 @@ export function useEditor(id: string) {
     displayNotes,
     previewLabel,
     previewApplied: activeCandidate?.applied ?? false,
-    canUndoTuning: previousTuning?.id === record?.id && !!record,
-    undoTuning,
+    canUndo: history.canUndo,
+    canRedo: history.canRedo,
+    undoLabel: history.undoLabel,
+    redoLabel: history.redoLabel,
+    undo: history.undo,
+    redo: history.redo,
     stopPlayback,
     viewport,
     draftName,

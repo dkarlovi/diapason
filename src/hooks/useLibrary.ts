@@ -1,3 +1,4 @@
+import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
 import { resolveAnalysisOptions } from "../recording-analysis";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -46,6 +47,7 @@ export function useLibrary() {
 
   const reload = useCallback(async () => {
     stopPlayback();
+    await flushEditorSaves().catch(() => {});
     const records = await allRecordings();
     if (!mounted.current) return;
     setRecordings(records);
@@ -108,6 +110,7 @@ export function useLibrary() {
 
   const duplicate = useCallback(
     async (id: string) => {
+      await flushEditorSaves(id);
       const record = await getRecording(id);
       if (!record) return;
       const copy: Recording = {
@@ -116,6 +119,7 @@ export function useLibrary() {
         name: `${record.name} (copy)`,
         createdAt: Date.now(),
       };
+      delete copy.editHead;
       await putRecording(copy);
       await reload();
     },
@@ -127,6 +131,7 @@ export function useLibrary() {
       if (!confirm(`Delete “${record.name}”? This can't be undone.`)) return;
       stopPlayback();
       decoded.current.delete(record.id);
+      await stopEditorSaves(record.id);
       await deleteRecording(record.id);
       await reload();
     },

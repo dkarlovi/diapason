@@ -1,5 +1,5 @@
 import type { MutedNote, Recording } from "./db";
-import { midiToName, type Frame } from "./notes";
+import { type Frame } from "./notes";
 import type { QualityStats } from "./recorder";
 import { analysisOptionsFor } from "./recording-profiles";
 import type { ReportInput } from "./diagnostics";
@@ -78,29 +78,6 @@ export function hitsSelectedNote(
 /** The pitch a vertical drag of `dy` pixels lands on, snapped to semitones. */
 export function draggedPitch(from: number, dy: number, semitonePixels: number): number {
   return Math.max(0, Math.min(127, from - Math.round(dy / (semitonePixels || 1))));
-}
-
-/** Items with the selected note shown at a dragged pitch, before the edit is saved. */
-export function withDraftPitch(
-  items: NoteItem[],
-  target: NoteItem | undefined,
-  midi: number | null,
-): NoteItem[] {
-  if (!target || midi === null) return items;
-  const changed = midi !== target.automatic.midi;
-  return items.map((item) =>
-    item === target
-      ? {
-          ...item,
-          note: { ...item.note, midi, name: midiToName(midi) },
-          editState: {
-            ...item.editState,
-            axes: changed ? ["pitch"] : [],
-            differingAxes: changed ? ["pitch"] : [],
-          },
-        }
-      : item,
-  );
 }
 
 export function toggleMuted(muted: MutedNote[], item: NoteItem): MutedNote[] {

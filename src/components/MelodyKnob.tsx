@@ -1,3 +1,4 @@
+import { useSliderCommit, type EditGesture } from "../hooks/useSliderCommit";
 import { useId } from "react";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
@@ -13,6 +14,7 @@ export function MelodyKnob({
   onReset,
   onPreview,
   previewId,
+  gesture,
 }: {
   def: KnobDef;
   value: Knobs[keyof Knobs];
@@ -21,8 +23,10 @@ export function MelodyKnob({
   onReset: MelodyPanelProps["resetKnob"];
   onPreview(value: number | string): void;
   previewId: string | null;
+  gesture: EditGesture;
 }) {
   const id = useId();
+  const slider = useSliderCommit(gesture);
   const text =
     def.kind === "range" && def.max <= 1 && def.key !== "levelGate"
       ? `${Math.round(Number(value) * 100)}%`
@@ -72,7 +76,7 @@ export function MelodyKnob({
         value={value}
         aria-valuetext={text}
         disabled={disabled}
-        onChange={(event) => onChange(def.key, Number(event.target.value))}
+        {...slider}
       />
       <span className="val">{text}</span>
       <ResetControl label={def.label} disabled={disabled} onReset={() => onReset(def.key)} />

@@ -1,3 +1,5 @@
+import { flushEditorSaves } from "../editor-save-queue";
+import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
@@ -9,6 +11,10 @@ const rec = recording({
   durationSec: 1,
   melody: { preset: "as-played", key: "auto", overrides: {} },
 });
+vi.mock("../edit-storage", async (original) => ({
+  ...(await original<typeof import("../edit-storage")>()),
+  ...(await import("../test-support/editor-storage-double")).editorStorageDouble,
+}));
 vi.mock("../db", () => ({
   getRecording: async () => rec,
   putRecording: async (r: Recording) => {
@@ -30,39 +36,41 @@ vi.mock("../trace", async (original) => ({
   ...(await original<typeof import("../trace")>()),
   drawTrace() {},
 }));
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await flushEditorSaves();
+  resetEditorStorageDouble();
   saved = undefined;
 });
 it("guards direct mutation/reset during auditions and restores the applied selection anchor", async () => {
   const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
   await waitFor(() => expect(result.current.items).toHaveLength(1));
-  act(() => result.current.selectNote(result.current.items[0]!));
-  act(() => {
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => {
     result.current.shiftSelectedPitch(1);
     result.current.shiftSelectedPitch(1);
     result.current.shiftSelectedPitch(-1);
   });
   expect(saved?.noteEdits?.pitch[0]?.midi).toBe(70);
   const snapshot = JSON.stringify(saved);
-  act(() => result.current.previewMelody({ preset: "clean" }, "preset-clean"));
+  await act(async () => result.current.previewMelody({ preset: "clean" }, "preset-clean"));
   expect(result.current.canEditPitch).toBe(false);
-  act(() => {
+  await act(async () => {
     result.current.shiftSelectedPitch(1);
     result.current.resetSelectedPitch();
     result.current.resetAllNoteEdits();
   });
   expect(JSON.stringify(saved)).toBe(snapshot);
-  act(() => result.current.stopPlayback());
+  await act(async () => result.current.stopPlayback());
   expect(result.current.selectedNote?.midi).toBe(70);
-  act(() => result.current.resetSelectedPitch());
+  await act(async () => result.current.resetSelectedPitch());
   expect(result.current.selectedNote?.midi).toBe(69);
 });
 it("keeps independently cloned edits when duplicating and survives reload", async () => {
   const { result, unmount } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
   await waitFor(() => expect(result.current.items).toHaveLength(1));
-  act(() => result.current.selectNote(result.current.items[0]!));
-  act(() => result.current.shiftSelectedPitch(1));
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => result.current.shiftSelectedPitch(1));
   const original = saved!;
   await act(async () => result.current.duplicate());
   expect(saved!.id).not.toBe(original.id);
@@ -76,9 +84,35 @@ it.each([0, 127])("makes MIDI endpoint %s moves no-ops", async (midi) => {
   rec.noteEdits = { version: 1, pitch: [{ id: "endpoint", midi, ranges: [{ start: 0, end: 1 }] }] };
   const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
   await waitFor(() => expect(result.current.items).toHaveLength(1));
-  act(() => result.current.selectNote(result.current.items[0]!));
-  act(() => result.current.shiftSelectedPitch(midi === 0 ? -1 : 1));
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => result.current.shiftSelectedPitch(midi === 0 ? -1 : 1));
   expect(saved).toBeUndefined();
   expect(result.current.selectedNote?.midi).toBe(midi);
   delete rec.noteEdits;
+});
+it("does not pin a new override when a slider returns to its starting value", async () => {
+  const { resolveKnobs } = await import("../melody/knobs");
+  const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  const initial = resolveKnobs(
+    result.current.melody.preset,
+    result.current.melody.overrides,
+  ).steadiness;
+  await act(async () => {
+    result.current.beginKnob("steadiness");
+    result.current.draftKnob("steadiness", 0.7);
+    result.current.draftKnob("steadiness", initial);
+    result.current.commitGesture();
+  });
+  expect(result.current.canUndo).toBe(false);
+  expect(result.current.record?.melody?.overrides.steadiness).toBeUndefined();
+});
+it("does not commit mute edits against an unapplied audition", async () => {
+  const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => result.current.previewMelody({ preset: "clean" }, "preset-clean"));
+  await act(async () => result.current.muteSelected());
+  expect(result.current.record?.muted).toBeUndefined();
+  expect(result.current.canUndo).toBe(false);
 });

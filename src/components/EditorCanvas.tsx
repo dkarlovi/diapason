@@ -1,3 +1,4 @@
+import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
@@ -100,19 +101,22 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
   return (
     <div className="editor-track-actions">
       {kind === "midi" && (
-        <Button
-          className="editor-open-tune"
-          aria-label="Toggle Tune"
-          aria-expanded={layout.open}
-          aria-pressed={layout.open}
-          onClick={() => {
-            // On phones the docked note inspector and Tune share the same space.
-            if (layout.mobile && !layout.open) state.clearSelection();
-            layout.setOpen(!layout.open);
-          }}
-        >
-          Tune ☷
-        </Button>
+        <>
+          <EditorHistoryActions state={state} />
+          <Button
+            className="editor-open-tune"
+            aria-label="Toggle Tune"
+            aria-expanded={layout.open}
+            aria-pressed={layout.open}
+            onClick={() => {
+              // On phones the docked note inspector and Tune share the same space.
+              if (layout.mobile && !layout.open) state.clearSelection();
+              layout.setOpen(!layout.open);
+            }}
+          >
+            Tune ☷
+          </Button>
+        </>
       )}
       <Button
         className="editor-play playback-control"
@@ -164,14 +168,16 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
       </p>
       <NoteDetail key={state.selectedNoteId ?? "none"} state={state} layout={layout} />
       <PlaybackStatus state={state} />
-      <Button
-        className="editor-trace-toggle"
-        aria-pressed={state.viewport.traceOverlay}
-        onClick={() => state.viewport.setTraceOverlay(!state.viewport.traceOverlay)}
-      >
-        Trace overlay
-      </Button>
-      <EditorNavigation state={state} />
+      <div className="editor-canvas-footer">
+        <Button
+          className="editor-trace-toggle"
+          aria-pressed={state.viewport.traceOverlay}
+          onClick={() => state.viewport.setTraceOverlay(!state.viewport.traceOverlay)}
+        >
+          Trace overlay
+        </Button>
+        <EditorNavigation state={state} />
+      </div>
     </>
   );
 }
@@ -184,8 +190,10 @@ export function EditorCanvas(props: CanvasProps) {
       hidden={kind === "audio" && layout.sourceHidden}
     >
       <CanvasPlot kind={kind} state={state} />
-      <TrackLabel kind={kind} state={state} />
-      <TrackActions kind={kind} state={state} layout={layout} />
+      <div className="editor-track-toolbar">
+        <TrackLabel kind={kind} state={state} />
+        <TrackActions kind={kind} state={state} layout={layout} />
+      </div>
       {kind === "midi" && <MidiOverlays state={state} layout={layout} />}
     </section>
   );

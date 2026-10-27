@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useNoteDrag } from "./useNoteDrag";
@@ -23,9 +24,39 @@ function setup(enabled = true) {
   document.body.append(canvas);
   const preview = vi.fn();
   const commit = vi.fn();
-  const hook = renderHook(() =>
-    useNoteDrag({ rollRef: { current: canvas }, selected: item, view, enabled, preview, commit }),
-  );
+  let midi: number | null = null;
+  const rollRef = { current: canvas };
+  const hook = renderHook(() => {
+    const [active, setActive] = useState(false);
+    return useNoteDrag({
+      rollRef,
+      selected: item,
+      view,
+      enabled,
+      gesture: {
+        active,
+        begin() {
+          setActive(true);
+          midi = null;
+        },
+        update(value) {
+          midi = value;
+          preview(value);
+        },
+        commit() {
+          if (midi !== null) {
+            preview(null);
+            commit(midi);
+          }
+          setActive(false);
+        },
+        cancel() {
+          if (midi !== null) preview(null);
+          setActive(false);
+        },
+      },
+    });
+  });
   const pointer = (type: string, y: number, props: Record<string, unknown> = {}) => {
     const event = new MouseEvent(type, {
       clientX: 500,

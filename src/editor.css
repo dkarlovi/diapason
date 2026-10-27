@@ -38,6 +38,17 @@
   user-select: none;
   -webkit-user-select: none;
 }
+.editor-track-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: var(--tune-obstruction);
+  container: editor-track / inline-size;
+  pointer-events: none;
+}
+.editor-track-toolbar .editor-track-actions {
+  pointer-events: auto;
+}
 .editor-track-label {
   position: absolute;
   left: 16px;
@@ -45,7 +56,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-width: calc(100% - var(--tune-obstruction) - 340px);
+  max-width: calc(100% - 520px);
   pointer-events: none;
 }
 .editor-track-label > * {
@@ -56,7 +67,7 @@
   border-radius: 2px;
 }
 .editor-audio .editor-track-label {
-  max-width: calc(100% - var(--tune-obstruction) - 250px);
+  max-width: calc(100% - 250px);
 }
 .editor-track-label h2 {
   margin: 0;
@@ -83,7 +94,7 @@
 .editor-track-actions {
   position: absolute;
   top: 13px;
-  right: calc(var(--tune-obstruction) + 16px);
+  right: 16px;
   display: flex;
   gap: 6px;
 }
@@ -378,12 +389,26 @@
 .melody-controls .ctl:has(select) .val {
   display: none;
 }
-.editor-navigation {
+.editor-canvas-footer {
   position: absolute;
   z-index: 4;
+  left: 14px;
   right: calc(var(--tune-obstruction) + 12px);
   bottom: 12px;
-  max-width: calc(100% - var(--tune-obstruction) - 24px);
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+.editor-canvas-footer > * {
+  pointer-events: auto;
+}
+.editor-navigation {
+  max-width: 100%;
+  min-width: 0;
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -425,9 +450,6 @@
   accent-color: var(--color-primary);
 }
 .studio-shell .editor-trace-toggle {
-  position: absolute;
-  left: 14px;
-  bottom: 12px;
   min-height: 30px;
   font-size: 0.75rem;
 }
@@ -518,23 +540,12 @@
   }
   .editor-track-label {
     left: 10px;
-    max-width: calc(100% - 280px);
-  }
-  .editor-audio .editor-track-label {
-    max-width: calc(100% - 190px);
   }
   .editor-track-label h2,
   .editor-track-label time {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .studio-shell .editor-track-actions .editor-play {
-    width: 36px;
-    padding: 6px;
-  }
-  .editor-play-label {
-    display: none;
   }
   .editor-track-label h2,
   .editor-track-label > span {
@@ -546,20 +557,15 @@
   .editor-track-actions {
     right: 10px;
   }
-  .studio-shell .editor-trace-toggle {
-    bottom: 12px;
+  .editor-canvas-footer {
     left: 10px;
+    right: 8px;
   }
   .editor-playing {
     bottom: 96px;
     left: 10px;
     font-size: 0.75rem;
     max-width: calc(100% - 20px);
-  }
-  .editor-navigation {
-    right: 8px;
-    max-width: calc(100% - 24px);
-    bottom: 52px;
   }
   .editor-zoom-actions {
     flex-wrap: nowrap;
@@ -848,4 +854,114 @@
   border: 3px double var(--color-primary);
   padding: 0 10px;
   background: var(--color-card);
+}
+
+/* History is global to the editor, including when Tune is closed. */
+#editor-actions-slot,
+.editor-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.editor-versions {
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(640px, calc(100dvh - 100px));
+  overflow: auto;
+  padding: 16px;
+}
+.studio-shell .editor-versions-back {
+  min-height: 28px;
+  padding: 0 0 8px;
+  margin-bottom: 8px;
+  background: transparent;
+  border: 0;
+}
+.editor-versions h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.editor-versions p,
+.editor-version-row time {
+  font-size: 0.8rem;
+  color: var(--color-muted-foreground);
+}
+.editor-versions label {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.editor-versions input {
+  width: 100%;
+  min-width: 0;
+}
+.editor-versions form {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.editor-versions ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.editor-version-row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+}
+.editor-version-row strong {
+  overflow-wrap: anywhere;
+}
+.editor-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.editor-save-status {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+.editor-save-status > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+/* Measure the uncovered canvas, so a wide Tune panel also triggers compact controls. */
+@container editor-track (max-width: 760px) {
+  .editor-track-label {
+    max-width: calc(100% - 340px);
+  }
+  .editor-audio .editor-track-label {
+    max-width: calc(100% - 190px);
+  }
+  .editor-history-actions > button > span,
+  .editor-play-label {
+    display: none;
+  }
+  .studio-shell .editor-track-actions :is(.editor-play, .editor-history-actions > button) {
+    width: 36px;
+    padding: 6px;
+  }
+}
+@container editor-track (max-width: 480px) {
+  .editor-track-label {
+    max-width: calc(100% - 280px);
+  }
+  .editor-audio .editor-track-label {
+    max-width: calc(100% - 110px);
+  }
+  .editor-download > span {
+    display: none;
+  }
+  .studio-shell .editor-track-actions .editor-download {
+    width: 36px;
+    padding: 6px;
+  }
 }

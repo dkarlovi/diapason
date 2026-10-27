@@ -29,6 +29,11 @@ function Harness() {
   return (
     <MelodyPanel
       melody={melody}
+      drafting={false}
+      beginKnob={() => {}}
+      draftKnob={(key, value) => change({ overrides: { ...melody.overrides, [key]: value } })}
+      commitGesture={() => {}}
+      cancelGesture={() => {}}
       interpretation={interpretation}
       disabled={false}
       previewId={null}

@@ -1,36 +1,26 @@
-import { useCallback, useRef, type RefObject } from "react";
-import { putRecording, type Recording } from "../db";
-import { melodySettingFor, type MelodySetting } from "../melody/settings";
+import { useCallback, type RefObject } from "react";
+import { type Recording } from "../db";
+import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
 import { isKnobs, type Knobs, type PresetId } from "../melody/knobs";
 import type { KeyChoice } from "../melody/interpret";
 export function useMelodySettings(
   recordRef: RefObject<Recording | null>,
-  replace: (next: Recording) => void,
+  change: (label: string, transform: (record: Recording) => Recording) => void,
 ) {
-  const timer = useRef(0),
-    dirty = useRef(false);
-  const flush = useCallback(() => {
-    window.clearTimeout(timer.current);
-    timer.current = 0;
-    if (!dirty.current) return;
-    dirty.current = false;
-    if (recordRef.current) void putRecording(recordRef.current);
-  }, [recordRef]);
   const update = useCallback(
-    (change: (setting: MelodySetting) => MelodySetting, immediate = false) => {
-      const current = recordRef.current;
-      if (!current) return;
-      const next = { ...current, melody: change(melodySettingFor(current)) };
-      replace(next);
-      dirty.current = true;
-      window.clearTimeout(timer.current);
-      if (immediate) flush();
-      else timer.current = window.setTimeout(flush, 300);
+    (transform: (setting: MelodySetting) => MelodySetting, label = "Change tuning") => {
+      if (recordRef.current)
+        change(label, (current) => {
+          const before = melodySettingFor(current);
+          const melody = transform(before);
+          return sameMelodySetting(before, melody) ? current : { ...current, melody };
+        });
     },
-    [recordRef, replace, flush],
+    [recordRef, change],
   );
   const applyPreset = useCallback(
-    (preset: PresetId) => update((setting) => ({ ...setting, preset, overrides: {} }), true),
+    (preset: PresetId) =>
+      update((setting) => ({ ...setting, preset, overrides: {} }), "Apply preset"),
     [update],
   );
   const changeKnob = useCallback(
@@ -42,16 +32,19 @@ export function useMelodySettings(
   );
   const resetKnob = useCallback(
     (key?: keyof Knobs) =>
-      update((setting) => {
-        const overrides = { ...setting.overrides };
-        if (key) delete overrides[key];
-        return { ...setting, overrides: key ? overrides : {} };
-      }),
+      update(
+        (setting) => {
+          const overrides = { ...setting.overrides };
+          if (key) delete overrides[key];
+          return { ...setting, overrides: key ? overrides : {} };
+        },
+        key ? `Reset ${key}` : "Reset tuning controls",
+      ),
     [update],
   );
   const changeKey = useCallback(
-    (key: KeyChoice) => update((setting) => ({ ...setting, key }), true),
+    (key: KeyChoice) => update((setting) => ({ ...setting, key }), "Change key"),
     [update],
   );
-  return { flush, applyPreset, changeKnob, resetKnob, changeKey };
+  return { applyPreset, changeKnob, resetKnob, changeKey };
 }
