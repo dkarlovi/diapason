@@ -1,3 +1,4 @@
+import { useEditorHistoryKeys } from "../hooks/useEditorHistoryKeys";
 import { useEffect, type CSSProperties } from "react";
 import { Link } from "react-router";
 import { useEditor } from "../hooks/useEditor";
@@ -11,6 +12,13 @@ import { Button } from "./primitives";
 export function Editor({ id }: { id: string }) {
   const state = useEditor(id);
   const layout = useEditorLayout();
+  useEditorHistoryKeys({
+    enabled: !state.editingDisabled,
+    canUndo: state.canUndo,
+    canRedo: state.canRedo,
+    undo: state.undo,
+    redo: state.redo,
+  });
   useStudioTitle(state.record?.name ?? "Recording");
   const { setVisible } = state.viewport;
   useEffect(() => {

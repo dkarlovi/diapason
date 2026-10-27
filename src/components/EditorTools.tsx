@@ -51,7 +51,7 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
             commitGesture={state.commitGesture}
             cancelGesture={state.cancelGesture}
             interpretation={state.interpretation}
-            disabled={!state.record}
+            disabled={state.editingDisabled}
             previewId={state.previewId}
             applyPreset={(id) => {
               state.stopPlayback();
@@ -86,14 +86,7 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
         </div>
         <div className="editor-tune-footer">
           <Button
-            disabled={!state.canUndo}
-            aria-label={state.undoLabel ? `Undo ${state.undoLabel.toLowerCase()}` : "Undo"}
-            onClick={state.undo}
-          >
-            Undo
-          </Button>
-          <Button
-            disabled={!state.record}
+            disabled={state.editingDisabled}
             onClick={() => {
               if (!confirm("Reset all tuning controls to the current preset defaults?")) return;
               state.stopPlayback();

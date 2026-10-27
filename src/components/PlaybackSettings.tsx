@@ -14,13 +14,13 @@ export function PlaybackSettings({
     {
       label: "Instrument",
       key: "instrument" as const,
-      disabled: !state.record || state.externalOutput,
+      disabled: state.editingDisabled || state.externalOutput,
       options: INSTRUMENTS.map(({ id, label }) => ({ value: id, label })),
     },
     {
       label: "Octave",
       key: "octave" as const,
-      disabled: !state.record,
+      disabled: state.editingDisabled,
       options: [1, 0, -1, -2, -3].map((value) => ({
         value,
         label:
