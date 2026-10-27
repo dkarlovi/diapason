@@ -272,7 +272,7 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | MIDI file writer                | `src/midi.ts`                                   | Standard MIDI File (Type 0), no deps                            |
 | Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled                |
 | Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                           |
-| Audio and note playback         | `src/playback.ts`, `src/instruments.ts`         | Raw audio or synthesized notes, with instrument/octave settings |
+| Audio and note playback         | `src/playback.ts`, `src/instruments.ts`         | Raw audio, or synth notes scheduled 2s ahead of the audio clock |
 | Web MIDI output                 | `src/midiout.ts`, `src/midi-playback.ts`        | Device selection and scheduled external note playback           |
 | Tempo estimation                | `src/tempo-model.ts`, `src/clap-detector.ts`    | Estimate BPM from taps or microphone claps                      |
 | Sound source profiles           | `src/recording-profiles.ts`                     | Whistle analysis settings and calibration checks                |

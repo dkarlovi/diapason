@@ -20,13 +20,18 @@ function context(): AudioContext {
   return ctx;
 }
 
+/** Notes are turned into voices this far ahead of the audio clock. Longer than the ~1s timer
+ * throttling of background tabs, so playback keeps going when the tab is hidden. */
+const LOOKAHEAD = 2;
+const REFILL_MS = 250;
+
 function track(
   c: AudioContext,
+  t0: number,
   duration: number,
   nodes: AudioScheduledSourceNode[],
   output?: GainNode,
 ): Playback {
-  const t0 = c.currentTime + 0.05;
   let stopped = false;
   return {
     position: () => {
@@ -63,9 +68,9 @@ export function playPcm(pcm: Float32Array, sampleRate: number): Playback {
   const src = c.createBufferSource();
   src.buffer = buf;
   src.connect(c.destination);
-  const pb = track(c, buf.duration, [src]);
-  src.start(c.currentTime + 0.05);
-  return pb;
+  const t0 = c.currentTime + 0.05;
+  src.start(t0);
+  return track(c, t0, buf.duration, [src]);
 }
 
 /** Play notes on the selected MIDI port if one is connected, else through the browser synth. */
@@ -83,12 +88,30 @@ export function playNotes(
   const out = c.createGain();
   out.gain.value = 0.3;
   out.connect(c.destination);
+  // The playhead and every voice share this start, however long scheduling takes.
   const t0 = c.currentTime + 0.05;
   const srcs: AudioScheduledSourceNode[] = [];
-  for (const n of notes) {
-    const freq = 440 * 2 ** ((n.midi + 12 * octave - 69) / 12);
-    srcs.push(...voice(c, out, freq, t0 + n.start, n.duration));
-  }
+  const queue = [...notes].sort((a, b) => a.start - b.start);
+  let next = 0;
+  // Building every voice up front blocks the click for long takes; schedule a window at a time.
+  const schedule = () => {
+    const horizon = c.currentTime + LOOKAHEAD - t0;
+    for (; next < queue.length && queue[next]!.start < horizon; next++) {
+      const n = queue[next]!;
+      const freq = 440 * 2 ** ((n.midi + 12 * octave - 69) / 12);
+      srcs.push(...voice(c, out, freq, t0 + n.start, n.duration));
+    }
+    if (next === queue.length) clearInterval(refill);
+  };
+  const refill = setInterval(schedule, REFILL_MS);
+  schedule();
   const end = notes.reduce((m, n) => Math.max(m, n.start + n.duration), 0);
-  return track(c, Math.max(duration, end), srcs, out);
+  const playback = track(c, t0, Math.max(duration, end), srcs, out);
+  return {
+    position: playback.position,
+    stop: () => {
+      clearInterval(refill);
+      playback.stop();
+    },
+  };
 }

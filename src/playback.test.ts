@@ -1,11 +1,16 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { playNotes } from "./playback";
 
 vi.mock("./midiout", () => ({ activeOutput: () => null }));
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 
-it("lets a finished note release naturally and fades an interrupted preview", async () => {
+/** A fresh playback module (it caches its AudioContext) wired to a recording fake context. */
+async function fakeAudio() {
+  vi.resetModules();
   const stops: number[][] = [];
+  const starts: number[] = [];
   const ramps: number[][] = [];
   const frequencies: { value: number }[] = [];
   const audio = {
@@ -31,7 +36,7 @@ it("lets a finished note release naturally and fades an interrupted preview", as
       const node = {
         frequency,
         connect: (other: unknown) => other,
-        start() {},
+        start: (at: number) => starts.push(at),
         stop: (...args: number[]) => stops.push(args),
       };
       return node;
@@ -45,6 +50,12 @@ it("lets a finished note release naturally and fades an interrupted preview", as
       }
     },
   );
+  const { playNotes } = await import("./playback");
+  return { audio, stops, starts, ramps, frequencies, playNotes };
+}
+
+it("lets a finished note release naturally and fades an interrupted preview", async () => {
+  const { audio, stops, ramps, frequencies, playNotes } = await fakeAudio();
   const note = { start: 0, duration: 0.5, midi: 69, name: "A4" };
   const finished = playNotes([note], 0.5);
   audio.currentTime = 0.551;
@@ -72,4 +83,36 @@ it("lets a finished note release naturally and fades an interrupted preview", as
   expect(frequencies.at(-1)?.value).toBeCloseTo(440 * 2 ** ((85 - 69) / 12));
   expect(notes[0]?.midi).toBe(73);
   expect(rec.noteEdits?.pitch[0]?.midi).toBe(73);
+});
+
+it("schedules notes a window ahead of the audio clock and stops refilling on stop", async () => {
+  vi.useFakeTimers();
+  const { audio, starts, playNotes } = await fakeAudio();
+  audio.currentTime = 10;
+  const notes = [0, 1, 1.94, 1.95, 3, 5].map((start) => ({
+    start,
+    duration: 0.25,
+    midi: 69,
+    name: "A4",
+  }));
+  const playback = playNotes([...notes].reverse(), 6);
+  expect(starts).toEqual([10.05, 11.05, 11.99]);
+  audio.currentTime = 11.1;
+  vi.advanceTimersByTime(250);
+  expect(starts.slice(3)).toEqual([12, 13.05]);
+  expect(playback.position()).toBeCloseTo(1.05);
+  playback.stop();
+  audio.currentTime = 14;
+  vi.advanceTimersByTime(1000);
+  expect(starts).toHaveLength(5);
+});
+it("stops refilling once every note is scheduled", async () => {
+  vi.useFakeTimers();
+  const { audio, starts, playNotes } = await fakeAudio();
+  playNotes([{ start: 2.5, duration: 0.25, midi: 69, name: "A4" }], 3);
+  expect(starts).toEqual([]);
+  audio.currentTime = 1;
+  vi.advanceTimersByTime(250);
+  expect(starts).toEqual([2.55]);
+  expect(vi.getTimerCount()).toBe(0);
 });
