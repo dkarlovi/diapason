@@ -81,9 +81,9 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
         </div>
         <div className="editor-tune-footer">
           <Button
-            disabled={!state.canUndoTuning}
-            aria-label="Undo tuning change"
-            onClick={state.undoTuning}
+            disabled={!state.canUndo}
+            aria-label={state.undoLabel ? `Undo ${state.undoLabel.toLowerCase()}` : "Undo"}
+            onClick={state.undo}
           >
             Undo
           </Button>

@@ -1,3 +1,5 @@
+import { flushEditorSaves } from "../editor-save-queue";
+import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
 import { wavChunks } from "../wav-reader";
 import { webcrypto } from "node:crypto";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
@@ -30,6 +32,10 @@ vi.mock("../midi", async (original) => {
     };
   return { midiEvents: guard(midi.midiEvents), notesToMidi: guard(midi.notesToMidi) };
 });
+vi.mock("../edit-storage", async (original) => ({
+  ...(await original<typeof import("../edit-storage")>()),
+  ...(await import("../test-support/editor-storage-double")),
+}));
 vi.mock("../db", () => ({
   getRecording: async (id: string): Promise<Recording> => ({
     id,
@@ -112,8 +118,10 @@ beforeEach(() => {
   });
   vi.stubGlobal("cancelAnimationFrame", (id: number) => callbacks.delete(id));
 });
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await flushEditorSaves();
+  resetEditorStorageDouble();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -129,16 +137,16 @@ function tick() {
 }
 it("toggles audio, switches to MIDI and stops when playback finishes", async () => {
   const { result } = await editor();
-  act(() => result.current.togglePlayback("audio"));
+  await act(async () => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBe("audio");
   tick();
   expect(result.current.playhead.getState().position).toBe(0.25);
-  act(() => result.current.togglePlayback("audio"));
+  await act(async () => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBeNull();
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   expect(callbacks.size).toBe(0);
-  act(() => result.current.togglePlayback("audio"));
-  act(() => result.current.togglePlayback("midi"));
+  await act(async () => result.current.togglePlayback("audio"));
+  await act(async () => result.current.togglePlayback("midi"));
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
   expect(result.current.playing).toBe("midi");
   expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69, start: 0, duration: 0.5 }]);
@@ -157,7 +165,7 @@ it("advances the playhead without re-rendering the editor", async () => {
     { wrapper, initialProps: { id: "one" } },
   );
   await waitFor(() => expect(hook.result.current.record?.id).toBe("one"));
-  act(() => hook.result.current.togglePlayback("midi"));
+  await act(async () => hook.result.current.togglePlayback("midi"));
   const before = renders;
   const handle = state.handles.at(-1)!;
   for (const value of [0.1, 0.2, 0.3, 0.4]) {
@@ -169,16 +177,16 @@ it("advances the playhead without re-rendering the editor", async () => {
 });
 it("stops on output changes, recording changes and unmount and unsubscribes", async () => {
   const hook = await editor();
-  act(() => hook.result.current.togglePlayback("midi"));
+  await act(async () => hook.result.current.togglePlayback("midi"));
   state.external = true;
-  act(() => state.output?.());
+  await act(async () => state.output?.());
   expect(hook.result.current.externalOutput).toBe(true);
   expect(hook.result.current.playing).toBeNull();
-  act(() => hook.result.current.togglePlayback("audio"));
+  await act(async () => hook.result.current.togglePlayback("audio"));
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
-  act(() => hook.result.current.togglePlayback("audio"));
+  await act(async () => hook.result.current.togglePlayback("audio"));
   hook.unmount();
   expect(state.handles[2]?.stop).toHaveBeenCalledOnce();
   expect(callbacks.size).toBe(0);
@@ -187,14 +195,14 @@ it("stops on output changes, recording changes and unmount and unsubscribes", as
 it("flushes tuning to the old recording before loading another recording", async () => {
   const hook = await editor();
   vi.useFakeTimers();
-  act(() => hook.result.current.changeKnob("minNoteMs", 120));
+  await act(async () => hook.result.current.changeKnob("minNoteMs", 120));
   hook.rerender({ id: "two" });
   expect(state.saves).toMatchObject([{ id: "one", melody: { overrides: { minNoteMs: 120 } } }]);
   await act(async () => {
     await Promise.resolve();
     await Promise.resolve();
   });
-  act(() => vi.advanceTimersByTime(500));
+  await act(async () => vi.advanceTimersByTime(500));
   expect(hook.result.current.record?.id).toBe("two");
   expect(state.saves).toHaveLength(1);
 });
@@ -230,7 +238,7 @@ it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", a
 it("reports MIDI encoding failures instead of throwing from export handlers", async () => {
   const { result } = await editor();
   state.midiError = true;
-  act(() => result.current.downloadMidi());
+  await act(async () => result.current.downloadMidi());
   expect(state.downloads).toEqual([]);
   expect(result.current.copyStatus).toBe(
     "MIDI export failed: MIDI resolution cannot preserve distinct notes.",
@@ -273,8 +281,8 @@ it("replaces note previews and stops the preview on unmount", async () => {
     ctrlKey: false,
     metaKey: false,
   } as Parameters<typeof hook.result.current.clickRoll>[0];
-  act(() => hook.result.current.clickRoll(event));
-  act(() => hook.result.current.clickRoll(event));
+  await act(async () => hook.result.current.clickRoll(event));
+  await act(async () => hook.result.current.clickRoll(event));
   expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69, start: 0 }]);
   expect(hook.result.current.selectedNote?.name).toBe("A4");
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
@@ -293,7 +301,7 @@ it("ignores a clipboard completion from a previous recording", async () => {
   });
   const hook = await editor();
   let copying!: Promise<void>;
-  act(() => {
+  await act(async () => {
     copying = hook.result.current.copyLog();
   });
   expect(hook.result.current.reportText).toContain("one");
@@ -308,12 +316,12 @@ it("ignores a clipboard completion from a previous recording", async () => {
 });
 it("ignores an obsolete playback animation callback after starting a new recording", async () => {
   const hook = await editor();
-  act(() => hook.result.current.togglePlayback("audio"));
+  await act(async () => hook.result.current.togglePlayback("audio"));
   const oldTick = [...callbacks.values()][0]!;
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
-  act(() => hook.result.current.togglePlayback("midi"));
-  act(() => oldTick(1));
+  await act(async () => hook.result.current.togglePlayback("midi"));
+  await act(async () => oldTick(1));
   expect(state.handles[1]?.position).not.toHaveBeenCalled();
   expect(callbacks.size).toBe(1);
 });
@@ -355,7 +363,7 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
   const { result } = await editor();
   const canvas = document.createElement("canvas");
   canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
-  act(() =>
+  await act(async () =>
     result.current.clickRoll({
       currentTarget: canvas,
       clientX: 10,
@@ -365,14 +373,14 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
     } as Parameters<typeof result.current.clickRoll>[0]),
   );
   expect(result.current.notesLabel).toContain("1 notes · 1 muted");
-  act(() => result.current.changeKnob("grid", 2));
-  act(() => result.current.downloadMidi());
+  await act(async () => result.current.changeKnob("grid", 2));
+  await act(async () => result.current.downloadMidi());
   expect(midiEvents(new Uint8Array(await read(state.downloads[0]!.blob)))).toEqual([
     { tick: 720, status: 0x90, key: 72, velocity: 96 },
     { tick: 960, status: 0x80, key: 72, velocity: 0 },
   ]);
-  act(() => result.current.changeKnob("grid", 0));
-  act(() => result.current.downloadMidi());
+  await act(async () => result.current.changeKnob("grid", 0));
+  await act(async () => result.current.downloadMidi());
   expect(midiEvents(new Uint8Array(await read(state.downloads[1]!.blob)))).toEqual([
     { tick: 605, status: 0x90, key: 72, velocity: 96 },
     { tick: 989, status: 0x80, key: 72, velocity: 0 },
@@ -381,7 +389,7 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
 
 it("pairs diagnostic JSON with the exact downloaded WAV and includes the export state", async () => {
   const { result } = await editor();
-  act(() => result.current.changeKnob("grid", 0));
+  await act(async () => result.current.changeKnob("grid", 0));
   await act(async () => {
     await result.current.downloadJson();
     result.current.downloadWav();
@@ -411,7 +419,7 @@ it("does not download an obsolete JSON snapshot after navigating to another reco
   });
   const digest = vi.spyOn(crypto.subtle, "digest").mockReturnValueOnce(pendingDigest);
   let exporting!: Promise<void>;
-  act(() => {
+  await act(async () => {
     exporting = hook.result.current.downloadJson();
   });
   hook.rerender({ id: "two" });
@@ -427,43 +435,49 @@ it("does not download an obsolete JSON snapshot after navigating to another reco
 it("previews presets without saving and stops on repeat, replacement and unmount", async () => {
   const hook = await editor();
   const before = JSON.stringify(hook.result.current.record);
-  act(() =>
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
   expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69 }]);
   expect(state.saves).toEqual([]);
   expect(JSON.stringify(hook.result.current.record)).toBe(before);
   expect(hook.result.current.previewId).toBe("preset-gentle");
-  act(() =>
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   expect(hook.result.current.previewId).toBeNull();
-  act(() =>
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
-  act(() => hook.result.current.previewMelody({ preset: "clean", overrides: {} }, "preset-clean"));
+  await act(async () =>
+    hook.result.current.previewMelody({ preset: "clean", overrides: {} }, "preset-clean"),
+  );
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
   hook.unmount();
   expect(state.handles[2]?.stop).toHaveBeenCalledOnce();
 });
 it("applying a preset clears custom controls and saves the chosen preset", async () => {
   const { result } = await editor();
-  act(() => result.current.changeKnob("keyPull", 0.2));
-  act(() => result.current.applyPreset("gentle"));
+  await act(async () => result.current.changeKnob("keyPull", 0.2));
+  await act(async () => result.current.applyPreset("gentle"));
   expect(state.saves.at(-1)?.melody).toEqual({ preset: "gentle", key: "auto", overrides: {} });
 });
 
 it("identifies applied recipes separately from unapplied and playback-setting auditions", async () => {
   const { result } = await editor();
-  act(() => result.current.applyPreset("gentle"));
-  act(() => result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"));
+  await act(async () => result.current.applyPreset("gentle"));
+  await act(async () =>
+    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
   expect(result.current.previewApplied).toBe(true);
-  act(() => result.current.stopPlayback());
-  act(() => result.current.changeKnob("steadiness", 0.9));
-  act(() => result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"));
+  await act(async () => result.current.stopPlayback());
+  await act(async () => result.current.changeKnob("steadiness", 0.9));
+  await act(async () =>
+    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
   expect(result.current.previewApplied).toBe(false);
-  act(() =>
+  await act(async () =>
     result.current.previewPlay(
       { instrument: "flute", octave: 0 },
       "play-instrument-flute",
@@ -473,55 +487,56 @@ it("identifies applied recipes separately from unapplied and playback-setting au
   expect(result.current.previewLabel).toBe("Instrument: Flute");
   expect(result.current.previewApplied).toBe(false);
   expect(result.current.play.instrument).toBe("beep");
-  act(() => result.current.stopPlayback());
+  await act(async () => result.current.stopPlayback());
   expect(result.current.previewLabel).toBeNull();
 });
 
-it("undoes tuning replacements without reverting a later name or note edit", async () => {
+it("undoes note edits then tuning while preserving a later name", async () => {
   const { result } = await editor();
-  act(() => result.current.changeKnob("steadiness", 0.9));
-  act(() => result.current.applyPreset("clean"));
-  act(() => result.current.setDraftName("Keep this name"));
-  act(() => result.current.commitName());
-  act(() => result.current.selectNote(result.current.items[0]!));
-  act(() => result.current.shiftSelectedPitch(1));
-  const edits = result.current.record?.noteEdits;
-  act(() => result.current.undoTuning());
+  await act(async () => result.current.changeKnob("steadiness", 0.9));
+  await act(async () => result.current.applyPreset("clean"));
+  await act(async () => result.current.setDraftName("Keep this name"));
+  await act(async () => result.current.commitName());
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => result.current.shiftSelectedPitch(1));
+  await act(async () => result.current.undo());
+  expect(result.current.record?.noteEdits).toBeUndefined();
+  expect(result.current.melody.preset).toBe("clean");
+  await act(async () => result.current.undo());
   expect(result.current.melody.overrides.steadiness).toBe(0.9);
   expect(result.current.record?.name).toBe("Keep this name");
-  expect(result.current.record?.noteEdits).toEqual(edits);
-  expect(result.current.canUndoTuning).toBe(false);
-  expect(state.saves.at(-1)?.melody?.overrides.steadiness).toBe(0.9);
+  await act(async () => result.current.redo());
+  expect(result.current.melody.preset).toBe("clean");
 });
 
 it("recognizes the currently selected effective grid when its default is not an override", async () => {
   const { result } = await editor();
-  act(() => result.current.applyPreset("clean"));
+  await act(async () => result.current.applyPreset("clean"));
   expect(result.current.melody.overrides.grid).toBeUndefined();
-  act(() => result.current.previewMelody({ overrides: { grid: 2 } }, "knob-grid-2"));
+  await act(async () => result.current.previewMelody({ overrides: { grid: 2 } }, "knob-grid-2"));
   expect(result.current.previewApplied).toBe(true);
 });
 
 it("does not carry tuning undo into another recording", async () => {
   const hook = await editor();
-  act(() => hook.result.current.applyPreset("gentle"));
-  expect(hook.result.current.canUndoTuning).toBe(true);
+  await act(async () => hook.result.current.applyPreset("gentle"));
+  expect(hook.result.current.canUndo).toBe(true);
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
-  expect(hook.result.current.canUndoTuning).toBe(false);
+  expect(hook.result.current.canUndo).toBe(false);
 });
 
 it("stops a note preview before scheduling a new sequence", async () => {
   const hook = await editor();
-  act(() => hook.result.current.selectNote(hook.result.current.items[0]!));
-  act(() =>
+  await act(async () => hook.result.current.selectNote(hook.result.current.items[0]!));
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
   expect(state.events).toEqual(["start", "stop", "start"]);
 });
 it("clears the pressed preview state when changing recordings", async () => {
   const hook = await editor();
-  act(() =>
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
   hook.rerender({ id: "two" });
@@ -546,8 +561,8 @@ it("shows context playback at the selected phrase's recording position", async (
     ...Array.from({ length: 6 }, (_, i) => tone(2 + i * 0.05, 76)),
   ];
   const hook = await editor();
-  act(() => hook.result.current.selectNote(hook.result.current.items[2]!));
-  act(() => hook.result.current.previewContext());
+  await act(async () => hook.result.current.selectNote(hook.result.current.items[2]!));
+  await act(async () => hook.result.current.previewContext());
   tick();
   expect(hook.result.current.playhead.getState().position).toBeCloseTo(1.25);
 });
@@ -555,14 +570,14 @@ it("shows context playback at the selected phrase's recording position", async (
 it("draws the exact auditioned notes and restores applied notes through regular Stop", async () => {
   const hook = await editor();
   const applied = hook.result.current.displayNotes;
-  act(() =>
+  await act(async () =>
     hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
   );
   expect(hook.result.current.displayNotes).toEqual(state.notes.at(-1)?.[0]);
   expect(hook.result.current.previewLabel).toBe("Gentle fix");
   expect(hook.result.current.notesLabel).toContain("Gentle fix · performed timing");
   expect(state.saves).toHaveLength(0);
-  act(() => hook.result.current.togglePlayback("midi"));
+  await act(async () => hook.result.current.togglePlayback("midi"));
   expect(hook.result.current.playing).toBeNull();
   expect(hook.result.current.displayNotes).toEqual(applied);
   expect(hook.result.current.previewLabel).toBeNull();
@@ -570,8 +585,14 @@ it("draws the exact auditioned notes and restores applied notes through regular 
 
 it("downloads a readable diagnostic log from the same applied recording", async () => {
   const hook = await editor();
-  act(() => hook.result.current.downloadLog());
+  await act(async () => hook.result.current.downloadLog());
   const log = state.downloads[0]!;
   expect(log.name).toMatch(/\.txt$/);
   expect(new TextDecoder().decode(await read(log.blob))).toContain("diapason diagnostics: one");
+});
+it("does not create history when resetting a legacy take already at defaults", async () => {
+  const { result } = await editor();
+  await act(async () => result.current.resetKnob());
+  expect(result.current.canUndo).toBe(false);
+  expect(result.current.record?.melody).toBeUndefined();
 });
