@@ -101,6 +101,7 @@ export function useEditHistory(options: Options) {
   }, [send]);
   const flush = useCallback(async () => {
     finish();
+    await writer.current?.flush();
     if (history.current && writer.current && !writer.current.getHead())
       writer.current.enqueue(currentEditCommit(history.current));
     await writer.current?.flush();
@@ -108,6 +109,7 @@ export function useEditHistory(options: Options) {
   const h = history.current;
   return {
     current: h ? currentEditCommit(h) : null,
+    getCurrent: () => (history.current ? currentEditCommit(history.current) : null),
     canUndo: h ? canUndoEdit(h) : false,
     canRedo: h ? canRedoEdit(h) : false,
     undoLabel: h?.draft?.label ?? (h && h.cursor > 0 ? currentEditCommit(h).label : null),

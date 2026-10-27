@@ -1,3 +1,6 @@
+import { useEditorVersions } from "./useEditorVersions";
+import { applyEditSnapshot } from "../edit-state";
+import { validateEditSnapshot } from "../edit-storage";
 import { captureEditSnapshot } from "../edit-state";
 import { KNOB_DEFS, isKnobs, type Knobs } from "../melody/knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
@@ -136,7 +139,23 @@ export function useEditor(id: string) {
     },
     [frames, previewSequence, melody],
   );
-  const showingPreview = /^(preset|key|knob)-/.test(previewId ?? "");
+  const versions = useEditorVersions({
+    recordingId: id,
+    history,
+    beforeAction: stopPlayback,
+    preview(version) {
+      const current = recordRef.current;
+      if (!current) return;
+      validateEditSnapshot(version.commit.snapshot, current.durationSec);
+      const target = applyEditSnapshot(current, version.commit.snapshot);
+      const result = processRecording(target, frames);
+      const previewId = `version-${version.id}`;
+      setAudition(result);
+      setCandidate({ id: previewId, label: version.name, applied: false });
+      previewSequence(result.notes, previewId, undefined, 0, target.play ?? DEFAULT_PLAY);
+    },
+  });
+  const showingPreview = /^(preset|key|knob|version)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
   const baseItems = displayed?.items ?? appliedItems;
   const items = baseItems;
@@ -365,6 +384,8 @@ export function useEditor(id: string) {
 
   return {
     record,
+    versions,
+    editingDisabled: !record || versions.busy,
     drafting: history.drafting,
     beginKnob: (key: keyof Knobs) => {
       history.finish();
@@ -389,7 +410,7 @@ export function useEditor(id: string) {
     commitGesture: history.commit,
     cancelGesture: history.cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
-    canEditPitch: !showingPreview,
+    canEditPitch: !showingPreview && !versions.busy,
     shiftSelectedPitch,
     resetSelectedPitch,
     resetAllNoteEdits,
