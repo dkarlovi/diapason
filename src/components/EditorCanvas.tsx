@@ -6,6 +6,7 @@ import { EditorNavigation } from "./EditorNavigation";
 import { PitchCanvas } from "./PitchCanvas";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
+import { usePlayhead, type PlayheadStore } from "../playhead-store";
 
 function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorState) {
   const index = state.items.findIndex((item) => item.note === state.selectedNote);
@@ -58,6 +59,21 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     />
   );
 }
+// Subscribes at tenth-of-a-second resolution so playback re-renders only this readout.
+function PlayheadTime({
+  playhead,
+  duration,
+}: {
+  playhead: PlayheadStore;
+  duration: number | undefined;
+}) {
+  const tenths = usePlayhead(playhead, (s) => Math.floor((s.position ?? 0) * 10));
+  return (
+    <time>
+      {(tenths / 10).toFixed(1)} / {duration?.toFixed(1) ?? "0"} s
+    </time>
+  );
+}
 function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   const midi = kind === "midi";
   const label = midi ? state.notesLabel : state.meta;
@@ -66,11 +82,7 @@ function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     <div className="editor-track-label">
       <h2>{title}</h2>
       <span title={label}>{label}</span>
-      {midi && (
-        <time>
-          {(state.position ?? 0).toFixed(1)} / {state.record?.durationSec.toFixed(1) ?? "0"} s
-        </time>
-      )}
+      {midi && <PlayheadTime playhead={state.playhead} duration={state.record?.durationSec} />}
     </div>
   );
 }

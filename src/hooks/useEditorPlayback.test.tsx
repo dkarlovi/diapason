@@ -132,7 +132,7 @@ it("toggles audio, switches to MIDI and stops when playback finishes", async () 
   act(() => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBe("audio");
   tick();
-  expect(result.current.position).toBe(0.25);
+  expect(result.current.playhead.getState().position).toBe(0.25);
   act(() => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBeNull();
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
@@ -145,7 +145,27 @@ it("toggles audio, switches to MIDI and stops when playback finishes", async () 
   state.handles.at(-1)!.position.mockReturnValue(null);
   tick();
   expect(result.current.playing).toBeNull();
-  expect(result.current.position).toBeNull();
+  expect(result.current.playhead.getState().position).toBeNull();
+});
+it("advances the playhead without re-rendering the editor", async () => {
+  let renders = 0;
+  const hook = renderHook(
+    ({ id }) => {
+      renders++;
+      return useEditor(id);
+    },
+    { wrapper, initialProps: { id: "one" } },
+  );
+  await waitFor(() => expect(hook.result.current.record?.id).toBe("one"));
+  act(() => hook.result.current.togglePlayback("midi"));
+  const before = renders;
+  const handle = state.handles.at(-1)!;
+  for (const value of [0.1, 0.2, 0.3, 0.4]) {
+    handle.position.mockReturnValue(value);
+    tick();
+    expect(hook.result.current.playhead.getState().position).toBe(value);
+  }
+  expect(renders).toBe(before);
 });
 it("stops on output changes, recording changes and unmount and unsubscribes", async () => {
   const hook = await editor();
@@ -529,7 +549,7 @@ it("shows context playback at the selected phrase's recording position", async (
   act(() => hook.result.current.selectNote(hook.result.current.items[2]!));
   act(() => hook.result.current.previewContext());
   tick();
-  expect(hook.result.current.position).toBeCloseTo(1.25);
+  expect(hook.result.current.playhead.getState().position).toBeCloseTo(1.25);
 });
 
 it("draws the exact auditioned notes and restores applied notes through regular Stop", async () => {

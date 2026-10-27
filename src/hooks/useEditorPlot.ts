@@ -10,6 +10,7 @@ import {
   timeWindow,
   zoomedTime,
 } from "../editor-viewport";
+import type { PlayheadStore } from "../playhead-store";
 
 interface Options {
   record: Recording | null;
@@ -19,7 +20,7 @@ interface Options {
   edited?: NoteEvent[];
   origins?: NoteOrigin[];
   grid: number;
-  position: number | null;
+  playhead: PlayheadStore;
   traceRef: RefObject<HTMLCanvasElement | null>;
   rollRef: RefObject<HTMLCanvasElement | null>;
   claimsPointer(event: PointerEvent): boolean;
@@ -31,12 +32,24 @@ function drawVisible(canvas: HTMLCanvasElement | null, frames: Frame[], view: Tr
 
 function usePlotRedraw(
   draw: () => void,
-  traceRef: Options["traceRef"],
-  rollRef: Options["rollRef"],
+  follow: (position: number) => void,
+  { playhead, traceRef, rollRef }: Pick<Options, "playhead" | "traceRef" | "rollRef">,
 ) {
   const redraw = useRef(draw);
   redraw.current = draw;
+  const follower = useRef(follow);
+  follower.current = follow;
   useEffect(draw, [draw]);
+  // Playback ticks bypass React: they turn the page when needed and redraw the canvases directly.
+  useEffect(
+    () =>
+      playhead.subscribe(({ position }, previous) => {
+        if (position === previous.position) return;
+        if (position !== null) follower.current(position);
+        redraw.current();
+      }),
+    [playhead],
+  );
   useEffect(() => {
     const update = () => redraw.current();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
@@ -61,7 +74,7 @@ export function useEditorPlot({
   edited,
   origins,
   grid,
-  position,
+  playhead,
   traceRef,
   rollRef,
   claimsPointer,
@@ -96,12 +109,13 @@ export function useEditorPlot({
     setPitchZoom(1);
     setPitchPan(0);
   }, [record?.id]);
-  useEffect(() => {
-    if (position !== null)
-      setPan((current) => followPan(duration, zoom, current, position, visible));
-  }, [duration, zoom, position, visible]);
+  const follow = (position: number) => {
+    const next = followPan(duration, zoom, pan, position, visible);
+    if (next !== pan) setPan(next);
+  };
   const draw = useCallback(() => {
     if (!record) return;
+    const { position } = playhead.getState();
     const beats = { bpm: record.bpm, beatsPerBar: record.beatsPerBar, subdivision: grid || 1 };
     const shared = { ...view, beats, ...(position === null ? {} : { playheadTime: position }) };
     drawVisible(traceRef.current, frames, {
@@ -120,7 +134,7 @@ export function useEditorPlot({
     record,
     view,
     grid,
-    position,
+    playhead,
     frames,
     notes,
     muted,
@@ -130,7 +144,7 @@ export function useEditorPlot({
     traceRef,
     rollRef,
   ]);
-  usePlotRedraw(draw, traceRef, rollRef);
+  usePlotRedraw(draw, follow, { playhead, traceRef, rollRef });
   const zoomTime = (factor: number, anchor = 0) => {
     const next = zoomedTime({ duration, zoom, pan, visible }, factor, anchor);
     setZoom(next.zoom);

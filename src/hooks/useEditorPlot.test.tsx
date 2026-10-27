@@ -2,31 +2,38 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useEditorPlot } from "./useEditorPlot";
 import type { Recording } from "../db";
+import { createPlayheadStore } from "../playhead-store";
 
+const drawTrace = vi.hoisted(() => vi.fn());
 vi.mock("../trace", async (original) => ({
   ...(await original<typeof import("../trace")>()),
-  drawTrace: () => undefined,
+  drawTrace,
 }));
-afterEach(cleanup);
-function setup() {
+afterEach(() => {
+  cleanup();
+  drawTrace.mockClear();
+});
+function setup(onRender = () => {}) {
   const canvas = document.createElement("canvas");
   Object.defineProperties(canvas, { clientWidth: { value: 1000 }, clientHeight: { value: 500 } });
   const rollRef = { current: canvas };
   const traceRef = { current: null };
-  const result = renderHook(() =>
-    useEditorPlot({
+  const playhead = createPlayheadStore();
+  const result = renderHook(() => {
+    onRender();
+    return useEditorPlot({
       record: { id: "one", durationSec: 20 } as Recording,
       frames: [],
       notes: [],
       muted: [],
       grid: 0,
-      position: null,
+      playhead,
       rollRef,
       traceRef,
       claimsPointer: () => false,
-    }),
-  );
-  return { canvas, ...result };
+    });
+  });
+  return { canvas, playhead, ...result };
 }
 it("zooms each canvas axis with its wheel modifier and prevents browser zoom", () => {
   const { canvas, result } = setup();
@@ -107,4 +114,21 @@ it("keeps a stationary touch available as a note tap", () => {
   const click = new MouseEvent("click", { cancelable: true });
   canvas.dispatchEvent(click);
   expect(click.defaultPrevented).toBe(false);
+});
+it("redraws the playhead and follows playback without re-rendering", () => {
+  let renders = 0;
+  const { playhead, result } = setup(() => renders++);
+  act(() => result.current.zoomTime(4));
+  const before = renders;
+  drawTrace.mockClear();
+  act(() => playhead.getState().set(1));
+  act(() => playhead.getState().set(2));
+  expect(renders).toBe(before);
+  expect(drawTrace.mock.calls.map(([, , view]) => view.playheadTime)).toEqual([1, 2]);
+  act(() => playhead.getState().set(15));
+  expect(renders).toBe(before + 1);
+  expect(result.current.view.tMin).toBeLessThanOrEqual(15);
+  expect(result.current.view.tMax).toBeGreaterThan(15);
+  act(() => playhead.getState().set(null));
+  expect(drawTrace.mock.lastCall?.[2].playheadTime).toBeUndefined();
 });
