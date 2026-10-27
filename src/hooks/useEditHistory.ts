@@ -17,6 +17,26 @@ interface Options {
   replaceRecord(record: Recording): void;
   beforeChange(): void;
 }
+function historyView(history: EditHistory | null) {
+  if (!history)
+    return {
+      current: null,
+      canUndo: false,
+      canRedo: false,
+      undoLabel: null,
+      redoLabel: null,
+      drafting: false,
+    };
+  const current = currentEditCommit(history);
+  return {
+    current,
+    canUndo: canUndoEdit(history),
+    canRedo: canRedoEdit(history),
+    undoLabel: history.draft?.label ?? (history.cursor > 0 ? current.label : null),
+    redoLabel: canRedoEdit(history) ? history.commits[history.cursor + 1]!.label : null,
+    drafting: !!history.draft,
+  };
+}
 export function useEditHistory(options: Options) {
   const latest = useRef(options);
   latest.current = options;
@@ -106,15 +126,9 @@ export function useEditHistory(options: Options) {
       writer.current.enqueue(currentEditCommit(history.current));
     await writer.current?.flush();
   }, [finish]);
-  const h = history.current;
   return {
-    current: h ? currentEditCommit(h) : null,
+    ...historyView(history.current),
     getCurrent: () => (history.current ? currentEditCommit(history.current) : null),
-    canUndo: h ? canUndoEdit(h) : false,
-    canRedo: h ? canRedoEdit(h) : false,
-    undoLabel: h?.draft?.label ?? (h && h.cursor > 0 ? currentEditCommit(h).label : null),
-    redoLabel: h && canRedoEdit(h) ? h.commits[h.cursor + 1]!.label : null,
-    drafting: !!h?.draft,
     begin,
     update,
     commit: finish,

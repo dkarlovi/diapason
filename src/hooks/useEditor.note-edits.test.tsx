@@ -13,7 +13,7 @@ const rec = recording({
 });
 vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
-  ...(await import("../test-support/editor-storage-double")),
+  ...(await import("../test-support/editor-storage-double")).editorStorageDouble,
 }));
 vi.mock("../db", () => ({
   getRecording: async () => rec,

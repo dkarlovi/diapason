@@ -1,5 +1,5 @@
 import { databaseTransaction } from "./db-connection";
-import type { Recording } from "./db";
+import type { Recording, MutedNote, QuantizeSetting } from "./db";
 import type { EditCommit } from "./edit-history";
 import { applyEditSnapshot, type EditSnapshot } from "./edit-state";
 import { isNoteEdits } from "./note-edits";
@@ -28,6 +28,45 @@ export class EditStorageError extends Error {
 }
 const invalid = () =>
   new EditStorageError("invalid-version", "This version contains unsupported editing data.");
+function isPlaybackIntent(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const play = value as NonNullable<Recording["play"]>;
+  return (
+    INSTRUMENTS.some((instrument) => instrument.id === play.instrument) &&
+    [1, 0, -1, -2, -3].includes(play.octave)
+  );
+}
+function isMuteAnchor(value: unknown, duration: number): boolean {
+  if (!value || typeof value !== "object") return false;
+  const { t, midi } = value as MutedNote;
+  return (
+    Number.isFinite(t) &&
+    t >= 0 &&
+    t <= duration &&
+    Number.isInteger(midi) &&
+    midi >= 0 &&
+    midi <= 127
+  );
+}
+function isMutedIntent(value: unknown, duration: number): boolean {
+  return Array.isArray(value) && value.every((anchor) => isMuteAnchor(anchor, duration));
+}
+function isLegacyTuning(value: unknown): boolean {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    Object.values(value).every((knob) => typeof knob === "number" && Number.isFinite(knob))
+  );
+}
+function isLegacyQuantize(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const setting = value as QuantizeSetting;
+  return (
+    typeof setting.on === "boolean" &&
+    Number.isFinite(setting.subdivision) &&
+    setting.subdivision > 0
+  );
+}
 export function validateEditSnapshot(snapshot: EditSnapshot, duration: number): void {
   if (
     !snapshot ||
@@ -38,38 +77,18 @@ export function validateEditSnapshot(snapshot: EditSnapshot, duration: number): 
     throw invalid();
   const { melody, noteEdits, play, muted, tuning, quantize } = snapshot.intent;
   const fields = ["melody", "noteEdits", "play", "muted", "tuning", "quantize"];
-  if (
-    Object.keys(snapshot.intent).some((key) => !fields.includes(key)) ||
-    (melody !== undefined && !isMelodySetting(melody)) ||
-    (noteEdits !== undefined && !isNoteEdits(noteEdits, duration)) ||
-    (play !== undefined &&
-      (!play ||
-        !INSTRUMENTS.some((i) => i.id === play.instrument) ||
-        ![1, 0, -1, -2, -3].includes(play.octave))) ||
-    (muted !== undefined &&
-      (!Array.isArray(muted) ||
-        muted.some(
-          (m) =>
-            !m ||
-            !Number.isFinite(m.t) ||
-            m.t < 0 ||
-            m.t > duration ||
-            !Number.isInteger(m.midi) ||
-            m.midi < 0 ||
-            m.midi > 127,
-        ))) ||
-    (tuning !== undefined &&
-      (!tuning ||
-        typeof tuning !== "object" ||
-        Object.values(tuning).some((v) => typeof v !== "number" || !Number.isFinite(v)))) ||
-    (quantize !== undefined &&
-      (!quantize ||
-        typeof quantize.on !== "boolean" ||
-        !Number.isFinite(quantize.subdivision) ||
-        quantize.subdivision <= 0))
-  )
-    throw invalid();
+  const valid = [
+    Object.keys(snapshot.intent).every((key) => fields.includes(key)),
+    melody === undefined || isMelodySetting(melody),
+    noteEdits === undefined || isNoteEdits(noteEdits, duration),
+    play === undefined || isPlaybackIntent(play),
+    muted === undefined || isMutedIntent(muted, duration),
+    tuning === undefined || isLegacyTuning(tuning),
+    quantize === undefined || isLegacyQuantize(quantize),
+  ];
+  if (valid.includes(false)) throw invalid();
 }
+
 function checkHead(record: Recording, expected: EditHead | null) {
   const head = record.editHead ?? null;
   if (head?.commitId !== expected?.commitId || head?.revision !== expected?.revision)

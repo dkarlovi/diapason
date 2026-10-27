@@ -12,6 +12,7 @@ import {
   saveEditCommit,
   saveRecordingName,
   saveVersion,
+  validateEditSnapshot,
   type SavedVersion,
 } from "./edit-storage";
 const commit = (id: string, octave = 0): EditCommit => ({
@@ -121,4 +122,46 @@ it("reports abort rather than treating a successful request as a save", async ()
     tx.onabort = () => resolve();
   });
   expect(await getRecording("aborted")).toBeUndefined();
+});
+
+it("round trips legacy settings and boundary mute anchors in saved intent", async () => {
+  const rec = recording({
+    id: "validation-fields",
+    muted: [
+      { t: 0, midi: 0 },
+      { t: 1, midi: 127 },
+    ],
+    play: { instrument: "flute", octave: -3 },
+    tuning: { rmsGate: 0.01 },
+    quantize: { on: false, subdivision: 4 },
+  });
+  await putRecording(rec);
+  await saveEditCommit(
+    rec.id,
+    { ...commit("valid-fields"), snapshot: captureEditSnapshot(rec) },
+    null,
+  );
+  const saved = (await getRecording(rec.id))!;
+  expect(saved.muted).toEqual([
+    { t: 0, midi: 0 },
+    { t: 1, midi: 127 },
+  ]);
+  expect(saved.play).toEqual({ instrument: "flute", octave: -3 });
+  expect(saved.quantize).toEqual({ on: false, subdivision: 4 });
+});
+it.each([
+  ["muted", null],
+  ["muted", [null]],
+  ["muted", [{ t: -1, midi: 60 }]],
+  ["muted", [{ t: 2, midi: 60 }]],
+  ["muted", [{ t: 0.5, midi: 128 }]],
+  ["muted", [{ t: 0.5, midi: 1.5 }]],
+  ["play", { instrument: "unknown", octave: 0 }],
+  ["play", { instrument: "flute", octave: -9 }],
+  ["tuning", { rmsGate: NaN }],
+  ["quantize", { on: false, subdivision: 0 }],
+])("rejects malformed %s fields without interpreting them", (field, value) => {
+  const snapshot = captureEditSnapshot(recording());
+  Object.assign(snapshot.intent, { [field as string]: value });
+  expect(() => validateEditSnapshot(snapshot, 1)).toThrow(/unsupported editing data/);
 });

@@ -5,7 +5,7 @@ import type { EditCommit } from "../edit-history";
 import type { EditHead, SavedVersion } from "../edit-storage";
 const records = new Map<string, Recording>();
 export const resetEditorStorageDouble = () => records.clear();
-export async function saveEditCommit(
+async function writeFixtureCommit(
   id: string,
   commit: EditCommit,
   expected: EditHead | null,
@@ -18,11 +18,15 @@ export async function saveEditCommit(
   await putRecording(next);
   return head;
 }
-export async function saveRecordingName(id: string, name: string): Promise<void> {
+async function renameFixtureRecording(id: string, name: string): Promise<void> {
   const base = records.get(id) ?? (await getRecording(id));
   if (!base) throw new Error("Missing fixture recording");
   const next = { ...base, name };
   records.set(id, next);
   await putRecording(next);
 }
-export const listVersions = async (): Promise<SavedVersion[]> => [];
+export const editorStorageDouble = {
+  saveEditCommit: writeFixtureCommit,
+  saveRecordingName: renameFixtureRecording,
+  listVersions: async (): Promise<SavedVersion[]> => [],
+};
