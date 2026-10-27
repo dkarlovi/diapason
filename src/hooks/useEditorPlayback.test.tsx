@@ -596,3 +596,20 @@ it("does not create history when resetting a legacy take already at defaults", a
   expect(result.current.canUndo).toBe(false);
   expect(result.current.record?.melody).toBeUndefined();
 });
+it("clears a selection when committed tuning removes its note", async () => {
+  state.frames = Array.from({ length: 12 }, (_, i) => ({
+    t: i * 0.05,
+    freq: 440,
+    clarity: 0.99,
+    rms: 0.01,
+  }));
+  const { result } = await editor();
+  await act(async () => result.current.changeKnob("levelGate", 0.001));
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  expect(result.current.selectedNote).not.toBeNull();
+  await act(async () => result.current.changeKnob("levelGate", 0.1));
+  expect(result.current.selectedNote).toBeNull();
+  await act(async () => result.current.undo());
+  expect(result.current.items.length).toBeGreaterThan(0);
+  expect(result.current.selectedNote).toBeNull();
+});

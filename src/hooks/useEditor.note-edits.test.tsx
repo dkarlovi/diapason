@@ -107,3 +107,12 @@ it("does not pin a new override when a slider returns to its starting value", as
   expect(result.current.canUndo).toBe(false);
   expect(result.current.record?.melody?.overrides.steadiness).toBeUndefined();
 });
+it("does not commit mute edits against an unapplied audition", async () => {
+  const { result } = renderHook(() => useEditor(rec.id), { wrapper: MemoryRouter });
+  await waitFor(() => expect(result.current.items).toHaveLength(1));
+  await act(async () => result.current.selectNote(result.current.items[0]!));
+  await act(async () => result.current.previewMelody({ preset: "clean" }, "preset-clean"));
+  await act(async () => result.current.muteSelected());
+  expect(result.current.record?.muted).toBeUndefined();
+  expect(result.current.canUndo).toBe(false);
+});

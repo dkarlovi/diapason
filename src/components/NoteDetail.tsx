@@ -145,6 +145,7 @@ function NoteInspector({ state }: { state: EditorState }) {
         <Button
           className="editor-note-toggle"
           onClick={state.muteSelected}
+          disabled={!state.canEditPitch}
           aria-label="Mute note"
           title={state.selectedMuted ? "Muted (M)" : "Mute (M)"}
           aria-pressed={state.selectedMuted}

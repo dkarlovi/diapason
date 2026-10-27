@@ -7,7 +7,6 @@ import {
   makeReportInput,
   selectedSourceItem,
   draggedPitch,
-  withDraftPitch,
 } from "./editor-model";
 import { KNOB_DEFS } from "./melody/knobs";
 import type { NoteItem } from "./recording";
@@ -81,19 +80,4 @@ it("snaps dragged pitch to semitones within the MIDI range", () => {
   expect(draggedPitch(69, 60, 25)).toBe(67);
   expect(draggedPitch(126, -500, 25)).toBe(127);
   expect(draggedPitch(1, 500, 25)).toBe(0);
-});
-it("shows a draft pitch on the selected item only and marks it as it will be saved", () => {
-  const other = { ...item, id: 2 };
-  const items = [item, other];
-  expect(withDraftPitch(items, item, null)).toBe(items);
-  expect(withDraftPitch(items, undefined, 70)).toBe(items);
-  const [raised, untouched] = withDraftPitch(items, item, 71);
-  expect(raised?.note).toMatchObject({ midi: 71, name: "B4" });
-  expect(raised?.editState.differingAxes).toEqual(["pitch"]);
-  expect(untouched).toBe(other);
-  const edited = {
-    ...item,
-    editState: { ids: ["a"], axes: ["pitch" as const], differingAxes: [] },
-  };
-  expect(withDraftPitch([edited], edited, 69)[0]?.editState.axes).toEqual([]);
 });

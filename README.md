@@ -346,11 +346,49 @@ preview. Starting another preview replaces it.
   shows **Custom (from …)** and saves it. Each control has an explicit Reset
   button with a tooltip and accessible name; labels remain ordinary field labels.
   Preset, Key, Instrument, and Octave also have scoped Reset buttons.
-  **Undo tuning change**, pinned at the bottom of Tune, reverses the last melody
-  or playback-setting change while preserving note edits, muting, and the name.
-  Undo history is local to the open take. The adjacent **Reset** asks for confirmation
-  before restoring the current preset's controls and retaining the key.
+  **Reset** asks for confirmation before restoring the current preset's controls
+  and retaining the key. Reset actions can be undone, including resetting all note edits.
   Compact control rows retain their values and resets; explanations appear in tooltips.
+
+### Undo, redo, and saved versions
+
+Global **Undo** and **Redo** remain available with Tune closed. They walk completed
+musical edits in order: pitch changes, muting, tuning, playback settings, resets,
+and version restores. Dragging a slider or note updates the result live and saves
+one edit when released. Escape cancels a drag; a held slider adjustment key commits
+on release. Returning a gesture to its starting value adds no edit. Each pitch
+stepper activation is a separate edit. Recording names, selection, zoom, and
+unapplied previews are outside this history.
+
+Use **Ctrl/Cmd+Z** to undo, **Ctrl/Cmd+Shift+Z** to redo, or **Ctrl+Y** to redo.
+Text fields retain their own native undo. A changed edit after Undo replaces the
+forward redo path. Reset means back to the control's default; Undo restores the
+custom values that preceded it.
+
+**Versions** lets you save the applied state under a name, preview or restore it,
+rename it, or delete it. Names must be nonempty and unique within the recording
+(case-insensitively). Restoring a version is an undoable edit. Saved versions
+remain available even when you edit after undoing past them.
+
+The latest committed state autosaves locally in IndexedDB. Leaving the recording
+editor, switching recordings, or reloading ends the undo session: earlier unnamed
+states and redo are discarded. Reopening loads the latest saved working state,
+with your saved versions available separately. Merely hiding Tune or switching
+browser tabs does not end the session. Only manually saved versions preserve
+older states across sessions; automatic commits do not accumulate permanent
+history. Versions share the original audio and store musical editing intent.
+
+A save failure keeps the pending state in memory and shows **Retry save**, including
+after navigation. An editor saves only over the state it expects: if another tab
+has saved first, the stale save fails and shows **Reload**. Reload discards that
+tab's unsaved edits, so resolve a conflict before continuing work. Closing the page
+can lose unsaved changes or an unfinished gesture; only completed database writes
+are durable. Duplicates start with the current intent and no saved versions.
+Deleting a recording also deletes its versions.
+
+Versions stay in this browser. WAV export/import continues to carry the captured
+take without editor state or versions. Versions preserve settings rather than a
+frozen processing engine, so later app updates can change how an old version sounds.
 
 Click a piano-roll note to hear it and open a note inspector beside it. Its darker
 heading shows the note number and name, start time and duration, with context

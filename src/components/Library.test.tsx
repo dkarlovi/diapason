@@ -66,6 +66,7 @@ describe("library", () => {
     recordings = [
       {
         id: "first",
+        editHead: { commitId: "original", revision: 4 },
         name: "Melody",
         createdAt: 1,
         sampleRate: 48000,
@@ -96,6 +97,7 @@ describe("library", () => {
     await userEvent.click(screen.getByLabelText("Actions for Melody"));
     await userEvent.click(screen.getByRole("button", { name: "Duplicate" }));
     expect(await screen.findByText("Melody (copy)")).toBeTruthy();
+    expect(recordings[1]!.editHead).toBeUndefined();
     expect(document.querySelectorAll(".recording-waveform")).toHaveLength(2);
     const masks = [...document.querySelectorAll(".recording-waveform mask")].map((mask) => mask.id);
     expect(new Set(masks).size).toBe(2);

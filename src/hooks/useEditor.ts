@@ -21,7 +21,7 @@ import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
 import { saveRecordingName } from "../edit-storage";
-import { flushEditorSaves } from "../editor-save-queue";
+import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import {
@@ -164,6 +164,15 @@ export function useEditor(id: string) {
     [items],
   );
   const selectedItem = selected === null ? undefined : selectedSourceItem(items, selected);
+  useEffect(() => {
+    if (
+      !showingPreview &&
+      !history.drafting &&
+      selected !== null &&
+      !selectedSourceItem(appliedItems, selected)
+    )
+      setSelected(null);
+  }, [showingPreview, history.drafting, selected, appliedItems]);
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const selectNote = useCallback(
@@ -321,6 +330,8 @@ export function useEditor(id: string) {
   }, [draftName, replaceRecord]);
 
   const duplicate = useCallback(async () => {
+    history.finish();
+    await history.flush();
     const current = recordRef.current;
     if (!current) return;
     const copy = {
@@ -330,16 +341,19 @@ export function useEditor(id: string) {
       name: `${current.name} (copy)`,
       createdAt: Date.now(),
     };
+    delete copy.editHead;
     await putRecording(copy);
     if (mounted.current) navigate(recordingPath(copy.id));
-  }, [navigate]);
+  }, [navigate, history.finish, history.flush]);
 
   const remove = useCallback(async () => {
     const current = recordRef.current;
     if (!current || !confirm(`Delete “${current.name}”?`)) return;
+    history.cancel();
+    await stopEditorSaves(current.id);
     await deleteRecording(current.id);
     if (mounted.current) navigate("/");
-  }, [navigate]);
+  }, [navigate, history.cancel]);
 
   const noteAt = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
@@ -352,7 +366,7 @@ export function useEditor(id: string) {
   const muteNote = useCallback(
     (item: NoteItem) => {
       const current = recordRef.current;
-      if (!current) return;
+      if (!current || auditionRef.current) return;
       stopPlayback();
       history.change(item.muted ? "Unmute note" : "Mute note", (value) => ({
         ...value,

@@ -119,11 +119,20 @@ export function createEditorWriter(
   return writer;
 }
 export async function flushEditorSaves(recordingId?: string): Promise<void> {
+  // Snapshot membership: draining a released writer removes it from the live registry.
+  // oxlint-disable-next-line unicorn/no-useless-spread
   for (const entry of [...registry])
     if (recordingId === undefined || entry.status.recordingId === recordingId)
       await entry.writer.flush();
 }
 export async function retryEditorSaves(recordingId: string): Promise<void> {
+  // Snapshot membership: draining a released writer removes it from the live registry.
+  // oxlint-disable-next-line unicorn/no-useless-spread
   for (const entry of [...registry])
     if (entry.status.recordingId === recordingId) await entry.writer.retry();
+}
+
+export async function stopEditorSaves(recordingId: string): Promise<void> {
+  const writers = [...registry].filter((entry) => entry.status.recordingId === recordingId);
+  await Promise.all(writers.map((entry) => entry.writer.stop()));
 }
