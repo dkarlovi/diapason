@@ -150,9 +150,18 @@ level/clarity gates, minimum note length, silence gap, and explicit grid setting
 They may sound different after this update; their original captured audio stays unchanged.
 
 The header's **MIDI out** picker routes note playback to the browser synth or an
-external synth/DAW via Web MIDI when supported and permitted. Browser playback
-offers instrument sounds and an octave shift; these playback settings do not
-change the exported MIDI file.
+external synth/DAW via Web MIDI when supported and permitted. Both outputs support
+instrument selection and an octave shift; these settings do not change exported MIDI.
+External instruments use General MIDI equivalents: square lead (Plain beep),
+electric piano, steel-string guitar (Acoustic guitar), flute, trumpet, alto sax
+(Saxophone), and warm pad. The synth's
+soundfont determines their sound. Browser instruments are lightweight synthesized
+previews: Acoustic guitar uses a plucked-string model, and Trumpet and Saxophone
+use sustained harmonic tones with gentle vibrato, without downloaded samples.
+Future MIDI notes stay in the app until due;
+Stop cancels them and immediately silences the playback channel when interrupted.
+Normal playback completion preserves the external synth's natural release tails. External timing
+can be affected by browser timer throttling in background tabs.
 
 Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
 `CompressionStream`, no dependencies). Downloads are lossless WAV.
