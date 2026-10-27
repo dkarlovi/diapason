@@ -4,12 +4,12 @@ import { DEFAULT_PLAY, type InstrumentId } from "./instruments";
 
 const CHANNEL = 0; // MIDI channel 1
 
-// General MIDI programs (zero-based): square lead, electric piano, nylon guitar,
+// General MIDI programs (zero-based): square lead, electric piano, steel-string guitar,
 // flute, warm pad. External soundfonts approximate the browser synth voices.
 const PROGRAMS: Record<InstrumentId, number> = {
   beep: 80,
   epiano: 4,
-  pluck: 24,
+  pluck: 25,
   flute: 73,
   pad: 89,
 };
@@ -68,6 +68,9 @@ export function playNotesMidi(
       clearTimeout(timer);
       (out as MIDIOutput & { clear?: () => void }).clear?.(); // drop still-scheduled messages (not in every browser)
       for (const key of keys) out.send([0x80 | CHANNEL, key, 0]);
+      // Transport completion must preserve the soundfont's natural release tails,
+      // just like browser synth playback. An interruption still silences immediately.
+      if (performance.now() >= t0 + end * 1000) return;
       out.send([0xb0 | CHANNEL, 123, 0]); // all notes off
       out.send([0xb0 | CHANNEL, 120, 0]); // all sound off, including release tails
     },

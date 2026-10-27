@@ -6,7 +6,7 @@ export type InstrumentId = "epiano" | "pluck" | "flute" | "pad" | "beep";
 export const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
   { id: "beep", label: "Plain beep" },
   { id: "epiano", label: "Electric piano" },
-  { id: "pluck", label: "Plucked string" },
+  { id: "pluck", label: "Acoustic guitar" },
   { id: "flute", label: "Flute" },
   { id: "pad", label: "Soft pad" },
 ];

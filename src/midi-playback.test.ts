@@ -63,7 +63,7 @@ it("can stop during the lead-in without sending a note-on", () => {
 it.each<[InstrumentId, number]>([
   ["beep", 80],
   ["epiano", 4],
-  ["pluck", 24],
+  ["pluck", 25],
   ["flute", 73],
   ["pad", 89],
 ])("selects the General MIDI program for %s before playing notes", async (instrument, program) => {
@@ -151,4 +151,22 @@ it("skips expired notes after a delayed timer instead of playing a burst", () =>
   expect(send.mock.calls.filter(([bytes]) => bytes[0] === 0x90)).toEqual([[[0x90, 70, 100]]]);
   playback.stop();
   clock.mockRestore();
+});
+
+it("preserves the synth release tail when transport cleans up naturally finished playback", () => {
+  const send = vi.fn();
+  const playback = playNotesMidi(
+    { send } as unknown as MIDIOutput,
+    [note(60, 0, 0.1)],
+    0.1,
+    0,
+    "pluck",
+  );
+  vi.advanceTimersByTime(151);
+  expect(playback.position()).toBeNull();
+  expect(send.mock.calls.at(-1)).toEqual([[0x80, 60, 0]]);
+  send.mockClear();
+  playback.stop();
+  expect(send).not.toHaveBeenCalled();
+  expect(vi.getTimerCount()).toBe(0);
 });
