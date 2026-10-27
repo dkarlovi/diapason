@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { useEditorGestures } from "./useEditorGestures";
 import type { Recording } from "../db";
 import type { Frame, NoteEvent } from "../notes";
-import { drawTrace, type NoteOrigin, type TraceView } from "../trace";
+import { drawTrace, type NoteOrigin, type TraceLayer, type TraceView } from "../trace";
 import {
   fittedPitch,
   followPan,
@@ -26,12 +26,19 @@ interface Options {
   claimsPointer(event: PointerEvent): boolean;
 }
 
-function drawVisible(canvas: HTMLCanvasElement | null, frames: Frame[], view: TraceView) {
-  if (canvas?.clientWidth) drawTrace(canvas, frames, view);
+const NO_FRAMES: Frame[] = [];
+
+function drawVisible(
+  canvas: HTMLCanvasElement | null,
+  frames: Frame[],
+  view: TraceView,
+  layer: TraceLayer,
+) {
+  if (canvas?.clientWidth) drawTrace(canvas, frames, view, layer);
 }
 
 function usePlotRedraw(
-  draw: () => void,
+  draw: (tick?: boolean) => void,
   follow: (position: number) => void,
   { playhead, traceRef, rollRef }: Pick<Options, "playhead" | "traceRef" | "rollRef">,
 ) {
@@ -39,14 +46,14 @@ function usePlotRedraw(
   redraw.current = draw;
   const follower = useRef(follow);
   follower.current = follow;
-  useEffect(draw, [draw]);
+  useEffect(() => draw(), [draw]);
   // Playback ticks bypass React: they turn the page when needed and redraw the canvases directly.
   useEffect(
     () =>
       playhead.subscribe(({ position }, previous) => {
         if (position === previous.position) return;
         if (position !== null) follower.current(position);
-        redraw.current();
+        redraw.current(true);
       }),
     [playhead],
   );
@@ -113,37 +120,54 @@ export function useEditorPlot({
     const next = followPan(duration, zoom, pan, position, visible);
     if (next !== pan) setPan(next);
   };
-  const draw = useCallback(() => {
-    if (!record) return;
-    const { position } = playhead.getState();
-    const beats = { bpm: record.bpm, beatsPerBar: record.beatsPerBar, subdivision: grid || 1 };
-    const shared = { ...view, beats, ...(position === null ? {} : { playheadTime: position }) };
-    drawVisible(traceRef.current, frames, {
-      ...shared,
-      pitchLabels: "none",
-      showTimeLabels: false,
-    });
-    drawVisible(rollRef.current, traceOverlay ? frames : [], {
-      ...shared,
+  const layers = useRef({ trace: {} as TraceLayer, roll: {} as TraceLayer });
+  /** Ticks reuse the resolved palette; any other redraw (theme, resize, edits) re-reads it. */
+  const draw = useCallback(
+    (tick = false) => {
+      if (!record) return;
+      const { trace, roll } = layers.current;
+      if (!tick) trace.colors = roll.colors = undefined;
+      const { position } = playhead.getState();
+      const beats = { bpm: record.bpm, beatsPerBar: record.beatsPerBar, subdivision: grid || 1 };
+      const shared = { ...view, beats, ...(position === null ? {} : { playheadTime: position }) };
+      drawVisible(
+        traceRef.current,
+        frames,
+        {
+          ...shared,
+          pitchLabels: "none",
+          showTimeLabels: false,
+        },
+        trace,
+      );
+      drawVisible(
+        rollRef.current,
+        traceOverlay ? frames : NO_FRAMES,
+        {
+          ...shared,
+          notes,
+          muted,
+          ...(edited ? { edited } : {}),
+          ...(origins ? { origins } : {}),
+        },
+        roll,
+      );
+    },
+    [
+      record,
+      view,
+      grid,
+      playhead,
+      frames,
       notes,
       muted,
-      ...(edited ? { edited } : {}),
-      ...(origins ? { origins } : {}),
-    });
-  }, [
-    record,
-    view,
-    grid,
-    playhead,
-    frames,
-    notes,
-    muted,
-    edited,
-    origins,
-    traceOverlay,
-    traceRef,
-    rollRef,
-  ]);
+      edited,
+      origins,
+      traceOverlay,
+      traceRef,
+      rollRef,
+    ],
+  );
   usePlotRedraw(draw, follow, { playhead, traceRef, rollRef });
   const zoomTime = (factor: number, anchor = 0) => {
     const next = zoomedTime({ duration, zoom, pan, visible }, factor, anchor);

@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
 import { Button } from "./primitives";
 import { NoteDetail } from "./NoteDetail";
@@ -6,7 +6,7 @@ import { EditorNavigation } from "./EditorNavigation";
 import { PitchCanvas } from "./PitchCanvas";
 import type { EditorState } from "./editor-view-types";
 import type { EditorLayout } from "../hooks/useEditorLayout";
-import { usePlayhead, type PlayheadStore } from "../playhead-store";
+import type { PlayheadStore } from "../playhead-store";
 
 function rollKeyboard(event: KeyboardEvent<HTMLCanvasElement>, state: EditorState) {
   const index = state.items.findIndex((item) => item.note === state.selectedNote);
@@ -59,7 +59,7 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     />
   );
 }
-// Subscribes at tenth-of-a-second resolution so playback re-renders only this readout.
+// Writes the readout straight from the playhead store so playback never re-renders React.
 function PlayheadTime({
   playhead,
   duration,
@@ -67,12 +67,19 @@ function PlayheadTime({
   playhead: PlayheadStore;
   duration: number | undefined;
 }) {
-  const tenths = usePlayhead(playhead, (s) => Math.floor((s.position ?? 0) * 10));
-  return (
-    <time>
-      {(tenths / 10).toFixed(1)} / {duration?.toFixed(1) ?? "0"} s
-    </time>
-  );
+  const ref = useRef<HTMLTimeElement>(null);
+  useLayoutEffect(() => {
+    const total = duration?.toFixed(1) ?? "0";
+    let shown = "";
+    const show = ({ position }: { position: number | null }) => {
+      const text = `${(position ?? 0).toFixed(1)} / ${total} s`;
+      if (text === shown || !ref.current) return;
+      ref.current.textContent = shown = text;
+    };
+    show(playhead.getState());
+    return playhead.subscribe(show);
+  }, [playhead, duration]);
+  return <time ref={ref} />;
 }
 function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   const midi = kind === "midi";

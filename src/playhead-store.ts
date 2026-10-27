@@ -1,4 +1,4 @@
-import { createStore, useStore, type StoreApi } from "zustand";
+import { createStore, type StoreApi } from "zustand/vanilla";
 
 export interface PlayheadState {
   position: number | null;
@@ -13,8 +13,4 @@ export function createPlayheadStore(): PlayheadStore {
     position: null,
     set: (position) => set({ position }),
   }));
-}
-
-export function usePlayhead<T>(store: PlayheadStore, selector: (state: PlayheadState) => T): T {
-  return useStore(store, selector);
 }
