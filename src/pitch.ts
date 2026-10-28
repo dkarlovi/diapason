@@ -50,23 +50,28 @@ export function createPitchDetector(sampleRate: number, opts: PitchOptions = {})
   return function detect(buf: Float32Array): PitchResult {
     const n = buf.length;
 
+    // Saved PCM16 samples keep these energy sums exact in Float64.
+    const squares = new Float64Array(n + 1);
     let sumSq = 0;
-    for (let i = 0; i < n; i++) sumSq += buf[i]! * buf[i]!;
+    for (let i = 0; i < n; i++) {
+      sumSq += buf[i]! * buf[i]!;
+      squares[i + 1] = sumSq;
+    }
     const rms = Math.sqrt(sumSq / n);
 
     const hi = Math.min(maxLag, n - 1);
     if (hi <= minLag) return { freq: null, clarity: 0, rms };
 
-    // Normalized Square Difference Function. Computed from tau 0 so the local-maximum
-    // test is valid at the low end of the band.
+    // Normalized Square Difference Function. Keep the neighboring lag below the
+    // band for local-maximum tests; lower lags are never read. Prefix sums provide
+    // both overlapping windows' energy without squaring samples again per lag.
     const nsdf = new Float32Array(hi + 1);
-    for (let tau = 0; tau <= hi; tau++) {
+    for (let tau = minLag - 1; tau <= hi; tau++) {
       let acf = 0;
-      let div = 0;
       for (let i = 0; i < n - tau; i++) {
         acf += buf[i]! * buf[i + tau]!;
-        div += buf[i]! * buf[i]! + buf[i + tau]! * buf[i + tau]!;
       }
+      const div = squares[n - tau]! + (sumSq - squares[tau]!);
       nsdf[tau] = div > 0 ? (2 * acf) / div : 0;
     }
 

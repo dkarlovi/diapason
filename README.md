@@ -49,7 +49,9 @@ diapason is organized as a **library of recordings**, persisted in your browser
 
 Pitch analysis starts when you open a take or request its MIDI preview. It runs
 in a Web Worker and is cached separately in IndexedDB, so reopening a take or
-returning to the Library reuses its exact frames. Changes to acoustic analysis
+returning to the Library reuses its exact frames. The detector reuses window-energy
+sums and skips unused pitch lags to reduce CPU work while preserving the analysis
+results for stored audio. Changes to acoustic analysis
 settings or the detector implementation invalidate the cache. While analysis is
 running, the editor shows its progress, and a slim indicator sits along the Library
 row’s top border without moving its contents; audio playback and WAV
