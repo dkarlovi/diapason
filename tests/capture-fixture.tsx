@@ -128,9 +128,9 @@ export function resetFixture() {
   });
   vi.stubGlobal("cancelAnimationFrame", (id: number) => fixture.frames.delete(id));
 }
-export function renderCapture() {
+export function renderCapture(search = "") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[`/${search}`]}>
       <Routes>
         <Route path="/" element={<Capture />} />
         <Route path="/recording/:id" element={<div>Editor route</div>} />
@@ -159,8 +159,8 @@ export async function microphoneReady() {
   await click("Continue with whistling");
   await click("Confirm microphone");
 }
-export async function calibratedCapture() {
-  const view = renderCapture();
+export async function calibratedCapture(search = "") {
+  const view = renderCapture(search);
   await microphoneReady();
   await click("Measure room noise");
   advance(1500);

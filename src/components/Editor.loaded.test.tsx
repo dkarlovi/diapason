@@ -801,3 +801,41 @@ it.each([
   await userEvent.click(screen.getByRole("button", { name: `Use Instrument ${label}` }));
   await waitFor(() => expect(saved?.play?.instrument).toBe(instrument));
 });
+
+it("embeds without a header or import and keeps a reduced menu beside Download", async () => {
+  render(
+    <MemoryRouter initialEntries={["/recording/one?embed=1&afterRecording=edit"]}>
+      <Routes>
+        <Route
+          path="/recording/:id"
+          element={
+            <AppShell>
+              <Editor id="one" />
+            </AppShell>
+          }
+        />
+        <Route path="/new" element={<p>New take</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
+  );
+  expect(document.querySelector(".workstation-header")).toBeNull();
+  expect(screen.queryByLabelText("Import WAV")).toBeNull();
+  expect(screen.getByRole("img", { name: "diapason" })).toBeTruthy();
+  const download = screen.getByRole("button", { name: "Download MIDI" });
+  const menu = screen.getByRole("button", { name: "Recording actions" });
+  expect(menu.parentElement).toBe(download.parentElement);
+  await userEvent.click(menu);
+  const options = screen.getByRole("dialog", { name: "Recording action options" });
+  expect(
+    within(options)
+      .getAllByRole("button")
+      .map((button) => button.textContent),
+  ).toEqual(["Reset edits", "Delete recording"]);
+  expect(within(options).queryByText("Versions")).toBeNull();
+  vi.stubGlobal("confirm", () => true);
+  await userEvent.click(within(options).getByRole("button", { name: "Delete recording" }));
+  expect(await screen.findByText("New take")).toBeTruthy();
+});

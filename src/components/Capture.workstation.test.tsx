@@ -94,3 +94,10 @@ it("keeps the live canvas and record toggle mounted while the wizard folds and r
   expect(screen.getByRole("img")).toBe(canvas);
   expect(screen.getByText(/Too short/)).toBeTruthy();
 });
+
+it("explains microphone delegation in embedded mode", async () => {
+  fixture.denied = true;
+  renderCapture("?embed=1");
+  await click("Continue with whistling");
+  expect(screen.getByRole("alert").textContent).toContain('allow="microphone"');
+});

@@ -1,0 +1,68 @@
+/* Shared canvas branding replaces all application chrome in the iframe. */
+.embed-canvas-brand {
+  position: absolute;
+  z-index: 1;
+  left: 12px;
+  top: 13px;
+  width: 24px;
+  height: 28px;
+  color: var(--color-primary);
+  pointer-events: none;
+}
+.embed-canvas-brand svg {
+  width: 24px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+.embed-shell .editor-track-label {
+  left: 48px;
+}
+.embed-shell .live-chart-placeholder {
+  padding-left: 48px;
+}
+.embed-shell .editor-track-actions .editor-recording-menu {
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+.studio-shell .embed-recording-menu .midi-output {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 4px;
+}
+@container editor-track (max-width: 480px) {
+  .embed-shell .editor-track-label {
+    max-width: calc(100% - 310px);
+  }
+}
+/* Keep the collapsed handle on its divider and reveal its label on interaction. */
+.embed-shell .editor-workspace[data-source-hidden="true"] .editor-source-handle {
+  transition: transform 140ms ease-out;
+}
+.embed-shell
+  .editor-workspace[data-source-hidden="true"]
+  .editor-source-handle:is(:hover, :focus-visible) {
+  transform: translate(-50%, 0);
+}
+@media (hover: none) {
+  .embed-shell .editor-workspace[data-source-hidden="true"] .editor-source-handle {
+    transform: translate(-50%, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .embed-shell .editor-workspace[data-source-hidden="true"] .editor-source-handle {
+    transition: none;
+  }
+}
+/* Reserve the MIDI menu column in both tracks to align their downloads. */
+.embed-shell {
+  --embed-menu-width: 36px;
+}
+.embed-shell .editor-track-actions .editor-recording-menu {
+  width: var(--embed-menu-width);
+}
+.embed-shell .editor-audio .editor-track-actions::after {
+  content: "";
+  flex: 0 0 var(--embed-menu-width);
+}

@@ -4,11 +4,13 @@ import { Library } from "./components/Library";
 import { Capture } from "./components/Capture";
 import { Editor } from "./components/Editor";
 import { AppShell } from "./components/AppShell";
+import { StudioBoundary } from "./hooks/useStudioMode";
 import { BASE } from "./router";
 import "./styles.css";
 import "./capture.css";
 import "./studio.css";
 import "./editor.css";
+import "./embed.css";
 
 function RecordingRoute() {
   const { id } = useParams();
@@ -18,14 +20,16 @@ function RecordingRoute() {
 function App() {
   return (
     <BrowserRouter basename={BASE}>
-      <AppShell>
-        <Routes>
-          <Route path="/" element={<Library />} />
-          <Route path="/new" element={<Capture />} />
-          <Route path="/recording/:id" element={<RecordingRoute />} />
-          <Route path="*" element={<Library />} />
-        </Routes>
-      </AppShell>
+      <StudioBoundary>
+        <AppShell>
+          <Routes>
+            <Route path="/" element={<Library />} />
+            <Route path="/new" element={<Capture />} />
+            <Route path="/recording/:id" element={<RecordingRoute />} />
+            <Route path="*" element={<Library />} />
+          </Routes>
+        </AppShell>
+      </StudioBoundary>
     </BrowserRouter>
   );
 }
