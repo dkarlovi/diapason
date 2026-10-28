@@ -833,7 +833,7 @@ it("embeds without a header or import and keeps a reduced menu beside Download",
     within(options)
       .getAllByRole("button")
       .map((button) => button.textContent),
-  ).toEqual(["Reset edits", "Delete recording"]);
+  ).toEqual(["Copy tune link", "Reset edits", "Delete recording"]);
   expect(within(options).queryByText("Versions")).toBeNull();
   vi.stubGlobal("confirm", () => true);
   await userEvent.click(within(options).getByRole("button", { name: "Delete recording" }));

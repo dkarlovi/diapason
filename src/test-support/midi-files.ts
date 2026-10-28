@@ -19,6 +19,8 @@ export function readMidiEvents(bytes: Uint8Array) {
       position++;
       const length = variable();
       position += length;
+    } else if ((status & 0xf0) === 0xc0) {
+      position++;
     } else {
       events.push({ tick, status, midi: bytes[position++]!, velocity: bytes[position++]! });
     }

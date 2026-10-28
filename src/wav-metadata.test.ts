@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { BUILD_INFO } from "./build-info";
 import { decodeAudio } from "./codec";
-import type { Recording } from "./db";
+import type { AudioRecording as Recording } from "./db";
 import { newRecordingMelody } from "./melody/settings";
 import { recording } from "./test-support/recording";
 import { encodeWav } from "./wav";

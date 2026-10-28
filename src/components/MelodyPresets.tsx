@@ -5,7 +5,7 @@ import type { MelodyPanelProps } from "./MelodyPanel";
 
 type Props = Pick<
   MelodyPanelProps,
-  "melody" | "disabled" | "previewId" | "applyPreset" | "previewMelody"
+  "melody" | "disabled" | "previewId" | "applyPreset" | "previewMelody" | "fixedNotes"
 >;
 export function MelodyPresets(props: Props) {
   const label = PRESETS[props.melody.preset].label;
@@ -13,6 +13,11 @@ export function MelodyPresets(props: Props) {
   return (
     <MelodyDropdown
       label="Preset"
+      tooltip={
+        props.fixedNotes
+          ? "Presets apply musical settings. Detection settings are fixed for this tune."
+          : undefined
+      }
       value={custom ? `Custom (from ${label})` : label}
       disabled={props.disabled}
       onReset={() => props.applyPreset(DEFAULT_PRESET)}

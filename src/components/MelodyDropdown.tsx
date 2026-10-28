@@ -9,17 +9,18 @@ interface Props {
   label: string;
   value: string;
   disabled: boolean;
+  tooltip?: string | undefined;
   onReset(): void;
   children(close: () => void): ReactNode;
 }
-export function MelodyDropdown({ label, value, disabled, onReset, children }: Props) {
+export function MelodyDropdown({ label, value, disabled, tooltip, onReset, children }: Props) {
   const [localOpen, setLocalOpen] = useState(false);
   const context = useContext(AuditionMenuContext);
   const open = context ? context.visible && context.menu === label : localOpen;
   const setOpen = (next: boolean) =>
     context ? context.setMenu(next ? label : null) : setLocalOpen(next);
   return (
-    <div className="editor-preset-field">
+    <div className="editor-preset-field" title={tooltip}>
       <span className="editor-field-label">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -27,6 +28,7 @@ export function MelodyDropdown({ label, value, disabled, onReset, children }: Pr
             className="editor-select-trigger"
             aria-label={`Choose ${label.toLowerCase()}`}
             disabled={disabled}
+            aria-description={tooltip}
           >
             {value}
             <ChevronDown aria-hidden="true" />

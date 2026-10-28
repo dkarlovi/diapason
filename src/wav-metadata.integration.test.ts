@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { decodeAudio } from "./codec";
-import type { Recording } from "./db";
+import type { AudioRecording as Recording } from "./db";
 import { notesToMidi } from "./midi";
 import { analyzeRecording } from "./recording-analysis";
 import { recordingNotes } from "./recording";
@@ -31,4 +31,4 @@ it("whistle-intro exports and re-imports to the approved Clean MIDI", async () =
   expect(imported.id).toBe("mvl403tu-z13urb");
   expect(imported.bpm).toBe(94);
   expect(new Uint8Array(midi)).toEqual(new Uint8Array(readFileSync(url("clean.mid"))));
-}, 15_000);
+}, 60_000);

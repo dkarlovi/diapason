@@ -1,3 +1,6 @@
+import { TuneShareLink } from "./TuneShareLink";
+import { RecordingImport } from "./RecordingImport";
+import { useTuneShare } from "../hooks/useTuneShare";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { useAnalysisStatus } from "../hooks/useAnalysisStatus";
 import { requestAnalysis } from "../analysis-jobs";
@@ -10,6 +13,7 @@ import {
   ChevronRight,
   Ellipsis,
   FileAudio,
+  FileMusic,
   LoaderCircle,
   Plus,
   Play,
@@ -17,7 +21,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useLibrary, type Playing } from "../hooks/useLibrary";
-import { importable, useWavImport, type ImportCandidate } from "../hooks/useWavImport";
+import { useRecordingImport } from "../hooks/useRecordingImport";
 import { useWavDrop } from "../hooks/useWavDrop";
 import type { Recording } from "../db";
 import { fmtDate } from "../ui";
@@ -31,21 +35,32 @@ function RecordingCard({
   onPlay,
   onDuplicate,
   onDelete,
+  onShare,
+  onMidi,
+  sharing,
 }: {
   record: Recording;
   playing: Playing;
   onPlay(record: Recording, kind: "audio" | "midi"): void;
   onDuplicate(id: string): void;
   onDelete(record: Recording): void;
+  onShare(id: string): void;
+  onMidi(id: string): void;
+  sharing: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const analysis = useAnalysisStatus(record);
   const waiting = analysis.status === "running" || analysis.status === "error";
+  const SourceIcon = record.noteSource ? FileMusic : FileAudio;
   return (
-    <article className="library-record">
+    <article className="library-record" data-source={record.noteSource ? "notes" : "audio"}>
       <WaveformThumbnail summary={record.waveform} />
-      <span className="recording-icon">
-        <FileAudio aria-hidden="true" />
+      <span
+        className="recording-icon"
+        role="img"
+        aria-label={record.noteSource ? "Tune without audio" : "Audio recording"}
+      >
+        <SourceIcon aria-hidden="true" />
       </span>
       <div className="recording-info">
         <h2>{record.name}</h2>
@@ -55,7 +70,7 @@ function RecordingCard({
         <AnalysisProgress
           state={analysis}
           retry={() => {
-            void requestAnalysis(record, true).catch(() => {});
+            if (!record.noteSource) void requestAnalysis(record, true).catch(() => {});
           }}
         />
       </div>
@@ -65,7 +80,7 @@ function RecordingCard({
           return (
             <Button
               key={kind}
-              disabled={kind === "midi" && waiting}
+              disabled={kind === "midi" ? waiting : !!record.noteSource}
               className="playback-control"
               aria-pressed={active}
               aria-label={(active ? "Stop " : "Play ") + kind + ": " + record.name}
@@ -101,6 +116,24 @@ function RecordingCard({
             aria-label={"Actions for " + record.name}
           >
             <Button
+              disabled={sharing || waiting}
+              onClick={() => {
+                setMenuOpen(false);
+                onShare(record.id);
+              }}
+            >
+              Copy tune link
+            </Button>
+            <Button
+              disabled={sharing || waiting}
+              onClick={() => {
+                setMenuOpen(false);
+                onMidi(record.id);
+              }}
+            >
+              Download MIDI
+            </Button>
+            <Button
               onClick={() => {
                 setMenuOpen(false);
                 onDuplicate(record.id);
@@ -124,66 +157,6 @@ function RecordingCard({
   );
 }
 
-function ImportItem({ candidate }: { candidate: ImportCandidate }) {
-  const { record, existing, error } = candidate;
-  return (
-    <li className="library-import-item" data-kind={error ? "error" : existing ? "existing" : "new"}>
-      <strong>{record?.name ?? candidate.file}</strong>
-      {record && (
-        <span>
-          {fmtDate(record.createdAt)} · {record.bpm} BPM · {record.beatsPerBar}/4 · diapason{" "}
-          {record.imported?.metadata.provenance.build.version ?? "unknown"}
-        </span>
-      )}
-      {error && <span className="library-import-error">{error}</span>}
-      {existing && (
-        <span>
-          Already in your library <Link to={recordingPath(existing.id)}>Open</Link>
-        </span>
-      )}
-    </li>
-  );
-}
-
-function ImportPopover({
-  candidates,
-  onConfirm,
-  onCancel,
-}: {
-  candidates: ImportCandidate[] | null;
-  onConfirm(): void;
-  onCancel(): void;
-}) {
-  const count = importable(candidates ?? []).length;
-  return (
-    <PopoverContent
-      className="library-import"
-      aria-label="Import recordings"
-      onOpenAutoFocus={(event) => {
-        // Land on the action, not the first link in the list.
-        event.preventDefault();
-        const actions = (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>(
-          ".library-import-actions button:not(:disabled)",
-        );
-        actions[actions.length - 1]?.focus();
-      }}
-    >
-      <h2>Import recordings</h2>
-      <ul>
-        {candidates?.map((candidate, index) => (
-          <ImportItem key={index} candidate={candidate} />
-        ))}
-      </ul>
-      <div className="library-import-actions">
-        <Button onClick={onCancel}>Cancel</Button>
-        <Button className="primary" disabled={!count} onClick={onConfirm}>
-          {(candidates?.length ?? 0) > 1 ? `Import ${count}` : "Import"}
-        </Button>
-      </div>
-    </PopoverContent>
-  );
-}
-
 const HEADER = ".workstation-header";
 /** The drop area covers the page below the header, which is not a drop target. */
 const belowHeader = () =>
@@ -202,6 +175,7 @@ export function Library() {
     dismissNotice,
     showNotice,
   } = useLibrary();
+  const share = useTuneShare(showNotice);
   const location = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
@@ -210,30 +184,44 @@ export function Library() {
     showNotice({ kind: "success", message: `Deleted “${name}”` });
     void navigate(location.pathname, { replace: true, state: null });
   }, [location.state, location.pathname, navigate, showNotice]);
-  const wavImport = useWavImport(reload, showNotice);
-  const dropState = useWavDrop((files) => void wavImport.offer(files), HEADER);
+  const recordingImport = useRecordingImport(reload, showNotice);
+  const clearTuneFragment = () => {
+    if (location.hash.startsWith("#tune="))
+      void navigate(
+        { pathname: location.pathname, search: location.search, hash: "" },
+        { replace: true },
+      );
+  };
+  useEffect(() => {
+    if (location.hash.startsWith("#tune=")) void recordingImport.offerUrl(location.hash);
+  }, [location.hash, recordingImport.offerUrl]);
+  const cancelImport = () => {
+    recordingImport.cancel();
+    clearTuneFragment();
+  };
+  const dropState = useWavDrop((files) => void recordingImport.offer(files), HEADER);
   return (
     <div id="view-library">
       {dropState !== "idle" && (
         <div className="library-drop-area" data-kind={dropState} style={{ top: belowHeader() }}>
           {dropState === "reject" ? <Ban aria-hidden="true" /> : <Upload aria-hidden="true" />}
           {dropState === "reject"
-            ? "Only WAV files can be imported"
-            : "Drop diapason WAVs to import"}
+            ? "Only Diapason WAV and MIDI files can be imported"
+            : "Drop Diapason WAV or MIDI files to import"}
         </div>
       )}
       <Popover
-        open={!!wavImport.candidates}
+        open={!!recordingImport.candidates}
         onOpenChange={(open) => {
-          if (!open) wavImport.cancel();
+          if (!open) cancelImport();
         }}
       >
         <PopoverAnchor asChild>
           <div className="library-heading">
             <h1>Your recordings</h1>
             <div className="library-heading-actions">
-              <label className="button" aria-busy={wavImport.busy}>
-                {wavImport.busy ? (
+              <label className="button" aria-busy={recordingImport.busy}>
+                {recordingImport.busy ? (
                   <LoaderCircle className="library-import-spinner" aria-hidden="true" />
                 ) : (
                   <Upload aria-hidden="true" />
@@ -242,20 +230,20 @@ export function Library() {
                 <input
                   className="sr-only"
                   type="file"
-                  disabled={wavImport.busy}
-                  aria-label="Import WAV"
-                  accept=".wav,audio/wav"
+                  disabled={recordingImport.busy}
+                  aria-label="Import WAV or MIDI"
+                  accept=".wav,.mid,.midi,audio/wav,audio/midi"
                   multiple
                   onChange={(event) => {
                     const files = [...(event.currentTarget.files ?? [])];
                     event.currentTarget.value = "";
-                    if (files.length) void wavImport.offer(files);
+                    if (files.length) void recordingImport.offer(files);
                   }}
                 />
               </label>
-              {wavImport.busy && (
+              {recordingImport.busy && (
                 <span className="sr-only" role="status">
-                  Importing WAV…
+                  Inspecting recordings…
                 </span>
               )}
               <Link className="button primary" to="/new" aria-label="New recording">
@@ -264,10 +252,13 @@ export function Library() {
             </div>
           </div>
         </PopoverAnchor>
-        <ImportPopover
-          candidates={wavImport.candidates}
-          onConfirm={() => void wavImport.confirm()}
-          onCancel={wavImport.cancel}
+        <RecordingImport
+          candidates={recordingImport.candidates}
+          onConfirm={() => {
+            clearTuneFragment();
+            void recordingImport.confirm();
+          }}
+          onCancel={cancelImport}
         />
       </Popover>
       {recordings.length ? (
@@ -280,6 +271,9 @@ export function Library() {
               onPlay={togglePlay}
               onDuplicate={duplicate}
               onDelete={remove}
+              onShare={(id) => void share.copyLink(id)}
+              onMidi={(id) => void share.downloadMidi(id)}
+              sharing={share.busy}
             />
           ))}
         </div>
@@ -290,6 +284,7 @@ export function Library() {
           </p>
         </Panel>
       )}
+      <TuneShareLink link={share.fallbackLink} onClose={share.clearFallback} />
       <p className="library-storage">{storage}</p>
       <Toast notice={notice} onDismiss={dismissNotice} />
     </div>

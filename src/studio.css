@@ -210,6 +210,12 @@ main.studio-shell.library-shell {
   padding: 20px;
   border-bottom: 1px solid var(--color-border);
 }
+.library-record[data-source="notes"] {
+  background: color-mix(in oklab, var(--color-primary) 3%, var(--color-card));
+}
+.library-record[data-source="notes"] .recording-icon {
+  background: var(--color-primary-muted);
+}
 .library-record:hover,
 .library-record:focus-within {
   background: var(--color-primary-muted);
@@ -523,4 +529,29 @@ main.studio-shell.library-shell {
 }
 .library-record .analysis-progress {
   height: 2px;
+}
+
+.tune-share-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tune-share-link label {
+  flex: 1;
+  min-width: 0;
+}
+.tune-share-link input {
+  width: 100%;
+}
+.tune-share-floating {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(520px, calc(100% - 32px));
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-card);
 }

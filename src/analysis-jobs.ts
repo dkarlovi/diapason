@@ -1,4 +1,4 @@
-import type { Recording } from "./db";
+import type { AudioRecording as Recording } from "./db";
 import type { Frame } from "./notes";
 import { analysisKey, readAnalysis, writeAnalysis } from "./analysis-cache";
 import { resolveAnalysisOptions } from "./recording-analysis";

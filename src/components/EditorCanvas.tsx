@@ -132,7 +132,9 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
       )}
       <Button
         className="editor-play playback-control"
-        disabled={!state.record || (kind === "midi" && !state.analysisReady)}
+        disabled={
+          !state.record || (kind === "midi" ? !state.analysisReady : !state.capabilities?.audio)
+        }
         aria-label={`${playing ? "Stop" : "Play"} ${label}`}
         title={`${playing ? "Stop" : "Play"} ${label}`}
         aria-pressed={playing}
@@ -146,7 +148,9 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         className="editor-download"
         aria-label={download}
         title={download}
-        disabled={!state.record || (kind === "midi" && !state.analysisReady)}
+        disabled={
+          !state.record || (kind === "midi" ? !state.analysisReady : !state.capabilities?.audio)
+        }
         onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
       >
         <Download aria-hidden="true" />
@@ -171,6 +175,7 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
       <div className="editor-canvas-footer">
         <Button
           className="editor-trace-toggle"
+          disabled={!state.capabilities?.analysis}
           aria-pressed={state.viewport.traceOverlay}
           onClick={() => state.viewport.setTraceOverlay(!state.viewport.traceOverlay)}
         >
@@ -191,6 +196,9 @@ export function EditorCanvas(props: CanvasProps) {
       hidden={kind === "audio" && layout.sourceHidden}
     >
       <CanvasPlot kind={kind} state={state} />
+      {kind === "audio" && state.record?.noteSource && (
+        <p className="source-limitation">The original audio was not included in this tune.</p>
+      )}
       <div className="editor-track-toolbar">
         {embedded && (kind === "audio" || layout.sourceHidden) && <EmbeddedBrand />}
         <TrackLabel kind={kind} state={state} />

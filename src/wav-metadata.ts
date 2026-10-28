@@ -1,6 +1,6 @@
 import { BUILD_INFO } from "./build-info";
 import { encodeAudio } from "./codec";
-import type { CaptureMeta, Recording, RecordingOrigin } from "./db";
+import type { CaptureMeta, AudioRecording as Recording, RecordingOrigin } from "./db";
 import { DEFAULT_PRESET, resolveKnobs } from "./melody/knobs";
 import { newRecordingMelody } from "./melody/settings";
 import { analysisOptionsFor, getSoundProfile, SOUND_PROFILES } from "./recording-profiles";

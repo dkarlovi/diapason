@@ -1,3 +1,10 @@
+import { useTuneShare } from "./useTuneShare";
+import { validateNoteSource } from "../note-source";
+import {
+  constrainMelodyChange,
+  knobAvailability,
+  recordingCapabilities,
+} from "../recording-capabilities";
 import { useEditorVersions } from "./useEditorVersions";
 import { applyEditSnapshot } from "../edit-state";
 import { validateEditSnapshot } from "../edit-storage";
@@ -94,6 +101,7 @@ export function useEditor(id: string) {
     stopPlayback,
   } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
   const history = useEditHistory({ record, replaceRecord, beforeChange: stopPlayback });
+  const sharing = useTuneShare(showNotice, history.flush);
   const { applyPreset, changeKnob, resetKnob, changeKey } = useMelodySettings(
     recordRef,
     history.change,
@@ -124,14 +132,15 @@ export function useEditor(id: string) {
           navigate("/");
           return;
         }
-        const decoded = await decodeAudio(found.audio);
+        const decoded = found.noteSource ? new Float32Array(0) : await decodeAudio(found.audio);
         if (cancelled) return;
+        if (found.noteSource) validateNoteSource(found.noteSource, found.durationSec);
         pcm.current = decoded;
         replaceRecord(found);
         setDraftName(found.name);
-        const analyzed = await requestAnalysis(found, loadAttempt > 0);
+        const analyzed = found.noteSource ? [] : await requestAnalysis(found, loadAttempt > 0);
         if (cancelled) return;
-        stats.current = qualityStats(analyzed, decoded);
+        stats.current = found.noteSource ? null : qualityStats(analyzed, decoded);
         setFrames(analyzed);
         setAnalysisReady(true);
       } catch (error) {
@@ -168,7 +177,7 @@ export function useEditor(id: string) {
     (change: Partial<MelodySetting>, previewId: string) => {
       const current = recordRef.current;
       if (!current) return;
-      const target = { ...melody, ...change };
+      const target = constrainMelodyChange(current, { ...melody, ...change });
       const result = processRecording({ ...current, melody: target }, frames);
       setAudition(result);
       setCandidate({
@@ -267,6 +276,7 @@ export function useEditor(id: string) {
     downloadLog,
     copyLog,
   } = useEditorExports({
+    beforeExport: history.flush,
     recordingId: id,
     recordRef,
     pcmRef: pcm,
@@ -461,6 +471,11 @@ export function useEditor(id: string) {
   );
 
   return {
+    sharing,
+    copyTuneLink: () => sharing.copyLink(id),
+    capabilities: record ? recordingCapabilities(record) : null,
+    knobAvailability: (key: keyof Knobs) =>
+      record ? knobAvailability(record, key) : { enabled: false },
     notice,
     dismissNotice,
     record,
@@ -472,13 +487,14 @@ export function useEditor(id: string) {
     editingDisabled: !record || !analysisReady || versions.busy,
     drafting: history.drafting,
     beginKnob: (key: keyof Knobs) => {
+      if (!recordRef.current || !knobAvailability(recordRef.current, key).enabled) return;
       history.finish();
       knobBaseline.current = recordRef.current;
       history.begin(`Change ${KNOB_DEFS.find((def) => def.key === key)?.label ?? key}`);
     },
     draftKnob: (key: keyof Knobs, value: number) => {
       const current = knobBaseline.current;
-      if (!current || !isKnobs({ [key]: value })) return;
+      if (!current || !knobAvailability(current, key).enabled || !isKnobs({ [key]: value })) return;
       const melody = melodySettingFor(current);
       history.update(
         captureEditSnapshot(
@@ -544,7 +560,7 @@ export function useEditor(id: string) {
     play,
     notesLabel: `${displayNotes.length} notes${muted.length ? ` · ${muted.length} muted` : ""} · ${previewLabel ?? PRESETS[melody.preset].label}${displayGrid ? " · grid on" : " · performed timing"}`,
     meta: record
-      ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`
+      ? `${record.bpm} BPM · ${record.beatsPerBar}/4 · ${record.durationSec.toFixed(1)}s · ${record.noteSource ? "No original audio" : `${record.sampleRate} Hz${record.capture.dspOff ? "" : " · ⚠ DSP was on"}`}`
       : "",
     playing,
     playhead,

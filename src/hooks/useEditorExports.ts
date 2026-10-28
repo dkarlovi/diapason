@@ -4,13 +4,13 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import type { Recording } from "../db";
 import type { Frame } from "../notes";
 import type { QualityStats } from "../recorder";
-import { notesToMidi } from "../midi";
+import { encodeTuneMidi } from "../tune-midi";
+import { createPortableTune } from "../portable-tune";
 import { encodeTaggedWav, taggedWavChunks, type ExportContext } from "../wav-metadata";
 import { buildReport } from "../diagnostics";
 import { diagnosticSnapshot } from "../diagnostic-snapshot";
 import { downloadBlob } from "../ui";
 import { exportSlug, makeReportInput } from "../editor-model";
-import { recordingNotes } from "../recording";
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -27,6 +27,7 @@ interface Options {
   pcmRef: RefObject<Float32Array>;
   frames: Frame[];
   statsRef: RefObject<QualityStats | null>;
+  beforeExport(): Promise<void>;
 }
 
 export function useEditorExports({
@@ -36,6 +37,7 @@ export function useEditorExports({
   frames,
   statsRef,
   showNotice,
+  beforeExport,
 }: Options) {
   const [reportText, setReportText] = useState("");
   const [copyStatus, setCopyStatusState] = useState("");
@@ -66,32 +68,31 @@ export function useEditorExports({
     [recordRef],
   );
   const reportInput = useCallback(
-    (current: Recording, stats: QualityStats) => ({
+    (current: import("../db").AudioRecording, stats: QualityStats) => ({
       ...makeReportInput(current, frames, stats),
       context: exportContext(),
     }),
     [frames],
   );
-  const downloadMidi = useCallback(() => {
-    const current = recordRef.current;
-    if (!current) return;
+  const downloadMidi = useCallback(async () => {
+    if (!recordRef.current) return;
     try {
-      downloadBlob(
-        notesToMidi(recordingNotes(current, frames), { bpm: current.bpm }),
-        filename("mid"),
-      );
+      await beforeExport();
+      const current = recordRef.current;
+      if (!current || current.id !== recordingId) return;
+      downloadBlob(await encodeTuneMidi(createPortableTune(current, frames)), filename("mid"));
     } catch (error) {
       setCopyStatus(`MIDI export failed: ${errorMessage(error)}`);
     }
-  }, [filename, frames, recordRef]);
+  }, [beforeExport, recordingId, filename, recordRef, frames]);
   const downloadWav = useCallback(() => {
     const current = recordRef.current;
-    if (current)
+    if (current && !current.noteSource)
       downloadBlob(encodeTaggedWav(current, pcmRef.current, exportContext()), filename("wav"));
   }, [filename, recordRef, pcmRef]);
   const downloadJson = useCallback(async () => {
     const current = recordRef.current;
-    if (!current || !statsRef.current) return;
+    if (!current || current.noteSource || !statsRef.current) return;
     const token = generation.current;
     const name = filename("json");
     try {
@@ -108,7 +109,7 @@ export function useEditorExports({
   }, [filename, reportInput, recordRef, statsRef, pcmRef]);
   const downloadLog = useCallback(() => {
     const current = recordRef.current;
-    if (!current || !statsRef.current) return;
+    if (!current || current.noteSource || !statsRef.current) return;
     try {
       const report = buildReport(reportInput(current, statsRef.current));
       downloadBlob(new Blob([report], { type: "text/plain" }), filename("txt"));
@@ -118,7 +119,7 @@ export function useEditorExports({
   }, [filename, reportInput, recordRef, statsRef]);
   const copyLog = useCallback(async () => {
     const current = recordRef.current;
-    if (!current || !statsRef.current) return;
+    if (!current || current.noteSource || !statsRef.current) return;
     const token = generation.current;
     let report: string;
     try {

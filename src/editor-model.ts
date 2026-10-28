@@ -1,4 +1,4 @@
-import type { MutedNote, Recording } from "./db";
+import type { MutedNote } from "./db";
 import { type Frame } from "./notes";
 import type { QualityStats } from "./recorder";
 import { analysisOptionsFor } from "./recording-profiles";
@@ -82,8 +82,20 @@ export function draggedPitch(from: number, dy: number, semitonePixels: number): 
 
 export function toggleMuted(muted: MutedNote[], item: NoteItem): MutedNote[] {
   return item.muted
-    ? muted.filter((anchor) => !covers(anchor, item.raw))
-    : [...muted, { t: item.raw.start + item.raw.duration / 2, midi: item.raw.midi }];
+    ? muted.filter((anchor) =>
+        item.fixedSource
+          ? !(anchor.t >= item.source.start && anchor.t < item.source.end)
+          : !covers(anchor, item.raw),
+      )
+    : [
+        ...muted,
+        {
+          t: item.fixedSource
+            ? (item.source.start + item.source.end) / 2
+            : item.raw.start + item.raw.duration / 2,
+          midi: item.raw.midi,
+        },
+      ];
 }
 
 export function exportSlug(name: string, now: number): string {
@@ -95,7 +107,7 @@ export function exportSlug(name: string, now: number): string {
 }
 
 export function makeReportInput(
-  record: Recording,
+  record: import("./db").AudioRecording,
   frames: Frame[],
   stats: QualityStats,
 ): ReportInput {

@@ -1,3 +1,4 @@
+import { constrainMelodyChange, knobAvailability } from "../recording-capabilities";
 import { useCallback, type RefObject } from "react";
 import { type Recording } from "../db";
 import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
@@ -12,7 +13,7 @@ export function useMelodySettings(
       if (recordRef.current)
         change(label, (current) => {
           const before = melodySettingFor(current);
-          const melody = transform(before);
+          const melody = constrainMelodyChange(current, transform(before));
           return sameMelodySetting(before, melody) ? current : { ...current, melody };
         });
     },
@@ -25,7 +26,11 @@ export function useMelodySettings(
   );
   const changeKnob = useCallback(
     (key: keyof Knobs, value: number | string) => {
-      if (isKnobs({ [key]: value }))
+      if (
+        recordRef.current &&
+        knobAvailability(recordRef.current, key).enabled &&
+        isKnobs({ [key]: value })
+      )
         update((setting) => ({ ...setting, overrides: { ...setting.overrides, [key]: value } }));
     },
     [update],

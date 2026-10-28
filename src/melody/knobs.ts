@@ -23,6 +23,7 @@ interface KnobBase {
   family: KnobFamily;
   tip: string;
   basic: boolean;
+  requires: "analysis" | "musicalPitch" | "musicalTiming";
 }
 export type KnobDef =
   | (KnobBase & { kind: "range"; min: number; max: number; step: number })
@@ -63,6 +64,12 @@ export const KNOB_DEFS: readonly KnobDef[] = [
       key: key as NumericKnob,
       label,
       family: family as KnobFamily,
+      requires:
+        family === "listening"
+          ? "analysis"
+          : family === "rhythm"
+            ? "musicalTiming"
+            : "musicalPitch",
       tip,
       min,
       max,
@@ -75,6 +82,7 @@ export const KNOB_DEFS: readonly KnobDef[] = [
     key: "grid",
     label: "Timing grid",
     family: "rhythm",
+    requires: "musicalTiming",
     tip: "Choose subdivisions per beat, or preserve performed timing.",
     basic: true,
     kind: "select",
@@ -90,6 +98,7 @@ export const KNOB_DEFS: readonly KnobDef[] = [
     key: "mode",
     label: "Mode",
     family: "key",
+    requires: "musicalPitch",
     tip: "Keep the detected mode, or recast the tune in major or minor.",
     basic: true,
     kind: "select",
@@ -136,6 +145,8 @@ function preset(
 ): Preset {
   return { id, label, kind, blurb, knobs: { ...BASE, ...overrides } };
 }
+// Portable interpretation v1 references these defaults and knob steps.
+// Bump its interpretation version before changing their musical semantics.
 export const PRESETS: Record<PresetId, Preset> = {
   "as-played": preset("as-played", "As played", "intent", "Keep my pitches and timing.", {
     steadiness: 0.5,

@@ -62,6 +62,15 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
               >
                 Versions
               </Button>
+              <Button
+                disabled={state.editingDisabled || state.sharing.busy}
+                onClick={() => {
+                  setOpen(false);
+                  void state.copyTuneLink();
+                }}
+              >
+                Copy tune link
+              </Button>
               <div className="editor-mobile-midi">
                 <MidiOutputPicker />
               </div>
@@ -85,7 +94,7 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
                   key={action.label}
                   disabled={
                     !state.record ||
-                    (!state.analysisReady &&
+                    ((!state.analysisReady || !state.capabilities?.audio) &&
                       ["Download log", "Download JSON", "Copy log"].includes(action.label))
                   }
                   variant={action.label === "Delete recording" ? "danger" : undefined}

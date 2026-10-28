@@ -9,6 +9,8 @@ export interface MelodyPanelProps {
   melody: MelodySetting;
   interpretation: Interpretation | null;
   disabled: boolean;
+  knobAvailability?: (key: keyof Knobs) => { enabled: boolean; reason?: string };
+  fixedNotes?: boolean;
   previewId: string | null;
   applyPreset: (id: PresetId) => void;
   drafting: boolean;
@@ -58,7 +60,8 @@ export function MelodyPanel(props: PropsWithChildren<MelodyPanelProps>) {
                 key={key}
                 def={def}
                 value={knobs[key]}
-                disabled={props.disabled}
+                disabled={props.disabled || props.knobAvailability?.(key).enabled === false}
+                reason={props.knobAvailability?.(key).reason}
                 onChange={props.changeKnob}
                 gesture={{
                   active: props.drafting,

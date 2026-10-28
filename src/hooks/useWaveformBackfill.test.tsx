@@ -2,13 +2,13 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { decodeAudio } from "../codec";
-import { saveWaveform, type Recording } from "../db";
+import { saveWaveform, type Recording, type AudioRecording } from "../db";
 import { useWaveformBackfill } from "./useWaveformBackfill";
 
 vi.mock("../codec", () => ({ decodeAudio: vi.fn() }));
 vi.mock("../db", () => ({ saveWaveform: vi.fn() }));
 
-function record(id: string): Recording {
+function record(id: string): AudioRecording {
   return {
     id,
     name: id,
