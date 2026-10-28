@@ -40,7 +40,20 @@ export default defineConfig(({ command, mode }) => ({
       pipeline: PIPELINE_VERSION,
     }),
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: "embed-playground",
+      configureServer(server) {
+        server.middlewares.use((request, response, next) => {
+          if (request.url?.split("?")[0] !== "/diapason/dev/embed") return next();
+          response.setHeader("Content-Type", "text/html; charset=utf-8");
+          response.end(readFileSync(new URL("./dev/embed.html", import.meta.url), "utf8"));
+        });
+      },
+    },
+  ],
   test: {
     coverage: {
       provider: "v8",

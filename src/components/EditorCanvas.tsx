@@ -1,3 +1,6 @@
+import { useStudioMode } from "../hooks/useStudioMode";
+import { EmbeddedBrand } from "./EmbeddedBrand";
+import { EmbeddedRecordingActions } from "./EmbeddedRecordingActions";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
@@ -102,6 +105,7 @@ function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
   );
 }
 function TrackActions({ kind, state, layout }: CanvasProps) {
+  const { embedded } = useStudioMode();
   const playing = state.playing === kind;
   const download = kind === "midi" ? "Download MIDI" : "Download WAV";
   const label = kind === "midi" ? "MIDI" : "audio";
@@ -148,6 +152,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         <Download aria-hidden="true" />
         <span>Download</span>
       </Button>
+      {embedded && kind === "midi" && <EmbeddedRecordingActions state={state} />}
     </div>
   );
 }
@@ -178,6 +183,7 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
 }
 export function EditorCanvas(props: CanvasProps) {
   const { kind, state, layout } = props;
+  const { embedded } = useStudioMode();
   return (
     <section
       className={`editor-canvas editor-${kind}`}
@@ -186,6 +192,7 @@ export function EditorCanvas(props: CanvasProps) {
     >
       <CanvasPlot kind={kind} state={state} />
       <div className="editor-track-toolbar">
+        {embedded && (kind === "audio" || layout.sourceHidden) && <EmbeddedBrand />}
         <TrackLabel kind={kind} state={state} />
         <TrackActions kind={kind} state={state} layout={layout} />
       </div>

@@ -9,7 +9,7 @@ import { useAnalysisStatus } from "./useAnalysisStatus";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { useNavigate } from "react-router";
+import { useStudioNavigate } from "./useStudioMode";
 import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
 import { decodeAudio } from "../codec";
 import { qualityStats, type QualityStats } from "../recorder";
@@ -41,7 +41,7 @@ import {
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useEditor(id: string) {
-  const navigate = useNavigate();
+  const navigate = useStudioNavigate();
   const [record, setRecord] = useState<Recording | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
   const [analysisReady, setAnalysisReady] = useState(false);

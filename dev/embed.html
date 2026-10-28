@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>diapason embed playground</title>
+  <style>
+    :root {
+      font:
+        16px/1.5 system-ui,
+        sans-serif;
+      color-scheme: light dark;
+    }
+    body {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+    h1 {
+      font-size: 1.6rem;
+    }
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: end;
+      margin: 24px 0;
+    }
+    label {
+      display: grid;
+      gap: 4px;
+    }
+    label:has([type="checkbox"]) {
+      display: flex;
+      align-items: center;
+    }
+    input[type="number"] {
+      width: 6rem;
+    }
+    input,
+    button {
+      font: inherit;
+      padding: 6px;
+    }
+    .viewport {
+      resize: both;
+      overflow: hidden;
+      width: 720px;
+      height: 420px;
+      max-width: 100%;
+      min-width: 320px;
+      min-height: 240px;
+      border: 2px solid #888;
+    }
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 16px;
+      background: light-dark(#eee, #222);
+    }
+  </style>
+  <h1>Embed playground</h1>
+  <p>
+    A sample lesson page with a working studio. Record a melody, tune the MIDI and download it
+    inside the frame. Drag the frame’s bottom-right corner to resize it.
+  </p>
+  <form id="settings">
+    <label>Width <input name="width" type="number" min="320" value="720" required /></label>
+    <label>Height <input name="height" type="number" min="240" value="420" required /></label>
+    <label><input name="edit" type="checkbox" checked /> Open Editor after saving</label>
+    <label><input name="microphone" type="checkbox" checked /> Delegate microphone</label>
+    <label
+      ><input name="crossOrigin" type="checkbox" checked /> Cross-origin (localhost ↔
+      127.0.0.1)</label
+    >
+    <button>Reload studio</button>
+  </form>
+  <p id="size" role="status"></p>
+  <div class="viewport" id="viewport"></div>
+  <pre id="snippet"></pre>
+  <p>
+    The two loopback hosts are different origins and both qualify as secure contexts. Production
+    hosts must use HTTPS and permit the studio origin in their Permissions-Policy. Uncheck
+    microphone delegation to test the error and retry flow. Reloading the studio ends the current
+    take.
+  </p>
+  <p>
+    Check setup scrolling, recording/Stop, automatic Editor navigation, Tune, note inspection,
+    audio/MIDI playback, MIDI download, and Delete recording to start over. The Library should never
+    appear. Storage belongs to the iframe origin; cross-site privacy settings may restrict it.
+  </p>
+  <script type="module">
+    const form = document.querySelector("form");
+    const viewport = document.querySelector("#viewport");
+    function reload(event) {
+      event?.preventDefault();
+      const settings = new FormData(form);
+      const url = new URL("/diapason/new?embed=1", location.href);
+      if (settings.has("crossOrigin"))
+        url.hostname = location.hostname === "localhost" ? "127.0.0.1" : "localhost";
+      if (settings.has("edit")) url.searchParams.set("afterRecording", "edit");
+      viewport.style.width = `${settings.get("width")}px`;
+      viewport.style.height = `${settings.get("height")}px`;
+      const frame = document.createElement("iframe");
+      frame.title = "Whistle-to-MIDI studio";
+      frame.allow = settings.has("microphone") ? "microphone" : "microphone 'none'";
+      frame.src = url.href;
+      viewport.replaceChildren(frame);
+      document.querySelector("#snippet").textContent =
+        `<iframe src="${url.href.replaceAll("&", "&amp;")}" title="Whistle-to-MIDI studio" allow="${frame.allow}" width="${settings.get("width")}" height="${settings.get("height")}"></iframe>`;
+    }
+    new ResizeObserver(() => {
+      document.querySelector("#size").textContent =
+        `${viewport.clientWidth} × ${viewport.clientHeight} px`;
+    }).observe(viewport);
+    form.addEventListener("submit", reload);
+    reload();
+  </script>
+</html>

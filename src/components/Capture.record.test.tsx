@@ -169,3 +169,32 @@ it("releases metronome and recorder before the microphone closes", async () => {
     fixture.closeMic.mock.invocationCallOrder[0]!,
   );
 });
+
+it.each(["?embed=1&afterRecording=edit", "?afterRecording=edit"])(
+  "opens the editor after a configured successful save (%s)",
+  async (search) => {
+    await calibratedCapture(search);
+    await click("Record");
+    await click("Stop recording");
+    expect(screen.getByText("Editor route")).toBeTruthy();
+  },
+);
+it("keeps capture open when a configured save fails", async () => {
+  await calibratedCapture("?embed=1&afterRecording=edit");
+  fixture.encodeFailure = true;
+  await click("Record");
+  await click("Stop recording");
+  expect(screen.queryByText("Editor route")).toBeNull();
+  expect(screen.getByRole("alert").textContent).toContain("Save error");
+});
+
+it("keeps embedded capture ready when automatic editing is absent", async () => {
+  await calibratedCapture("?embed=1");
+  await click("Record");
+  await click("Stop recording");
+  expect(screen.queryByText("Editor route")).toBeNull();
+  expect(screen.queryByRole("link", { name: "Library" })).toBeNull();
+  expect(screen.getByRole("link", { name: "Open" }).getAttribute("href")).toBe(
+    `/recording/${fixture.saved?.id}?embed=1`,
+  );
+});

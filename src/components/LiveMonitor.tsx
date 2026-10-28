@@ -1,3 +1,4 @@
+import { EmbeddedBrand } from "./EmbeddedBrand";
 import type { RefObject } from "react";
 import { liveReadout, type LiveLevel } from "../capture-presentation";
 import type { TransportState } from "../metronome";
@@ -60,7 +61,9 @@ export function LiveMonitor({
   transport = null,
   clock = null,
   preferredRange,
+  embedded = false,
 }: {
+  embedded?: boolean;
   level: LiveLevel;
   traceRef: RefObject<HTMLCanvasElement | null>;
   mode: "listen" | "room" | "sound" | "clap" | "recording";
@@ -85,6 +88,7 @@ export function LiveMonitor({
         >
           Live microphone pitch trace
         </PitchCanvas>
+        {embedded && <EmbeddedBrand />}
         <LivePitch readout={readout} connected={connected} />
         {preferredRange && (
           <span className="sr-only">

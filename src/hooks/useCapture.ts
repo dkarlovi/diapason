@@ -1,3 +1,4 @@
+import { useStudioMode, useStudioNavigate } from "./useStudioMode";
 import { recordingPath } from "../router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRecordingSetup } from "./useRecordingSetup";
@@ -14,6 +15,8 @@ import { canRecord, effectiveAnalysis, type SetupState } from "../recording-setu
 import { useNotice } from "./useNotice";
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 export function useCapture() {
+  const { embedded, editAfterRecording, path } = useStudioMode();
+  const navigate = useStudioNavigate();
   const [recording, setRecording] = useState(false);
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,9 +34,19 @@ export function useCapture() {
   const setError = useCallback(
     (message: string) => {
       setStatus("");
-      setNotice(message ? { kind: "error", message } : null);
+      setNotice(
+        message
+          ? {
+              kind: "error",
+              message:
+                embedded && message.startsWith("Mic error:")
+                  ? `${message}. Allow microphone access in your browser. The host page must use HTTPS (or localhost), set allow="microphone" on the iframe, and permit microphone access in its Permissions-Policy.`
+                  : message,
+            }
+          : null,
+      );
     },
-    [setNotice],
+    [setNotice, embedded],
   );
   const releaseCapture = useCallback(() => {
     metro.current?.stop();
@@ -189,11 +202,15 @@ export function useCapture() {
       if (!isCurrentMic(opened)) return;
       await putRecording(record);
       if (mounted.current) {
+        if (editAfterRecording) {
+          void navigate(recordingPath(record.id));
+          return;
+        }
         setStatus("");
         setNotice({
           kind: "success",
           message: "Recording saved",
-          action: { label: "Open", to: recordingPath(record.id) },
+          action: { label: "Open", to: path(recordingPath(record.id)) },
         });
       }
     } catch (error) {

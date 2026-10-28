@@ -501,6 +501,57 @@ halfway between two in-key notes can still be named wrongly.
 The intro sample in `src/fixtures/whistle-intro/` is an exact regression: Clean
 must export its approved `clean.mid` byte for byte.
 
+## Embedding
+
+Embed the recording studio in a lesson or songwriting page:
+
+```html
+<iframe
+  src="https://dkarlovi.github.io/diapason/new?embed=1&amp;afterRecording=edit"
+  title="Whistle-to-MIDI studio"
+  allow="microphone"
+  width="720"
+  height="420"
+></iframe>
+```
+
+- `embed=1` removes the header and Library navigation, and redirects Library
+  and unknown routes to New recording. The logo sits beside the canvas labels
+  in capture and editing. This is a workflow restriction, not storage isolation.
+- `afterRecording=edit` opens the Editor only after a recording saves successfully.
+  Without it, the studio stays ready for another take. This option also works without embedded mode.
+- Both settings survive internal navigation, deletion, and starting
+  another recording. Omit both to retain the standalone experience.
+
+Use a landscape-shaped frame; 720 × 420 is a useful starting point. Setup and
+Tune scroll within the frame. Audio/MIDI playback, editing and MIDI downloads use
+existing controls. The menu beside MIDI Download contains MIDI output selection,
+Reset edits, and Delete recording. Deleting returns to New recording inside the
+iframe. WAV import and the standalone recording management and diagnostic menus
+are unavailable in embedded mode.
+
+The host and studio must use HTTPS (localhost is allowed for development).
+The host must delegate microphone access with `allow="microphone"`. If it sends a
+`Permissions-Policy` header, that policy must allow the studio origin too; the
+iframe attribute cannot override a restrictive header. Visitors must still grant
+browser microphone permission. Playback starts from a visitor action. Downloads
+also require a visitor action and may be restricted by browser or host policy.
+Prefer an unsandboxed iframe. If the host uses `sandbox`, the workflow needs
+`allow-scripts allow-same-origin allow-downloads`; browser confirmation dialogs
+also need `allow-modals`.
+
+Recordings stay in the embedded origin's IndexedDB. Browser privacy settings may
+partition or block third-party storage; embed mode does not transfer recordings
+or MIDI to the parent page. Download files to keep a portable copy.
+
+For local testing, run `npm run dev` and open
+[the dev-only embed playground](http://localhost:5173/diapason/dev/embed).
+It provides a resizable iframe, width/height fields, automatic Editor and
+microphone delegation toggles, and a cross-origin test using localhost and
+127.0.0.1. Reload the frame after changing permissions. The playground is served
+only by Vite's dev server and is absent from production builds. Test on a separate
+HTTPS host before deployment to confirm its permission and download policies.
+
 ## Known limitations
 
 - Slurred repeated notes with neither a level dip nor a pitch change merge.

@@ -1,3 +1,4 @@
+import { useStudioMode } from "../hooks/useStudioMode";
 import { Toast } from "./Toast";
 import { Link } from "react-router";
 import { useCapture } from "../hooks/useCapture";
@@ -9,6 +10,7 @@ import { CaptureSteps } from "./CaptureSteps";
 
 export function Capture() {
   const state = useCapture();
+  const { embedded } = useStudioMode();
   const locked = state.starting || state.recording || state.saving;
   const wizard = useCaptureWizard(state.setup, locked, state.tempo.stop);
   const mode =
@@ -16,12 +18,15 @@ export function Capture() {
   const microphone = state.devices.find((device) => device.deviceId === state.deviceId);
   return (
     <div id="view-capture" data-recording={state.recording} onPointerDown={state.resume}>
-      <Link className="capture-library-fallback" to="/">
-        Library
-      </Link>
+      {!embedded && (
+        <Link className="capture-library-fallback" to="/">
+          Library
+        </Link>
+      )}
       <div className="capture-layout">
         <div className="capture-monitor">
           <LiveMonitor
+            embedded={embedded}
             level={state.level}
             traceRef={state.traceRef}
             mode={mode}

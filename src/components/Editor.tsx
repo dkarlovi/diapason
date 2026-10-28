@@ -1,3 +1,4 @@
+import { useStudioMode } from "../hooks/useStudioMode";
 import { Toast } from "./Toast";
 import { useEditorHistoryKeys } from "../hooks/useEditorHistoryKeys";
 import { useEffect, type CSSProperties } from "react";
@@ -12,6 +13,7 @@ import { Button } from "./primitives";
 
 export function Editor({ id }: { id: string }) {
   const state = useEditor(id);
+  const { embedded } = useStudioMode();
   const layout = useEditorLayout();
   useEditorHistoryKeys({
     enabled: !state.editingDisabled,
@@ -27,10 +29,12 @@ export function Editor({ id }: { id: string }) {
   }, [setVisible, layout.visibleFraction]);
   return (
     <div id="view-editor">
-      <Link className="capture-library-fallback" to="/">
-        Library
-      </Link>
-      <EditorRecordingActions state={state} />
+      {!embedded && (
+        <Link className="capture-library-fallback" to="/">
+          Library
+        </Link>
+      )}
+      {!embedded && <EditorRecordingActions state={state} />}
       {state.loadError && state.analysis.status !== "error" && (
         <div className="analysis-status analysis-error" role="alert">
           Could not load recording: {state.loadError}
