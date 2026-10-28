@@ -1,3 +1,4 @@
+import { useNotice } from "./useNotice";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { PlaySettings } from "../instruments";
 import type { Recording } from "../db";
@@ -14,6 +15,8 @@ interface Options {
 }
 
 export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Options) {
+  const [notice, setNotice] = useNotice();
+  const dismissNotice = useCallback(() => setNotice(null), [setNotice]);
   const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [playhead] = useState(createPlayheadStore);
@@ -36,8 +39,9 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
     if (transport.current.mounted) {
       setPlaying(null);
       setPreviewId(null);
+      setNotice((current) => (current?.kind === "info" ? null : current));
     }
-  }, [playhead]);
+  }, [playhead, setNotice]);
 
   useEffect(() => {
     transport.current.mounted = true;
@@ -84,8 +88,9 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       if (!current) return;
       stopPlayback();
       start("midi", playNotes([{ ...note, start: 0 }], note.duration, current.play), note.start);
+      setNotice({ kind: "info", message: `Playing note ${note.name}` });
     },
-    [recordRef, start, stopPlayback],
+    [recordRef, start, stopPlayback, setNotice],
   );
   const togglePlayback = useCallback(
     (kind: "audio" | "midi") => {
@@ -93,14 +98,22 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       const wasThis = transport.current.kind === kind;
       stopPlayback();
       if (!current || wasThis) return;
-      start(
-        kind,
-        kind === "audio"
-          ? playPcm(pcmRef.current, current.sampleRate)
-          : playNotes(notes, current.durationSec, current.play),
-      );
+      try {
+        start(
+          kind,
+          kind === "audio"
+            ? playPcm(pcmRef.current, current.sampleRate)
+            : playNotes(notes, current.durationSec, current.play),
+        );
+        setNotice({
+          kind: "info",
+          message: kind === "audio" ? "Playing original audio" : "Playing MIDI melody",
+        });
+      } catch (error) {
+        setNotice({ kind: "error", message: `Playback failed: ${(error as Error).message}` });
+      }
     },
-    [notes, stopPlayback, recordRef, pcmRef, start],
+    [notes, stopPlayback, recordRef, pcmRef, start, setNotice],
   );
   const previewSequence = useCallback(
     (notes: NoteEvent[], id: string, duration?: number, offset = 0, play?: PlaySettings) => {
@@ -120,6 +133,9 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
   );
 
   return {
+    notice,
+    showNotice: setNotice,
+    dismissNotice,
     playing,
     playhead,
     externalOutput,

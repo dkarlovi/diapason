@@ -453,21 +453,6 @@
   min-height: 30px;
   font-size: 0.75rem;
 }
-.editor-playing {
-  max-width: calc(100% - var(--tune-obstruction) - 28px);
-  overflow-wrap: anywhere;
-  position: absolute;
-  left: 14px;
-  bottom: 52px;
-  z-index: 5;
-  padding: 6px 10px;
-  border: 1px solid var(--color-playback);
-  border-radius: 5px;
-  background: var(--color-card);
-  color: var(--color-playback);
-  font-size: 0.8125rem;
-  box-shadow: 0 2px 12px #0002;
-}
 .editor-recording-name {
   min-width: 0;
   width: 100%;
@@ -501,17 +486,6 @@
   justify-content: flex-start;
   background: transparent;
   border: 0;
-}
-.editor-export-status {
-  position: absolute;
-  z-index: 25;
-  bottom: 20px;
-  left: 16px;
-  padding: 10px 14px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  font-size: 0.875rem;
 }
 .editor-shell #ed-log-out {
   position: absolute;
@@ -560,12 +534,6 @@
   .editor-canvas-footer {
     left: 10px;
     right: 8px;
-  }
-  .editor-playing {
-    bottom: 96px;
-    left: 10px;
-    font-size: 0.75rem;
-    max-width: calc(100% - 20px);
   }
   .editor-zoom-actions {
     flex-wrap: nowrap;
@@ -812,27 +780,6 @@
 .editor-preset-option[data-previewing="true"] .preview-option-state {
   color: var(--color-playback);
 }
-.editor-tune-footer {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex-shrink: 0;
-  padding: 12px 14px;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-card);
-}
-.studio-shell .editor-tune-footer [data-slot="button"] {
-  flex: 1 0 auto;
-  min-width: 0;
-  padding-inline: 8px;
-  font-size: 0.8125rem;
-}
-.studio-shell .editor-tune-footer [data-slot="button"]:last-child {
-  border-color: transparent;
-  background: transparent;
-  color: var(--color-muted-foreground);
-}
 .editor-workspace::after {
   content: "";
   position: absolute;
@@ -963,5 +910,27 @@
   .studio-shell .editor-track-actions .editor-download {
     width: 36px;
     padding: 6px;
+  }
+}
+
+.studio-shell .editor-tune-heading .editor-tune-reset {
+  color: var(--color-muted-foreground);
+  padding-inline: 8px;
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1024px), (max-height: 540px) {
+  .editor-tune-heading {
+    flex-shrink: 0;
+    padding: 0 8px 0 16px;
+  }
+  .studio-shell .editor-tune-heading [data-slot="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Short phone landscape prioritizes Tune's controls over the zoom toolbar. */
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 760px) {
+  .studio-shell .editor-tune {
+    bottom: 8px;
   }
 }

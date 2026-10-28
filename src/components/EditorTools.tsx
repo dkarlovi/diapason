@@ -38,6 +38,17 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
       <section className="editor-tune" aria-label="Tune melody" hidden={!layout.open}>
         <div className="editor-tune-heading">
           <h2>Tune melody</h2>
+          <Button
+            className="editor-tune-reset"
+            disabled={state.editingDisabled}
+            onClick={() => {
+              if (!confirm("Reset all tuning controls to the current preset defaults?")) return;
+              state.stopPlayback();
+              state.resetKnob();
+            }}
+          >
+            Reset
+          </Button>
           <Button aria-label="Close Tune" onClick={() => layout.setOpen(false)}>
             <X aria-hidden="true" />
           </Button>
@@ -83,18 +94,6 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
               />
             </section>
           </MelodyPanel>
-        </div>
-        <div className="editor-tune-footer">
-          <Button
-            disabled={state.editingDisabled}
-            onClick={() => {
-              if (!confirm("Reset all tuning controls to the current preset defaults?")) return;
-              state.stopPlayback();
-              state.resetKnob();
-            }}
-          >
-            Reset
-          </Button>
         </div>
       </section>
     </AuditionMenuContext.Provider>

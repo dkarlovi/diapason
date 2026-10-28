@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-type Notice = { kind: "success" | "error"; message: string } | null;
+export type Notice = {
+  kind: "success" | "error" | "info";
+  message: string;
+  action?: { label: string; to: string };
+};
 
-/** A toast message that dismisses itself; errors stay up longer. */
+/** Notice state belongs to the operation; Toast owns its dismissal timer. */
 export function useNotice() {
-  const [notice, setNotice] = useState<Notice>(null);
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), notice.kind === "error" ? 6000 : 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-  return [notice, setNotice] as const;
+  return useState<Notice | null>(null);
 }

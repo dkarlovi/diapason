@@ -196,9 +196,9 @@ Continuous actions use one button whose icon and label change between start and
 stop. Running playback, clap listening, and metronome controls share amber text,
 border, and tint through hover and keyboard focus. Recording Stop retains red.
 Inputs use explicit labels. Tune places a separate, named Reset icon beside each
-control with quiet resting chrome; labels are noninteractive. A compact footer pairs Undo tuning change
-with the confirmed full Reset. Undo restores melody/playback settings while
-preserving note edits, muting, names, and original audio.
+control with quiet resting chrome; labels are noninteractive. The confirmed full Reset sits in Tune’s heading beside Close; mobile heading actions
+retain 44px touch targets. Undo and Redo remain on the MIDI canvas, preserving
+space for the scrollable tuning controls.
 
 ### Pitch canvas
 
@@ -273,7 +273,17 @@ each edited row.
 Library rows retain visible preview/Open actions and an actions menu, with hover
 and focus-within feedback. Their subdued waveform decoration represents original
 audio. Setup states combine labels, checks, and semantic colors; clipping and
-recording failures remain explicit. Toasts sit clear of the recording action.
+recording failures remain explicit. Library’s mobile heading keeps its title intact;
+actions use Import and New at every size, moving together to the next row when needed.
+
+All three screens share `Toast`: centered in the viewport, 94% opaque card surface,
+soft downward shadow, semantic status icon, readable foreground copy, and explicit
+Dismiss. An optional Open action links to the saved/imported take. Success and
+playback dismiss after 6 seconds, actionable notices after 8, errors after 10;
+hover and keyboard focus pause the timer. Playback feedback clears when playback
+stops. Persistent editor save errors retain their dedicated recovery controls.
+Mobile New/Edit navigation requests fullscreen within the link’s user gesture;
+a compact header toggle supports direct arrivals and exit where the API is available.
 
 ## Do's and Don'ts
 

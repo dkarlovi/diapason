@@ -77,6 +77,9 @@ export function useEditor(id: string) {
 
   const {
     playing,
+    notice,
+    showNotice,
+    dismissNotice,
     playhead,
     externalOutput,
     togglePlayback,
@@ -197,6 +200,17 @@ export function useEditor(id: string) {
   }, [showingPreview, history.drafting, selected, appliedItems]);
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
+  const previewApplied = activeCandidate?.applied ?? false;
+  useEffect(() => {
+    if (!playing || (!previewLabel && !previewId)) return;
+    showNotice({
+      kind: "info",
+      message: previewLabel
+        ? `Playing preview · ${previewLabel} · ${previewApplied ? "Applied" : "Not applied"}`
+        : "Playing note in context",
+    });
+  }, [playing, previewLabel, previewApplied, previewId, showNotice]);
+
   const selectNote = useCallback(
     (item: NoteItem) => {
       rollRef.current?.focus({ preventScroll: true });
@@ -231,7 +245,14 @@ export function useEditor(id: string) {
     downloadJson,
     downloadLog,
     copyLog,
-  } = useEditorExports({ recordingId: id, recordRef, pcmRef: pcm, frames, statsRef: stats });
+  } = useEditorExports({
+    recordingId: id,
+    recordRef,
+    pcmRef: pcm,
+    frames,
+    statsRef: stats,
+    showNotice,
+  });
 
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
   const { edited, origins } = useMemo(() => editMarks(items, selectedItem), [items, selectedItem]);
@@ -374,7 +395,7 @@ export function useEditor(id: string) {
     history.cancel();
     await stopEditorSaves(current.id);
     await deleteRecording(current.id);
-    if (mounted.current) navigate("/");
+    if (mounted.current) navigate("/", { state: { deletedRecording: current.name } });
   }, [navigate, history.cancel]);
 
   const noteAt = useCallback(
@@ -419,6 +440,8 @@ export function useEditor(id: string) {
   );
 
   return {
+    notice,
+    dismissNotice,
     record,
     versions,
     editingDisabled: !record || versions.busy,
@@ -454,7 +477,7 @@ export function useEditor(id: string) {
       processed?.editCoverage.filter((edit) => edit.status !== "active").length ?? 0,
     displayNotes,
     previewLabel,
-    previewApplied: activeCandidate?.applied ?? false,
+    previewApplied,
     canUndo: history.canUndo,
     canRedo: history.canRedo,
     undoLabel: history.undoLabel,

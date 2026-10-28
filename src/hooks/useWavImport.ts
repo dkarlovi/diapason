@@ -1,7 +1,8 @@
+import { recordingPath } from "../router";
 import { useCallback, useRef, useState } from "react";
 import { getRecording, putRecording, type Recording } from "../db";
 import { recordingFromTaggedWav } from "../wav-metadata";
-import { useNotice } from "./useNotice";
+import type { Notice } from "./useNotice";
 
 /** One dropped or picked file, as the import popover shows it. */
 export interface ImportCandidate {
@@ -26,26 +27,37 @@ export const importable = (candidates: readonly ImportCandidate[]) =>
   candidates.filter((candidate) => candidate.record && !candidate.existing);
 
 /** Reads files into candidates for review; nothing is saved until `confirm`. */
-export function useWavImport(onImported: () => Promise<void>) {
+export function useWavImport(
+  onImported: () => Promise<void>,
+  setNotice: (notice: Notice | null) => void,
+) {
   const [candidates, setCandidates] = useState<ImportCandidate[] | null>(null);
-  const [notice, setNotice] = useNotice();
+  const [busy, setBusy] = useState(false);
   const request = useRef(0);
 
   const offer = useCallback(async (files: readonly File[]) => {
     const token = ++request.current;
-    const inspected: ImportCandidate[] = [];
-    for (const file of files) inspected.push(await inspect(file));
-    if (token === request.current) setCandidates(inspected);
+    setBusy(true);
+    try {
+      const inspected: ImportCandidate[] = [];
+      for (const file of files) inspected.push(await inspect(file));
+      if (token === request.current) setCandidates(inspected);
+    } finally {
+      if (token === request.current) setBusy(false);
+    }
   }, []);
 
   const cancel = useCallback(() => {
     request.current++;
     setCandidates(null);
+    setBusy(false);
   }, []);
 
   const confirm = useCallback(async () => {
     const records = importable(candidates ?? []).map((candidate) => candidate.record!);
     cancel();
+    const token = request.current;
+    setBusy(true);
     let saved = 0;
     try {
       for (const record of records) {
@@ -55,6 +67,7 @@ export function useWavImport(onImported: () => Promise<void>) {
       }
       setNotice({
         kind: "success",
+        ...(saved === 1 ? { action: { label: "Open", to: recordingPath(records[0]!.id) } } : {}),
         message: saved === 1 ? `Imported “${records[0]!.name}”` : `Imported ${saved} recordings`,
       });
     } catch (error) {
@@ -63,9 +76,16 @@ export function useWavImport(onImported: () => Promise<void>) {
         message: `Saved ${saved} of ${records.length} recordings: ${(error as Error).message}`,
       });
     } finally {
+      if (token === request.current) setBusy(false);
       await onImported();
     }
   }, [candidates, cancel, onImported, setNotice]);
 
-  return { candidates, notice, offer, confirm, cancel };
+  return {
+    candidates,
+    busy,
+    offer,
+    confirm,
+    cancel,
+  };
 }

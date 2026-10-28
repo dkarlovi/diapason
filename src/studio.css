@@ -113,6 +113,12 @@ main.studio-shell.library-shell {
   justify-content: flex-end;
   gap: 10px;
 }
+.library-heading-actions .button {
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  line-height: 1.5;
+}
 .library-heading-actions label.button {
   cursor: pointer;
 }
@@ -358,7 +364,118 @@ main.studio-shell.library-shell {
     width: min(362px, 100%);
   }
 }
-/* The capture toast lifts above that screen's footer on phones; the Library has none. */
-.capture-toast.library-toast {
-  bottom: 24px;
+
+/* One feedback surface for Library, Recording, and Editor. */
+.studio-toast {
+  position: fixed;
+  z-index: 100;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: min(36rem, calc(100% - 32px));
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--color-card) 94%, transparent);
+  color: var(--color-foreground);
+  box-shadow: 0 8px 32px color-mix(in oklab, var(--color-foreground) 18%, transparent);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.toast-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.toast-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--color-success);
+}
+.studio-toast[data-kind="error"] .toast-icon {
+  color: var(--color-destructive);
+}
+.studio-toast[data-kind="info"] .toast-icon {
+  color: var(--color-playback);
+}
+.studio-shell .studio-toast .toast-action {
+  flex-shrink: 0;
+  min-height: 44px;
+  color: var(--color-primary);
+}
+.studio-shell .studio-toast .toast-dismiss,
+.studio-shell .studio-fullscreen {
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 44px;
+  padding: 8px;
+  border-color: transparent;
+  background: transparent;
+}
+@media (max-width: 720px) {
+  .library-heading {
+    flex-wrap: wrap;
+  }
+  .library-heading h1 {
+    white-space: nowrap;
+  }
+  .library-heading-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .library-heading-actions .button {
+    padding-inline: 10px;
+  }
+  .studio-toast {
+    gap: 8px;
+    padding: 10px;
+  }
+}
+.workstation-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .library-shell .workstation-actions {
+    grid-column: 2 / -1;
+    justify-self: end;
+  }
+  .workstation-actions {
+    gap: 4px;
+  }
+}
+@media (max-width: 360px) {
+  .library-record-actions {
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .studio-shell .library-record-actions .button,
+  .studio-shell .library-record-actions [data-slot="button"] {
+    padding-inline: 8px;
+    gap: 4px;
+  }
+  .recording-open svg {
+    display: none;
+  }
+}
+
+.library-import-spinner {
+  animation: library-import-spin 1s linear infinite;
+}
+@keyframes library-import-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .library-import-spinner {
+    animation: none;
+  }
 }

@@ -139,10 +139,12 @@ it("toggles audio, switches to MIDI and stops when playback finishes", async () 
   const { result } = await editor();
   await act(async () => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBe("audio");
+  expect(result.current.notice?.message).toBe("Playing original audio");
   tick();
   expect(result.current.playhead.getState().position).toBe(0.25);
   await act(async () => result.current.togglePlayback("audio"));
   expect(result.current.playing).toBeNull();
+  expect(result.current.notice).toBeNull();
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   expect(callbacks.size).toBe(0);
   await act(async () => result.current.togglePlayback("audio"));

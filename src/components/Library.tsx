@@ -1,7 +1,18 @@
-import { useState } from "react";
+import { Toast } from "./Toast";
+import { useEffect, useState } from "react";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Link } from "react-router";
-import { Ban, ChevronRight, Ellipsis, FileAudio, Plus, Play, Square, Upload } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import {
+  Ban,
+  ChevronRight,
+  Ellipsis,
+  FileAudio,
+  LoaderCircle,
+  Plus,
+  Play,
+  Square,
+  Upload,
+} from "lucide-react";
 import { useLibrary, type Playing } from "../hooks/useLibrary";
 import { importable, useWavImport, type ImportCandidate } from "../hooks/useWavImport";
 import { useWavDrop } from "../hooks/useWavDrop";
@@ -160,8 +171,27 @@ const belowHeader = () =>
   (document.querySelector(HEADER)?.getBoundingClientRect().bottom ?? 0) + 12;
 
 export function Library() {
-  const { recordings, storage, playing, reload, togglePlay, duplicate, remove } = useLibrary();
-  const wavImport = useWavImport(reload);
+  const {
+    recordings,
+    storage,
+    playing,
+    reload,
+    togglePlay,
+    duplicate,
+    remove,
+    notice,
+    dismissNotice,
+    showNotice,
+  } = useLibrary();
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const name: unknown = location.state?.deletedRecording;
+    if (typeof name !== "string") return;
+    showNotice({ kind: "success", message: `Deleted “${name}”` });
+    void navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate, showNotice]);
+  const wavImport = useWavImport(reload, showNotice);
   const dropState = useWavDrop((files) => void wavImport.offer(files), HEADER);
   return (
     <div id="view-library">
@@ -183,11 +213,18 @@ export function Library() {
           <div className="library-heading">
             <h1>Your recordings</h1>
             <div className="library-heading-actions">
-              <label className="button">
-                <Upload aria-hidden="true" /> Import WAV
+              <label className="button" aria-busy={wavImport.busy}>
+                {wavImport.busy ? (
+                  <LoaderCircle className="library-import-spinner" aria-hidden="true" />
+                ) : (
+                  <Upload aria-hidden="true" />
+                )}
+                <span className="library-action-label">Import</span>
                 <input
                   className="sr-only"
                   type="file"
+                  disabled={wavImport.busy}
+                  aria-label="Import WAV"
                   accept=".wav,audio/wav"
                   multiple
                   onChange={(event) => {
@@ -197,8 +234,13 @@ export function Library() {
                   }}
                 />
               </label>
-              <Link className="button primary" to="/new">
-                <Plus aria-hidden="true" /> New recording
+              {wavImport.busy && (
+                <span className="sr-only" role="status">
+                  Importing WAV…
+                </span>
+              )}
+              <Link className="button primary" to="/new" aria-label="New recording">
+                <Plus aria-hidden="true" /> <span className="library-action-label">New</span>
               </Link>
             </div>
           </div>
@@ -230,15 +272,7 @@ export function Library() {
         </Panel>
       )}
       <p className="library-storage">{storage}</p>
-      {wavImport.notice && (
-        <div
-          className="capture-toast library-toast"
-          data-kind={wavImport.notice.kind}
-          role={wavImport.notice.kind === "error" ? "alert" : "status"}
-        >
-          {wavImport.notice.message}
-        </div>
-      )}
+      <Toast notice={notice} onDismiss={dismissNotice} />
     </div>
   );
 }

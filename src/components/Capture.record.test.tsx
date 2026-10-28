@@ -31,6 +31,9 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
     melody: { preset: "clean", key: "auto", overrides: { levelGate: 0.003 } },
   });
   expect(fixture.saved?.name).toMatch(/^Recording /);
+  expect(screen.getByRole("link", { name: "Open" }).getAttribute("href")).toBe(
+    `/recording/${fixture.saved?.id}`,
+  );
 });
 it("locks record and device edits while starting audio", async () => {
   await calibratedCapture();
@@ -76,7 +79,7 @@ it("stays ready for separate takes and resets the recording clock after saving",
   expect(fixture.saved?.id).not.toBe(first?.id);
   expect(fixture.saved?.durationSec).toBeCloseTo(1.8);
   expect(screen.getByRole("button", { name: "Record" })).toBeTruthy();
-  advance(4000);
+  advance(8000);
   expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
 });
 it.each(["encode", "recorder"])("allows retry after %s failure", async (kind) => {
@@ -100,7 +103,7 @@ it("rejects a recording that stops before the downbeat", async () => {
   await click("Stop recording");
   expect(screen.getByRole("alert").textContent).toContain("Too short");
   expect(fixture.saved).toBeNull();
-  advance(6000);
+  advance(10000);
   expect(screen.queryByRole("alert")).toBeNull();
   expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
     false,
