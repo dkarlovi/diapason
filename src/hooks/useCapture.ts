@@ -1,3 +1,4 @@
+import { recordingPath } from "../router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRecordingSetup } from "./useRecordingSetup";
 import { createRecorder, type Recorder } from "../recorder";
@@ -189,7 +190,11 @@ export function useCapture() {
       await putRecording(record);
       if (mounted.current) {
         setStatus("");
-        setNotice({ kind: "success", message: "Recording saved" });
+        setNotice({
+          kind: "success",
+          message: "Recording saved",
+          action: { label: "Open", to: recordingPath(record.id) },
+        });
       }
     } catch (error) {
       if (mounted.current)
@@ -209,6 +214,7 @@ export function useCapture() {
     saving,
     status,
     notice,
+    dismissNotice: useCallback(() => setNotice(null), [setNotice]),
     transport,
     beat,
     startRecording,

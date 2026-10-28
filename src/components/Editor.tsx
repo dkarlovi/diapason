@@ -1,3 +1,4 @@
+import { Toast } from "./Toast";
 import { useEditorHistoryKeys } from "../hooks/useEditorHistoryKeys";
 import { useEffect, type CSSProperties } from "react";
 import { Link } from "react-router";
@@ -30,6 +31,7 @@ export function Editor({ id }: { id: string }) {
         Library
       </Link>
       <EditorRecordingActions state={state} />
+      <Toast notice={state.notice} onDismiss={state.dismissNotice} />
       <div
         className="editor-workspace"
         ref={layout.workspaceRef}

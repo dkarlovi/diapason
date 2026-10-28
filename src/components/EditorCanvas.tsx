@@ -143,18 +143,6 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
     </div>
   );
 }
-function PlaybackStatus({ state }: { state: EditorState }) {
-  if (!state.playing) return null;
-  let label = state.playing === "audio" ? "Playing original recording" : "Playing MIDI melody";
-  if (state.previewId) label = "Playing note in context";
-  if (state.previewLabel)
-    label = `Playing preview · ${state.previewLabel} · ${state.previewApplied ? "Applied" : "Not applied"}`;
-  return (
-    <div className="editor-playing" role="status">
-      {label}
-    </div>
-  );
-}
 function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) {
   return (
     <>
@@ -167,7 +155,6 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
         wheel zooms time. Shift plus wheel zooms pitch. Escape dismisses note details.
       </p>
       <NoteDetail key={state.selectedNoteId ?? "none"} state={state} layout={layout} />
-      <PlaybackStatus state={state} />
       <div className="editor-canvas-footer">
         <Button
           className="editor-trace-toggle"

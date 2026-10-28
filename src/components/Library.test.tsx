@@ -136,6 +136,33 @@ describe("library", () => {
     );
   });
 
+  it("shows and consumes deletion feedback when returning from the editor", async () => {
+    history.replaceState({ usr: { deletedRecording: "Edited melody" } }, "", "/diapason/");
+    render(
+      <BrowserRouter basename="/diapason">
+        <Library />
+      </BrowserRouter>,
+    );
+    expect((await screen.findByRole("status")).textContent).toContain("Deleted “Edited melody”");
+    await waitFor(() => expect(history.state.usr).toBeNull());
+  });
+
+  it("confirms successful deletion with a toast", async () => {
+    recordings = [recording({ id: "delete-me", name: "Old melody" })];
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
+    render(
+      <BrowserRouter basename="/diapason">
+        <Library />
+      </BrowserRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Actions for Old melody" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect((await screen.findByRole("status")).textContent).toContain("Deleted “Old melody”");
+  });
+
   describe("import", () => {
     const pcm = Float32Array.of(0, 0.5, -0.5, 0.25);
     const context = { browser: "UA", audioOutput: "unknown", midiOutput: "Browser synth" };
@@ -167,7 +194,10 @@ describe("library", () => {
       expect(within(dialog).getByText(/95 BPM · 4\/4 · diapason /)).toBeTruthy();
       expect(vi.mocked(putRecording)).not.toHaveBeenCalled();
       await userEvent.click(importButton());
-      expect((await screen.findByRole("status")).textContent).toBe("Imported “Shared”");
+      expect((await screen.findByRole("status")).textContent).toContain("Imported “Shared”");
+      expect(
+        within(screen.getByRole("status")).getByRole("link", { name: "Open" }).getAttribute("href"),
+      ).toBe("/diapason/recording/t1");
       expect(vi.mocked(putRecording)).toHaveBeenCalledWith(expect.objectContaining({ id: "t1" }));
       expect(await screen.findByRole("heading", { name: "Shared" })).toBeTruthy();
       expect(screen.queryByRole("dialog")).toBeNull();

@@ -202,6 +202,11 @@
         "name": "popover",
         "value": "0 12px 36px #0004, 0 2px 8px #0002",
         "purpose": "Editor dropdowns and contextual tools."
+      },
+      {
+        "name": "toast",
+        "value": "0 8px 32px color-mix(in oklab, var(--color-foreground) 18%, transparent)",
+        "purpose": "Shared centered notifications on a 94% opaque card surface; status icon, optional Open and Dismiss."
       }
     ],
     "motion": [

@@ -1,3 +1,4 @@
+import { Toast } from "./Toast";
 import { Link } from "react-router";
 import { useCapture } from "../hooks/useCapture";
 import { validTempo } from "../recording-setup";
@@ -66,16 +67,11 @@ export function Capture() {
           </div>
         </section>
       </div>
-      {state.notice && (
-        <div
-          className="capture-toast"
-          data-kind={state.notice.kind}
-          role={state.notice.kind === "error" ? "alert" : "status"}
-          aria-label={state.notice.kind === "error" ? "Recording error" : "Recording saved"}
-        >
-          {state.notice.message}
-        </div>
-      )}
+      <Toast
+        notice={state.notice}
+        onDismiss={state.dismissNotice}
+        label={state.notice?.kind === "error" ? "Recording error" : "Recording saved"}
+      />
     </div>
   );
 }

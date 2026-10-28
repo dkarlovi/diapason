@@ -28,7 +28,8 @@ diapason is organized as a **library of recordings**, persisted in your browser
    (or drag files anywhere below the header while the Library is open; a drop area shows
    while they hover and refuses files the browser reports as something other than WAV) opens
    a popover listing each file's name, recording time, tempo, meter and diapason
-   version before anything is saved.
+   version before anything is saved. The Import icon becomes a spinner while files
+   are read or saved.
 2. **New recording** (`/diapason/new`) — a guided setup: choose your sound →
    connect and verify your microphone → measure room noise → check your sound →
    find your tempo → record. Set tempo by tapping a button/Space, clapping into
@@ -45,6 +46,21 @@ diapason is organized as a **library of recordings**, persisted in your browser
    MIDI piano roll with named note previews, audio/MIDI playback, rhythm controls, and
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
+
+Library actions use **Import** and **New** at every screen size, keeping the mobile
+heading on one line. Opening New or a recording from an app link requests fullscreen on
+supported mobile browsers. The header's fullscreen toggle also works after a direct
+URL visit or after leaving fullscreen; unsupported or denied requests leave the
+normal studio usable. Browser fullscreen requires a user gesture.
+
+Shared notifications appear in the center of all three screens with a translucent
+surface, status icon, and Dismiss button. Saved takes and single-recording imports
+include **Open**. Playback, deletion, duplication, and export errors use the same
+feedback. Notifications dismiss after 6 seconds (8 with an action, 10 for errors)
+and pause while hovered or focused. Editor save failures retain their persistent
+Retry/Reload controls. Tune's Reset sits beside its heading so the scrollable
+controls have more room on small screens. On short phone landscape screens, Tune
+can extend over the zoom toolbar to make more room.
 
 The **Recording workstation** uses a Slate & blue theme that follows your system's
 light/dark preference. The live canvas and six-step setup dock each use half the workspace,

@@ -1,19 +1,34 @@
+import { useStudioFullscreen } from "../hooks/useStudioFullscreen";
+import { Button } from "./primitives";
 import { EditorSaveStatus } from "./EditorSaveStatus";
 import { useState, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router";
-import { ChevronRight } from "lucide-react";
+import { Maximize, Minimize, ChevronRight } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
 import { StudioTitleContext } from "../hooks/useStudioTitle";
 import { DiapasonMark } from "./DiapasonMark";
 
+function FullscreenButton({ state }: { state: ReturnType<typeof useStudioFullscreen> }) {
+  if (!state.available && !state.active) return null;
+  const label = state.active ? "Exit fullscreen" : "Enter fullscreen";
+  return (
+    <Button className="studio-fullscreen" aria-label={label} title={label} onClick={state.toggle}>
+      {state.active ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
+    </Button>
+  );
+}
+
 export function AppShell({ children }: PropsWithChildren) {
+  const fullscreen = useStudioFullscreen();
   const pathname = useLocation().pathname.replace(/\/$/, "");
   const capture = pathname === "/new";
   const editor = pathname.startsWith("/recording/");
   const [title, setTitle] = useState("");
+  const screenTitle = capture ? "New recording" : title || "Recording";
   return (
     <StudioTitleContext.Provider value={setTitle}>
       <main
+        onClickCapture={fullscreen.onNavigate}
         className={
           "studio-shell " + (capture ? "capture-shell" : editor ? "editor-shell" : "library-shell")
         }
@@ -27,16 +42,17 @@ export function AppShell({ children }: PropsWithChildren) {
             <nav className="workstation-location" aria-label="Location">
               <Link to="/">Library</Link>
               <ChevronRight aria-hidden="true" />
-              <h1 aria-label={capture ? "New recording" : title || "Recording"}>
-                <span className="studio-title-fallback">
-                  {capture ? "New recording" : title || "Recording"}
-                </span>
+              <h1 aria-label={screenTitle}>
+                <span className="studio-title-fallback">{screenTitle}</span>
                 {editor && <span id="editor-title-slot" />}
               </h1>
             </nav>
           )}
-          <MidiOutputPicker />
-          {editor && <div id="editor-actions-slot" />}
+          <div className="workstation-actions">
+            {(capture || editor || fullscreen.active) && <FullscreenButton state={fullscreen} />}
+            <MidiOutputPicker />
+            {editor && <div id="editor-actions-slot" />}
+          </div>
         </header>
         <EditorSaveStatus />
         {children}

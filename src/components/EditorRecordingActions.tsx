@@ -101,9 +101,6 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
     <>
       {nameSlot ? createPortal(name, nameSlot) : name}
       {actionSlot ? createPortal(actions, actionSlot) : actions}
-      <p className="editor-export-status" role="status" hidden={!state.copyStatus}>
-        {state.copyStatus}
-      </p>
       <textarea
         id="ed-log-out"
         ref={state.logRef}

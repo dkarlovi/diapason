@@ -1,3 +1,4 @@
+import type { Notice } from "./useNotice";
 import { activeOutput } from "../midiout";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { Recording } from "../db";
@@ -20,6 +21,7 @@ const exportContext = (): ExportContext => ({
 });
 
 interface Options {
+  showNotice: (notice: Notice | null) => void;
   recordingId: string;
   recordRef: RefObject<Recording | null>;
   pcmRef: RefObject<Float32Array>;
@@ -27,9 +29,27 @@ interface Options {
   statsRef: RefObject<QualityStats | null>;
 }
 
-export function useEditorExports({ recordingId, recordRef, pcmRef, frames, statsRef }: Options) {
+export function useEditorExports({
+  recordingId,
+  recordRef,
+  pcmRef,
+  frames,
+  statsRef,
+  showNotice,
+}: Options) {
   const [reportText, setReportText] = useState("");
-  const [copyStatus, setCopyStatus] = useState("");
+  const [copyStatus, setCopyStatusState] = useState("");
+  const setCopyStatus = useCallback(
+    (message: string) => {
+      setCopyStatusState(message);
+      if (message)
+        showNotice({
+          kind: message.includes("failed") ? "error" : "success",
+          message: message === "copied ✓" ? "Diagnostic log copied" : message,
+        });
+    },
+    [showNotice],
+  );
   const logRef = useRef<HTMLTextAreaElement>(null);
   const generation = useRef(0);
   useEffect(() => {
