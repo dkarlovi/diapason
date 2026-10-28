@@ -4,14 +4,15 @@ import { validateEditSnapshot } from "../edit-storage";
 import { captureEditSnapshot } from "../edit-state";
 import { KNOB_DEFS, isKnobs, type Knobs } from "../melody/knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
-import { resolveAnalysisOptions } from "../recording-analysis";
+import { requestAnalysis } from "../analysis-jobs";
+import { useAnalysisStatus } from "./useAnalysisStatus";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
 import { decodeAudio } from "../codec";
-import { analyzeBuffer, qualityStats, type QualityStats } from "../recorder";
+import { qualityStats, type QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
 import { rollPoint, useNoteDrag } from "./useNoteDrag";
@@ -43,6 +44,10 @@ export function useEditor(id: string) {
   const navigate = useNavigate();
   const [record, setRecord] = useState<Recording | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
+  const [analysisReady, setAnalysisReady] = useState(false);
+  const analysis = useAnalysisStatus(record);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [rollHover, setRollHover] = useState<"note" | "drag" | null>(null);
   const [audition, setAudition] = useState<ReturnType<typeof processRecording> | null>(null);
@@ -101,11 +106,16 @@ export function useEditor(id: string) {
     recordRef.current = null;
     setRecord(null);
     setFrames([]);
+    setAnalysisReady(false);
+    setLoadError(null);
+    pcm.current = new Float32Array(0);
+    stats.current = null;
     setSelected(null);
     const load = async () => {
       if (cancelled || loading) return;
       loading = true;
       blocked = false;
+      setLoadError(null);
       try {
         await flushEditorSaves(id);
         const found = await getRecording(id);
@@ -117,12 +127,16 @@ export function useEditor(id: string) {
         const decoded = await decodeAudio(found.audio);
         if (cancelled) return;
         pcm.current = decoded;
-        const analyzed = analyzeBuffer(decoded, found.sampleRate, resolveAnalysisOptions(found));
-        stats.current = qualityStats(analyzed, decoded);
-        setFrames(analyzed);
         replaceRecord(found);
         setDraftName(found.name);
-      } catch {
+        const analyzed = await requestAnalysis(found, loadAttempt > 0);
+        if (cancelled) return;
+        stats.current = qualityStats(analyzed, decoded);
+        setFrames(analyzed);
+        setAnalysisReady(true);
+      } catch (error) {
+        if (cancelled) return;
+        setLoadError(error instanceof Error ? error.message : String(error));
         blocked = true;
         /* Retry in the shell can resume this load once pending saves recover. */
       } finally {
@@ -142,7 +156,14 @@ export function useEditor(id: string) {
       cancelled = true;
       mounted.current = false;
     };
-  }, [id, navigate, replaceRecord]);
+  }, [id, navigate, replaceRecord, loadAttempt]);
+  useEffect(() => {
+    if (analysisReady && analysis.cacheWarning)
+      showNotice({
+        kind: "error",
+        message: `Analysis ready. Could not save cache: ${analysis.cacheWarning}. Reopening may analyze again.`,
+      });
+  }, [analysisReady, analysis.cacheWarning, showNotice]);
   const previewMelody = useCallback(
     (change: Partial<MelodySetting>, previewId: string) => {
       const current = recordRef.current;
@@ -444,7 +465,11 @@ export function useEditor(id: string) {
     dismissNotice,
     record,
     versions,
-    editingDisabled: !record || versions.busy,
+    analysis,
+    analysisReady,
+    loadError,
+    retryAnalysis: () => setLoadAttempt((attempt) => attempt + 1),
+    editingDisabled: !record || !analysisReady || versions.busy,
     drafting: history.drafting,
     beginKnob: (key: keyof Knobs) => {
       history.finish();
@@ -469,7 +494,7 @@ export function useEditor(id: string) {
     commitGesture: history.commit,
     cancelGesture: history.cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
-    canEditPitch: !showingPreview && !versions.busy,
+    canEditPitch: analysisReady && !showingPreview && !versions.busy,
     shiftSelectedPitch,
     resetSelectedPitch,
     resetAllNoteEdits,

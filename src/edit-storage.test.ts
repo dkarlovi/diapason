@@ -47,7 +47,7 @@ beforeAll(async () => {
   });
 });
 it("upgrades a v1 database without losing legacy recordings", async () => {
-  expect((await openDatabase()).version).toBe(2);
+  expect((await openDatabase()).version).toBe(3);
   expect((await getRecording("legacy"))?.tuning).toEqual({ rmsGate: 0.02 });
   expect(await listVersions("legacy")).toEqual([]);
 });

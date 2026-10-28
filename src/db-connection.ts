@@ -2,11 +2,13 @@ let connection: Promise<IDBDatabase> | null = null;
 export function openDatabase(): Promise<IDBDatabase> {
   if (!connection) {
     connection = new Promise((resolve, reject) => {
-      const request = indexedDB.open("diapason", 2);
+      const request = indexedDB.open("diapason", 3);
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains("recordings"))
           db.createObjectStore("recordings", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("analysis"))
+          db.createObjectStore("analysis", { keyPath: "id" });
         if (!db.objectStoreNames.contains("versions")) {
           const versions = db.createObjectStore("versions", { keyPath: "id" });
           versions.createIndex("recordingId", "recordingId");

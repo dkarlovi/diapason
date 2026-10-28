@@ -55,7 +55,11 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
             </>
           ) : (
             <>
-              <Button autoFocus disabled={!state.record} onClick={() => setShowVersions(true)}>
+              <Button
+                autoFocus
+                disabled={state.editingDisabled}
+                onClick={() => setShowVersions(true)}
+              >
                 Versions
               </Button>
               <div className="editor-mobile-midi">
@@ -79,7 +83,11 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
               ].map((action) => (
                 <Button
                   key={action.label}
-                  disabled={!state.record}
+                  disabled={
+                    !state.record ||
+                    (!state.analysisReady &&
+                      ["Download log", "Download JSON", "Copy log"].includes(action.label))
+                  }
                   variant={action.label === "Delete recording" ? "danger" : undefined}
                   onClick={() => {
                     setOpen(false);

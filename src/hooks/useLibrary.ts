@@ -1,6 +1,6 @@
 import { useNotice, type Notice } from "./useNotice";
 import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
-import { resolveAnalysisOptions } from "../recording-analysis";
+import { requestAnalysis } from "../analysis-jobs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   allRecordings,
@@ -11,11 +11,9 @@ import {
   type Recording,
 } from "../db";
 import { decodeAudio } from "../codec";
-import { analyzeBuffer } from "../recorder";
 import { playPcm, playNotes, type Playback } from "../playback";
 import { recordingNotes } from "../recording";
 import { onOutputChange } from "../midiout";
-import type { Frame } from "../notes";
 import { useLibraryRecordings } from "./useWaveformBackfill";
 
 const playbackLabels = { audio: "original audio", midi: "MIDI" };
@@ -34,9 +32,7 @@ export function useLibrary() {
   const [storage, setStorage] = useState("");
   const [playing, setPlaying] = useState<Playing>(null);
   const playingRef = useRef<Playing>(null);
-  const decoded = useRef(
-    new Map<string, { pcm: Float32Array; frames?: Frame[]; analysisKey?: string }>(),
-  );
+  const decoded = useRef(new Map<string, { pcm: Float32Array }>());
   const playback = useRef<Playback | null>(null);
   const transport = useRef({ raf: 0, request: 0, mounted: false });
 
@@ -95,18 +91,13 @@ export function useLibrary() {
           audio = { pcm: await decodeAudio(record.audio) };
           decoded.current.set(record.id, audio);
         }
-        const options = resolveAnalysisOptions(record);
-        const analysisKey = JSON.stringify(options);
-        if (kind === "midi" && (!audio.frames || audio.analysisKey !== analysisKey)) {
-          audio.frames = analyzeBuffer(audio.pcm, record.sampleRate, options);
-          audio.analysisKey = analysisKey;
-        }
+        const frames = kind === "midi" ? await requestAnalysis(record) : [];
         if (!transport.current.mounted || token !== transport.current.request) return;
 
         playback.current =
           kind === "audio"
             ? playPcm(audio.pcm, record.sampleRate)
-            : playNotes(recordingNotes(record, audio.frames!), record.durationSec, record.play);
+            : playNotes(recordingNotes(record, frames), record.durationSec, record.play);
         const tick = () => {
           if (playback.current?.position() == null) return stopPlayback();
           transport.current.raf = requestAnimationFrame(tick);

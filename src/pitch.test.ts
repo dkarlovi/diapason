@@ -38,3 +38,19 @@ it("rejects silence with or without a personal range", () => {
   });
   expect(detect(new Float32Array(4096)).freq).toBeNull();
 });
+
+it("limits sample reads when detecting a narrow pitch band", () => {
+  const samples = tone(1200).slice(0, 2048);
+  let reads = 0;
+  const counted = new Proxy(samples, {
+    get(target, property) {
+      if (typeof property === "string" && /^\d+$/.test(property)) reads++;
+      return Reflect.get(target, property, target);
+    },
+  });
+  const result = createPitchDetector(sampleRate, { minFreq: 1000, maxFreq: 1500 })(counted);
+  expect(result.freq).toBeCloseTo(1200, 0);
+  // A deterministic work budget catches redundant normalization and unused lags
+  // without making the test depend on machine speed or JIT warm-up.
+  expect(reads).toBeLessThan(150_000);
+});

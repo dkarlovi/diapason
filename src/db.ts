@@ -108,8 +108,9 @@ export function putRecording(r: Recording): Promise<unknown> {
 }
 
 export function deleteRecording(id: string): Promise<unknown> {
-  return databaseTransaction([STORE, "versions"], "readwrite", (t, result) => {
+  return databaseTransaction([STORE, "versions", "analysis"], "readwrite", (t, result) => {
     t.objectStore(STORE).delete(id);
+    t.objectStore("analysis").delete(id);
     const cursor = t.objectStore("versions").index("recordingId").openCursor(IDBKeyRange.only(id));
     cursor.onsuccess = () => {
       const row = cursor.result;

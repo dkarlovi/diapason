@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
 import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
 import userEvent from "@testing-library/user-event";
@@ -71,13 +72,21 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
+async function readyEditor() {
+  const name = await screen.findByDisplayValue("Melody");
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
+  );
+  return name;
+}
+
 it("loads a recording and applies a melody preset through React controls", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   expect(screen.getByText(/1 notes/)).toBeTruthy();
   await act(async () => {
     fireEvent.click(screen.getByLabelText("Choose preset"));
@@ -96,7 +105,7 @@ it("groups playback separately from the preset, key, and the controls they shape
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const playback = screen.getByRole("region", { name: "Playback sound" });
   const correction = screen.getByRole("region", { name: "Melody correction" });
   expect(within(playback).getByRole("button", { name: "Choose instrument" })).toBeTruthy();
@@ -137,7 +146,7 @@ it("keeps one recording title above paired audio and MIDI canvas regions", async
       </AppShell>
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await screen.findByRole("heading", { name: "Melody" });
   expect(screen.getAllByRole("heading", { name: "Melody" })).toHaveLength(1);
   const audio = screen.getByRole("region", { name: "Original recording" });
@@ -156,7 +165,7 @@ it("saves a renamed recording on blur", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  const name = await screen.findByDisplayValue("Melody");
+  const name = await readyEditor();
   await act(async () => {
     fireEvent.change(name, { target: { value: "New name" } });
   });
@@ -172,7 +181,7 @@ it("keeps a new name when the tuning save fires later", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  const name = await screen.findByDisplayValue("Melody");
+  const name = await readyEditor();
   vi.useFakeTimers();
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Detection" }));
@@ -201,7 +210,7 @@ it("saves a tuning change when leaving before the debounce delay", async () => {
       </Routes>
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Detection" }));
   });
@@ -221,7 +230,7 @@ it("mutes a note through the MIDI roll", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByTitle(/Click a note to hear it/) as HTMLCanvasElement;
   roll.getBoundingClientRect = () => ({
     left: 0,
@@ -247,7 +256,7 @@ it("provides a resizable Tune overlay and a removable original track", async () 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const divider = screen.getByRole("separator", { name: "Resize Tune sidebar" });
   expect(divider.getAttribute("aria-orientation")).toBe("vertical");
   await act(async () => {
@@ -282,7 +291,7 @@ it("keeps panning available at 1× while Tune obscures the ending", async () => 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   expect(screen.getByLabelText("Pan shared timeline").closest("label")?.hidden).toBe(false);
 });
 it("starts mobile with original audio and Tune closed", async () => {
@@ -296,7 +305,7 @@ it("starts mobile with original audio and Tune closed", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   expect(screen.queryByRole("region", { name: "Original recording" })).toBeNull();
   expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
   const tune = screen.getByRole("button", { name: "Toggle Tune" });
@@ -311,7 +320,7 @@ it("allows keyboard note selection and contextual muting without a note list", a
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   await act(async () => {
     fireEvent.keyDown(roll, { key: "ArrowRight" });
@@ -335,7 +344,7 @@ it("dismisses recording actions outside and with Escape", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.click(screen.getByLabelText("Recording actions"));
   });
@@ -356,7 +365,7 @@ it("identifies selected notes once and dismisses on Escape or empty canvas", asy
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   await act(async () => {
     fireEvent.keyDown(roll, { key: "ArrowRight" });
@@ -388,7 +397,7 @@ it("keeps the inspector's controls and rows stable while toggling and editing", 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
   });
@@ -424,7 +433,7 @@ it("asks before resetting Tune and preserves changes when cancelled", async () =
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
   });
@@ -446,7 +455,7 @@ it("previews playback settings without saving, then applies the chosen option", 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Choose octave" }));
   });
@@ -474,7 +483,7 @@ it("exposes the phone roll while auditioning and restores the candidate menu on 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
   });
@@ -501,7 +510,7 @@ it("offers an explicit scoped reset and can restore the replaced tuning", async 
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   expect(screen.queryByRole("button", { name: "Preset" })).toBeNull();
   await act(async () => {
     fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
@@ -531,7 +540,7 @@ it("toggles context playback between Play and Stop", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
   });
@@ -558,7 +567,7 @@ it("edits pitch rapidly, preserves pending tuning and clears the edit when stepp
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   await act(async () => {
     fireEvent.keyDown(roll, { key: "Home" });
@@ -609,7 +618,7 @@ it("keeps edited muted notes and confirms only bulk reset", async () => {
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await act(async () => {
     fireEvent.keyDown(screen.getByRole("img", { name: "MIDI piano roll" }), { key: "Home" });
   });
@@ -648,7 +657,7 @@ it("docks the note inspector on phones and never shows it together with Tune", a
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
@@ -679,7 +688,7 @@ it("changes the selected note's pitch with arrow keys and by dragging it vertica
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const roll = screen.getByRole("img", { name: "MIDI piano roll" }) as HTMLCanvasElement;
   await act(async () => {
     fireEvent.keyDown(roll, { key: "ArrowUp" });
@@ -734,7 +743,7 @@ it("advances the time readout from the playhead and clears it on stop", async ()
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const midi = screen.getByRole("region", { name: "MIDI melody" });
   expect(within(midi).getByText("0.0 / 1.0 s")).toBeTruthy();
   playPosition = 0.42;
@@ -757,7 +766,7 @@ it("keeps history beside Tune on the canvas and Versions inside recording action
       </AppShell>
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   const midi = screen.getByRole("region", { name: "MIDI melody" });
   const undo = within(midi).getByRole("button", { name: "Undo" });
   const redo = within(midi).getByRole("button", { name: "Redo" });
@@ -787,7 +796,7 @@ it.each([
       <Editor id="one" />
     </MemoryRouter>,
   );
-  await screen.findByDisplayValue("Melody");
+  await readyEditor();
   await userEvent.click(screen.getByRole("button", { name: "Choose instrument" }));
   await userEvent.click(screen.getByRole("button", { name: `Use Instrument ${label}` }));
   await waitFor(() => expect(saved?.play?.instrument).toBe(instrument));
