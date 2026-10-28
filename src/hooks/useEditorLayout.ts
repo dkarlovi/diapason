@@ -10,7 +10,7 @@ import { sidebarWidth, uncoveredTimeFraction } from "../editor-viewport";
 
 const isNarrow = () =>
   window.matchMedia?.("(max-width: 760px)").matches ?? window.innerWidth <= 760;
-export function useEditorLayout() {
+export function useEditorLayout(hasAudio = true) {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const [mobile, setMobile] = useState(isNarrow);
   const [open, setOpen] = useState(() => !isNarrow());
@@ -61,8 +61,9 @@ export function useEditorLayout() {
     mobile,
     open,
     setOpen,
-    sourceHidden,
+    sourceHidden: !hasAudio || sourceHidden,
     toggleSource: () => {
+      if (!hasAudio) return;
       changedSource.current = true;
       setSourceHidden((value) => !value);
     },

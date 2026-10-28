@@ -2,7 +2,7 @@ import { isNoteEdits } from "./note-edits";
 import { isMelodySetting } from "./melody/settings";
 import type { DiagnosticSnapshot } from "./diagnostic-snapshot";
 import { analysisOptionsFor } from "./recording-profiles";
-import type { Recording } from "./db";
+import type { AudioRecording as Recording } from "./db";
 
 type JsonObject = Record<string, unknown>;
 export const isObject = (value: unknown): value is JsonObject =>

@@ -5,7 +5,7 @@ import { midiEvents } from "./midi";
 // report (for pasting inline). Both share one source of truth: buildReportData().
 
 import { freqToMidi, midiToName, type Frame } from "./notes";
-import type { Recording } from "./db";
+import type { AudioRecording as Recording } from "./db";
 import { processRecording } from "./recording";
 import { resolveAnalysisOptions } from "./recording-analysis";
 import { BUILD_INFO } from "./build-info";

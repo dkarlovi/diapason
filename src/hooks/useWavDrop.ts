@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from "react";
 
 type DropState = "idle" | "accept" | "reject";
 
-const WAV_TYPES = new Set(["audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"]);
+const WAV_TYPES = new Set([
+  "audio/wav",
+  "audio/x-wav",
+  "audio/wave",
+  "audio/vnd.wave",
+  "audio/midi",
+  "audio/x-midi",
+]);
 
 const carriesFiles = (event: DragEvent) => [...(event.dataTransfer?.types ?? [])].includes("Files");
 
@@ -14,7 +21,7 @@ function knownNotWav(event: DragEvent): boolean {
 }
 
 /** At drop time names are known too, so a file counts as WAV by type or extension. */
-const maybeWav = (file: File) => WAV_TYPES.has(file.type) || /\.wave?$/i.test(file.name);
+const maybeWav = (file: File) => WAV_TYPES.has(file.type) || /\.(wave?|midi?)$/i.test(file.name);
 
 const within = (event: DragEvent, selector: string) =>
   event.target instanceof Element && !!event.target.closest(selector);

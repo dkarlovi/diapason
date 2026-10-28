@@ -10,6 +10,7 @@ export function MelodyKnob({
   def,
   value,
   disabled,
+  reason,
   onChange,
   onReset,
   onPreview,
@@ -19,6 +20,7 @@ export function MelodyKnob({
   def: KnobDef;
   value: Knobs[keyof Knobs];
   disabled: boolean;
+  reason?: string | undefined;
   onChange: MelodyPanelProps["changeKnob"];
   onReset: MelodyPanelProps["resetKnob"];
   onPreview(value: number | string): void;
@@ -60,8 +62,13 @@ export function MelodyKnob({
       </MelodyDropdown>
     );
   return (
-    <div className="ctl">
-      <label id={`${id}-label`} htmlFor={id} className="editor-field-label" title={def.tip}>
+    <div className="ctl" title={reason ?? def.tip}>
+      <label
+        id={`${id}-label`}
+        htmlFor={id}
+        className="editor-field-label"
+        title={reason ?? def.tip}
+      >
         {def.label}
       </label>
 
@@ -69,15 +76,21 @@ export function MelodyKnob({
         id={id}
         aria-labelledby={`${id}-label`}
         type="range"
-        title={def.tip}
+        title={reason ?? def.tip}
         min={def.min}
         max={def.max}
         step={def.step}
         value={value}
+        aria-describedby={reason ? `${id}-reason` : undefined}
         aria-valuetext={text}
         disabled={disabled}
         {...slider}
       />
+      {reason && (
+        <span id={`${id}-reason`} className="sr-only">
+          {reason}
+        </span>
+      )}
       <span className="val">{text}</span>
       <ResetControl label={def.label} disabled={disabled} onReset={() => onReset(def.key)} />
     </div>

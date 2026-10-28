@@ -40,21 +40,16 @@ export interface QuantizeSetting {
   subdivision: number;
 }
 
-export interface Recording {
+interface RecordingFields {
   editHead?: EditHead;
   noteEdits?: NoteEdits;
-  source?: { profileId: string; analysis: SoundProfile["analysis"] };
   id: string;
   name: string;
   createdAt: number;
-  sampleRate: number;
   durationSec: number;
   bpm: number;
   beatsPerBar: number;
   /** Gzipped Int16 PCM (see codec.ts). Audio t=0 is the downbeat. */
-  audio: Blob;
-  waveform?: WaveformSummary;
-  capture: CaptureMeta;
   melody?: MelodySetting;
   /** Legacy fields are read only to migrate older saved recordings. */
   tuning?: Partial<{
@@ -74,7 +69,28 @@ export interface Recording {
   imported?: RecordingImport;
 }
 
-export interface RecordingImport {
+export interface AudioRecording extends RecordingFields {
+  audio: Blob;
+  sampleRate: number;
+  capture: CaptureMeta;
+  waveform?: WaveformSummary;
+  source?: { profileId: string; analysis: SoundProfile["analysis"] };
+  noteSource?: never;
+}
+export interface NoteRecording extends RecordingFields {
+  noteSource: import("./note-source").NoteSource;
+  audio?: never;
+  sampleRate?: never;
+  capture?: never;
+  waveform?: never;
+  source?: never;
+}
+export type Recording = AudioRecording | NoteRecording;
+export function isAudioRecording(record: Recording): record is AudioRecording {
+  return record.noteSource === undefined;
+}
+
+interface RecordingImport {
   /** When it was saved into this library. */
   at: number;
   fileName: string;
@@ -136,7 +152,7 @@ export async function saveWaveform(
     const request = store.get(id) as IDBRequest<Recording | undefined>;
     request.onsuccess = () => {
       const record = request.result;
-      if (!record) return;
+      if (!record || !isAudioRecording(record)) return;
       saved = record.waveform ?? waveform;
       if (!record.waveform) store.put({ ...record, waveform });
     };

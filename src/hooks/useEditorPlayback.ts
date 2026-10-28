@@ -97,11 +97,11 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       const current = recordRef.current;
       const wasThis = transport.current.kind === kind;
       stopPlayback();
-      if (!current || wasThis) return;
+      if (!current || wasThis || (kind === "audio" && current.noteSource)) return;
       try {
         start(
           kind,
-          kind === "audio"
+          kind === "audio" && !current.noteSource
             ? playPcm(pcmRef.current, current.sampleRate)
             : playNotes(notes, current.durationSec, current.play),
         );

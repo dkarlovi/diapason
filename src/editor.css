@@ -123,6 +123,9 @@
   font-size: 0.75rem;
   box-shadow: 0 2px 8px #0001;
 }
+.studio-shell .editor-source-handle:disabled {
+  pointer-events: auto;
+}
 .studio-shell .editor-track-actions .editor-open-tune {
   width: 84px;
 }
@@ -792,7 +795,7 @@
   pointer-events: none;
   z-index: 8;
 }
-.editor-workspace:has(.editor-source-handle:hover)::after,
+.editor-workspace:has(.editor-source-handle:hover:not(:disabled))::after,
 .editor-workspace:has(.editor-source-handle:focus-visible)::after {
   border-top: 3px double var(--color-primary);
 }
@@ -947,4 +950,13 @@
   width: 100%;
   max-width: 320px;
   overflow-wrap: anywhere;
+}
+
+.source-limitation {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.ctl input:disabled {
+  pointer-events: none;
 }

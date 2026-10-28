@@ -12,7 +12,7 @@ export interface MidiOptions {
   velocity?: number;
 }
 
-function varLen(value: number): number[] {
+export function midiVarLen(value: number): number[] {
   // MIDI variable-length quantity.
   const bytes = [value & 0x7f];
   value >>= 7;
@@ -73,7 +73,7 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
 
   const track: number[] = [];
   // Tempo meta event.
-  track.push(...varLen(0), 0xff, 0x51, 0x03, ...u32(usPerQuarter).slice(1));
+  track.push(...midiVarLen(0), 0xff, 0x51, 0x03, ...u32(usPerQuarter).slice(1));
 
   let prev = 0;
   for (const ev of abs) {
@@ -81,10 +81,10 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
     prev = ev.tick;
     const status = ev.type === "on" ? 0x90 : 0x80;
     const vel = ev.type === "on" ? velocity : 0;
-    track.push(...varLen(delta), status, ev.midi & 0x7f, vel);
+    track.push(...midiVarLen(delta), status, ev.midi & 0x7f, vel);
   }
   // End of track.
-  track.push(...varLen(0), 0xff, 0x2f, 0x00);
+  track.push(...midiVarLen(0), 0xff, 0x2f, 0x00);
 
   const header = [...str("MThd"), ...u32(6), ...u16(0), ...u16(1), ...u16(ppq)];
   const trackChunk = [...str("MTrk"), ...u32(track.length), ...track];

@@ -1,6 +1,6 @@
+import { prepareLibraryPlayback } from "../library-playback";
 import { useNotice, type Notice } from "./useNotice";
 import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
-import { requestAnalysis } from "../analysis-jobs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   allRecordings,
@@ -10,9 +10,7 @@ import {
   storageEstimate,
   type Recording,
 } from "../db";
-import { decodeAudio } from "../codec";
-import { playPcm, playNotes, type Playback } from "../playback";
-import { recordingNotes } from "../recording";
+import type { Playback } from "../playback";
 import { onOutputChange } from "../midiout";
 import { useLibraryRecordings } from "./useWaveformBackfill";
 
@@ -86,18 +84,9 @@ export function useLibrary() {
       setPlaying(current);
 
       try {
-        let audio = decoded.current.get(record.id);
-        if (!audio) {
-          audio = { pcm: await decodeAudio(record.audio) };
-          decoded.current.set(record.id, audio);
-        }
-        const frames = kind === "midi" ? await requestAnalysis(record) : [];
+        const start = await prepareLibraryPlayback(record, kind, decoded.current);
         if (!transport.current.mounted || token !== transport.current.request) return;
-
-        playback.current =
-          kind === "audio"
-            ? playPcm(audio.pcm, record.sampleRate)
-            : playNotes(recordingNotes(record, frames), record.durationSec, record.play);
+        playback.current = start();
         const tick = () => {
           if (playback.current?.position() == null) return stopPlayback();
           transport.current.raf = requestAnimationFrame(tick);

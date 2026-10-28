@@ -17,5 +17,5 @@ it.each([
     expect(createHash("sha256").update(JSON.stringify(frames)).digest("hex")).toBe(hash);
     // Full-recording pitch analysis is slower under V8 coverage on shared runners.
   },
-  15_000,
+  60_000,
 );

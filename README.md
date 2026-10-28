@@ -182,7 +182,8 @@ They may sound different after this update; their original captured audio stays 
 
 The header's **MIDI out** picker routes note playback to the browser synth or an
 external synth/DAW via Web MIDI when supported and permitted. Both outputs support
-instrument selection and an octave shift; these settings do not change exported MIDI.
+instrument selection and an octave shift. Diapason MIDI downloads preserve both
+choices in editable metadata and render them using General MIDI equivalents.
 External instruments use General MIDI equivalents: square lead (Plain beep),
 electric piano, steel-string guitar (Acoustic guitar), flute, trumpet, alto sax
 (Saxophone), and warm pad. The synth's
@@ -196,6 +197,47 @@ can be affected by browser timer throttling in background tabs.
 
 Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
 `CompressionStream`, no dependencies). Downloads are lossless WAV.
+
+### Sharing the edited tune without audio
+
+In the Library recording actions or the editor's main recording dropdown,
+**Copy tune link** packs the current melody into an ordinary URL. The editor
+finishes and saves current edits before copying. **Download MIDI** in the Library or editor produces a playable
+Diapason MIDI file containing the same editable tune. Both carry your current
+preset/key, control choices, pitch corrections, mutes, instrument and octave.
+Corrections remain marked as edits; resetting one returns to the automatic pitch
+under the current musical settings. Muted notes can be unmuted.
+
+Opening a tune link offers **Import** or **Cancel** on the Library page. Picking or
+dropping a Diapason MIDI file uses the same review flow. Inspection saves nothing;
+only **Import** adds a new local tune. Import stays on the Library, where you can
+play it or choose **Open**. Each explicit tune import creates a new local copy.
+No original audio, acoustic analysis, undo history or saved versions are sent.
+Your friend starts a fresh editing session and can share their changes again.
+The Library distinguishes these tunes with a musical-file icon and a subtle
+background tint, keeping the same row layout as audio recordings.
+
+Imported tunes have fixed detected note boundaries. Key/mode, musical pitch
+shaping, rhythm/grid/swing, note length, pitch edits, muting, instrument and octave
+remain adjustable. Steadiness, minimum detected note length, silence gap and level
+gate remain visible but disabled, with hover tooltips explaining that their
+analysis data is not included. The explanations do not add rows to the controls. Presets apply only supported musical settings. Original-audio playback,
+WAV download, acoustic diagnostics and trace overlay are unavailable for these
+tunes. The editor opens with the original track closed; **Show original** stays
+disabled with a tooltip explaining that the audio was not included.
+
+Links contain a compact binary payload in the URL fragment; sharing needs no
+upload or account. Timing normally uses milliseconds, with precision retained
+where needed to preserve musical decisions. The current link limit is 16,384
+characters; use Diapason MIDI for larger tunes or if a messaging app truncates a
+link. Clipboard failure exposes a selectable link. Only intact MIDI files exported
+by Diapason can be imported; ordinary MIDI import is unsupported. Other programs
+can play the rendered MIDI, though their instrument sounds vary, and may remove
+or invalidate Diapason metadata if they edit/re-save the file. The recipient's
+MIDI device routing and viewport are local choices.
+
+See [the portable format](docs/portable-tune-format.md) for packing, compatibility
+rules, decoder limits and reproducible size measurements.
 
 ### Sharing recordings as WAV
 
@@ -377,7 +419,9 @@ are included. The top-level `notes` are the notes exported to MIDI. Schema-3 and
 older pipeline and cannot replay exactly through the new engine.
 Exports from `npm run dev` record the build revision and source as unknown, because
 the dev server serves edited sources live; use a production build for comparable exports.
-Playback octave/instrument settings are recorded separately and do not change MIDI export.
+Diagnostic MIDI remains at the logical note pitches for exact pipeline replay.
+The user-facing Diapason MIDI download additionally carries the editable tune and
+renders the selected playback octave and instrument.
 
 Export JSON and WAV from the same recording. JSON identifies the exact mono PCM16
 WAV with its SHA-256, sample count, and sample rate. WAV export preserves the PCM

@@ -1,3 +1,4 @@
+import { TuneShareLink } from "./TuneShareLink";
 import { useStudioMode } from "../hooks/useStudioMode";
 import { Toast } from "./Toast";
 import { useEditorHistoryKeys } from "../hooks/useEditorHistoryKeys";
@@ -14,7 +15,7 @@ import { Button } from "./primitives";
 export function Editor({ id }: { id: string }) {
   const state = useEditor(id);
   const { embedded } = useStudioMode();
-  const layout = useEditorLayout();
+  const layout = useEditorLayout(state.capabilities?.audio ?? false);
   useEditorHistoryKeys({
     enabled: !state.editingDisabled,
     canUndo: state.canUndo,
@@ -42,6 +43,11 @@ export function Editor({ id }: { id: string }) {
         </div>
       )}
       <Toast notice={state.notice} onDismiss={state.dismissNotice} />
+      <TuneShareLink
+        floating
+        link={state.sharing.fallbackLink}
+        onClose={state.sharing.clearFallback}
+      />
       <div
         className="editor-workspace"
         ref={layout.workspaceRef}
@@ -53,6 +59,17 @@ export function Editor({ id }: { id: string }) {
         <EditorCanvas kind="midi" state={state} layout={layout} />
         <Button
           className="editor-source-handle"
+          disabled={!state.capabilities?.audio}
+          title={
+            state.record?.noteSource
+              ? "The original audio was not included in this tune."
+              : undefined
+          }
+          aria-description={
+            state.record?.noteSource
+              ? "The original audio was not included in this tune."
+              : undefined
+          }
           aria-expanded={!layout.sourceHidden}
           onClick={() => {
             if (!layout.sourceHidden && state.playing === "audio") state.stopPlayback();

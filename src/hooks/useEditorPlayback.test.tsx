@@ -1,3 +1,4 @@
+import { CompressionStream, DecompressionStream } from "node:stream/web";
 import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
 import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
@@ -31,7 +32,7 @@ vi.mock("../midi", async (original) => {
       if (state.midiError) throw new Error("MIDI resolution cannot preserve distinct notes.");
       return fn(...args);
     };
-  return { midiEvents: guard(midi.midiEvents), notesToMidi: guard(midi.notesToMidi) };
+  return { ...midi, midiEvents: guard(midi.midiEvents), notesToMidi: guard(midi.notesToMidi) };
 });
 vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
@@ -102,6 +103,14 @@ let callbacks: Map<number, FrameRequestCallback>;
 let nextId: number;
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
+  vi.stubGlobal("CompressionStream", CompressionStream);
+  vi.stubGlobal("DecompressionStream", DecompressionStream);
+  Object.defineProperty(Blob.prototype, "arrayBuffer", {
+    configurable: true,
+    value() {
+      return read(this);
+    },
+  });
   state.saves = [];
   state.downloads = [];
   state.handles = [];
@@ -220,7 +229,7 @@ function read(blob: Blob): Promise<ArrayBuffer> {
 it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", async () => {
   const { result } = await editor();
   await act(async () => {
-    result.current.downloadMidi();
+    await result.current.downloadMidi();
     result.current.downloadWav();
     await result.current.downloadJson();
   });
@@ -351,11 +360,16 @@ function midiEvents(bytes: Uint8Array) {
       offset += length;
       continue;
     }
+    if ((status & 0xf0) === 0xc0) {
+      offset++;
+      continue;
+    }
     events.push({ tick, status, key: bytes[offset++]!, velocity: bytes[offset++]! });
   }
   return events;
 }
 it("exports only enabled notes and applies the selected grid to MIDI event timing", async () => {
+  state.duration = 1.1; // The final synthetic frame extends to 1.03 seconds.
   const tone = (t: number, freq: number): Frame => ({ t, freq, clarity: 0.99, rms: 0.1 });
   state.frames = [
     ...Array.from({ length: 6 }, (_, i) => tone(0.07 + i * 0.05, 440)),
@@ -378,6 +392,7 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
   expect(result.current.notesLabel).toContain("1 notes · 1 muted");
   await act(async () => result.current.changeKnob("grid", 2));
   await act(async () => result.current.downloadMidi());
+  expect(result.current.copyStatus).toBe("");
   expect(midiEvents(new Uint8Array(await read(state.downloads[0]!.blob)))).toEqual([
     { tick: 720, status: 0x90, key: 72, velocity: 96 },
     { tick: 960, status: 0x80, key: 72, velocity: 0 },

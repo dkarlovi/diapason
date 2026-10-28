@@ -189,7 +189,7 @@ describe("library", () => {
 
     it("shows a popover for a picked file and imports it on confirm", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), tagged());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), tagged());
       const dialog = await popover();
       expect(within(dialog).getByText("Shared")).toBeTruthy();
       expect(within(dialog).getByText(/95 BPM · 4\/4 · diapason /)).toBeTruthy();
@@ -206,7 +206,7 @@ describe("library", () => {
 
     it("records when and from which file a recording was imported", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), tagged());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), tagged());
       await popover();
       const before = Date.now();
       await userEvent.click(importButton());
@@ -230,7 +230,7 @@ describe("library", () => {
 
     it("saves nothing when cancelled", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), tagged());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), tagged());
       await popover();
       await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
       expect(screen.queryByRole("dialog")).toBeNull();
@@ -239,7 +239,7 @@ describe("library", () => {
 
     it("explains untagged WAVs in the popover", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), plain());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), plain());
       const dialog = await popover();
       expect(within(dialog).getByText("plain.wav")).toBeTruthy();
       expect(within(dialog).getByText(UNTAGGED)).toBeTruthy();
@@ -249,7 +249,7 @@ describe("library", () => {
     it("offers to open a recording that is already in the library", async () => {
       recordings = [recording({ id: "t1", name: "Shared" })];
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), tagged());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), tagged());
       const dialog = await popover();
       expect(within(dialog).getByText("Already in your library")).toBeTruthy();
       expect(importButton()).toHaveProperty("disabled", true);
@@ -261,7 +261,7 @@ describe("library", () => {
 
     it("imports the good files when one is untagged", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), [tagged(), plain()]);
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), [tagged(), plain()]);
       await popover();
       await userEvent.click(screen.getByRole("button", { name: "Import 1" }));
       expect(await screen.findByRole("heading", { name: "Shared" })).toBeTruthy();
@@ -271,21 +271,21 @@ describe("library", () => {
     it("shows a drop area while files are dragged over the library", async () => {
       renderLibrary();
       await screen.findByText(/No recordings yet/);
-      expect(screen.queryByText("Drop diapason WAVs to import")).toBeNull();
+      expect(screen.queryByText("Drop Diapason WAV or MIDI files to import")).toBeNull();
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["Files"] } });
-      expect(screen.getByText("Drop diapason WAVs to import")).toBeTruthy();
+      expect(screen.getByText("Drop Diapason WAV or MIDI files to import")).toBeTruthy();
       fireEvent.dragLeave(libraryRoot(), { dataTransfer: { types: ["Files"] } });
-      expect(screen.queryByText("Drop diapason WAVs to import")).toBeNull();
+      expect(screen.queryByText("Drop Diapason WAV or MIDI files to import")).toBeNull();
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["text/plain"] } });
-      expect(screen.queryByText("Drop diapason WAVs to import")).toBeNull();
+      expect(screen.queryByText("Drop Diapason WAV or MIDI files to import")).toBeNull();
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["Files"] } });
       fireEvent.drop(libraryRoot(), { dataTransfer: { files: [tagged()], types: ["Files"] } });
-      expect(screen.queryByText("Drop diapason WAVs to import")).toBeNull();
+      expect(screen.queryByText("Drop Diapason WAV or MIDI files to import")).toBeNull();
     });
 
     it("moves focus into the popover", async () => {
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), tagged());
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), tagged());
       await popover();
       await waitFor(() => expect(document.activeElement).toBe(importButton()));
     });
@@ -297,7 +297,7 @@ describe("library", () => {
         })
         .mockRejectedValueOnce(new Error("QuotaExceededError"));
       renderLibrary();
-      await userEvent.upload(screen.getByLabelText("Import WAV"), [
+      await userEvent.upload(screen.getByLabelText("Import WAV or MIDI"), [
         tagged("t1", "First"),
         tagged("t2", "Second"),
       ]);
@@ -314,7 +314,7 @@ describe("library", () => {
       await screen.findByText(/No recordings yet/);
       const png = { kind: "file", type: "image/png" };
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["Files"], items: [png] } });
-      expect(screen.getByText("Only WAV files can be imported")).toBeTruthy();
+      expect(screen.getByText("Only Diapason WAV and MIDI files can be imported")).toBeTruthy();
       const over = { types: ["Files"], items: [png], dropEffect: "copy" };
       fireEvent.dragOver(libraryRoot(), { dataTransfer: over });
       expect(over.dropEffect).toBe("none");
@@ -322,7 +322,7 @@ describe("library", () => {
       fireEvent.drop(libraryRoot(), { dataTransfer: { files: [image], types: ["Files"] } });
       await new Promise((resolve) => setTimeout(resolve, 20));
       expect(screen.queryByRole("dialog")).toBeNull();
-      expect(screen.queryByText("Only WAV files can be imported")).toBeNull();
+      expect(screen.queryByText("Only Diapason WAV and MIDI files can be imported")).toBeNull();
     });
 
     it("accepts drags whose type the browser does not report yet", async () => {
@@ -330,14 +330,14 @@ describe("library", () => {
       await screen.findByText(/No recordings yet/);
       const unknown = { kind: "file", type: "" };
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["Files"], items: [unknown] } });
-      expect(screen.getByText("Drop diapason WAVs to import")).toBeTruthy();
+      expect(screen.getByText("Drop Diapason WAV or MIDI files to import")).toBeTruthy();
       const mixed = [
         { kind: "file", type: "image/png" },
         { kind: "file", type: "audio/x-wav" },
       ];
       fireEvent.dragLeave(libraryRoot(), { dataTransfer: { types: ["Files"] } });
       fireEvent.dragEnter(libraryRoot(), { dataTransfer: { types: ["Files"], items: mixed } });
-      expect(screen.getByText("Drop diapason WAVs to import")).toBeTruthy();
+      expect(screen.getByText("Drop Diapason WAV or MIDI files to import")).toBeTruthy();
       const untyped = new File([encodeWav(pcm, 48000)], "take.wav");
       fireEvent.drop(libraryRoot(), { dataTransfer: { files: [untyped], types: ["Files"] } });
       expect(await popover()).toBeTruthy();
@@ -347,7 +347,7 @@ describe("library", () => {
       renderLibrary();
       await screen.findByText(/No recordings yet/);
       fireEvent.dragEnter(document.body, { dataTransfer: { types: ["Files"] } });
-      expect(screen.getByText("Drop diapason WAVs to import")).toBeTruthy();
+      expect(screen.getByText("Drop Diapason WAV or MIDI files to import")).toBeTruthy();
       fireEvent.drop(document.body, { dataTransfer: { files: [tagged()], types: ["Files"] } });
       expect(within(await popover()).getByText("Shared")).toBeTruthy();
     });
@@ -359,7 +359,7 @@ describe("library", () => {
         renderLibrary();
         await screen.findByText(/No recordings yet/);
         fireEvent.dragEnter(header, { dataTransfer: { types: ["Files"] } });
-        expect(screen.queryByText("Drop diapason WAVs to import")).toBeNull();
+        expect(screen.queryByText("Drop Diapason WAV or MIDI files to import")).toBeNull();
         const over = { types: ["Files"], dropEffect: "copy" };
         expect(fireEvent.dragOver(header, { dataTransfer: over })).toBe(false);
         expect(over.dropEffect).toBe("none");

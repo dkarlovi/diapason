@@ -30,8 +30,10 @@ export function useWaveformBackfill(
     const token = generation.current;
     const run = async () => {
       while (token === generation.current) {
-        const record = latest.current.find((r) => !r.waveform && !attempted.current.has(r.id));
-        if (!record) return;
+        const record = latest.current.find(
+          (r) => !r.noteSource && !r.waveform && !attempted.current.has(r.id),
+        );
+        if (!record || record.noteSource) return;
         await new Promise((resolve) => setTimeout(resolve, 50));
         if (token !== generation.current) return;
         attempted.current.add(record.id);
@@ -41,7 +43,7 @@ export function useWaveformBackfill(
           const waveform = await saveWaveform(record.id, summary);
           if (token === generation.current && waveform) {
             setRecordings((current) =>
-              current.map((r) => (r.id === record.id ? { ...r, waveform } : r)),
+              current.map((r) => (r.id === record.id && !r.noteSource ? { ...r, waveform } : r)),
             );
           }
         } catch {

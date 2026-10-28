@@ -23,18 +23,23 @@ export interface Interpretation {
   decoded: NoteEvent[];
   notes: NoteEvent[];
 }
+export interface SegmentInterpretationInput {
+  knobs: Knobs;
+  key: KeyChoice;
+  timing: { bpm: number; beatsPerBar: number };
+  range: { minMidi: number; maxMidi: number };
+}
 export function interpretMelody(
   frames: Frame[],
-  input: {
-    protectedBoundaries?: readonly number[];
-    knobs: Knobs;
-    key: KeyChoice;
-    timing: { bpm: number; beatsPerBar: number };
-    range: { minMidi: number; maxMidi: number };
-  },
+  input: SegmentInterpretationInput & { protectedBoundaries?: readonly number[] },
+): Interpretation {
+  return interpretSegments(segmentMelody(frames, input.knobs, input.protectedBoundaries), input);
+}
+export function interpretSegments(
+  segments: Segment[],
+  input: SegmentInterpretationInput,
 ): Interpretation {
   const { knobs, range, timing } = input;
-  const segments = segmentMelody(frames, knobs, input.protectedBoundaries);
   const performedTuning = fitTuning(segments);
   const faithful = nearestNotes(segments, performedTuning);
   const ranked = rankKeys(faithful);

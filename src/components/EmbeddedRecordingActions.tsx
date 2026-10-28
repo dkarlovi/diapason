@@ -28,6 +28,12 @@ export function EmbeddedRecordingActions({ state }: { state: EditorState }) {
       >
         <MidiOutputPicker />
         <Button
+          disabled={state.editingDisabled || state.sharing.busy}
+          onClick={() => run(state.copyTuneLink)}
+        >
+          Copy tune link
+        </Button>
+        <Button
           disabled={!state.canEditPitch || !state.record?.noteEdits?.pitch.length}
           onClick={() => run(state.resetAllNoteEdits)}
         >

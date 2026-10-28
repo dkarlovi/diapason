@@ -56,6 +56,8 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
         <div className="editor-tune-body">
           <MelodyPanel
             melody={state.melody}
+            fixedNotes={state.capabilities?.fixedNotes ?? false}
+            knobAvailability={state.knobAvailability}
             drafting={state.drafting}
             beginKnob={state.beginKnob}
             draftKnob={state.draftKnob}
