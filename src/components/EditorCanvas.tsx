@@ -1,3 +1,4 @@
+import { AnalysisProgress } from "./AnalysisProgress";
 import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
@@ -50,13 +51,19 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
       className="editor-plot"
       ref={state.rollRef}
       aria-label="MIDI piano roll"
-      tabIndex={0}
+      tabIndex={state.analysisReady ? 0 : -1}
+      aria-hidden={!state.analysisReady}
       aria-describedby="roll-instructions"
       title="Click a note to hear it, Ctrl+click to mute or unmute it. Drag the selected note up or down to change its pitch."
-      onClick={state.clickRoll}
-      onMouseMove={state.moveRoll}
-      onKeyDown={(event) => rollKeyboard(event, state)}
-      style={{ cursor: rollCursor[state.rollHover ?? "none"] }}
+      onClick={state.analysisReady ? state.clickRoll : undefined}
+      onMouseMove={state.analysisReady ? state.moveRoll : undefined}
+      onKeyDown={(event) => {
+        if (state.analysisReady) rollKeyboard(event, state);
+      }}
+      style={{
+        cursor: rollCursor[state.rollHover ?? "none"],
+        visibility: state.analysisReady ? undefined : "hidden",
+      }}
     />
   );
 }
@@ -106,6 +113,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
           <Button
             className="editor-open-tune"
             aria-label="Toggle Tune"
+            disabled={state.editingDisabled}
             aria-expanded={layout.open}
             aria-pressed={layout.open}
             onClick={() => {
@@ -120,7 +128,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
       )}
       <Button
         className="editor-play playback-control"
-        disabled={!state.record}
+        disabled={!state.record || (kind === "midi" && !state.analysisReady)}
         aria-label={`${playing ? "Stop" : "Play"} ${label}`}
         title={`${playing ? "Stop" : "Play"} ${label}`}
         aria-pressed={playing}
@@ -134,7 +142,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         className="editor-download"
         aria-label={download}
         title={download}
-        disabled={!state.record}
+        disabled={!state.record || (kind === "midi" && !state.analysisReady)}
         onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
       >
         <Download aria-hidden="true" />
@@ -181,7 +189,14 @@ export function EditorCanvas(props: CanvasProps) {
         <TrackLabel kind={kind} state={state} />
         <TrackActions kind={kind} state={state} layout={layout} />
       </div>
-      {kind === "midi" && <MidiOverlays state={state} layout={layout} />}
+      {kind === "midi" &&
+        (state.analysisReady ? (
+          <MidiOverlays state={state} layout={layout} />
+        ) : (
+          <div className="editor-analysis">
+            <AnalysisProgress state={state.analysis} retry={state.retryAnalysis} />
+          </div>
+        ))}
     </section>
   );
 }

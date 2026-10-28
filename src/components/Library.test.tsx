@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter, Route, Routes } from "react-router";

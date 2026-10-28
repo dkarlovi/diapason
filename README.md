@@ -47,6 +47,19 @@ diapason is organized as a **library of recordings**, persisted in your browser
    exports (`.mid` / `.wav` / `.json` / log). Click a note to preview it;
    Ctrl/Cmd+click to mute or unmute it for playback and MIDI export.
 
+Pitch analysis starts when you open a take or request its MIDI preview. It runs
+in a Web Worker and is cached separately in IndexedDB, so reopening a take or
+returning to the Library reuses its exact frames. Changes to acoustic analysis
+settings or the detector implementation invalidate the cache. While analysis is
+running, the editor shows its progress, and a slim indicator sits along the Library
+row’s top border without moving its contents; audio playback and WAV
+download remain available. MIDI playback, export, and editing enable automatically
+when analysis completes. Library Open waits for an active analysis to finish;
+direct editor URLs join the same job, including across navigation. Failures show
+an explicit Retry analysis action. A full cache storage quota shows a warning while
+keeping the analyzed take usable. Environments without Workers use synchronous
+analysis, which can pause the page on a long take.
+
 Library actions use **Import** and **New** at every screen size, keeping the mobile
 heading on one line. Opening New or a recording from an app link requests fullscreen on
 supported mobile browsers. The header's fullscreen toggle also works after a direct

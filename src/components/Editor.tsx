@@ -31,6 +31,12 @@ export function Editor({ id }: { id: string }) {
         Library
       </Link>
       <EditorRecordingActions state={state} />
+      {state.loadError && state.analysis.status !== "error" && (
+        <div className="analysis-status analysis-error" role="alert">
+          Could not load recording: {state.loadError}
+          <Button onClick={state.retryAnalysis}>Retry loading</Button>
+        </div>
+      )}
       <Toast notice={state.notice} onDismiss={state.dismissNotice} />
       <div
         className="editor-workspace"

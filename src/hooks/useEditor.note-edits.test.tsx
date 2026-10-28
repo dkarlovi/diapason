@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
 import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";

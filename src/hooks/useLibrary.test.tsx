@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Recording } from "../db";

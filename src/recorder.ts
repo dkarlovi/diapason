@@ -99,6 +99,7 @@ export function analyzeBuffer(
   samples: Float32Array,
   sampleRate: number,
   opts: AnalyzeOptions = {},
+  progress?: (done: number, total: number) => void,
 ): Frame[] {
   const windowSize = opts.windowSize ?? ANALYZE_DEFAULTS.windowSize;
   const hop = opts.hop ?? Math.floor(windowSize / 4);
@@ -106,12 +107,16 @@ export function analyzeBuffer(
 
   const frames: Frame[] = [];
   const win = new Float32Array(windowSize);
+  const total = Math.max(0, Math.floor((samples.length - windowSize) / hop) + 1);
+  progress?.(0, total);
   for (let start = 0; start + windowSize <= samples.length; start += hop) {
     win.set(samples.subarray(start, start + windowSize));
     const t = start / sampleRate;
     const { freq, clarity, rms } = detect(win);
     frames.push({ t, freq, clarity, rms });
+    if (frames.length % 32 === 0) progress?.(frames.length, total);
   }
+  progress?.(frames.length, total);
   return frames;
 }
 

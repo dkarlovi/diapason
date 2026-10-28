@@ -1,3 +1,6 @@
+import { AnalysisProgress } from "./AnalysisProgress";
+import { useAnalysisStatus } from "../hooks/useAnalysisStatus";
+import { requestAnalysis } from "../analysis-jobs";
 import { Toast } from "./Toast";
 import { useEffect, useState } from "react";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -36,6 +39,8 @@ function RecordingCard({
   onDelete(record: Recording): void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const analysis = useAnalysisStatus(record);
+  const waiting = analysis.status === "running" || analysis.status === "error";
   return (
     <article className="library-record">
       <WaveformThumbnail summary={record.waveform} />
@@ -47,6 +52,12 @@ function RecordingCard({
         <p>
           {fmtDate(record.createdAt)} · {record.bpm} BPM · {record.durationSec.toFixed(1)}s
         </p>
+        <AnalysisProgress
+          state={analysis}
+          retry={() => {
+            void requestAnalysis(record, true).catch(() => {});
+          }}
+        />
       </div>
       <div className="library-record-actions">
         {(["audio", "midi"] as const).map((kind) => {
@@ -54,6 +65,7 @@ function RecordingCard({
           return (
             <Button
               key={kind}
+              disabled={kind === "midi" && waiting}
               className="playback-control"
               aria-pressed={active}
               aria-label={(active ? "Stop " : "Play ") + kind + ": " + record.name}
@@ -64,7 +76,14 @@ function RecordingCard({
             </Button>
           );
         })}
-        <Link className="button recording-open" to={recordingPath(record.id)}>
+        <Link
+          className="button recording-open"
+          to={recordingPath(record.id)}
+          aria-disabled={waiting}
+          onClick={(event) => {
+            if (waiting) event.preventDefault();
+          }}
+        >
           Open <ChevronRight aria-hidden="true" />
         </Link>
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>

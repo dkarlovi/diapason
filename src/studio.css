@@ -479,3 +479,48 @@ main.studio-shell.library-shell {
     animation: none;
   }
 }
+
+.analysis-status {
+  display: grid;
+  gap: 6px;
+  margin-block: 8px;
+  color: var(--color-muted-foreground);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.analysis-progress {
+  height: 4px;
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: 2px;
+}
+.analysis-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+}
+.analysis-error {
+  color: var(--color-destructive);
+}
+.recording-open[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.library-record .analysis-status:has(.analysis-progress) {
+  position: absolute;
+  inset: 2px 8px auto;
+  display: block;
+  margin: 0;
+  pointer-events: none;
+}
+.library-record .analysis-status:has(.analysis-progress) > span {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+.library-record .analysis-progress {
+  height: 2px;
+}

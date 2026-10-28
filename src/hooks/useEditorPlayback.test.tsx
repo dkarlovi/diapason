@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
 import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
 import { wavChunks } from "../wav-reader";
@@ -127,7 +128,7 @@ afterEach(async () => {
 });
 async function editor() {
   const hook = renderHook(({ id }) => useEditor(id), { wrapper, initialProps: { id: "one" } });
-  await waitFor(() => expect(hook.result.current.record?.id).toBe("one"));
+  await waitFor(() => expect(hook.result.current.analysisReady).toBe(true));
   return hook;
 }
 function tick() {
@@ -166,7 +167,7 @@ it("advances the playhead without re-rendering the editor", async () => {
     },
     { wrapper, initialProps: { id: "one" } },
   );
-  await waitFor(() => expect(hook.result.current.record?.id).toBe("one"));
+  await waitFor(() => expect(hook.result.current.analysisReady).toBe(true));
   await act(async () => hook.result.current.togglePlayback("midi"));
   const before = renders;
   const handle = state.handles.at(-1)!;
