@@ -46,9 +46,14 @@ export function noteSourceFromAnalysis(
     },
   };
 }
-function validateSourceContext(source: NoteSource) {
+function validateSourceContext(source: NoteSource, historical: boolean) {
   requireTune(source && typeof source === "object");
-  requireTune(source.version === 1 && source.interpretationVersion === 1);
+  requireTune(source.version === 1);
+  requireTune(
+    historical
+      ? Number.isSafeInteger(source.interpretationVersion) && source.interpretationVersion > 0
+      : source.interpretationVersion === 1,
+  );
   requireTune(Array.isArray(source.segments));
   requireTune(
     source.range &&
@@ -74,9 +79,13 @@ function validateSegment(segment: Segment, previousEnd: number, durationSec: num
   requireTune(Math.abs(segment.source.end - segment.start - segment.duration) <= 1e-9);
   requireTune(segment.start + segment.duration <= durationSec + 1e-9);
 }
-export function validateNoteSource(value: unknown, durationSec: number): NoteSource {
+export function validateNoteSource(
+  value: unknown,
+  durationSec: number,
+  historical = false,
+): NoteSource {
   const source = value as NoteSource;
-  validateSourceContext(source);
+  validateSourceContext(source, historical);
   let end = 0;
   for (const segment of source.segments) {
     validateSegment(segment, end, durationSec);

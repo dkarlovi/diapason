@@ -33,6 +33,16 @@ vi.mock("../db", () => ({
   saveWaveform: vi.fn(async () => undefined),
 }));
 
+vi.mock("../recording-import-storage", () => ({
+  insertImportedRecording: async (record: Recording, disposition: "original" | "copy") => {
+    const saved = disposition === "copy" ? { ...record, id: crypto.randomUUID() } : record;
+    if (recordings.some((r) => r.id === saved.id))
+      throw new Error("This recording already exists. Import as copy to keep both.");
+    await putRecording(saved);
+    return saved;
+  },
+}));
+
 beforeEach(() => {
   vi.stubGlobal(
     "ResizeObserver",

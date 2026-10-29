@@ -1,10 +1,8 @@
-import { keyName } from "./melody/key";
 import { midiEvents } from "./midi";
-// Builds diagnostics for a recorded sample so detection can be inspected/tuned
-// offline. Produces a structured object (for a .json sidecar) and a compact text
-// report (for pasting inline). Both share one source of truth: buildReportData().
+// Shared structured processing evidence for recording packages and CLI replay.
+// Schema-4 fields also support legacy paired JSON/WAV regression fixtures.
 
-import { freqToMidi, midiToName, type Frame } from "./notes";
+import { freqToMidi, type Frame } from "./notes";
 import type { AudioRecording as Recording } from "./db";
 import { processRecording } from "./recording";
 import { resolveAnalysisOptions } from "./recording-analysis";
@@ -105,70 +103,4 @@ export function buildReportData(input: ReportInput) {
     notes,
     frames,
   };
-}
-
-const f = (n: number, d = 2): string => (Number.isFinite(n) ? n.toFixed(d) : "—");
-
-export function buildReport(input: ReportInput): string {
-  const d = buildReportData(input);
-  const c = d.config;
-  const q = d.quality;
-  const lines: string[] = [];
-
-  lines.push(`=== diapason diagnostics: ${d.title} ===`);
-  lines.push(`generated: ${d.generated}`);
-  lines.push("");
-  lines.push("[config]");
-  lines.push(
-    `sampleRate=${c.sampleRate}Hz  duration=${f(c.durationSec)}s  frames=${d.frames.length}`,
-  );
-  lines.push(`window=${c.windowSize}  hop=${c.hop}`);
-  lines.push(
-    `band=${c.minFreq}-${c.maxFreq}Hz  clarityThreshold=${f(c.clarityThreshold, 2)}  rmsGate=${f(c.rmsGate, 4)}`,
-  );
-  lines.push("");
-  lines.push(`build=${d.build.revision} pipeline=${d.build.pipeline} schema=${d.schemaVersion}`);
-  lines.push(`[settings] ${JSON.stringify(d.settings)}`);
-  lines.push(`[capture] ${JSON.stringify(d.saved.capture)}`);
-  lines.push(`[analysis] ${JSON.stringify(d.analysis)}`);
-  const s = d.stages;
-  lines.push(
-    `[stages] preset=${d.settings.melody.preset} key=${s.key.chosen ? keyName(s.key.chosen) : "none"} (${s.key.auto ? "auto" : "chosen"}) faithful=${s.faithful.length} decoded=${s.decoded.length} muted=${s.items.filter((i) => i.muted).length} exported=${s.notes.length}`,
-  );
-  for (const edit of d.saved.noteEdits?.pitch ?? []) {
-    const coverage = s.editCoverage.find((entry) => entry.id === edit.id);
-    lines.push(
-      `[pitch edit] ${edit.id} midi=${edit.midi} source=${JSON.stringify(edit.ranges)} status=${coverage?.status} missing=${JSON.stringify(coverage?.missing)}`,
-    );
-  }
-  lines.push("[quality]");
-  lines.push(
-    `voiced=${f(q.voicedRatio * 100, 0)}%  medianClarity=${f(q.medianClarity, 3)}  centsStd=${f(q.centsStd, 1)}  peak=${f(q.peak, 3)}${q.clipped ? " CLIPPING!" : ""}`,
-  );
-  lines.push("");
-  lines.push(`[exported notes]  (${d.notes.length})`);
-  if (d.notes.length) {
-    d.stages.items
-      .filter((item) => !item.muted)
-      .forEach(({ note: n, id }) =>
-        lines.push(
-          `  ${`#${id}`.padStart(3)}  ${n.name.padEnd(4)} start=${f(n.start)}s  len=${f(n.duration)}s`,
-        ),
-      );
-  } else {
-    lines.push("  (none)");
-  }
-  lines.push("");
-  lines.push("[frames]  t_ms,freq_hz,midi,note,cents,clarity,rms  (freq blank = unvoiced)");
-  for (const fr of d.frames) {
-    if (fr.freq === null) {
-      lines.push(`${fr.tMs},,,,,,${f(fr.rms, 4)}`);
-    } else {
-      lines.push(
-        `${fr.tMs},${f(fr.freq, 1)},${f(fr.midi!, 2)},${midiToName(fr.midi!)},${fr.cents},${f(fr.clarity, 3)},${f(fr.rms, 4)}`,
-      );
-    }
-  }
-  lines.push("=== end ===");
-  return lines.join("\n");
 }

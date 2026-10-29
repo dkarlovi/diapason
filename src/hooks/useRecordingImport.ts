@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRecording, putRecording, type Recording } from "../db";
+import { getRecording, type Recording } from "../db";
 import { recordingPath } from "../router";
-import { recordingFromTaggedWav } from "../wav-metadata";
+import { readRecordingPackage, restoreRecordingPackage } from "../recording-package";
+import { insertImportedRecording } from "../recording-import-storage";
+import type {
+  ReadRecordingPackage,
+  TuneImportMode,
+  ImportDisposition,
+} from "../recording-package-types";
 import { recordingFromPortableTune, TUNE_LIMITS, type PortableTune } from "../portable-tune";
 import { decodeTuneMidi } from "../tune-midi";
 import { tuneFromFragment } from "../tune-url";
@@ -12,9 +18,14 @@ export interface ImportCandidate {
   tune?: PortableTune;
   existing?: Recording;
   error?: string;
+  package?: ReadRecordingPackage;
+  tuneMode?: TuneImportMode;
+  disposition?: ImportDisposition;
 }
 export const importable = (candidates: readonly ImportCandidate[]) =>
-  candidates.filter((c) => (c.record || c.tune) && !c.existing && !c.error);
+  candidates.filter(
+    (c) => (c.record || c.tune) && (!c.existing || c.disposition === "copy") && !c.error,
+  );
 async function inspect(file: File): Promise<ImportCandidate> {
   try {
     if (/\.midi?$/i.test(file.name) || ["audio/midi", "audio/x-midi"].includes(file.type)) {
@@ -24,9 +35,17 @@ async function inspect(file: File): Promise<ImportCandidate> {
         tune: await decodeTuneMidi(new Uint8Array(await file.arrayBuffer())),
       };
     }
-    const record = await recordingFromTaggedWav(await file.arrayBuffer(), file.name);
+    const input = await readRecordingPackage(await file.arrayBuffer());
+    const record = await restoreRecordingPackage(input, file.name, "restore");
     const existing = await getRecording(record.id);
-    return existing ? { file: file.name, record, existing } : { file: file.name, record };
+    return {
+      file: file.name,
+      record,
+      package: input,
+      tuneMode: input.metadata.schemaVersion === 2 ? "restore" : "fresh",
+      disposition: "original",
+      ...(existing ? { existing } : {}),
+    };
   } catch (error) {
     return { file: file.name, error: error instanceof Error ? error.message : String(error) };
   }
@@ -35,9 +54,14 @@ async function saveCandidate(candidate: ImportCandidate): Promise<Recording> {
   const now = Date.now();
   const record = candidate.tune
     ? recordingFromPortableTune(candidate.tune, crypto.randomUUID(), now)
-    : { ...candidate.record!, imported: { ...candidate.record!.imported!, at: now } };
-  await putRecording(record);
-  return record;
+    : candidate.package
+      ? await restoreRecordingPackage(
+          candidate.package,
+          candidate.file,
+          candidate.tuneMode ?? "restore",
+        )
+      : { ...candidate.record!, imported: { ...candidate.record!.imported!, at: now } };
+  return insertImportedRecording(record, candidate.disposition ?? "original");
 }
 function importedNotice(records: Recording[]): Notice {
   if (records.length === 1)
@@ -108,13 +132,24 @@ export function useRecordingImport(
     if (!selected.length) return;
     saving.current = true;
     request.current++;
-    setCandidates(null);
     setBusy(true);
     const records: Recording[] = [];
     try {
-      for (const candidate of selected) records.push(await saveCandidate(candidate));
+      for (const candidate of selected) {
+        records.push(await saveCandidate(candidate));
+        setCandidates((current) => current?.filter((c) => c !== candidate) ?? null);
+      }
+      setCandidates(null);
       showNotice(importedNotice(records));
     } catch (error) {
+      const failed = selected[records.length];
+      if (failed?.record && failed.disposition !== "copy") {
+        const existing = await getRecording(failed.record.id).catch(() => undefined);
+        if (existing)
+          setCandidates(
+            (current) => current?.map((c) => (c === failed ? { ...c, existing } : c)) ?? null,
+          );
+      }
       showNotice({
         kind: "error",
         message: `Saved ${records.length} of ${selected.length} recordings: ${error instanceof Error ? error.message : String(error)}`,
@@ -125,5 +160,26 @@ export function useRecordingImport(
       await onImported();
     }
   }, [candidates, onImported, showNotice]);
-  return { candidates, busy, offer, offerFiles: offer, offerUrl, confirm, cancel };
+  const setCandidateOptions = useCallback(
+    (index: number, options: { tuneMode?: TuneImportMode; disposition?: ImportDisposition }) => {
+      if (!saving.current)
+        setCandidates(
+          (current) =>
+            current?.map((candidate, i) =>
+              i === index ? { ...candidate, ...options } : candidate,
+            ) ?? null,
+        );
+    },
+    [],
+  );
+  return {
+    candidates,
+    busy,
+    offer,
+    offerFiles: offer,
+    offerUrl,
+    confirm,
+    cancel,
+    setCandidateOptions,
+  };
 }

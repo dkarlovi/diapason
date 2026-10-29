@@ -1,3 +1,4 @@
+import { compareSavedMelody } from "../recording-package-comparison";
 import type { AdHocTuneSession } from "./useAdHocTune";
 import { createPortableTune } from "../portable-tune";
 import { useSaveTune } from "./useSaveTune";
@@ -267,6 +268,8 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const previewApplied = activeCandidate?.applied ?? false;
+  const canExport =
+    analysisReady && (previewLabel === null || previewApplied) && !versions.busy && !savingTune;
   useEffect(() => {
     if (!playing || (!previewLabel && !previewId)) return;
     showNotice({
@@ -302,24 +305,32 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       start,
     );
   };
-  const {
-    logRef,
-    reportText,
-    copyStatus,
-    downloadMidi,
-    downloadWav,
-    downloadJson,
-    downloadLog,
-    copyLog,
-  } = useEditorExports({
+  const { downloadMidi, downloadWav } = useEditorExports({
+    canExport,
     beforeExport: history.flush,
     recordingId: id,
     recordRef,
     pcmRef: pcm,
     frames,
-    statsRef: stats,
     showNotice,
   });
+
+  const importAnalysisMismatch = useMemo(() => {
+    const meta = record?.imported?.metadata;
+    if (
+      !record ||
+      !analysisReady ||
+      record.imported?.tuneMode !== "restore" ||
+      meta?.schemaVersion !== 2
+    )
+      return false;
+    const baseline = processRecording(applyEditSnapshot(record, meta.intent), frames);
+    return !compareSavedMelody(meta.evidence, {
+      ...meta.evidence,
+      stages: { ...meta.evidence.stages, items: baseline.items },
+      notes: baseline.notes,
+    }).matches;
+  }, [record, frames, analysisReady]);
 
   const muted = useMemo(() => items.filter((item) => item.muted).map((item) => item.note), [items]);
   const { edited, origins } = useMemo(() => editMarks(items, selectedItem), [items, selectedItem]);
@@ -580,9 +591,6 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     commitName,
     traceRef,
     rollRef,
-    logRef,
-    reportText,
-    copyStatus,
     melody,
     interpretation,
     previewId,
@@ -626,8 +634,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     togglePlayback,
     downloadMidi,
     downloadWav,
-    downloadJson,
-    downloadLog,
-    copyLog,
+    canExport,
+    importAnalysisMismatch,
   };
 }

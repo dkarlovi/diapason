@@ -95,9 +95,6 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
                 <span>{state.inactivePitchEditCount} inactive pitch edits</span>
               )}
               {[
-                { label: "Download log", run: state.downloadLog },
-                { label: "Download JSON", run: state.downloadJson },
-                { label: "Copy log", run: state.copyLog },
                 { label: "Duplicate", run: state.duplicate },
                 { label: "Delete recording", run: state.remove },
               ]
@@ -109,11 +106,7 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
                 .map((action) => (
                   <Button
                     key={action.label}
-                    disabled={
-                      !state.record ||
-                      ((!state.analysisReady || !state.capabilities?.audio) &&
-                        ["Download log", "Download JSON", "Copy log"].includes(action.label))
-                    }
+                    disabled={!state.record}
                     variant={action.label === "Delete recording" ? "danger" : undefined}
                     onClick={() => {
                       setOpen(false);
@@ -135,15 +128,6 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
     <>
       {nameSlot ? createPortal(name, nameSlot) : name}
       {actionSlot ? createPortal(actions, actionSlot) : actions}
-      <textarea
-        id="ed-log-out"
-        ref={state.logRef}
-        value={state.reportText}
-        readOnly
-        spellCheck={false}
-        hidden={!state.copyStatus.startsWith("select")}
-        aria-label="Recording diagnostic log"
-      />
     </>
   );
 }

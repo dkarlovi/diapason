@@ -104,10 +104,31 @@ function TrackLabel({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     </div>
   );
 }
+function TrackDownload({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
+  const download = kind === "midi" ? "Download MIDI" : "Download WAV";
+  return (
+    <Button
+      variant="primary"
+      className="editor-download"
+      aria-label={download}
+      title={
+        !state.canExport && state.previewLabel && !state.previewApplied
+          ? "Apply or stop the preview before downloading"
+          : download
+      }
+      disabled={
+        !state.record || !state.canExport || (kind === "audio" && !state.capabilities?.audio)
+      }
+      onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
+    >
+      <Download aria-hidden="true" />
+      <span>Download</span>
+    </Button>
+  );
+}
 function TrackActions({ kind, state, layout }: CanvasProps) {
   const { embedded } = useStudioMode();
   const playing = state.playing === kind;
-  const download = kind === "midi" ? "Download MIDI" : "Download WAV";
   const label = kind === "midi" ? "MIDI" : "audio";
   return (
     <div className="editor-track-actions">
@@ -143,19 +164,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
         {playing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
         <span className="editor-play-label">{playing ? "Stop" : "Play"}</span>
       </Button>
-      <Button
-        variant="primary"
-        className="editor-download"
-        aria-label={download}
-        title={download}
-        disabled={
-          !state.record || (kind === "midi" ? !state.analysisReady : !state.capabilities?.audio)
-        }
-        onClick={kind === "midi" ? state.downloadMidi : state.downloadWav}
-      >
-        <Download aria-hidden="true" />
-        <span>Download</span>
-      </Button>
+      <TrackDownload kind={kind} state={state} />
       {embedded && kind === "midi" && <EmbeddedRecordingActions state={state} />}
     </div>
   );

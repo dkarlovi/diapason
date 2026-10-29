@@ -76,20 +76,27 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
     tune.noteSource = original;
   return validatePortableTune(tune);
 }
-function validateTuneInfo(t: PortableTune) {
+function validateTuneInfo(t: PortableTune, historical: boolean) {
   requireTune(t.schemaVersion === 1);
   requireTune(typeof t.name === "string");
-  requireTune(new TextEncoder().encode(t.name).length <= TUNE_LIMITS.nameBytes);
-  requireTune(integerBetween(t.durationMs, 0, TUNE_LIMITS.durationMs));
+  requireTune(
+    new TextEncoder().encode(t.name).length <=
+      (historical ? Number.MAX_SAFE_INTEGER : TUNE_LIMITS.nameBytes),
+  );
+  requireTune(
+    integerBetween(t.durationMs, 0, historical ? Number.MAX_SAFE_INTEGER : TUNE_LIMITS.durationMs),
+  );
   requireTune(finiteBetween(t.bpm, 20, 300));
   requireTune(integerBetween(t.beatsPerBar, 1, 12));
 }
-function validateTuneMusic(t: PortableTune) {
+function validateTuneMusic(t: PortableTune, historical: boolean) {
   requireTune(isMelodySetting(t.melody));
   requireTune(isKnobs(t.effectiveKnobs));
   requireTune(t.play && INSTRUMENTS.some((i) => i.id === t.play.instrument));
   requireTune([1, 0, -1, -2, -3].includes(t.play.octave));
-  const effective = resolveKnobs(t.melody.preset, t.melody.overrides);
+  const effective = historical
+    ? t.effectiveKnobs
+    : resolveKnobs(t.melody.preset, t.melody.overrides);
   requireTune(
     Object.keys(effective).every(
       (k) => effective[k as keyof Knobs] === t.effectiveKnobs[k as keyof Knobs],
@@ -112,13 +119,16 @@ function validateTuneEdits(t: PortableTune) {
   requireTune(new Set(t.mutedIndices).size === t.mutedIndices.length);
   requireTune(new Set(t.pitchEdits.map((e) => e.noteIndex)).size === t.pitchEdits.length);
 }
-export function validatePortableTune(value: unknown): PortableTune {
+export function validatePortableTune(
+  value: unknown,
+  { historical = false }: { historical?: boolean } = {},
+): PortableTune {
   const t = value as PortableTune;
   requireTune(t && typeof t === "object");
-  validateTuneInfo(t);
-  validateNoteSource(t.noteSource, t.durationMs / 1000);
-  requireTune(t.noteSource.segments.length <= TUNE_LIMITS.notes);
-  validateTuneMusic(t);
+  validateTuneInfo(t, historical);
+  validateNoteSource(t.noteSource, t.durationMs / 1000, historical);
+  requireTune(historical || t.noteSource.segments.length <= TUNE_LIMITS.notes);
+  validateTuneMusic(t, historical);
   validateTuneEdits(t);
   return t;
 }

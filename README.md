@@ -145,7 +145,7 @@ Tune uses a tonal toolbox with a strong blue category selection and quieter rese
 controls. **Playback sound** groups Instrument and Octave. **Melody correction**
 places Preset and Key directly above the correction tabs and sliders, keeping the
 recipe beside the values it controls. Rename lives in the header, with Versions, duplicate,
-delete, text/JSON diagnostics, and copying logs under Recording actions. Mobile
+and delete under Recording actions. Mobile
 keeps external MIDI selection in that menu.
 
 Time zoom, pitch zoom, Fit, and shared pan float over the roll. Middle-button
@@ -255,26 +255,28 @@ rules, decoder limits and reproducible size measurements.
 
 ### Sharing recordings as WAV
 
-The editor's **Download WAV** is a complete recording: send it to someone and they
-import it into their own diapason, in any browser, to get the same take. Next to the
-unchanged mono 16-bit audio, the file carries a versioned `dpsn` chunk, marked as a
-recording, with what was
-known when the take was recorded: tempo, beats per bar, the downbeat, the level gate,
-the sound profile and analysis settings, capture info (gain, peak, noise floor,
-browser DSP), and provenance (name, recording time, original id, diapason version and
-revision, browser and MIDI output). Editor work is not included, so the receiver opens
-the unedited take with default melody settings; its notes and MIDI match what the
-sender saw before editing. A standard `LIST/INFO` chunk (title, date, software,
-comment) and an `acid` chunk (tempo and meter) make the basics visible in audio tools
-and DAWs that read them. The diagnostics JSON hashes these same tagged bytes.
+The editor's **Download WAV** is a portable recording package: the original mono
+PCM16 audio plus versioned JSON in the `dpsn` chunk containing capture settings,
+full current edit intent (including hidden edits), current melody, playback
+settings, exact exported MIDI bytes, and original pitch/processing evidence. Standard `LIST/INFO` and `acid`
+chunks retain title, date, tempo, and meter for audio tools that support them.
+MIDI remains the musical deliverable; the WAV keeps everything needed to revisit
+its source and investigate detection.
 
-Importing keeps the original id, name and recording time. The import popover marks
-files that cannot be imported, with the reason, and recordings already in your
-library, with a link to open them; those are never duplicated or overwritten. An
-imported recording stores when it was imported, the file name, and the file's
-embedded metadata exactly as it arrived (including fields this version does not
-know). Exporting an imported recording gives back the same file byte for byte
-(audio, metadata and provenance), and keeps any fields a newer diapason added.
+Import the WAV in the Library and choose **Restore saved tune and edits** (default)
+or **Start fresh from audio**. No separate tune or MIDI import is needed. Fresh
+imports use capture defaults while keeping the received package as a reference.
+For an existing recording, open the local copy or explicitly **Import as copy**;
+imports never overwrite local work. With matching processing code, restoring the
+tune reproduces the edited melody and MIDI. If current analysis differs, the
+editor shows a notice and retains the original evidence for CLI inspection.
+
+Capture provenance survives subsequent exports; current tune, evidence, and export
+provenance are refreshed. PCM samples remain unchanged, but the complete file may
+change after editing or re-exporting. Schema-1 WAVs still import as fresh takes.
+History, named versions, theme, viewport, selection, temporary auditions, and MIDI
+device routing are not exported. Apply or stop an unapplied audition before
+exporting. Audio tools may strip Diapason chunks when re-saving the file.
 
 ## Why calibration comes first
 
@@ -392,7 +394,7 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | PCM recorder + offline analysis | `src/recorder.ts`                               | AudioWorklet capture, re-analyze buffers, quality stats         |
 | Pitch-trace visualization       | `src/trace.ts`                                  | Canvas 2D pitch-over-time renderer                              |
 | WAV encoder                     | `src/wav.ts`                                    | Mono 16-bit PCM WAV for offline inspection                      |
-| Diagnostics report              | `src/diagnostics.ts`                            | Structured (.json) + text report of a sample                    |
+| Processing evidence             | `src/diagnostics.ts`                            | Structured processing evidence for WAV packages and CLI replay  |
 | MIDI file writer                | `src/midi.ts`                                   | Standard MIDI File (Type 0), no deps                            |
 | Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled                |
 | Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                           |
@@ -415,44 +417,45 @@ current code and melody settings.
 
 ### Inspecting / tuning detection
 
-Each recording can be exported from the editor's **Recording** panel:
-
-- **Download .wav** — the raw captured audio (mono 16-bit PCM), the ground truth
-  for offline analysis.
-- **Download .json** — the metrics: config (band, clarity threshold, noise gate),
-  quality stats, interpreted notes, key/harmony, and the full per-frame pitch track.
-- **Copy log** — the same report as compact text, for pasting inline; processing
-  stages appear as counts, with full detail left to the JSON.
-
-Schema-4 JSON includes saved and effective melody settings, preset overrides,
-resolved weights, automatic/explicit key and alternatives, implied harmony,
-faithful and corrected notes, muted anchors, playback settings, build identity,
-full-precision pitch frames, and final enabled notes with absolute MIDI tick events.
-Saved pitch edits, source scopes, automatic/effective notes, and inactive coverage
-are included. The top-level `notes` are the notes exported to MIDI. Schema-3 and older exports report an
-older pipeline and cannot replay exactly through the new engine.
-Exports from `npm run dev` record the build revision and source as unknown, because
-the dev server serves edited sources live; use a production build for comparable exports.
-Diagnostic MIDI remains at the logical note pitches for exact pipeline replay.
-The user-facing Diapason MIDI download additionally carries the editable tune and
-renders the selected playback octave and instrument.
-
-Export JSON and WAV from the same recording. JSON identifies the exact mono PCM16
-WAV with its SHA-256, sample count, and sample rate. WAV export preserves the PCM
-samples used for analysis. A local developer replay command checks the pair and
-reports the first differing processing field:
+Download one WAV from the editor and give that file to the developer or agent.
+Browser log/JSON downloads and clipboard diagnostics have been replaced by a
+repository CLI (Node 22+ and `npm ci` required):
 
 ```bash
-npm run debug:recording -- --json recording.json --wav recording.wav --out /tmp/diapason-replay
+bin/diapason inspect recording.wav
+bin/diapason inspect recording.wav --json
+bin/diapason compare recording.wav --out /tmp/diapason-comparison
 ```
 
-It writes a replay summary and regenerated MIDI; mismatched audio is rejected, and
-a processing mismatch exits unsuccessfully. Older JSON exports are reported as
-incomplete because their missing settings cannot be recovered reliably. Browser
-and output descriptions are diagnostic context, not a snapshot of an external
-synth's sound or hardware configuration.
+`inspect` reads the saved settings, named notes, edits, mutes, quality, build
+identity, and pitch evidence; `--json` exposes the complete saved metadata.
+`compare` uses the current analysis code to reproduce the edited result and to
+analyze without manual pitch edits, their protected boundaries, or mutes. It
+compares source time ranges so note splits and merges remain visible. Explicit
+corrections express intent; untouched notes are not automatically approved, and a
+mute is not proof that the source was unvoiced.
 
-Together these let detection be debugged without being at the mic.
+The output directory receives `comparison.txt`, `comparison.json`, `saved.mid`,
+`edited.mid`, and `automatic.mid`. Existing output files are refused; use a new
+directory for each experiment. MIDI uses the selected playback instrument/octave;
+comparison pitches remain logical. Exit codes are 0 for valid inspection or an
+matching edited replay, 1 for a replay difference, and 2 for invalid input/usage or an
+unavailable baseline. Automatic-versus-edited differences alone do not fail. Numeric evidence allows
+`1e-9` absolute floating-point tolerance between browser and Node; MIDI bytes
+must match exactly.
+Schema-1 packages can be inspected, but have no saved melody to compare.
+
+The WAV's PCM data chunk is hashed with SHA-256 and checked before comparison.
+Saved observations remain separate from recomputation. The tool leaves the input
+WAV unchanged and is intended for repeated use throughout decoder tuning. Future
+focused queries can examine individual passages, notes, and frames through this
+same interface; those zoom/query commands are not implemented yet. Full-resolution
+evidence and source-time coordinates remain available in JSON meanwhile.
+
+Development exports report unknown source identity; production exports include
+build/pipeline identity. Browser/output descriptions are context, not a snapshot
+of an external synth's sound. Legacy JSON/WAV replay remains internal support for
+older regression fixtures, rather than the current sharing workflow.
 
 ### Melody correction
 
@@ -539,7 +542,7 @@ by the live recording view. Editor track labels have an 80% opaque background. T
 Show/Hide button share a double border on hover.
 Click empty canvas or outside the menu, or press Escape, to dismiss it.
 Note IDs (for example, **Note #13**) follow the current detected sequence and
-also appear in JSON items and text diagnostics; muting does not renumber them.
+also appear in the CLI JSON and text reports; muting does not renumber them.
 Detection changes that split or merge notes can renumber the sequence. Focus the roll and use arrow keys or Home/End to select
 and audition notes, Up/Down to change the selected note's pitch by a semitone
 (Shift for an octave), Enter/Space to replay, and M to mute/unmute. Ctrl/Cmd+click
@@ -606,8 +609,8 @@ Use a landscape-shaped frame; 720 × 420 is a useful starting point. Setup and
 Tune scroll within the frame. Audio/MIDI playback, editing and MIDI downloads use
 existing controls. For recording embeds, the menu beside MIDI Download contains MIDI output selection,
 Reset edits, and Delete recording. Deleting returns to New recording inside the
-iframe. WAV import and the standalone recording management and diagnostic menus
-are unavailable in embedded mode.
+iframe. WAV import and standalone recording management menus are unavailable in embedded
+mode.
 
 The host and studio must use HTTPS (localhost is allowed for development).
 Recording embeds must delegate microphone access with `allow="microphone"`. If it sends a
@@ -806,13 +809,13 @@ universal aesthetic preference.
 - Pitch detection remains monophonic and band-limited to 250–3000 Hz for whistles.
 - Existing recordings can sound different with the new engine. Legacy hysteresis,
   debounce, and median-window settings no longer control note decisions.
-- Capturing and correcting notes is local to the browser. Only WAVs exported by
+- Capturing and correcting notes is local to the browser. Only WAV and MIDI files exported by
   diapason can be imported; plain WAV, MP3 and other files, and user-defined saved
   presets, are not yet available.
 - Audio editors often drop unknown chunks when re-saving, so a diapason WAV edited
   elsewhere can no longer be imported.
-- An imported take gives identical notes only when both sides run the same
-  analysis version; imports from other versions are accepted as they are.
+- Restored takes reproduce the saved melody with matching analysis code. Imports
+  from other versions retain saved evidence and report differing current analysis.
 
 Feature ideas and planned work are tracked in
 [GitHub issues](https://github.com/dkarlovi/diapason/issues).

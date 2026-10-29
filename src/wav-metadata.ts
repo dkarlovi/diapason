@@ -9,8 +9,8 @@ import { summarizeWaveform } from "./waveform";
 import { encodeWav, type WavChunk } from "./wav";
 import { decodeWav, wavChunks } from "./wav-reader";
 
-// A diapason WAV carries the recording as it was captured, so another browser can
-// rebuild the unedited take. Editor state (melody, note edits, muting) is never written.
+// Capture metadata shared by legacy schema-1 WAVs and schema-2 packages.
+// recording-package.ts adds the current tune, edit intent, and processing evidence.
 
 export const METADATA_CHUNK = "dpsn";
 const METADATA_SCHEMA = 1;
@@ -113,7 +113,7 @@ function acidChunk(meta: WavMetadata, durationSec: number): WavChunk {
   return { id: "acid", data };
 }
 
-function metadataChunks(meta: WavMetadata, durationSec: number): WavChunk[] {
+export function metadataChunks(meta: WavMetadata, durationSec: number): WavChunk[] {
   return [
     { id: METADATA_CHUNK, data: utf8(JSON.stringify(meta)) },
     infoChunk(meta),
@@ -121,20 +121,16 @@ function metadataChunks(meta: WavMetadata, durationSec: number): WavChunk[] {
   ];
 }
 
-export function taggedWavChunks(
-  record: Recording,
-  pcm: Float32Array,
-  context: ExportContext,
-): WavChunk[] {
-  return metadataChunks(recordingMetadata(record, context), pcm.length / record.sampleRate);
-}
-
 export function encodeTaggedWav(
   record: Recording,
   pcm: Float32Array,
   context: ExportContext,
 ): Blob {
-  return encodeWav(pcm, record.sampleRate, taggedWavChunks(record, pcm, context));
+  return encodeWav(
+    pcm,
+    record.sampleRate,
+    metadataChunks(recordingMetadata(record, context), pcm.length / record.sampleRate),
+  );
 }
 
 function readPayload(bytes: ArrayBuffer) {
@@ -184,7 +180,7 @@ const validOrigin = ({ build, browser, audioOutput, midiOutput }: RecordingOrigi
   strings(build.version, build.revision, build.source, browser, audioOutput, midiOutput) &&
   finite(build.pipeline);
 
-function validMetadata(meta: WavMetadata, samples: number): boolean {
+export function validMetadata(meta: WavMetadata, samples: number): boolean {
   const r = meta.recording;
   // Property access on a malformed payload throws; any such shape is damaged data.
   try {

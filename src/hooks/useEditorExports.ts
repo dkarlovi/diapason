@@ -1,153 +1,88 @@
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 import type { Notice } from "./useNotice";
 import { activeOutput } from "../midiout";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { Recording } from "../db";
 import type { Frame } from "../notes";
-import type { QualityStats } from "../recorder";
 import { encodeTuneMidi } from "../tune-midi";
 import { createPortableTune } from "../portable-tune";
-import { encodeTaggedWav, taggedWavChunks, type ExportContext } from "../wav-metadata";
-import { buildReport } from "../diagnostics";
-import { diagnosticSnapshot } from "../diagnostic-snapshot";
+import { captureRecordingPackage, encodeRecordingPackage } from "../recording-package";
+import type { ExportContext } from "../wav-metadata";
 import { downloadBlob } from "../ui";
-import { exportSlug, makeReportInput } from "../editor-model";
-
-const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+import { exportSlug } from "../editor-model";
 
 const exportContext = (): ExportContext => ({
   browser: navigator.userAgent,
   audioOutput: "unknown",
   midiOutput: activeOutput()?.name ?? "Browser synth",
 });
-
+async function exportBlob(
+  kind: "MIDI" | "WAV",
+  current: Recording,
+  pcm: Float32Array,
+  frames: Frame[],
+): Promise<Blob | null> {
+  if (kind === "MIDI") return encodeTuneMidi(createPortableTune(current, frames));
+  if (current.noteSource) return null;
+  return encodeRecordingPackage(
+    captureRecordingPackage(current, pcm, frames, exportContext(), Date.now()),
+  );
+}
 interface Options {
   showNotice: (notice: Notice | null) => void;
   recordingId: string;
   recordRef: RefObject<Recording | null>;
   pcmRef: RefObject<Float32Array>;
   frames: Frame[];
-  statsRef: RefObject<QualityStats | null>;
+  canExport: boolean;
   beforeExport(): Promise<void>;
 }
-
 export function useEditorExports({
   recordingId,
   recordRef,
   pcmRef,
   frames,
-  statsRef,
+  canExport,
   showNotice,
   beforeExport,
 }: Options) {
-  const [reportText, setReportText] = useState("");
-  const [copyStatus, setCopyStatusState] = useState("");
-  const setCopyStatus = useCallback(
-    (message: string) => {
-      setCopyStatusState(message);
-      if (message)
-        showNotice({
-          kind: message.includes("failed") ? "error" : "success",
-          message: message === "copied ✓" ? "Diagnostic log copied" : message,
-        });
-    },
-    [showNotice],
-  );
-  const logRef = useRef<HTMLTextAreaElement>(null);
   const generation = useRef(0);
-  useEffect(() => {
-    setReportText("");
-    setCopyStatus("");
-    return () => {
+  const latest = useRef({ frames, canExport });
+  latest.current = { frames, canExport };
+  useEffect(
+    () => () => {
       generation.current++;
-    };
-  }, [recordingId]);
-
-  const filename = useCallback(
-    (extension: string) =>
-      `${exportSlug(recordRef.current?.name ?? "recording", Date.now())}.${extension}`,
-    [recordRef],
+    },
+    [recordingId],
   );
-  const reportInput = useCallback(
-    (current: import("../db").AudioRecording, stats: QualityStats) => ({
-      ...makeReportInput(current, frames, stats),
-      context: exportContext(),
-    }),
-    [frames],
+  const run = useCallback(
+    async (kind: "MIDI" | "WAV") => {
+      if (!latest.current.canExport) return;
+      const token = generation.current;
+      try {
+        await beforeExport();
+        const current = recordRef.current;
+        if (
+          !current ||
+          current.id !== recordingId ||
+          token !== generation.current ||
+          !latest.current.canExport
+        )
+          return;
+        const name = `${exportSlug(current.name, Date.now())}.${kind === "MIDI" ? "mid" : "wav"}`;
+        const blob = await exportBlob(kind, current, pcmRef.current, latest.current.frames);
+        if (blob && token === generation.current && recordRef.current?.id === recordingId)
+          downloadBlob(blob, name);
+      } catch (error) {
+        if (token === generation.current)
+          showNotice({
+            kind: "error",
+            message: `${kind} export failed: ${error instanceof Error ? error.message : String(error)}`,
+          });
+      }
+    },
+    [beforeExport, recordingId, recordRef, pcmRef, showNotice],
   );
-  const downloadMidi = useCallback(async () => {
-    if (!recordRef.current) return;
-    try {
-      await beforeExport();
-      const current = recordRef.current;
-      if (!current || current.id !== recordingId) return;
-      downloadBlob(await encodeTuneMidi(createPortableTune(current, frames)), filename("mid"));
-    } catch (error) {
-      setCopyStatus(`MIDI export failed: ${errorMessage(error)}`);
-    }
-  }, [beforeExport, recordingId, filename, recordRef, frames]);
-  const downloadWav = useCallback(() => {
-    const current = recordRef.current;
-    if (current && !current.noteSource)
-      downloadBlob(encodeTaggedWav(current, pcmRef.current, exportContext()), filename("wav"));
-  }, [filename, recordRef, pcmRef]);
-  const downloadJson = useCallback(async () => {
-    const current = recordRef.current;
-    if (!current || current.noteSource || !statsRef.current) return;
-    const token = generation.current;
-    const name = filename("json");
-    try {
-      const { report } = await diagnosticSnapshot(
-        reportInput(current, statsRef.current),
-        pcmRef.current,
-        taggedWavChunks(current, pcmRef.current, exportContext()),
-      );
-      if (token !== generation.current) return;
-      downloadBlob(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), name);
-    } catch {
-      if (token === generation.current) setCopyStatus("Diagnostics export failed; please retry.");
-    }
-  }, [filename, reportInput, recordRef, statsRef, pcmRef]);
-  const downloadLog = useCallback(() => {
-    const current = recordRef.current;
-    if (!current || current.noteSource || !statsRef.current) return;
-    try {
-      const report = buildReport(reportInput(current, statsRef.current));
-      downloadBlob(new Blob([report], { type: "text/plain" }), filename("txt"));
-    } catch (error) {
-      setCopyStatus(`Diagnostics failed: ${errorMessage(error)}`);
-    }
-  }, [filename, reportInput, recordRef, statsRef]);
-  const copyLog = useCallback(async () => {
-    const current = recordRef.current;
-    if (!current || current.noteSource || !statsRef.current) return;
-    const token = generation.current;
-    let report: string;
-    try {
-      report = buildReport(reportInput(current, statsRef.current));
-    } catch (error) {
-      setCopyStatus(`Diagnostics failed: ${errorMessage(error)}`);
-      return;
-    }
-    setReportText(report);
-    try {
-      await navigator.clipboard.writeText(report);
-      if (token === generation.current) setCopyStatus("copied ✓");
-    } catch {
-      if (token === generation.current) setCopyStatus("select the text above to copy");
-    }
-  }, [reportInput, recordRef, statsRef]);
-  useEffect(() => {
-    if (copyStatus.startsWith("select")) logRef.current?.select();
-  }, [copyStatus]);
-
-  return {
-    logRef,
-    reportText,
-    copyStatus,
-    downloadMidi,
-    downloadWav,
-    downloadJson,
-    downloadLog,
-    copyLog,
-  };
+  const downloadMidi = useCallback(() => run("MIDI"), [run]);
+  const downloadWav = useCallback(() => run("WAV"), [run]);
+  return { downloadMidi, downloadWav };
 }

@@ -348,16 +348,16 @@ it("dismisses recording actions outside and with Escape", async () => {
   await act(async () => {
     fireEvent.click(screen.getByLabelText("Recording actions"));
   });
-  expect(screen.getByRole("button", { name: "Download JSON" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Duplicate" })).toBeTruthy();
   await user.click(document.body);
-  expect(screen.queryByRole("button", { name: "Download JSON" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Duplicate" })).toBeNull();
   await act(async () => {
     fireEvent.click(screen.getByLabelText("Recording actions"));
   });
   await act(async () => {
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
   });
-  expect(screen.queryByRole("button", { name: "Download JSON" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Duplicate" })).toBeNull();
 });
 it("identifies selected notes once and dismisses on Escape or empty canvas", async () => {
   render(
@@ -781,7 +781,7 @@ it("keeps history beside Tune on the canvas and Versions inside recording action
   await userEvent.click(screen.getByRole("button", { name: "Versions" }));
   expect(document.activeElement).toBe(screen.getByLabelText("Version name"));
   await userEvent.click(screen.getByRole("button", { name: "Back to recording actions" }));
-  expect(screen.getByRole("button", { name: "Download JSON" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Duplicate" })).toBeTruthy();
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "Versions" }));
 });
 

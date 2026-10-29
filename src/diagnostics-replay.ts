@@ -1,4 +1,5 @@
-import { type DiagnosticSnapshot, sha256 } from "./diagnostic-snapshot";
+import type { DiagnosticSnapshot } from "./diagnostic-snapshot";
+import { sha256 } from "./sha256";
 import { buildReportData, SCHEMA_VERSION } from "./diagnostics";
 import { makeReportInput } from "./editor-model";
 import { analyzeRecording } from "./recording-analysis";
