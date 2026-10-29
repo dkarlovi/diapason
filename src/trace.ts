@@ -67,7 +67,10 @@ function traceColors(canvas: HTMLCanvasElement): TraceColors {
   );
   const key =
     values.map(([, value]) => value).join(";") +
-    window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    style.colorScheme +
+    document.documentElement.dataset.studioTheme +
+    window.matchMedia?.("(prefers-color-scheme: dark)").matches +
+    window.matchMedia?.("(forced-colors: active)").matches;
   const cached = palettes.get(canvas);
   if (cached?.key === key) return cached.colors;
   // Canvas color parsing does not consistently resolve CSS light-dark()/var().

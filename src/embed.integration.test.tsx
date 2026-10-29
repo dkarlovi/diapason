@@ -58,6 +58,21 @@ it("retains the standalone Library", () => {
   expect(screen.getByText("Library")).toBeTruthy();
 });
 
+it("retains canonical theme seeds and a forced scheme through query-less navigation", async () => {
+  const theme = "AQGqu8w";
+  renderStudio(`/new?embed=1&scheme=dark&theme=${encodeURIComponent(theme)}`);
+  await userEvent.click(screen.getByRole("link", { name: "Edit take" }));
+  await userEvent.click(screen.getByRole("link", { name: "Library attempt" }));
+  const query = screen.getByText(/^Capture/).textContent!.slice("Capture ".length);
+  expect(new URLSearchParams(query).get("theme")).toBe("AQGqu8w");
+  expect(new URLSearchParams(query).get("scheme")).toBe("dark");
+});
+
+it("drops malformed theme parameters while retaining unrelated entry parameters", () => {
+  renderStudio("/new?embed=1&theme=bad&scheme=bad&host=lesson");
+  expect(screen.getByText(/^Capture/).textContent).toBe("Capture ?embed=1&host=lesson");
+});
+
 it("keeps embedded navigation inside a same-origin frame without entering fullscreen", async () => {
   const requestFullscreen = vi.fn(async () => {});
   const enabled = Object.getOwnPropertyDescriptor(document, "fullscreenEnabled");

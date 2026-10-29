@@ -580,8 +580,8 @@
 }
 
 .editor-audio .editor-plot {
-  --trace-line: var(--color-warning);
-  --trace-faint: color-mix(in oklab, var(--color-warning) 55%, var(--color-muted));
+  --trace-line: var(--color-playback);
+  --trace-faint: color-mix(in oklab, var(--color-playback) 55%, var(--color-muted));
 }
 
 .melody-controls input[type="range"] {

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Loading fallback; useStudioTheme applies the seed-generated palette before paint. */
 @theme {
   --color-background: light-dark(oklch(98% 0.004 245), oklch(18% 0.014 245));
   --color-foreground: light-dark(oklch(25% 0.017 245), oklch(93% 0.009 245));
@@ -14,12 +15,13 @@
   --color-warning: light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75));
   --color-playback: var(--color-warning);
   --color-playback-muted: color-mix(in oklab, var(--color-playback) 8%, var(--color-card));
+  --color-input-border: var(--color-muted-foreground);
+  --color-destructive-foreground: var(--color-primary-foreground);
+  --color-success: light-dark(#237442, #83dca1);
   --color-ring: var(--color-primary);
 }
 
 .studio-shell {
-  color-scheme: light dark;
-  --color-success: light-dark(#237442, #83dca1);
   --trace-bg: var(--color-muted);
   --trace-grid: color-mix(in oklab, var(--color-border) 45%, var(--color-muted));
   --trace-gridOctave: var(--color-border);
@@ -29,8 +31,39 @@
   --trace-sub: var(--color-muted);
   --trace-beat: var(--trace-grid);
   --trace-bar: var(--color-border);
-  --trace-playhead: var(--color-warning);
+  --trace-playhead: var(--color-playback);
   --trace-note: var(--color-primary);
   --trace-noteEdge: color-mix(in oklab, var(--color-primary) 55%, var(--color-card));
   --trace-noteText: var(--color-primary-foreground);
+}
+
+:root {
+  color-scheme: light dark;
+  accent-color: var(--color-primary);
+  caret-color: var(--color-primary);
+}
+::selection {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+@media (forced-colors: active) {
+  :root {
+    --color-background: Canvas !important;
+    --color-card: Canvas !important;
+    --color-muted: Canvas !important;
+    --color-foreground: CanvasText !important;
+    --color-muted-foreground: CanvasText !important;
+    --color-border: CanvasText !important;
+    --color-input-border: ButtonText !important;
+    --color-primary: LinkText !important;
+    --color-primary-foreground: Canvas !important;
+    --color-primary-muted: Canvas !important;
+    --color-ring: Highlight !important;
+    --color-playback: LinkText !important;
+    --color-playback-muted: Canvas !important;
+    --color-destructive: CanvasText !important;
+    --color-destructive-foreground: Canvas !important;
+    --color-warning: CanvasText !important;
+    --color-success: CanvasText !important;
+  }
 }

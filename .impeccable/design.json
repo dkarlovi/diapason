@@ -1,172 +1,262 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-26T16:00:00.000Z",
+  "generatedAt": "2026-10-29T00:00:00.000Z",
   "title": "Design System: diapason",
   "extensions": {
     "colorMeta": {
       "primary": {
         "role": "primary",
         "displayName": "Studio Blue",
-        "canonical": "light-dark(#0072b1, #8bc1f1)",
+        "canonical": "light-dark(#2f628c, #9bcbfb)",
         "tonalRamp": [
-          "oklch(15% 0.13 245)",
-          "oklch(26% 0.13 245)",
-          "oklch(37% 0.13 245)",
-          "oklch(49% 0.13 245)",
-          "oklch(60% 0.13 245)",
-          "oklch(72% 0.13 245)",
-          "oklch(84% 0.13 245)",
-          "oklch(95% 0.13 245)"
+          "#001d33",
+          "#003353",
+          "#0e4a73",
+          "#2f628c",
+          "#4a7ba6",
+          "#6595c2",
+          "#9bcbfb",
+          "#e8f2ff"
         ]
       },
       "primary-foreground": {
         "role": "neutral",
         "displayName": "Primary foreground",
-        "canonical": "light-dark(#ffffff, oklch(20% 0.025 245))",
+        "canonical": "light-dark(#ffffff, #003353)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#1a1c1c",
+          "#2f3131",
+          "#454747",
+          "#5d5f5f",
+          "#767777",
+          "#909191",
+          "#c6c6c7",
+          "#f0f1f1"
         ]
       },
       "warning": {
         "role": "neutral",
         "displayName": "Amber",
-        "canonical": "light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75))",
+        "canonical": "light-dark(#6c4d0f, #ebc078)",
         "tonalRamp": [
-          "oklch(15% 0.11 72)",
-          "oklch(26% 0.11 72)",
-          "oklch(37% 0.11 72)",
-          "oklch(49% 0.11 72)",
-          "oklch(60% 0.11 72)",
-          "oklch(72% 0.11 72)",
-          "oklch(84% 0.11 72)",
-          "oklch(95% 0.11 72)"
+          "#271900",
+          "#422c00",
+          "#5f4102",
+          "#79591b",
+          "#957131",
+          "#b18b48",
+          "#ebc078",
+          "#ffeed9"
         ]
       },
       "destructive": {
         "role": "neutral",
         "displayName": "Signal Red",
-        "canonical": "light-dark(oklch(48% 0.16 25), oklch(77% 0.13 25))",
+        "canonical": "light-dark(#ba1a1a, #ffb4ab)",
         "tonalRamp": [
-          "oklch(15% 0.11 25)",
-          "oklch(26% 0.11 25)",
-          "oklch(37% 0.11 25)",
-          "oklch(49% 0.11 25)",
-          "oklch(60% 0.11 25)",
-          "oklch(72% 0.11 25)",
-          "oklch(84% 0.11 25)",
-          "oklch(95% 0.11 25)"
+          "#410002",
+          "#690004",
+          "#930009",
+          "#ba1a1a",
+          "#de372f",
+          "#ff5449",
+          "#ffb4ab",
+          "#ffedea"
         ]
       },
       "success": {
         "role": "neutral",
         "displayName": "Confirmation Green",
-        "canonical": "light-dark(#237442, #83dca1)",
+        "canonical": "light-dark(#365b32, #a7d29e)",
         "tonalRamp": [
-          "oklch(15% 0.11 150)",
-          "oklch(26% 0.11 150)",
-          "oklch(37% 0.11 150)",
-          "oklch(49% 0.11 150)",
-          "oklch(60% 0.11 150)",
-          "oklch(72% 0.11 150)",
-          "oklch(84% 0.11 150)",
-          "oklch(95% 0.11 150)"
+          "#002203",
+          "#133813",
+          "#2a4f27",
+          "#42673d",
+          "#5a8154",
+          "#739b6c",
+          "#a7d29e",
+          "#d1fdc6"
         ]
       },
       "background": {
         "role": "neutral",
         "displayName": "Slate ground",
-        "canonical": "light-dark(oklch(98% 0.004 245), oklch(18% 0.014 245))",
+        "canonical": "light-dark(#f8f9ff, #111418)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#191c20",
+          "#2e3135",
+          "#44474c",
+          "#5c5e63",
+          "#75777c",
+          "#8f9196",
+          "#c5c6cc",
+          "#eff0f6"
         ]
       },
       "foreground": {
         "role": "neutral",
         "displayName": "Slate text",
-        "canonical": "light-dark(oklch(25% 0.017 245), oklch(93% 0.009 245))",
+        "canonical": "light-dark(#191c20, #e1e2e8)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#191c20",
+          "#2e3135",
+          "#44474b",
+          "#5c5e63",
+          "#75777c",
+          "#8e9196",
+          "#c5c6cc",
+          "#eff0f6"
         ]
       },
       "card": {
         "role": "neutral",
         "displayName": "Control surface",
-        "canonical": "light-dark(oklch(100% 0 0), oklch(22% 0.017 245))",
+        "canonical": "light-dark(#fdfcff, #191c20)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#1a1c1e",
+          "#2f3033",
+          "#464749",
+          "#5d5e61",
+          "#76777a",
+          "#909093",
+          "#c6c6c9",
+          "#f1f0f3"
         ]
       },
       "muted": {
         "role": "neutral",
         "displayName": "Canvas surface",
-        "canonical": "light-dark(oklch(96% 0.007 245), oklch(16% 0.014 245))",
+        "canonical": "light-dark(#eff0f7, #0b0e13)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#191c21",
+          "#2e3036",
+          "#44474c",
+          "#5c5e64",
+          "#75777d",
+          "#8f9097",
+          "#c5c6cd",
+          "#eff0f7"
         ]
       },
       "border": {
         "role": "neutral",
         "displayName": "Slate divider",
-        "canonical": "light-dark(oklch(88% 0.012 245), oklch(33% 0.02 245))",
+        "canonical": "light-dark(#c3c6cf, #43474e)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#181c22",
+          "#2d3138",
+          "#43474e",
+          "#5b5e66",
+          "#73777f",
+          "#8d9199",
+          "#c3c6cf",
+          "#eef0fa"
         ]
       },
       "muted-foreground": {
         "role": "neutral",
         "displayName": "Secondary slate text",
-        "canonical": "light-dark(oklch(45% 0.02 245), oklch(73% 0.015 245))",
+        "canonical": "light-dark(#43474e, #c3c6cf)",
         "tonalRamp": [
-          "oklch(15% 0.014 245)",
-          "oklch(26% 0.014 245)",
-          "oklch(37% 0.014 245)",
-          "oklch(49% 0.014 245)",
-          "oklch(60% 0.014 245)",
-          "oklch(72% 0.014 245)",
-          "oklch(84% 0.014 245)",
-          "oklch(95% 0.014 245)"
+          "#181c22",
+          "#2d3137",
+          "#43474e",
+          "#5b5e66",
+          "#73777f",
+          "#8d9199",
+          "#c3c6cf",
+          "#eef1f9"
+        ]
+      },
+      "input-border": {
+        "role": "neutral",
+        "displayName": "Input Border",
+        "canonical": "light-dark(#676b72, #9a9ea6)",
+        "tonalRamp": [
+          "#181c22",
+          "#2c3137",
+          "#43474e",
+          "#5a5f65",
+          "#73777e",
+          "#8d9198",
+          "#c3c6ce",
+          "#eef1f9"
+        ]
+      },
+      "primary-muted": {
+        "role": "neutral",
+        "displayName": "Primary Muted",
+        "canonical": "light-dark(#cee5ff, #0d4a73)",
+        "tonalRamp": [
+          "#041d30",
+          "#1c3246",
+          "#33495e",
+          "#4b6076",
+          "#637990",
+          "#7d93ab",
+          "#b2c9e2",
+          "#e8f2ff"
+        ]
+      },
+      "playback": {
+        "role": "neutral",
+        "displayName": "Playback",
+        "canonical": "light-dark(#7e561e, #f2bd7a)",
+        "tonalRamp": [
+          "#2a1700",
+          "#462a00",
+          "#633f07",
+          "#7e561e",
+          "#9a6f34",
+          "#b7884b",
+          "#f2bd7b",
+          "#ffeede"
+        ]
+      },
+      "playback-muted": {
+        "role": "neutral",
+        "displayName": "Playback Muted",
+        "canonical": "light-dark(#ffddb6, #633f06)",
+        "tonalRamp": [
+          "#291802",
+          "#402d12",
+          "#594326",
+          "#735a3b",
+          "#8d7252",
+          "#a88c6a",
+          "#e1c19c",
+          "#ffeedd"
+        ]
+      },
+      "destructive-foreground": {
+        "role": "neutral",
+        "displayName": "Destructive Foreground",
+        "canonical": "light-dark(#ffffff, #690005)",
+        "tonalRamp": [
+          "#1a1c1c",
+          "#2f3131",
+          "#454747",
+          "#5d5f5f",
+          "#767777",
+          "#909191",
+          "#c6c6c7",
+          "#f0f1f1"
+        ]
+      },
+      "ring": {
+        "role": "neutral",
+        "displayName": "Ring",
+        "canonical": "light-dark(#2f628c, #9bcbfb)",
+        "tonalRamp": [
+          "#001d33",
+          "#003353",
+          "#0e4a73",
+          "#2f628c",
+          "#4a7ba6",
+          "#6595c2",
+          "#9bcbfb",
+          "#e8f2ff"
         ]
       }
     },
@@ -293,7 +383,7 @@
       "kind": "nav",
       "refersTo": "workstation-nav",
       "description": "Compact Library link and current recording.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">›</span><span>Whistled melody</span></nav>",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Recording\"><a class=\"ds-nav-link\" href=\"#\">Library</a><span aria-hidden=\"true\">\u203a</span><span>Whistled melody</span></nav>",
       "css": ".ds-nav{font:500 .875rem/1.5 system-ui,sans-serif;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--color-card);color:var(--color-foreground);border-bottom:1px solid var(--color-border)}.ds-nav-link{color:var(--color-muted-foreground);text-decoration:none}.ds-nav-link:hover{color:var(--color-primary);text-decoration:underline}.ds-nav-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}"
     },
     {
@@ -309,7 +399,7 @@
       "kind": "card",
       "refersTo": "recording-row",
       "description": "Library recording with a title and timing metadata.",
-      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM · 4/4 · 3.0s</p></article>",
+      "html": "<article class=\"ds-record\"><a class=\"ds-record-link\" href=\"#\">Whistled melody</a><p class=\"ds-record-meta\">120 BPM \u00b7 4/4 \u00b7 3.0s</p></article>",
       "css": ".ds-record{padding:20px;border-bottom:1px solid var(--color-border);background:var(--color-card);color:var(--color-foreground)}.ds-record:hover,.ds-record:focus-within{background:var(--color-primary-muted,color-mix(in oklab,var(--color-primary) 8%,var(--color-card)))}.ds-record-link{font:550 1rem/1.5 system-ui,sans-serif;color:var(--color-foreground);text-decoration:none}.ds-record-link:focus-visible{outline:2px solid var(--color-ring,var(--color-primary));outline-offset:3px;}.ds-record-meta{margin:4px 0 0;font:.8125rem/1.5 system-ui,sans-serif;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}"
     },
     {
@@ -325,7 +415,7 @@
       "kind": "custom",
       "refersTo": "active-category",
       "description": "Applied selections remain blue; a currently auditioning candidate uses amber and explicit state text even when also applied.",
-      "html": "<div class=\"ds-audition\"><span>Gentle fix<small>Applied · Previewing</small></span><button type=\"button\" aria-pressed=\"true\">Stop</button></div>",
+      "html": "<div class=\"ds-audition\"><span>Gentle fix<small>Applied \u00b7 Previewing</small></span><button type=\"button\" aria-pressed=\"true\">Stop</button></div>",
       "css": ".ds-audition{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--color-warning);border-radius:4px;background:color-mix(in oklab,var(--color-warning) 8%,var(--color-card));font:.8125rem/1.5 system-ui,sans-serif}.ds-audition>span{flex:1;min-width:0;overflow-wrap:anywhere}.ds-audition small{display:block;color:var(--color-warning)}.ds-audition button{padding:3px 7px;border:1px solid var(--color-warning);border-radius:5px;color:var(--color-warning);background:transparent}.ds-audition button:focus-visible{outline:2px solid var(--color-warning);outline-offset:3px}"
     },
     {
@@ -333,17 +423,17 @@
       "kind": "custom",
       "refersTo": "active-category",
       "description": "Selected-note inspector: a darker one-line heading (identity, time, Play in context, Mute note) above property rows on the neutral surface. Steppers are bordered with the muted fill; the borderless Reset keeps its slot and appears only once edited. Phones dock it at the bottom of the roll with 44px targets.",
-      "html": "<section class=\"ds-note\" aria-label=\"Note #3 C5\"><div class=\"ds-note-head\"><strong>#3 · C5</strong><span>1.00 s · 0.50 s</span><button type=\"button\" aria-label=\"Hear in context\">▶</button><button type=\"button\" aria-label=\"Mute note\" aria-pressed=\"false\">♪</button></div><div class=\"ds-note-row\"><i aria-hidden=\"true\"></i><span>Pitch<span hidden>, edited</span></span><button type=\"button\" aria-label=\"Down one semitone\">−</button><output>C5</output><button type=\"button\" aria-label=\"Up one semitone\">+</button><button type=\"button\" class=\"ds-note-reset\" aria-label=\"Reset pitch\">↺</button></div></section>",
+      "html": "<section class=\"ds-note\" aria-label=\"Note #3 C5\"><div class=\"ds-note-head\"><strong>#3 \u00b7 C5</strong><span>1.00 s \u00b7 0.50 s</span><button type=\"button\" aria-label=\"Hear in context\">\u25b6</button><button type=\"button\" aria-label=\"Mute note\" aria-pressed=\"false\">\u266a</button></div><div class=\"ds-note-row\"><i aria-hidden=\"true\"></i><span>Pitch<span hidden>, edited</span></span><button type=\"button\" aria-label=\"Down one semitone\">\u2212</button><output>C5</output><button type=\"button\" aria-label=\"Up one semitone\">+</button><button type=\"button\" class=\"ds-note-reset\" aria-label=\"Reset pitch\">\u21ba</button></div></section>",
       "css": ".ds-note{width:max-content;border:1px solid var(--color-border);border-radius:6px;background:var(--color-card);font:.8125rem/1.5 system-ui,sans-serif;overflow:hidden}.ds-note-head{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;background:var(--color-muted);border-bottom:1px solid var(--color-border)}.ds-note-head span{margin-right:auto;color:var(--color-muted-foreground);font-variant-numeric:tabular-nums}.ds-note-head button{width:30px;height:30px;border:1px solid var(--color-border);border-radius:5px;background:var(--color-card)}.ds-note-head [aria-pressed=true]{color:var(--color-primary);border-color:var(--color-primary);background:var(--color-primary-muted)}.ds-note-row{display:grid;grid-template-columns:10px 64px 28px minmax(56px,1fr) 28px 28px;align-items:center;column-gap:4px;min-height:34px;padding:4px 10px}.ds-note-row i{width:10px;height:10px;border-radius:2px;background:repeating-linear-gradient(135deg,var(--color-primary) 0 2px,color-mix(in oklab,var(--color-primary) 40%,var(--color-card)) 2px 4px)}.ds-note-row button{width:28px;height:28px;border:1px solid var(--color-border);border-radius:5px;background:var(--color-muted)}.ds-note-row .ds-note-reset{border-color:transparent;background:transparent;color:var(--color-muted-foreground)}.ds-note-row output{text-align:center;font-weight:500}"
     }
   ],
   "narrative": {
     "northStar": "The canvas is the work",
-    "overview": "Slate & blue, professional and restrained. Recording and editing are compact\nworkstations: the signal or melody owns the space, and controls support it.\nPreserve this established direction when refining or extending the interface.",
+    "overview": "Restrained seed-generated studio. Blue & slate is the default; custom themes retain the same hierarchy, semantic roles, compact workstations, and canvas-led layout.",
     "keyCharacteristics": [
       "Edge-to-edge work surfaces beneath one compact header.",
       "Shared controls and semantic color roles across Library, Recording, and Editor.",
-      "System light/dark themes, with precise status and playback feedback."
+      "Generated light/dark themes, with explicit URL scheme overrides and precise status/playback feedback."
     ],
     "rules": [
       {

@@ -38,11 +38,13 @@ afterEach(async () => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
-async function open(legacy = false, embedded = false) {
+async function open(legacy = false, embedded = false, search = "") {
   const url = new URL(
     await tuneUrl(createPortableTune(noteRecording(), []), "https://example.com"),
   );
-  const entry = `${legacy ? "/" : "/tune"}${embedded ? "?embed=1" : ""}${url.hash}`;
+  const params = new URLSearchParams(search);
+  if (embedded) params.set("embed", "1");
+  const entry = `${legacy ? "/" : "/tune"}${params.size ? "?" + params : ""}${url.hash}`;
   const router = createMemoryRouter(appRoutes, { initialEntries: [entry] });
   const view = render(<RouterProvider router={router} />);
   await waitFor(() =>
@@ -292,4 +294,25 @@ it("keeps an active pitch gesture when browser Back is canceled", async () => {
   expect(screen.getByRole("button", { name: /Undo edit pitch/i }).hasAttribute("disabled")).toBe(
     false,
   );
+});
+
+it("retains an embedded tune's appearance through legacy redirects, Save, and refresh", async () => {
+  const query = new URLSearchParams({
+    theme: "AQF7PGI",
+    scheme: "dark",
+  });
+  const { router, view } = await open(true, true, query.toString());
+  expect(router.state.location.hash).toMatch(/^#tune=/);
+  fireEvent.click(screen.getByRole("button", { name: "Recording actions" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/recording\//));
+  const { pathname, search } = router.state.location;
+  expect(new URLSearchParams(search).get("theme")).toBe("AQF7PGI");
+  expect(new URLSearchParams(search).get("scheme")).toBe("dark");
+  expect(new URLSearchParams(search).get("tuneEmbed")).toBe("1");
+  view.unmount();
+  const refreshed = createMemoryRouter(appRoutes, { initialEntries: [pathname + search] });
+  render(<RouterProvider router={refreshed} />);
+  expect(document.documentElement.style.colorScheme).toBe("dark");
+  expect(refreshed.state.location.search).toBe(search);
 });

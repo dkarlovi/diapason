@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type PropsWithChildren } from "react";
 import { Navigate, useLocation, useNavigate, type NavigateOptions } from "react-router";
+import { encodeTheme, parseColorScheme, parseTheme } from "../theme-config";
 
 function configuration(search: string) {
   const params = new URLSearchParams(search);
@@ -7,6 +8,8 @@ function configuration(search: string) {
     embedded: params.get("embed") === "1",
     tuneLocked: params.get("embed") === "1" && params.get("tuneEmbed") === "1",
     editAfterRecording: params.get("afterRecording") === "edit",
+    theme: parseTheme(params.get("theme")),
+    scheme: parseColorScheme(params.get("scheme")),
   };
 }
 function configurationSearch(mode: ReturnType<typeof configuration>, current = "") {
@@ -14,6 +17,10 @@ function configurationSearch(mode: ReturnType<typeof configuration>, current = "
   if (mode.embedded) params.set("embed", "1");
   if (mode.tuneLocked) params.set("tuneEmbed", "1");
   if (mode.editAfterRecording) params.set("afterRecording", "edit");
+  if (mode.theme) params.set("theme", encodeTheme(mode.theme));
+  else params.delete("theme");
+  if (mode.scheme !== "auto") params.set("scheme", mode.scheme);
+  else params.delete("scheme");
   return params.size ? `?${params}` : "";
 }
 const StudioMode = createContext<ReturnType<typeof configuration> | null>(null);

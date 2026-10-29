@@ -1,18 +1,18 @@
 ---
 name: diapason
-description: A restrained Slate & blue studio where the canvas is the work.
+description: A restrained seed-themeable studio where the canvas is the work.
 colors:
-  primary: "light-dark(#0072b1, #8bc1f1)"
-  primary-foreground: "light-dark(#ffffff, oklch(20% 0.025 245))"
-  warning: "light-dark(oklch(49% 0.11 70), oklch(79% 0.12 75))"
-  destructive: "light-dark(oklch(48% 0.16 25), oklch(77% 0.13 25))"
-  success: "light-dark(#237442, #83dca1)"
-  background: "light-dark(oklch(98% 0.004 245), oklch(18% 0.014 245))"
-  foreground: "light-dark(oklch(25% 0.017 245), oklch(93% 0.009 245))"
-  card: "light-dark(oklch(100% 0 0), oklch(22% 0.017 245))"
-  muted: "light-dark(oklch(96% 0.007 245), oklch(16% 0.014 245))"
-  border: "light-dark(oklch(88% 0.012 245), oklch(33% 0.02 245))"
-  muted-foreground: "light-dark(oklch(45% 0.02 245), oklch(73% 0.015 245))"
+  primary: "light-dark(#2f628c, #9bcbfb)"
+  primary-foreground: "light-dark(#ffffff, #003353)"
+  warning: "light-dark(#6c4d0f, #ebc078)"
+  destructive: "light-dark(#ba1a1a, #ffb4ab)"
+  success: "light-dark(#365b32, #a7d29e)"
+  background: "light-dark(#f8f9ff, #111418)"
+  foreground: "light-dark(#191c20, #e1e2e8)"
+  card: "light-dark(#fdfcff, #191c20)"
+  muted: "light-dark(#eff0f7, #0b0e13)"
+  border: "light-dark(#c3c6cf, #43474e)"
+  muted-foreground: "light-dark(#43474e, #c3c6cf)"
 typography:
   title:
     fontFamily: "system-ui, sans-serif"
@@ -86,7 +86,7 @@ components:
 
 **Creative North Star: "The canvas is the work"**
 
-Slate & blue, professional and restrained. Recording and editing are compact
+Blue & slate by default, professional and restrained. Custom seed themes preserve the same semantic roles and hierarchy. Recording and editing are compact
 workstations: the signal or melody owns the space, and controls support it.
 Preserve this established direction when refining or extending the interface.
 
@@ -94,20 +94,23 @@ Preserve this established direction when refining or extending the interface.
 
 - Edge-to-edge work surfaces beneath one compact header.
 - Shared controls and semantic color roles across Library, Recording, and Editor.
-- System light/dark themes, with precise status and playback feedback.
+- Generated light/dark themes with explicit URL overrides, precise status, and playback feedback.
 
 This record describes the implemented system in `src/theme.css`, `src/capture.css`,
 `src/studio.css`, and `src/editor.css`, together with the existing agreements in
-`docs/design-principles.md`. Source CSS owns runtime values; update this record
+`docs/design-principles.md`. `src/theme-palette.ts` owns generated runtime colors;
+CSS owns mappings, loading fallbacks, layout, and state styles. Update this record
 and its `.impeccable/design.json` companion when changing the shared system.
-The legacy dark variables in `src/styles.css` are fallback styles, not a second
-identity for new studio work.
+The legacy aliases in `src/styles.css` now reference the shared semantic tokens;
+they are not a second identity for new studio work.
 
 ## Colors
 
-The palette combines quiet slate surfaces with a blue action and pitch accent.
-Frontmatter preserves the source's paired light/dark values; the studio follows
-the system preference through `color-scheme: light dark`.
+The default palette combines quiet slate surfaces with a blue action and pitch accent.
+Frontmatter records generated default values. `src/theme-palette.ts` owns runtime
+generation with Material Color Utilities Tonal Spot; custom primary/neutral/secondary
+seeds remap these roles. The root follows the system through `color-scheme: light dark`
+unless `scheme=light|dark` forces a mode. Portals and canvas probes inherit it.
 
 - **Studio Blue** (`primary`): primary actions, applied selections, active categories, live pitch, and
   interpreted MIDI notes. The primary foreground maintains their text contrast.
@@ -123,9 +126,9 @@ the system preference through `color-scheme: light dark`.
   primary text, secondary information, and dividers.
 
 **The Semantic Color Rule.** Reuse the existing semantic tokens and `--trace-*`
-palette. `--color-playback` aliases amber and `--color-playback-muted` supplies
-its tint; blue applied states use an 8% `--color-primary-muted` mix for readable
-text. Include text or state semantics alongside status colors.
+palette. `--color-playback` is independent of warning (amber by default), and
+`--color-playback-muted` is its generated container. Primary applied states use
+`--color-primary-muted`; retain generated foreground/container pairings. Include text or state semantics alongside status colors.
 
 ## Typography
 
@@ -301,3 +304,21 @@ a compact header toggle supports direct arrivals and exit where the API is avail
 - **Don't** introduce a separate visual system for recording and editing.
 - **Don't** replace textual state feedback with color alone.
 - **Don't** couple live capture's rendering loop to the editor's playback lifecycle.
+
+## Seed themes and verification
+
+Theme seeds are normalized opaque hex values in code and packed RGB bytes in the
+URL-safe base64url `theme` parameter, with optional definitions for light/dark. One definition generates both schemes.
+Primary owns actions/MIDI; optional neutral owns quiet surfaces/text; optional
+secondary owns playback/original audio. Exact seed tones are not promised.
+Warning, destructive, and success retain their semantic hue families.
+
+`src/theme-config.ts` validates the public contract; `useStudioTheme` owns root
+application and cleanup. `--color-input-border` is the stronger interactive edge;
+`--color-border` remains a quiet decorative separator. Chart caches invalidate
+on seed/effective-scheme changes. Forced colors use system roles and existing
+labels, stripes, and outlines remain meaningful without hue.
+
+Use the Impeccable colorize/extract and Operate guidance before changes, inspect
+real screens, then audit and polish. The research-backed rationale and full
+workflow live in `docs/superpowers/specs/2026-10-29-seed-themes-design.md`.

@@ -63,12 +63,17 @@ function usePlotRedraw(
     if (traceRef.current) observer?.observe(traceRef.current);
     if (rollRef.current) observer?.observe(rollRef.current);
     const theme = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const forced = window.matchMedia?.("(forced-colors: active)");
+    forced?.addEventListener("change", update);
     window.addEventListener("resize", update);
+    window.addEventListener("studio-theme-change", update);
     theme?.addEventListener("change", update);
     return () => {
       observer?.disconnect();
       window.removeEventListener("resize", update);
+      window.removeEventListener("studio-theme-change", update);
       theme?.removeEventListener("change", update);
+      forced?.removeEventListener("change", update);
     };
   }, [traceRef, rollRef]);
 }

@@ -1,3 +1,5 @@
+import { fromBase64Url as decodeBase64Url } from "./base64url";
+export { toBase64Url } from "./base64url";
 import { recordingFromPortableTune } from "./portable-tune";
 import { processRecording } from "./recording";
 import { requireTune } from "./tune-validation";
@@ -71,17 +73,6 @@ export async function decodeTune(bytes: Uint8Array): Promise<PortableTune> {
   processRecording(recordingFromPortableTune(tune, "import-check", 0), []);
   return tune;
 }
-export function toBase64Url(bytes: Uint8Array): string {
-  let raw = "";
-  for (const b of bytes) raw += String.fromCharCode(b);
-  return btoa(raw).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
-}
 export function fromBase64Url(text: string): Uint8Array {
-  if (!/^[A-Za-z0-9_-]+$/.test(text) || text.length > Math.ceil((TUNE_LIMITS.encoded * 4) / 3))
-    throw new Error("Invalid or oversized tune link");
-  const bytes = Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), (c) =>
-    c.charCodeAt(0),
-  );
-  if (toBase64Url(bytes) !== text) throw new Error("Invalid tune encoding");
-  return bytes;
+  return decodeBase64Url(text, Math.ceil((TUNE_LIMITS.encoded * 4) / 3));
 }

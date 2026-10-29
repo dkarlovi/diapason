@@ -1,7 +1,8 @@
 # Studio design principles
 
-Agreed direction: **Slate & blue**, professional and restrained, with light and
-dark themes following the system preference. The redesign focuses on appearance
+Agreed direction: professional and restrained, with seed-generated light and
+dark themes. **Blue & slate** is the default; custom colors follow the same
+semantic roles. Follow the system preference unless the URL forces a mode. The redesign focuses on appearance
 and interaction; the existing feature set stays broadly the same.
 
 ## Typography
@@ -142,3 +143,24 @@ menu; desktop keeps the controls visible for comparison.
 
 The Recording reference remains
 `folding-wizard-v8.html` in the ignored `.superpowers/brainstorm/` directory.
+
+## Seed-generated color system
+
+Use Material Color Utilities Tonal Spot through `src/theme-palette.ts`; supplied
+primary, neutral, and secondary colors are seeds, not exact CSS overrides. The
+neutral family stays subdued, with independently composed light and dark surfaces.
+Use primary for actions/MIDI, playback for audition/original audio, and controlled
+warning/error/success families. Playback is independent of warning even when both
+are amber in the default theme. The earlier blue/amber descriptions refer to the
+default palette rather than restrictions on custom themes.
+
+Use the same root tokens in native controls, portaled menus, and canvas rendering.
+Decorative borders and chart grids use `--color-border`; essential interactive
+boundaries use the stronger `--color-input-border`. Avoid per-component theme
+exceptions. Pair foregrounds with their intended surfaces and verify rendered
+contrast, including mixed backgrounds and state changes. Color-vision simulations
+and non-color cues remain part of review.
+
+See the seed-theme spec for research, input contracts, Impeccable workflows, and
+acceptance criteria. A preferences dialog and persistent appearance settings are
+future work; URL configuration is available now.

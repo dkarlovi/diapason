@@ -8,6 +8,7 @@ import { Maximize, Minimize, ChevronRight } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
 import { StudioTitleContext } from "../hooks/useStudioTitle";
 import { DiapasonMark } from "./DiapasonMark";
+import { useStudioTheme } from "../hooks/useStudioTheme";
 
 function FullscreenButton({ state }: { state: ReturnType<typeof useStudioFullscreen> }) {
   if (!state.available && !state.active) return null;
@@ -56,7 +57,8 @@ function StudioHeader({
 }
 
 export function AppShell({ children }: PropsWithChildren) {
-  const { embedded } = useStudioMode();
+  const { embedded, theme, scheme } = useStudioMode();
+  useStudioTheme(theme, scheme);
   const fullscreen = useStudioFullscreen();
   const pathname = useLocation().pathname.replace(/\/$/, "");
   const capture = pathname === "/new";
