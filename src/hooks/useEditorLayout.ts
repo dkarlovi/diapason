@@ -15,6 +15,7 @@ export function useEditorLayout(hasAudio = true) {
   const [mobile, setMobile] = useState(isNarrow);
   const [open, setOpen] = useState(() => !isNarrow());
   const [sourceHidden, setSourceHidden] = useState(isNarrow);
+  const [motion, setMotion] = useState({ tune: false, source: false });
   const [width, setWidth] = useState(360);
   const [workspaceWidth, setWorkspaceWidth] = useState(1200);
   const changedSource = useRef(false);
@@ -60,10 +61,15 @@ export function useEditorLayout(hasAudio = true) {
     workspaceRef,
     mobile,
     open,
-    setOpen,
+    setOpen: (value: boolean) => {
+      setMotion((previous) => ({ ...previous, tune: true }));
+      setOpen(value);
+    },
+    motion,
     sourceHidden: !hasAudio || sourceHidden,
     toggleSource: () => {
       if (!hasAudio) return;
+      setMotion((previous) => ({ ...previous, source: true }));
       changedSource.current = true;
       setSourceHidden((value) => !value);
     },

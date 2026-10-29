@@ -13,9 +13,12 @@ afterEach(() => {
   cleanup();
   drawTrace.mockClear();
 });
-function setup(onRender = () => {}) {
+function setup(onRender = () => {}, height = 500) {
   const canvas = document.createElement("canvas");
-  Object.defineProperties(canvas, { clientWidth: { value: 1000 }, clientHeight: { value: 500 } });
+  Object.defineProperties(canvas, {
+    clientWidth: { value: 1000 },
+    clientHeight: { value: height },
+  });
   const rollRef = { current: canvas };
   const traceRef = { current: null };
   const playhead = createPlayheadStore();
@@ -143,4 +146,11 @@ it("redraws saved charts after a seed change without re-rendering or stopping pl
   expect(drawTrace.mock.calls).toHaveLength(1);
   expect(drawTrace.mock.lastCall?.[2].playheadTime).toBe(2);
   expect(renders).toBe(before);
+});
+
+it("does not draw a track collapsed to zero height during panel transitions", () => {
+  const { playhead } = setup(() => {}, 0);
+  act(() => playhead.getState().set(1));
+  act(() => window.dispatchEvent(new Event("studio-theme-change")));
+  expect(drawTrace).not.toHaveBeenCalled();
 });

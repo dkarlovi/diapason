@@ -34,7 +34,7 @@ function drawVisible(
   view: TraceView,
   layer: TraceLayer,
 ) {
-  if (canvas?.clientWidth) drawTrace(canvas, frames, view, layer);
+  if (canvas?.clientWidth && canvas.clientHeight) drawTrace(canvas, frames, view, layer);
 }
 
 function usePlotRedraw(

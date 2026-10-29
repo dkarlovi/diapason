@@ -62,6 +62,8 @@ export function Editor({ id, session }: { id: string; session?: AdHocTuneSession
         ref={layout.workspaceRef}
         data-tuning={layout.open}
         data-source-hidden={layout.sourceHidden}
+        data-tune-motion={layout.motion.tune}
+        data-source-motion={layout.motion.source}
         style={{ "--tune-width": `${layout.width}px` } as CSSProperties}
       >
         <EditorCanvas kind="audio" state={state} layout={layout} />

@@ -120,7 +120,11 @@ All three screens share one seed-generated theme, compact header, readable
 type, and shared controls built with Tailwind, the shadcn/ui component pattern,
 semantic theme tokens, and Lucide icons. The Editor uses a shared timeline with
 original audio above an edge-to-edge MIDI roll. A divider handle hides or restores
-original audio; mobile starts with it hidden. When shown, original audio occupies
+original audio; mobile starts with it hidden. Tune slides/fades and original audio
+folds with brief transitions using the recording screen's easing after user
+toggles only. The editor initially presents its layout without animation; reduced-motion
+preferences make both immediate. Active tuning categories retain readable colors
+on hover. When shown, original audio occupies
 22% of the workspace height; the stronger divider highlights across the canvas
 when its Show/Hide handle is hovered. Tune floats over the right side,
 starts at 360px, and resizes from 286px to half the workspace. Matching Play and
@@ -633,7 +637,10 @@ HTTPS host before deployment to confirm its permission and download policies.
 The studio generates coordinated light/dark colors from seeds using Material Color
 Utilities. Its default is blue & slate with amber playback. Color names elsewhere
 in this guide describe that default; custom themes retain the same semantic roles.
-No preferences dialog is available yet.
+No preferences dialog is available yet. Ordinary button and dropdown borders use the
+subdued shared border tone, while keyboard focus and active states retain their
+stronger accents. Library action menus use borderless rows, and audio/MIDI source
+icons share the same neutral background.
 
 Both standalone and embed URLs accept:
 
