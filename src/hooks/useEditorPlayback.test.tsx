@@ -226,60 +226,40 @@ function read(blob: Blob): Promise<ArrayBuffer> {
     reader.readAsArrayBuffer(blob);
   });
 }
-it("exports playable MIDI, PCM WAV and diagnostics from the loaded recording", async () => {
+it("exports playable MIDI and a single WAV containing the current tune", async () => {
   const { result } = await editor();
   await act(async () => {
     await result.current.downloadMidi();
-    result.current.downloadWav();
-    await result.current.downloadJson();
+    await result.current.downloadWav();
   });
-  const [midi, wav, json] = state.downloads;
-  expect(midi?.name).toMatch(/\.mid$/);
-  expect(wav?.name).toMatch(/\.wav$/);
-  expect(json?.name).toMatch(/\.json$/);
-  const midiBytes = new Uint8Array(await read(midi!.blob));
-  expect(Array.from(midiBytes.subarray(0, 4))).toEqual([77, 84, 104, 100]);
-  expect([...midiBytes]).toEqual(expect.arrayContaining([69]));
-  const wavBytes = new DataView(await read(wav!.blob));
-  expect(wavBytes.getUint32(24, true)).toBe(48000);
-  expect(wavBytes.getUint32(40, true)).toBe(96000);
-  expect(wavChunks(wavBytes.buffer as ArrayBuffer).map((chunk) => chunk.id)).toContain("dpsn");
-  const data = JSON.parse(new TextDecoder().decode(await read(json!.blob)));
-  expect(data).toMatchObject({ title: "one", config: { sampleRate: 48000 } });
+  expect(state.downloads.map((d) => d.name.split(".").at(-1))).toEqual(["mid", "wav"]);
+  const bytes = await read(state.downloads[1]!.blob);
+  const chunk = wavChunks(bytes).find((c) => c.id === "dpsn")!;
+  const data = JSON.parse(
+    new TextDecoder().decode(new Uint8Array(bytes, chunk.start, chunk.length)),
+  );
+  expect(data.schemaVersion).toBe(2);
+  expect(data.tune.name).toBe("one");
+  expect(data.audio.sampleCount).toBe(48000);
 });
 it("reports MIDI encoding failures instead of throwing from export handlers", async () => {
   const { result } = await editor();
   state.midiError = true;
   await act(async () => result.current.downloadMidi());
   expect(state.downloads).toEqual([]);
-  expect(result.current.copyStatus).toBe(
-    "MIDI export failed: MIDI resolution cannot preserve distinct notes.",
-  );
-  await act(async () => {
-    await result.current.copyLog();
-  });
-  expect(result.current.copyStatus).toBe(
-    "Diagnostics failed: MIDI resolution cannot preserve distinct notes.",
-  );
+  expect(result.current.notice?.message).toContain("MIDI export failed");
 });
-it("selects report text when clipboard access fails", async () => {
-  vi.stubGlobal("navigator", {
-    clipboard: {
-      writeText: async () => {
-        throw new Error("denied");
-      },
-    },
-  });
+it("requires applying or stopping an unapplied audition before downloading", async () => {
   const { result } = await editor();
-  const textarea = document.createElement("textarea");
-  const select = vi.spyOn(textarea, "select");
-  result.current.logRef.current = textarea;
+  await act(async () =>
+    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+  );
+  expect(result.current.canExport).toBe(false);
   await act(async () => {
-    await result.current.copyLog();
+    await result.current.downloadMidi();
+    await result.current.downloadWav();
   });
-  expect(result.current.reportText).toContain("diapason diagnostics: one");
-  expect(result.current.copyStatus).toContain("select");
-  expect(select).toHaveBeenCalledOnce();
+  expect(state.downloads).toEqual([]);
 });
 
 it("replaces note previews and stops the preview on unmount", async () => {
@@ -300,31 +280,6 @@ it("replaces note previews and stops the preview on unmount", async () => {
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   hook.unmount();
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
-});
-it("ignores a clipboard completion from a previous recording", async () => {
-  let resolve!: () => void;
-  vi.stubGlobal("navigator", {
-    clipboard: {
-      writeText: () =>
-        new Promise<void>((r) => {
-          resolve = r;
-        }),
-    },
-  });
-  const hook = await editor();
-  let copying!: Promise<void>;
-  await act(async () => {
-    copying = hook.result.current.copyLog();
-  });
-  expect(hook.result.current.reportText).toContain("one");
-  hook.rerender({ id: "two" });
-  await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
-  await act(async () => {
-    resolve();
-    await copying;
-  });
-  expect(hook.result.current.reportText).toBe("");
-  expect(hook.result.current.copyStatus).toBe("");
 });
 it("ignores an obsolete playback animation callback after starting a new recording", async () => {
   const hook = await editor();
@@ -392,7 +347,6 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
   expect(result.current.notesLabel).toContain("1 notes · 1 muted");
   await act(async () => result.current.changeKnob("grid", 2));
   await act(async () => result.current.downloadMidi());
-  expect(result.current.copyStatus).toBe("");
   expect(midiEvents(new Uint8Array(await read(state.downloads[0]!.blob)))).toEqual([
     { tick: 720, status: 0x90, key: 72, velocity: 96 },
     { tick: 960, status: 0x80, key: 72, velocity: 0 },
@@ -405,31 +359,25 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
   ]);
 });
 
-it("pairs diagnostic JSON with the exact downloaded WAV and includes the export state", async () => {
+it("embeds the latest applied state and hashes only PCM bytes", async () => {
   const { result } = await editor();
   await act(async () => result.current.changeKnob("grid", 0));
-  await act(async () => {
-    await result.current.downloadJson();
-    result.current.downloadWav();
-  });
-  const json = state.downloads.find((item) => item.name.endsWith(".json"))!;
-  const wav = state.downloads.find((item) => item.name.endsWith(".wav"))!;
-  const report = JSON.parse(new TextDecoder().decode(await read(json.blob)));
-  expect(report.audio).toMatchObject({
-    sampleCount: 48000,
-    sampleRate: 48000,
-    format: "pcm16-mono",
-    timelineOrigin: "recording-downbeat",
-  });
-  const digest = await crypto.subtle.digest("SHA-256", await read(wav.blob));
-  const hash = Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
-  expect(report.audio.sha256).toBe(hash);
-  expect(report.settings.melody.overrides.grid).toBe(0);
+  await act(async () => result.current.downloadWav());
+  const bytes = await read(state.downloads[0]!.blob);
+  const chunks = wavChunks(bytes);
+  const meta = chunks.find((c) => c.id === "dpsn")!;
+  const data = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, meta.start, meta.length)));
+  expect(data.intent.intent.melody.overrides.grid).toBe(0);
+  const pcm = chunks.find((c) => c.id === "data")!;
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    bytes.slice(pcm.start, pcm.start + pcm.length),
+  );
+  expect(data.audio.sha256).toBe(
+    Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join(""),
+  );
 });
-
-it("does not download an obsolete JSON snapshot after navigating to another recording", async () => {
+it("does not download an obsolete WAV after navigating during hashing", async () => {
   const hook = await editor();
   let release!: (bytes: ArrayBuffer) => void;
   const pendingDigest = new Promise<ArrayBuffer>((resolve) => {
@@ -438,7 +386,7 @@ it("does not download an obsolete JSON snapshot after navigating to another reco
   const digest = vi.spyOn(crypto.subtle, "digest").mockReturnValueOnce(pendingDigest);
   let exporting!: Promise<void>;
   await act(async () => {
-    exporting = hook.result.current.downloadJson();
+    exporting = hook.result.current.downloadWav();
   });
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
@@ -503,6 +451,12 @@ it("identifies applied recipes separately from unapplied and playback-setting au
     ),
   );
   expect(result.current.previewLabel).toBe("Instrument: Flute");
+  expect(result.current.canExport).toBe(false);
+  await act(async () => {
+    await result.current.downloadMidi();
+    await result.current.downloadWav();
+  });
+  expect(state.downloads).toEqual([]);
   expect(result.current.previewApplied).toBe(false);
   expect(result.current.play.instrument).toBe("beep");
   await act(async () => result.current.stopPlayback());
@@ -601,13 +555,6 @@ it("draws the exact auditioned notes and restores applied notes through regular 
   expect(hook.result.current.previewLabel).toBeNull();
 });
 
-it("downloads a readable diagnostic log from the same applied recording", async () => {
-  const hook = await editor();
-  await act(async () => hook.result.current.downloadLog());
-  const log = state.downloads[0]!;
-  expect(log.name).toMatch(/\.txt$/);
-  expect(new TextDecoder().decode(await read(log.blob))).toContain("diapason diagnostics: one");
-});
 it("does not create history when resetting a legacy take already at defaults", async () => {
   const { result } = await editor();
   await act(async () => result.current.resetKnob());

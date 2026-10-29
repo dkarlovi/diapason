@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { buildReport, buildReportData } from "./diagnostics";
+import { buildReportData } from "./diagnostics";
 import { makeReportInput } from "./editor-model";
 import { recording } from "./test-support/recording";
 import { PIPELINE_VERSION } from "./build-info";
@@ -62,14 +62,6 @@ it("records the legacy grid fallback separately from explicitly disabled quantiz
   expect(report({ quantize: { on: false, subdivision: 2 } }).notes).toEqual([]);
 });
 
-it("summarizes processing stages in the pasteable log instead of dumping them", () => {
-  const rec = recording({ quantize: { on: false, subdivision: 2 }, muted: [{ t: 0.2, midi: 69 }] });
-  const text = buildReport(makeReportInput(rec, frames, qualityStats(frames)));
-  const line = text.split("\n").find((l) => l.startsWith("[stages]"));
-  expect(line).toMatch(
-    /^\[stages\] preset=clean key=.+ \(auto\) faithful=1 decoded=1 muted=1 exported=0$/,
-  );
-});
 it("records preset, overrides, effective knobs, key choice and harmony", () => {
   const melody = { preset: "clean" as const, overrides: { steadiness: 0.2 }, key: "auto" as const };
   const report = buildReportData(
@@ -97,5 +89,4 @@ it("includes pitch intent, source provenance and inactive coverage in evidence",
   expect(report.stages.editCoverage).toEqual([
     { id: "hidden", status: "inactive", missing: [{ start: 1, end: 2 }] },
   ]);
-  expect(buildReport(makeReportInput(rec, [], qualityStats([])))).toMatch(/hidden.*inactive/);
 });

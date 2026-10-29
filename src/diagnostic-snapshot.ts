@@ -1,13 +1,9 @@
+import { sha256 } from "./sha256";
 import { buildReportData, type ReportInput } from "./diagnostics";
 import { wavBytes, type WavChunk } from "./wav";
 
-export async function sha256(bytes: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-/** Capture all state and WAV bytes before yielding to asynchronous hashing.
- *  Pass the Download WAV's metadata chunks so the hash matches that file. */
+/** Legacy schema-4 report/WAV pairing retained for regression replay.
+ * New recording packages hash PCM directly, without a JSON sidecar. */
 export async function diagnosticSnapshot(
   input: ReportInput,
   pcm: Float32Array,

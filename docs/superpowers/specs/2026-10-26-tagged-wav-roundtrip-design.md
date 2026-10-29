@@ -1,5 +1,9 @@
 # Tagged WAV round trip
 
+The capture-only behavior described here is superseded for future implementation by
+[Single-file recording and melody package](2026-10-29-recording-package-design.md).
+This document remains the historical description of schema-1 WAVs.
+
 Issues: #8 (embed metadata in exported WAV), with the tagged-file half of #9 (import).
 
 ## Intent

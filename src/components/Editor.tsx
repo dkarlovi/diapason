@@ -14,6 +14,16 @@ import { Button } from "./primitives";
 
 import { EditorSessionNavigation } from "./AdHocNavigation";
 import type { AdHocTuneSession } from "../hooks/useAdHocTune";
+function ImportAnalysisNotice({ mismatch }: { mismatch: boolean }) {
+  if (!mismatch) return null;
+  return (
+    <p role="status" className="recording-import-warning">
+      Current analysis differs from the saved melody. The original result is preserved in the
+      imported WAV metadata.
+    </p>
+  );
+}
+
 export function Editor({ id, session }: { id: string; session?: AdHocTuneSession }) {
   const state = useEditor(id, session);
   const { embedded, tuneLocked } = useStudioMode();
@@ -51,6 +61,7 @@ export function Editor({ id, session }: { id: string; session?: AdHocTuneSession
           <Button onClick={state.retryAnalysis}>Retry loading</Button>
         </div>
       )}
+      <ImportAnalysisNotice mismatch={state.importAnalysisMismatch} />
       <Toast notice={state.notice} onDismiss={state.dismissNotice} />
       <TuneShareLink
         floating

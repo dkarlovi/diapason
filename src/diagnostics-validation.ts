@@ -8,7 +8,7 @@ type JsonObject = Record<string, unknown>;
 export const isObject = (value: unknown): value is JsonObject =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
-function finiteJson(value: unknown): boolean {
+export function finiteJson(value: unknown): boolean {
   if (typeof value === "number") return Number.isFinite(value);
   if (Array.isArray(value)) return value.every(finiteJson);
   return !isObject(value) || Object.values(value).every(finiteJson);
@@ -101,12 +101,14 @@ function objectDifference(expected: JsonObject, actual: JsonObject, path: string
   return null;
 }
 
+export const NUMERIC_COMPARISON_TOLERANCE = 1e-9;
+
 /** Return a useful first differing field instead of an opaque snapshot failure. */
 export function firstDifference(expected: unknown, actual: unknown, path: string): string | null {
   if (
     typeof expected === "number" &&
     typeof actual === "number" &&
-    Math.abs(expected - actual) <= 1e-9
+    Math.abs(expected - actual) <= NUMERIC_COMPARISON_TOLERANCE
   )
     return null;
   if (expected === actual) return null;

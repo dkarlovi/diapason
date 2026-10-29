@@ -8,6 +8,7 @@ import type { MelodySetting } from "./melody/settings";
 import type { PlaySettings } from "./instruments";
 import type { WaveformSummary } from "./waveform";
 import type { WavMetadata } from "./wav-metadata";
+import type { RecordingPackageV2, TuneImportMode } from "./recording-package-types";
 
 const STORE = "recordings";
 
@@ -97,7 +98,9 @@ interface RecordingImport {
   fileName: string;
   /** The file's embedded metadata exactly as it arrived, including fields this build does not
    *  know. Its provenance is written back unchanged when the recording is exported again. */
-  metadata: WavMetadata;
+  metadata: WavMetadata | RecordingPackageV2;
+  tuneMode?: TuneImportMode;
+  sourceId?: string;
 }
 
 function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {

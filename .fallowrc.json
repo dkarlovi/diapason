@@ -1,0 +1,3 @@
+{
+  "entry": ["tools/diapason.mjs", "src/recording-package-report.ts"]
+}

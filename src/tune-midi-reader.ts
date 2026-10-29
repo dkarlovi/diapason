@@ -8,6 +8,7 @@ const invalid = () => {
 };
 class MidiReader {
   position = 22;
+  ended = false;
   constructor(private bytes: Uint8Array) {}
   byte(): number {
     if (this.position >= this.bytes.length) return invalid();
@@ -28,17 +29,25 @@ class MidiReader {
     this.position += length;
     return result;
   }
+  private metaEvent(): string | undefined {
+    const type = this.byte(),
+      data = this.take(this.variable());
+    if (type === 47) {
+      if (data.length !== 0 || this.position !== this.bytes.length) return invalid();
+      this.ended = true;
+    }
+    if (type === 81 && (data.length !== 3 || data.every((b) => b === 0))) return invalid();
+    if (type === 88 && data.length !== 4) return invalid();
+    return type === 1 ? new TextDecoder("utf-8", { fatal: true }).decode(data) : undefined;
+  }
   event(): string | undefined {
     this.variable();
     const status = this.byte();
-    if (status === 0xff) {
-      const type = this.byte(),
-        data = this.take(this.variable());
-      return type === 1 ? new TextDecoder("utf-8", { fatal: true }).decode(data) : undefined;
-    }
-    if (status === 0xc0) this.take(1);
-    else if (status === 0x90 || status === 0x80) this.take(2);
-    else return invalid();
+    if (status === 0xff) return this.metaEvent();
+    const lengths: Record<number, number> = { 192: 1, 144: 2, 128: 2 };
+    const length = lengths[status];
+    if (length === undefined) return invalid();
+    if (this.take(length).some((b) => b >= 128)) return invalid();
     return undefined;
   }
 }
@@ -56,5 +65,6 @@ export function readTuneMidiPayload(bytes: Uint8Array): Uint8Array {
     if (payload) return invalid();
     payload = fromBase64Url(text.slice(TUNE_MIDI_PREFIX.length));
   }
+  if (!reader.ended) return invalid();
   return payload ?? invalid();
 }

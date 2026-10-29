@@ -242,6 +242,7 @@ export function Library() {
           </div>
         </PopoverAnchor>
         <RecordingImport
+          onCandidateOptions={recordingImport.setCandidateOptions}
           candidates={recordingImport.candidates}
           onConfirm={() => {
             void recordingImport.confirm();

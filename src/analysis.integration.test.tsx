@@ -67,12 +67,15 @@ it("shows advancing editor progress, permits audio, and enables MIDI automatical
   expect(screen.getByRole("button", { name: "Download MIDI" }).hasAttribute("disabled")).toBe(true);
   expect(screen.getByRole("button", { name: "Toggle Tune" }).hasAttribute("disabled")).toBe(true);
   expect(screen.getByRole("button", { name: "Play audio" }).hasAttribute("disabled")).toBe(false);
-  expect(screen.getByRole("button", { name: "Download WAV" }).hasAttribute("disabled")).toBe(false);
+  expect(screen.getByRole("button", { name: "Download WAV" }).hasAttribute("disabled")).toBe(true);
   await act(async () => workers[0]!.emit({ type: "progress", done: 42, total: 100 }));
   expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("42");
   expect(screen.getByText("Analyzing… 42%")).toBeTruthy();
   await act(async () => workers[0]!.emit(result()));
-  await waitFor(() => expect(screen.queryByRole("progressbar")).toBeNull());
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
+  );
+  expect(screen.queryByRole("progressbar")).toBeNull();
   expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false);
   expect(screen.getByRole("button", { name: "Download MIDI" }).hasAttribute("disabled")).toBe(
     false,
@@ -113,7 +116,10 @@ it("continues the same analysis across Library navigation, showing its progress 
   expect(workers).toHaveLength(1);
   await act(async () => workers[0]!.emit(result()));
   await work;
-  await waitFor(() => expect(screen.queryByRole("progressbar")).toBeNull());
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
+  );
+  expect(screen.queryByRole("progressbar")).toBeNull();
 });
 
 it("shows an analysis failure with a working retry", async () => {
