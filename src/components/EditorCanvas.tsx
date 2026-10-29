@@ -195,7 +195,8 @@ export function EditorCanvas(props: CanvasProps) {
     <section
       className={`editor-canvas editor-${kind}`}
       aria-label={kind === "midi" ? "MIDI melody" : "Original recording"}
-      hidden={kind === "audio" && layout.sourceHidden}
+      aria-hidden={kind === "audio" && layout.sourceHidden}
+      inert={kind === "audio" && layout.sourceHidden}
     >
       <CanvasPlot kind={kind} state={state} />
       {kind === "audio" && state.record?.noteSource && (

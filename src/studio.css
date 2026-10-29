@@ -213,9 +213,6 @@ main.studio-shell.library-shell {
 .library-record[data-source="notes"] {
   background: color-mix(in oklab, var(--color-primary) 3%, var(--color-card));
 }
-.library-record[data-source="notes"] .recording-icon {
-  background: var(--color-primary-muted);
-}
 .library-record:hover,
 .library-record:focus-within {
   background: var(--color-primary-muted);
@@ -320,13 +317,11 @@ main.studio-shell.library-shell {
   border-radius: 5px;
   box-shadow: 0 8px 24px color-mix(in oklab, var(--color-foreground) 10%, transparent);
 }
-.recording-menu-items button {
+.studio-shell .recording-menu-items [data-slot="button"] {
   width: 100%;
   justify-content: flex-start;
-  border-color: transparent;
-}
-.studio-shell .recording-menu-items .danger {
-  border-color: transparent;
+  background: transparent;
+  border: 0;
 }
 .library-storage {
   margin: 16px 0 0;
@@ -554,11 +549,4 @@ main.studio-shell.library-shell {
   border: 1px solid var(--color-border);
   border-radius: 7px;
   background: var(--color-card);
-}
-
-/* Decorative dividers stay quiet; interactive boundaries need stronger contrast. */
-.studio-shell :is(input, select, textarea),
-.studio-shell [data-slot="button"],
-.studio-shell .button {
-  border-color: var(--color-input-border);
 }

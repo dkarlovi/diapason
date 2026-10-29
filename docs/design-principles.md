@@ -155,12 +155,29 @@ are amber in the default theme. The earlier blue/amber descriptions refer to the
 default palette rather than restrictions on custom themes.
 
 Use the same root tokens in native controls, portaled menus, and canvas rendering.
-Decorative borders and chart grids use `--color-border`; essential interactive
-boundaries use the stronger `--color-input-border`. Avoid per-component theme
-exceptions. Pair foregrounds with their intended surfaces and verify rendered
+Ordinary controls, decorative borders, and chart grids use the subdued
+`--color-border`; reserve the stronger `--color-input-border` for explicit cases
+rather than applying it to every control. Focus and active states retain strong
+semantic accents. Library menu rows are borderless, and audio/MIDI source icons
+share the same neutral background. Avoid per-component theme exceptions. Pair foregrounds with their intended surfaces and verify rendered
 contrast, including mixed backgrounds and state changes. Color-vision simulations
 and non-color cues remain part of review.
 
 See the seed-theme spec for research, input contracts, Impeccable workflows, and
 acceptance criteria. A preferences dialog and persistent appearance settings are
 future work; URL configuration is available now.
+
+## Editor panel motion
+
+Tune and original audio use short, reversible state transitions with the recording
+workstation's decelerating easing (`cubic-bezier(0.22, 0.7, 0.25, 1)`). Tune uses a
+12px slide and fade; original audio folds its existing track space while its
+controls fade. Movement lasts 260ms and opacity 180ms. Enable each panel's motion only after
+its first explicit user toggle; loading audio or initially opening the editor
+must present the intended layout immediately without an entrance animation. Hidden panels become inert
+and leave the accessibility tree immediately, even while the exit finishes.
+Reduced-motion preference makes the change immediate. No animation dependency,
+JavaScript timer, or playback lifecycle restart is needed. The source divider and
+handle follow the same animated track size. Browsers without typed custom-property
+interpolation fall back to an immediate track resize with the same control fade.
+Active tuning categories keep their primary foreground/background pair on hover.

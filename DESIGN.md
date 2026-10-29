@@ -274,8 +274,10 @@ each edited row.
 ### Recording rows and status
 
 Library rows retain visible preview/Open actions and an actions menu, with hover
-and focus-within feedback. Their subdued waveform decoration represents original
-audio. Setup states combine labels, checks, and semantic colors; clipping and
+and focus-within feedback. Audio and note-only source icons share the same
+neutral background; their glyphs distinguish the recording type. Action dropdown
+rows are borderless, including destructive actions. Their subdued waveform
+decoration represents original audio. Setup states combine labels, checks, and semantic colors; clipping and
 recording failures remain explicit. Library’s mobile heading keeps its title intact;
 actions use Import and New at every size, moving together to the next row when needed.
 
@@ -314,11 +316,20 @@ secondary owns playback/original audio. Exact seed tones are not promised.
 Warning, destructive, and success retain their semantic hue families.
 
 `src/theme-config.ts` validates the public contract; `useStudioTheme` owns root
-application and cleanup. `--color-input-border` is the stronger interactive edge;
-`--color-border` remains a quiet decorative separator. Chart caches invalidate
+application and cleanup. Ordinary controls and separators use the subdued
+`--color-border`; `--color-input-border` is available for explicitly stronger
+boundaries. Focus rings and active-state borders retain their semantic accents. Chart caches invalidate
 on seed/effective-scheme changes. Forced colors use system roles and existing
 labels, stripes, and outlines remain meaningful without hue.
 
 Use the Impeccable colorize/extract and Operate guidance before changes, inspect
 real screens, then audit and polish. The research-backed rationale and full
 workflow live in `docs/superpowers/specs/2026-10-29-seed-themes-design.md`.
+
+Editor panel toggles use 260ms movement with the recording screen's easing and
+180ms opacity after user toggles only: a 12px Tune reveal and a fold of the existing
+original-audio track. Initial editor/recording loading presents the final layout
+immediately without entrance animations.
+The divider and handle share the animated source-height property. Hidden panels
+are inert and aria-hidden immediately; reduced motion removes these transitions.
+Active tuning categories keep their primary foreground/background pair on hover.

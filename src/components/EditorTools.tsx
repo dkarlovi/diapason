@@ -35,7 +35,12 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
         }}
         onPointerMove={layout.drag}
       />
-      <section className="editor-tune" aria-label="Tune melody" hidden={!layout.open}>
+      <section
+        className="editor-tune"
+        aria-label="Tune melody"
+        aria-hidden={!layout.open}
+        inert={!layout.open}
+      >
         <div className="editor-tune-heading">
           <h2>Tune melody</h2>
           <Button
