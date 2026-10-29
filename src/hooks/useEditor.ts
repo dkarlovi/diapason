@@ -1,5 +1,14 @@
+import type { AdHocTuneSession } from "./useAdHocTune";
+import { createPortableTune } from "../portable-tune";
+import { useSaveTune } from "./useSaveTune";
+import { useLocation } from "react-router";
+import { useStudioMode } from "./useStudioMode";
 import { useTuneShare } from "./useTuneShare";
-import { validateNoteSource } from "../note-source";
+import {
+  loadEditorRecording,
+  decodeEditorRecording,
+  analyzeEditorRecording,
+} from "../editor-source";
 import {
   constrainMelodyChange,
   knobAvailability,
@@ -11,15 +20,13 @@ import { validateEditSnapshot } from "../edit-storage";
 import { captureEditSnapshot } from "../edit-state";
 import { KNOB_DEFS, isKnobs, type Knobs } from "../melody/knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../note-edits";
-import { requestAnalysis } from "../analysis-jobs";
 import { useAnalysisStatus } from "./useAnalysisStatus";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useStudioNavigate } from "./useStudioMode";
-import { getRecording, putRecording, deleteRecording, type Recording } from "../db";
-import { decodeAudio } from "../codec";
-import { qualityStats, type QualityStats } from "../recorder";
+import { putRecording, deleteRecording, type Recording } from "../db";
+import type { QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
 import { rollPoint, useNoteDrag } from "./useNoteDrag";
@@ -29,12 +36,7 @@ import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
 import { saveRecordingName } from "../edit-storage";
-import {
-  flushEditorSaves,
-  getEditorSaveStatuses,
-  subscribeEditorSaves,
-  stopEditorSaves,
-} from "../editor-save-queue";
+import { getEditorSaveStatuses, subscribeEditorSaves, stopEditorSaves } from "../editor-save-queue";
 import { recordingPath } from "../router";
 import { DEFAULT_PLAY, type PlaySettings } from "../instruments";
 import {
@@ -47,7 +49,10 @@ import {
 
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-export function useEditor(id: string) {
+export function useEditor(id: string, session?: AdHocTuneSession) {
+  const { tuneLocked } = useStudioMode();
+  const location = useLocation();
+  const saving = useRef(false);
   const navigate = useStudioNavigate();
   const [record, setRecord] = useState<Recording | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
@@ -100,8 +105,35 @@ export function useEditor(id: string) {
     previewId,
     stopPlayback,
   } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
-  const history = useEditHistory({ record, replaceRecord, beforeChange: stopPlayback });
-  const sharing = useTuneShare(showNotice, history.flush);
+  const history = useEditHistory({ record, replaceRecord, beforeChange: stopPlayback, session });
+  const finishSession = () => {
+    history.finish();
+    stopPlayback();
+  };
+  const { savingTune, saveTune } = useSaveTune({
+    session,
+    ready: analysisReady,
+    finish: finishSession,
+    notify: showNotice,
+    saving,
+  });
+  useEffect(() => {
+    const warning: unknown = location.state?.tuneSaveWarning;
+    if (typeof warning === "string") showNotice({ kind: "info", message: warning });
+  }, [location.state, showNotice]);
+  const sharing = useTuneShare(
+    showNotice,
+    history.flush,
+    session
+      ? async () => {
+          const current = recordRef.current!;
+          return createPortableTune(
+            { ...current, name: session.getDraft().name.trim() || "Untitled" },
+            [],
+          );
+        }
+      : undefined,
+  );
   const { applyPreset, changeKnob, resetKnob, changeKey } = useMelodySettings(
     recordRef,
     history.change,
@@ -125,22 +157,25 @@ export function useEditor(id: string) {
       blocked = false;
       setLoadError(null);
       try {
-        await flushEditorSaves(id);
-        const found = await getRecording(id);
+        const found = await loadEditorRecording(id, session);
         if (cancelled) return;
         if (!found) {
+          if (tuneLocked) throw new Error("This recording is no longer available.");
           navigate("/");
           return;
         }
-        const decoded = found.noteSource ? new Float32Array(0) : await decodeAudio(found.audio);
+        const decoded = await decodeEditorRecording(found);
         if (cancelled) return;
-        if (found.noteSource) validateNoteSource(found.noteSource, found.durationSec);
         pcm.current = decoded;
         replaceRecord(found);
         setDraftName(found.name);
-        const analyzed = found.noteSource ? [] : await requestAnalysis(found, loadAttempt > 0);
+        const { frames: analyzed, stats: analyzedStats } = await analyzeEditorRecording(
+          found,
+          decoded,
+          loadAttempt > 0,
+        );
         if (cancelled) return;
-        stats.current = found.noteSource ? null : qualityStats(analyzed, decoded);
+        stats.current = analyzedStats;
         setFrames(analyzed);
         setAnalysisReady(true);
       } catch (error) {
@@ -165,7 +200,7 @@ export function useEditor(id: string) {
       cancelled = true;
       mounted.current = false;
     };
-  }, [id, navigate, replaceRecord, loadAttempt]);
+  }, [id, navigate, replaceRecord, loadAttempt, session, tuneLocked]);
   useEffect(() => {
     if (analysisReady && analysis.cacheWarning)
       showNotice({
@@ -196,6 +231,7 @@ export function useEditor(id: string) {
   );
   const versions = useEditorVersions({
     recordingId: id,
+    session,
     history,
     beforeAction: stopPlayback,
     preview(version) {
@@ -309,7 +345,7 @@ export function useEditor(id: string) {
   auditionRef.current = showingPreview;
   const commitEdits = (noteEdits: NoteEdits, label = "Edit pitch") => {
     const current = recordRef.current;
-    if (!current || auditionRef.current) return;
+    if (!current || auditionRef.current || saving.current) return;
     stopPlayback();
     history.change(label, (value) => ({ ...value, noteEdits }));
   };
@@ -336,7 +372,7 @@ export function useEditor(id: string) {
     rollRef,
     selected: selectedItem,
     view: rollView,
-    enabled: !showingPreview,
+    enabled: !showingPreview && !savingTune,
     gesture: {
       active: history.drafting,
       begin() {
@@ -400,8 +436,9 @@ export function useEditor(id: string) {
     setDraftName(name);
     const next = { ...current, name };
     replaceRecord(next);
-    void saveRecordingName(current.id, name).catch(() => {});
-  }, [draftName, replaceRecord]);
+    if (session) session.updateDraft((draft) => ({ ...draft, name }));
+    else void saveRecordingName(current.id, name).catch(() => {});
+  }, [draftName, replaceRecord, session]);
 
   const duplicate = useCallback(async () => {
     history.finish();
@@ -416,12 +453,14 @@ export function useEditor(id: string) {
       createdAt: Date.now(),
     };
     delete copy.editHead;
+    delete copy.editHistory;
     await putRecording(copy);
     if (mounted.current) navigate(recordingPath(copy.id));
   }, [navigate, history.finish, history.flush]);
 
   const remove = useCallback(async () => {
     const current = recordRef.current;
+    if (tuneLocked || session) return;
     if (!current || !confirm(`Delete “${current.name}”?`)) return;
     history.cancel();
     await stopEditorSaves(current.id);
@@ -440,7 +479,7 @@ export function useEditor(id: string) {
   const muteNote = useCallback(
     (item: NoteItem) => {
       const current = recordRef.current;
-      if (!current || auditionRef.current) return;
+      if (!current || auditionRef.current || saving.current) return;
       stopPlayback();
       history.change(item.muted ? "Unmute note" : "Mute note", (value) => ({
         ...value,
@@ -471,6 +510,11 @@ export function useEditor(id: string) {
   );
 
   return {
+    adHoc: !!session,
+    tuneLocked,
+    savingTune,
+    saveTune,
+    finishSession,
     sharing,
     copyTuneLink: () => sharing.copyLink(id),
     capabilities: record ? recordingCapabilities(record) : null,
@@ -484,7 +528,7 @@ export function useEditor(id: string) {
     analysisReady,
     loadError,
     retryAnalysis: () => setLoadAttempt((attempt) => attempt + 1),
-    editingDisabled: !record || !analysisReady || versions.busy,
+    editingDisabled: !record || !analysisReady || versions.busy || savingTune,
     drafting: history.drafting,
     beginKnob: (key: keyof Knobs) => {
       if (!recordRef.current || !knobAvailability(recordRef.current, key).enabled) return;
@@ -510,7 +554,7 @@ export function useEditor(id: string) {
     commitGesture: history.commit,
     cancelGesture: history.cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
-    canEditPitch: analysisReady && !showingPreview && !versions.busy,
+    canEditPitch: analysisReady && !showingPreview && !versions.busy && !savingTune,
     shiftSelectedPitch,
     resetSelectedPitch,
     resetAllNoteEdits,
@@ -528,7 +572,11 @@ export function useEditor(id: string) {
     stopPlayback,
     viewport,
     draftName,
-    setDraftName,
+    setDraftName: (name: string) => {
+      if (saving.current) return;
+      setDraftName(name);
+      session?.updateDraft((draft) => ({ ...draft, name }));
+    },
     commitName,
     traceRef,
     rollRef,

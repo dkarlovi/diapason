@@ -37,6 +37,7 @@
       width: 6rem;
     }
     input,
+    select,
     button {
       font: inherit;
       padding: 6px;
@@ -66,10 +67,18 @@
   </style>
   <h1>Embed playground</h1>
   <p>
-    A sample lesson page with a working studio. Record a melody, tune the MIDI and download it
-    inside the frame. Drag the frame’s bottom-right corner to resize it.
+    A sample lesson page with an editable tune or recording studio. Play and edit “Fly me to the
+    moon” inside the frame, or switch to recording. Drag the frame’s bottom-right corner to resize
+    it.
   </p>
   <form id="settings">
+    <label
+      >Example
+      <select name="mode">
+        <option value="editor">Tune editor — Fly me to the moon</option>
+        <option value="recording">Recording studio</option>
+      </select></label
+    >
     <label>Width <input name="width" type="number" min="320" value="720" required /></label>
     <label>Height <input name="height" type="number" min="240" value="420" required /></label>
     <label><input name="edit" type="checkbox" checked /> Open Editor after saving</label>
@@ -83,41 +92,65 @@
   <p id="size" role="status"></p>
   <div class="viewport" id="viewport"></div>
   <pre id="snippet"></pre>
-  <p>
+  <p id="recording-help">
     The two loopback hosts are different origins and both qualify as secure contexts. Production
     hosts must use HTTPS and permit the studio origin in their Permissions-Policy. Uncheck
     microphone delegation to test the error and retry flow. Reloading the studio ends the current
     take.
   </p>
-  <p>
+  <p id="recording-checks">
     Check setup scrolling, recording/Stop, automatic Editor navigation, Tune, note inspection,
     audio/MIDI playback, MIDI download, and Delete recording to start over. The Library should never
     appear. Storage belongs to the iframe origin; cross-site privacy settings may restrict it.
   </p>
+  <p id="editor-help">
+    Play the tune, edit pitches, and try Undo/Redo. Refresh the frame to recover temporary work.
+    Save in the actions menu creates a Library recording and opens its editor. Capture and Library
+    navigation stay unavailable. This example needs no microphone permission. Reload studio starts
+    from the example link again; it does not delete saved recordings. Session and recording storage
+    belong to the iframe origin and may be restricted by browser privacy settings.
+  </p>
   <script type="module">
+    const exampleTune =
+      "RFBTTgEBABJGbHkgbWUgdG8gdGhlIG1vb27AhAEAAAAAAMBbQAQCABs5rzGxRptNQCDLRqfjjllACAACIAEA4AN5L3lXoclWQAGLBMAC4LT7L3X1VkABwALqATQonEConlZAAeoBqwLdXOG4WxxWQAWWA7UDGve7bqS7VUBWAdUDqwPz50GBZyNVQAWABMADdaztr3vAVUBWAesD4ANMaMpvkiFWQAWVBKAEJfRq0nMZV0BbAaAEgAFis2uz1YZWQAWAAdUGajAqKq_AVkBaAfUHwAFn0YytHiFWQAXgAaACCIAqXRO6VUBWAesCdeibVJdKYVVAAXXrASWyqCgoIlVAAeAClgVASAJabr9UQAHgEusDJxv_AqwBVkABiwTAAugJaxAaCFZAAcAC9QHye8038ZFVQAH1AZYBSkA3qU4vVUABlgGqAe89jrQqIVVAAdUBlQN5hjcrLNZUQAHrA7UDBr22rQVAVEAB4AOqA6hrfoWFBVVAAaAEwAPqXjJQEUpVQAGVBNUFYvEfDmcjVkAB4AarA6D7lgitx1VAAZUEqwLsHlA-mr5VQAHLAusB6Px-C0ApVUAB6wGqAlSh_AxT1FRAAYAD6gLjTIrM3GpUQAHABVVuYkHihuRTQA";
     const form = document.querySelector("form");
     const viewport = document.querySelector("#viewport");
     function reload(event) {
       event?.preventDefault();
       const settings = new FormData(form);
-      const url = new URL("/diapason/new?embed=1", location.href);
+      const editor = settings.get("mode") === "editor";
+      const url = new URL(
+        editor ? "/diapason/tune?embed=1" : "/diapason/new?embed=1",
+        location.href,
+      );
+      if (editor) url.hash = `tune=${exampleTune}`;
       if (settings.has("crossOrigin"))
         url.hostname = location.hostname === "localhost" ? "127.0.0.1" : "localhost";
-      if (settings.has("edit")) url.searchParams.set("afterRecording", "edit");
+      if (!editor && settings.has("edit")) url.searchParams.set("afterRecording", "edit");
       viewport.style.width = `${settings.get("width")}px`;
       viewport.style.height = `${settings.get("height")}px`;
       const frame = document.createElement("iframe");
-      frame.title = "Whistle-to-MIDI studio";
-      frame.allow = settings.has("microphone") ? "microphone" : "microphone 'none'";
+      frame.title = editor ? "Fly me to the moon tune editor" : "Whistle-to-MIDI studio";
+      if (!editor) frame.allow = settings.has("microphone") ? "microphone" : "microphone 'none'";
       frame.src = url.href;
       viewport.replaceChildren(frame);
       document.querySelector("#snippet").textContent =
-        `<iframe src="${url.href.replaceAll("&", "&amp;")}" title="Whistle-to-MIDI studio" allow="${frame.allow}" width="${settings.get("width")}" height="${settings.get("height")}"></iframe>`;
+        `<iframe src="${url.href.replaceAll("&", "&amp;")}" title="${frame.title}"${editor ? "" : ` allow="${frame.allow}"`} width="${settings.get("width")}" height="${settings.get("height")}"></iframe>`;
     }
     new ResizeObserver(() => {
       document.querySelector("#size").textContent =
         `${viewport.clientWidth} × ${viewport.clientHeight} px`;
     }).observe(viewport);
+    function updateMode() {
+      const editor = form.elements.mode.value === "editor";
+      form.elements.edit.disabled = editor;
+      form.elements.microphone.disabled = editor;
+      document.querySelector("#recording-help").hidden = editor;
+      document.querySelector("#recording-checks").hidden = editor;
+      document.querySelector("#editor-help").hidden = !editor;
+    }
+    form.elements.mode.addEventListener("change", updateMode);
+    updateMode();
     form.addEventListener("submit", reload);
     reload();
   </script>

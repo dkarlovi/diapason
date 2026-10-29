@@ -185,19 +185,8 @@ export function Library() {
     void navigate(location.pathname, { replace: true, state: null });
   }, [location.state, location.pathname, navigate, showNotice]);
   const recordingImport = useRecordingImport(reload, showNotice);
-  const clearTuneFragment = () => {
-    if (location.hash.startsWith("#tune="))
-      void navigate(
-        { pathname: location.pathname, search: location.search, hash: "" },
-        { replace: true },
-      );
-  };
-  useEffect(() => {
-    if (location.hash.startsWith("#tune=")) void recordingImport.offerUrl(location.hash);
-  }, [location.hash, recordingImport.offerUrl]);
   const cancelImport = () => {
     recordingImport.cancel();
-    clearTuneFragment();
   };
   const dropState = useWavDrop((files) => void recordingImport.offer(files), HEADER);
   return (
@@ -255,7 +244,6 @@ export function Library() {
         <RecordingImport
           candidates={recordingImport.candidates}
           onConfirm={() => {
-            clearTuneFragment();
             void recordingImport.confirm();
           }}
           onCancel={cancelImport}

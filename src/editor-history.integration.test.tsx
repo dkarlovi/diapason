@@ -263,3 +263,25 @@ it("resumes a blocked editor load after a pending save is recovered", async () =
   expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.6");
   expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
 });
+it("duplicates promoted intent without inheriting its persistent history", async () => {
+  const rec = recording({ id: "promoted-copy", name: "Promoted source" });
+  rec.editHistory = {
+    commits: [
+      { id: "baseline", label: "Initial state", createdAt: 1, snapshot: captureEditSnapshot(rec) },
+    ],
+    cursor: 0,
+    draft: null,
+  };
+  rec.editHead = { commitId: "baseline", revision: 1 };
+  await putRecording(rec);
+  mount(rec.id);
+  await screen.findByDisplayValue("Promoted source");
+  await userEvent.click(screen.getByRole("button", { name: "Recording actions" }));
+  await userEvent.click(screen.getByRole("button", { name: "Duplicate" }));
+  await waitFor(async () => {
+    const copy = (await allRecordings()).find((r) => r.name === "Promoted source (copy)");
+    expect(copy).toBeTruthy();
+    expect(copy!.editHistory).toBeUndefined();
+    expect(copy!.editHead).toBeUndefined();
+  });
+});

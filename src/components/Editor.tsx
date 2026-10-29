@@ -12,9 +12,11 @@ import { MelodyTools } from "./EditorTools";
 import { EditorRecordingActions } from "./EditorRecordingActions";
 import { Button } from "./primitives";
 
-export function Editor({ id }: { id: string }) {
-  const state = useEditor(id);
-  const { embedded } = useStudioMode();
+import { EditorSessionNavigation } from "./AdHocNavigation";
+import type { AdHocTuneSession } from "../hooks/useAdHocTune";
+export function Editor({ id, session }: { id: string; session?: AdHocTuneSession }) {
+  const state = useEditor(id, session);
+  const { embedded, tuneLocked } = useStudioMode();
   const layout = useEditorLayout(state.capabilities?.audio ?? false);
   useEditorHistoryKeys({
     enabled: !state.editingDisabled,
@@ -30,6 +32,13 @@ export function Editor({ id }: { id: string }) {
   }, [setVisible, layout.visibleFraction]);
   return (
     <div id="view-editor">
+      <EditorSessionNavigation
+        id={id}
+        session={session}
+        embedded={embedded}
+        tuneLocked={tuneLocked}
+        beforeLeave={state.finishSession}
+      />
       {!embedded && (
         <Link className="capture-library-fallback" to="/">
           Library

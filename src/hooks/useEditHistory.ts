@@ -12,7 +12,10 @@ import {
   type EditHistoryEvent,
 } from "../edit-history";
 import { createEditorWriter, type EditorWriter } from "../editor-save-queue";
+import type { AdHocTuneSession } from "./useAdHocTune";
+import { validateEditHistory } from "../edit-history-validation";
 interface Options {
+  session?: AdHocTuneSession | undefined;
   record: Recording | null;
   replaceRecord(record: Recording): void;
   beforeChange(): void;
@@ -49,11 +52,16 @@ export function useEditHistory(options: Options) {
     if (!history.current || !record.current) return;
     const previous = history.current;
     const next = reduceEditHistory(previous, event);
+    if (next === previous) return;
     history.current = next;
     record.current = applyEditSnapshot(record.current, displayEditSnapshot(next));
     latest.current.replaceRecord(record.current);
+    latest.current.session?.updateDraft((draft) => ({ ...draft, history: next }));
     if (currentEditCommit(previous) !== currentEditCommit(next))
-      writer.current?.enqueue(currentEditCommit(next));
+      writer.current?.enqueue(
+        currentEditCommit(next),
+        record.current.editHistory ? { ...next, draft: null } : undefined,
+      );
     render((n) => n + 1);
   }, []);
   const finish = useCallback(
@@ -67,23 +75,29 @@ export function useEditHistory(options: Options) {
   useLayoutEffect(() => {
     const initial = record.current;
     if (!initial) return;
-    const session = createEditHistory({
-      id: initial.editHead?.commitId ?? crypto.randomUUID(),
-      label: "Initial state",
-      createdAt: Date.now(),
-      snapshot: captureEditSnapshot(initial),
-    });
-    const saves = createEditorWriter(initial.id, initial.editHead ?? null);
+    const session =
+      latest.current.session?.getDraft().history ??
+      (initial.editHistory
+        ? validateEditHistory(initial.editHistory, initial.durationSec)
+        : createEditHistory({
+            id: initial.editHead?.commitId ?? crypto.randomUUID(),
+            label: "Initial state",
+            createdAt: Date.now(),
+            snapshot: captureEditSnapshot(initial),
+          }));
+    const saves = latest.current.session
+      ? null
+      : createEditorWriter(initial.id, initial.editHead ?? null);
     history.current = session;
     writer.current = saves;
     render((n) => n + 1);
     return () => {
       // StrictMode's synthetic cleanup has no draft and therefore performs no write.
       if (history.current?.draft) finish();
-      void saves.flush().catch(() => {
+      void saves?.flush().catch(() => {
         /* Shell status retains recovery after navigation. */
       });
-      saves.release();
+      saves?.release();
       if (writer.current === saves) {
         history.current = null;
         writer.current = null;
@@ -123,11 +137,15 @@ export function useEditHistory(options: Options) {
     finish();
     await writer.current?.flush();
     if (history.current && writer.current && !writer.current.getHead())
-      writer.current.enqueue(currentEditCommit(history.current));
+      writer.current.enqueue(
+        currentEditCommit(history.current),
+        record.current?.editHistory ? { ...history.current, draft: null } : undefined,
+      );
     await writer.current?.flush();
   }, [finish]);
   return {
     ...historyView(history.current),
+    getHistory: () => history.current,
     getCurrent: () => (history.current ? currentEditCommit(history.current) : null),
     begin,
     update,

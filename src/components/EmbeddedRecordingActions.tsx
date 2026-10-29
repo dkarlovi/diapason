@@ -27,6 +27,11 @@ export function EmbeddedRecordingActions({ state }: { state: EditorState }) {
         aria-label="Recording action options"
       >
         <MidiOutputPicker />
+        {state.adHoc && (
+          <Button disabled={state.editingDisabled} onClick={() => run(state.saveTune)}>
+            Save
+          </Button>
+        )}
         <Button
           disabled={state.editingDisabled || state.sharing.busy}
           onClick={() => run(state.copyTuneLink)}
@@ -39,9 +44,11 @@ export function EmbeddedRecordingActions({ state }: { state: EditorState }) {
         >
           Reset edits
         </Button>
-        <Button variant="danger" disabled={!state.record} onClick={() => run(state.remove)}>
-          Delete recording
-        </Button>
+        {!state.adHoc && !state.tuneLocked && (
+          <Button variant="danger" disabled={!state.record} onClick={() => run(state.remove)}>
+            Delete recording
+          </Button>
+        )}
       </PopoverContent>
     </Popover>
   );

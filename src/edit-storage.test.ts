@@ -165,3 +165,16 @@ it.each([
   Object.assign(snapshot.intent, { [field as string]: value });
   expect(() => validateEditSnapshot(snapshot, 1)).toThrow(/unsupported editing data/);
 });
+it("persists full history atomically and rejects a mismatched current commit", async () => {
+  await putRecording(recording({ id: "history" }));
+  const baseline = commit("initial", 0),
+    edited = commit("edited", -1);
+  const history = { commits: [baseline, edited], cursor: 1, draft: null };
+  const head = await saveEditCommit("history", edited, null, history);
+  expect((await getRecording("history"))?.editHistory).toEqual(history);
+  await expect(saveEditCommit("history", baseline, head, history)).rejects.toThrow();
+  expect((await getRecording("history"))?.editHead).toEqual(head);
+  const undone = { ...history, cursor: 0 };
+  await saveEditCommit("history", baseline, head, undone);
+  expect((await getRecording("history"))?.editHistory).toEqual(undone);
+});
