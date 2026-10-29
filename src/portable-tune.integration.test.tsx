@@ -2,15 +2,14 @@ import "fake-indexeddb/auto";
 import { Blob as NodeBlob } from "node:buffer";
 import { CompressionStream, DecompressionStream } from "node:stream/web";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { createMemoryRouter, RouterProvider } from "react-router";
+import { appRoutes } from "./app-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { Library } from "./components/Library";
 import { Editor } from "./components/Editor";
 import { allRecordings, deleteRecording } from "./db";
-import { createPortableTune, recordingFromPortableTune } from "./portable-tune";
+import { createPortableTune } from "./portable-tune";
 import { noteRecording } from "./test-support/note-recording";
 import { tuneUrl } from "./tune-url";
-import { encodeTuneMidi, decodeTuneMidi } from "./tune-midi";
 import { playNotes } from "./playback";
 import { flushEditorSaves } from "./editor-save-queue";
 vi.mock("./playback", () => ({
@@ -40,32 +39,24 @@ afterEach(async () => {
   for (const r of await allRecordings()) await deleteRecording(r.id);
   vi.unstubAllGlobals();
 });
-it("offers a link in Library without saving, imports explicitly, plays its sound and exposes editable choices", async () => {
+it("opens a shared melody immediately and plays its sound without importing", async () => {
   const sender = noteRecording();
   sender.noteEdits = {
     version: 1,
     pitch: [{ id: "sender-correction", ranges: [{ start: 0, end: 0.5 }], midi: 75 }],
   };
   sender.muted = [{ t: 0.75, midi: 74 }];
-  const url = await tuneUrl(createPortableTune(sender, []), window.location.origin);
-  history.replaceState(null, "", url);
+  const url = new URL(await tuneUrl(createPortableTune(sender, []), window.location.origin));
   render(
-    <BrowserRouter basename="/diapason/">
-      <Routes>
-        <Route path="/" element={<Library />} />
-        <Route path="/recording/:id" element={<EditorRoute />} />
-      </Routes>
-    </BrowserRouter>,
+    <RouterProvider
+      router={createMemoryRouter(appRoutes, { initialEntries: [`/tune${url.hash}`] })}
+    />,
   );
-  await screen.findByRole("heading", { name: "Import recordings" });
-  expect(await allRecordings()).toEqual([]);
-  expect(screen.getByText(/No original audio/)).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Import" }));
-  await waitFor(async () => expect(await allRecordings()).toHaveLength(1));
-  expect(location.pathname).toBe("/diapason/");
-  expect(location.hash).toBe("");
-  await screen.findByRole("button", { name: "Play midi: Shared" });
-  fireEvent.click(screen.getByRole("button", { name: "Play midi: Shared" }));
+  await screen.findByDisplayValue("Shared");
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Play MIDI" }));
   await waitFor(() =>
     expect(playNotes).toHaveBeenCalledWith(
       expect.arrayContaining([expect.objectContaining({ midi: 75 })]),
@@ -73,39 +64,10 @@ it("offers a link in Library without saving, imports explicitly, plays its sound
       { instrument: "flute", octave: -2 },
     ),
   );
-  const links = screen.getAllByRole("link", { name: /^Open/ });
-  fireEvent.click(links[0]!);
-  await screen.findByDisplayValue("Shared");
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Play MIDI" }).hasAttribute("disabled")).toBe(false),
-  );
-  const original = screen.getByRole("button", { name: "Show original" });
-  expect(original.hasAttribute("disabled")).toBe(true);
-  expect(original.title).toContain("audio was not included");
-  expect(document.querySelector(".editor-audio")?.hasAttribute("hidden")).toBe(true);
-  fireEvent.click(original);
-  expect(document.querySelector(".editor-workspace")?.getAttribute("data-source-hidden")).toBe(
-    "true",
-  );
-  expect(screen.getByRole("button", { name: "Choose instrument" }).textContent).toContain("Flute");
-  expect(screen.getByRole("button", { name: "Choose octave" }).textContent).toContain("2 octaves");
-  const slider = screen.getByRole("slider", { name: "Steadiness" });
-  expect(slider.hasAttribute("disabled")).toBe(true);
-  expect(slider.getAttribute("aria-describedby")).toBeTruthy();
-  const imported = (await allRecordings())[0]!;
-  const midi = await encodeTuneMidi(createPortableTune(imported, []));
-  const again = recordingFromPortableTune(
-    await decodeTuneMidi(new Uint8Array(await midi.arrayBuffer())),
-    "third",
-    1,
-  );
-  expect(again.play).toEqual({ instrument: "flute", octave: -2 });
-  expect(again.noteEdits?.pitch[0]?.midi).toBe(75);
+  expect(await allRecordings()).toEqual([]);
+  expect(screen.getByRole("button", { name: "Show original" }).hasAttribute("disabled")).toBe(true);
+  expect(screen.getByRole("slider", { name: "Steadiness" }).hasAttribute("disabled")).toBe(true);
 });
-import { useParams } from "react-router";
-function EditorRoute() {
-  return <Editor id={useParams().id!} />;
-}
 it("starts fresh history and supports resetting, undoing and unmuting imported edits", async () => {
   const { renderHook, act } = await import("@testing-library/react");
   const { MemoryRouter } = await import("react-router");

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import type { PortableTune } from "../portable-tune";
 import { loadShareTune } from "../tune-sharing";
 import { tuneUrl } from "../tune-url";
 import { encodeTuneMidi } from "../tune-midi";
@@ -8,6 +9,7 @@ import type { Notice } from "./useNotice";
 export function useTuneShare(
   showNotice: (notice: Notice | null) => void,
   beforeShare?: () => Promise<void>,
+  getTune?: (() => Promise<PortableTune>) | undefined,
 ) {
   const [busy, setBusy] = useState(false);
   const [fallbackLink, setFallbackLink] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export function useTuneShare(
     setFallbackLink(null);
     try {
       await beforeShare?.();
-      const tune = await loadShareTune(id);
+      const tune = await (getTune ? getTune() : loadShareTune(id));
       if (midi) {
         downloadBlob(await encodeTuneMidi(tune), `${exportSlug(tune.name, Date.now())}.mid`);
         showNotice({ kind: "success", message: "Diapason MIDI downloaded" });

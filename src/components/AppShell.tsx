@@ -60,7 +60,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const fullscreen = useStudioFullscreen();
   const pathname = useLocation().pathname.replace(/\/$/, "");
   const capture = pathname === "/new";
-  const editor = pathname.startsWith("/recording/");
+  const editor = pathname.startsWith("/recording/") || pathname === "/tune";
   const [title, setTitle] = useState("");
   const screenTitle = capture ? "New recording" : title || "Recording";
   return (

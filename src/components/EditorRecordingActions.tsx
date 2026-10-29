@@ -17,7 +17,7 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
       value={state.draftName}
       onChange={(event) => state.setDraftName(event.target.value)}
       onBlur={state.commitName}
-      disabled={!state.record}
+      disabled={!state.record || state.savingTune}
     />
   );
   const actions = (
@@ -55,6 +55,17 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
             </>
           ) : (
             <>
+              {state.adHoc && (
+                <Button
+                  disabled={state.editingDisabled}
+                  onClick={() => {
+                    setOpen(false);
+                    void state.saveTune();
+                  }}
+                >
+                  Save
+                </Button>
+              )}
               <Button
                 autoFocus
                 disabled={state.editingDisabled}
@@ -89,23 +100,29 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
                 { label: "Copy log", run: state.copyLog },
                 { label: "Duplicate", run: state.duplicate },
                 { label: "Delete recording", run: state.remove },
-              ].map((action) => (
-                <Button
-                  key={action.label}
-                  disabled={
-                    !state.record ||
-                    ((!state.analysisReady || !state.capabilities?.audio) &&
-                      ["Download log", "Download JSON", "Copy log"].includes(action.label))
-                  }
-                  variant={action.label === "Delete recording" ? "danger" : undefined}
-                  onClick={() => {
-                    setOpen(false);
-                    void action.run();
-                  }}
-                >
-                  {action.label}
-                </Button>
-              ))}
+              ]
+                .filter(
+                  (action) =>
+                    !(state.adHoc || state.tuneLocked) ||
+                    !["Duplicate", "Delete recording"].includes(action.label),
+                )
+                .map((action) => (
+                  <Button
+                    key={action.label}
+                    disabled={
+                      !state.record ||
+                      ((!state.analysisReady || !state.capabilities?.audio) &&
+                        ["Download log", "Download JSON", "Copy log"].includes(action.label))
+                    }
+                    variant={action.label === "Delete recording" ? "danger" : undefined}
+                    onClick={() => {
+                      setOpen(false);
+                      void action.run();
+                    }}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
             </>
           )}
         </PopoverContent>

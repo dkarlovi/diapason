@@ -202,16 +202,26 @@ Audio is stored as **gzipped Int16 PCM** (lossless, browser-native
 
 In the Library recording actions or the editor's main recording dropdown,
 **Copy tune link** packs the current melody into an ordinary URL. The editor
-finishes and saves current edits before copying. **Download MIDI** in the Library or editor produces a playable
+finishes the current gesture before copying; temporary tunes stay unsaved. **Download MIDI** in the Library or editor produces a playable
 Diapason MIDI file containing the same editable tune. Both carry your current
 preset/key, control choices, pitch corrections, mutes, instrument and octave.
 Corrections remain marked as edits; resetting one returns to the automatic pitch
 under the current musical settings. Muted notes can be unmuted.
 
-Opening a tune link offers **Import** or **Cancel** on the Library page. Picking or
-dropping a Diapason MIDI file uses the same review flow. Inspection saves nothing;
-only **Import** adds a new local tune. Import stays on the Library, where you can
-play it or choose **Open**. Each explicit tune import creates a new local copy.
+Opening a tune link immediately opens a playable, editable tune without importing
+anything into the Library. Edits, undo/redo history, names and versions live in
+sessionStorage for that tab and survive refresh. The URL remains the original baseline.
+**Save** in the actions dropdown creates a recording with your work and history,
+then redirects to its editor. You are now editing that recording. Leaving an edited
+temporary tune in the full app warns about unsaved changes; confirming discard
+removes the draft. Refresh and closing the page use the browser's native warning.
+Opening the link without a matching session draft starts from the original tune.
+If storage is blocked, editing works in memory and a warning explains that refresh
+may lose the work. Browser-duplicated tabs may initially copy a session draft.
+
+Picking or dropping a Diapason MIDI file still offers **Import** or **Cancel** in
+the Library. Inspection saves nothing; **Import** creates a new local copy, which
+you can play or **Open**.
 No original audio, acoustic analysis, undo history or saved versions are sent.
 Your friend starts a fresh editing session and can share their changes again.
 The Library distinguishes these tunes with a musical-file icon and a subtle
@@ -483,20 +493,22 @@ rename it, or delete it. Names must be nonempty and unique within the recording
 (case-insensitively). Restoring a version is an undoable edit. Saved versions
 remain available even when you edit after undoing past them.
 
-The latest committed state autosaves locally in IndexedDB. Leaving the recording
+For ordinary recordings, the latest committed state autosaves locally in IndexedDB. Leaving the recording
 editor, switching recordings, or reloading ends the undo session: earlier unnamed
 states and redo are discarded. Reopening loads the latest saved working state,
 with your saved versions available separately. Merely hiding Tune or switching
 browser tabs does not end the session. Only manually saved versions preserve
 older states across sessions; automatic commits do not accumulate permanent
-history. Versions share the original audio and store musical editing intent.
+history. Tunes saved from a temporary URL editor preserve their transferred history,
+including subsequent edits and the redo cursor, across reopening. Versions share
+the original audio when present and store musical editing intent.
 
 A save failure keeps the pending state in memory and shows **Retry save**, including
 after navigation. An editor saves only over the state it expects: if another tab
 has saved first, the stale save fails and shows **Reload**. Reload discards that
 tab's unsaved edits, so resolve a conflict before continuing work. Closing the page
 can lose unsaved changes or an unfinished gesture; only completed database writes
-are durable. Duplicates start with the current intent and no saved versions.
+are durable. Duplicates start with the current intent and no saved versions or undo history.
 Deleting a recording also deletes its versions.
 
 Versions stay in this browser. WAV export/import continues to carry the captured
@@ -559,23 +571,42 @@ Embed the recording studio in a lesson or songwriting page:
 ></iframe>
 ```
 
-- `embed=1` removes the header and Library navigation, and redirects Library
-  and unknown routes to New recording. The logo sits beside the canvas labels
+- `embed=1` removes the header and Library navigation. Recording embeds redirect Library
+  and unknown routes to New recording; tune embeds stay on their specific tune. The logo sits beside the canvas labels
   in capture and editing. This is a workflow restriction, not storage isolation.
 - `afterRecording=edit` opens the Editor only after a recording saves successfully.
   Without it, the studio stays ready for another take. This option also works without embedded mode.
 - Both settings survive internal navigation, deletion, and starting
   another recording. Omit both to retain the standalone experience.
 
+To embed a specific tune, use its shared URL with `embed=1` before the fragment:
+
+```html
+<iframe
+  src="https://dkarlovi.github.io/diapason/tune?embed=1#tune=RFBTTgEBABJGbHkgbWUgdG8gdGhlIG1vb27AhAEAAAAAAMBbQAQCABs5rzGxRptNQCDLRqfjjllACAACIAEA4AN5L3lXoclWQAGLBMAC4LT7L3X1VkABwALqATQonEConlZAAeoBqwLdXOG4WxxWQAWWA7UDGve7bqS7VUBWAdUDqwPz50GBZyNVQAWABMADdaztr3vAVUBWAesD4ANMaMpvkiFWQAWVBKAEJfRq0nMZV0BbAaAEgAFis2uz1YZWQAWAAdUGajAqKq_AVkBaAfUHwAFn0YytHiFWQAXgAaACCIAqXRO6VUBWAesCdeibVJdKYVVAAXXrASWyqCgoIlVAAeAClgVASAJabr9UQAHgEusDJxv_AqwBVkABiwTAAugJaxAaCFZAAcAC9QHye8038ZFVQAH1AZYBSkA3qU4vVUABlgGqAe89jrQqIVVAAdUBlQN5hjcrLNZUQAHrA7UDBr22rQVAVEAB4AOqA6hrfoWFBVVAAaAEwAPqXjJQEUpVQAGVBNUFYvEfDmcjVkAB4AarA6D7lgitx1VAAZUEqwLsHlA-mr5VQAHLAusB6Px-C0ApVUAB6wGqAlSh_AxT1FRAAYAD6gLjTIrM3GpUQAHABVVuYkHihuRTQA"
+  title="Fly me to the moon tune editor"
+  width="720"
+  height="420"
+></iframe>
+```
+
+Tune embeds start directly in the editor and need no microphone delegation.
+Show original and Trace overlay controls are hidden for embedded tunes without audio.
+The visitor can play, edit, export, or **Save** from the actions dropdown. Capture and
+Library navigation are unavailable, including after Save opens the recording
+editor. The saved URL preserves `embed=1&tuneEmbed=1`; hosts do not need to add
+`tuneEmbed` to the original tune link. Delete and Duplicate are unavailable in
+this workflow. Existing root `/#tune=...` links also open directly in the editor.
+
 Use a landscape-shaped frame; 720 × 420 is a useful starting point. Setup and
 Tune scroll within the frame. Audio/MIDI playback, editing and MIDI downloads use
-existing controls. The menu beside MIDI Download contains MIDI output selection,
+existing controls. For recording embeds, the menu beside MIDI Download contains MIDI output selection,
 Reset edits, and Delete recording. Deleting returns to New recording inside the
 iframe. WAV import and the standalone recording management and diagnostic menus
 are unavailable in embedded mode.
 
 The host and studio must use HTTPS (localhost is allowed for development).
-The host must delegate microphone access with `allow="microphone"`. If it sends a
+Recording embeds must delegate microphone access with `allow="microphone"`. If it sends a
 `Permissions-Policy` header, that policy must allow the studio origin too; the
 iframe attribute cannot override a restrictive header. Visitors must still grant
 browser microphone permission. Playback starts from a visitor action. Downloads
@@ -590,7 +621,8 @@ or MIDI to the parent page. Download files to keep a portable copy.
 
 For local testing, run `npm run dev` and open
 [the dev-only embed playground](http://localhost:5173/diapason/dev/embed).
-It provides a resizable iframe, width/height fields, automatic Editor and
+It opens with the “Fly me to the moon” editor embed and offers a recording/editor
+mode selector, resizable iframe, width/height fields, automatic Editor and
 microphone delegation toggles, and a cross-origin test using localhost and
 127.0.0.1. Reload the frame after changing permissions. The playground is served
 only by Vite's dev server and is absent from production builds. Test on a separate

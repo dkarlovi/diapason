@@ -9,13 +9,22 @@ import {
   type SavedVersion,
 } from "../edit-storage";
 import type { useEditHistory } from "./useEditHistory";
+import type { AdHocTuneSession } from "./useAdHocTune";
+import { updateAdHocVersion } from "../ad-hoc-versions";
 interface Options {
+  session?: AdHocTuneSession | undefined;
   recordingId: string;
   history: ReturnType<typeof useEditHistory>;
   beforeAction(): void;
   preview(version: SavedVersion): void;
 }
-export function useEditorVersions({ recordingId, history, beforeAction, preview }: Options) {
+export function useEditorVersions({
+  recordingId,
+  history,
+  beforeAction,
+  preview,
+  session,
+}: Options) {
   const [versions, setVersions] = useState<SavedVersion[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +36,7 @@ export function useEditorVersions({ recordingId, history, beforeAction, preview 
     setError(null);
     setBusy(false);
     running.current = false;
-    void listVersions(recordingId)
+    void (session ? Promise.resolve(session.getDraft().versions) : listVersions(recordingId))
       .then((rows) => {
         if (generation.current === token) setVersions(rows);
       })
@@ -48,7 +57,7 @@ export function useEditorVersions({ recordingId, history, beforeAction, preview 
     try {
       await operation(isCurrent);
       if (isCurrent()) {
-        const rows = await listVersions(recordingId);
+        const rows = session ? session.getDraft().versions : await listVersions(recordingId);
         if (isCurrent()) setVersions(rows);
       }
     } catch (cause) {
@@ -75,17 +84,16 @@ export function useEditorVersions({ recordingId, history, beforeAction, preview 
         const savedCommit = structuredClone(commit);
         await history.flush();
         if (!isCurrent()) return;
-        await saveVersion(
-          {
-            id: crypto.randomUUID(),
-            recordingId,
-            name,
-            nameKey: name.trim().toLowerCase(),
-            createdAt: Date.now(),
-            commit: savedCommit,
-          },
-          history.getHead(),
-        );
+        const version: SavedVersion = {
+          id: crypto.randomUUID(),
+          recordingId,
+          name,
+          nameKey: name.trim().toLowerCase(),
+          createdAt: Date.now(),
+          commit: savedCommit,
+        };
+        if (session) updateAdHocVersion(session, version.id, version);
+        else await saveVersion(version, history.getHead());
       }),
     previewVersion(id: string) {
       if (running.current) return;
@@ -118,12 +126,14 @@ export function useEditorVersions({ recordingId, history, beforeAction, preview 
     },
     renameVersion: (id: string, name: string) =>
       run(async () => {
-        await renameVersion(recordingId, id, name);
+        if (session) updateAdHocVersion(session, id, name);
+        else await renameVersion(recordingId, id, name);
       }),
     deleteVersion: (id: string) =>
       run(async () => {
         beforeAction();
-        await deleteVersion(recordingId, id);
+        if (session) updateAdHocVersion(session, id, null);
+        else await deleteVersion(recordingId, id);
       }),
   };
 }

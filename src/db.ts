@@ -42,6 +42,7 @@ export interface QuantizeSetting {
 
 interface RecordingFields {
   editHead?: EditHead;
+  editHistory?: import("./edit-history").EditHistory;
   noteEdits?: NoteEdits;
   id: string;
   name: string;

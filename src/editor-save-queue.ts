@@ -1,12 +1,12 @@
 import { EditStorageError, saveEditCommit, type EditHead } from "./edit-storage";
-import type { EditCommit } from "./edit-history";
+import type { EditCommit, EditHistory } from "./edit-history";
 export interface EditorSaveStatus {
   recordingId: string;
   state: "saved" | "saving" | "unsaved" | "conflict";
   error: string | null;
 }
 export interface EditorWriter {
-  enqueue(commit: EditCommit): void;
+  enqueue(commit: EditCommit, history?: EditHistory): void;
   flush(): Promise<void>;
   retry(): Promise<void>;
   getHead(): EditHead | null;
@@ -36,8 +36,9 @@ export function createEditorWriter(
   initialHead: EditHead | null,
 ): EditorWriter {
   let head = initialHead;
-  let pending: EditCommit[] = [];
-  let latest: EditCommit | null = null;
+  type Save = { commit: EditCommit; history?: EditHistory };
+  let pending: Save[] = [];
+  let latest: Save | null = null;
   let running: Promise<void> | null = null;
   let failure: unknown;
   let closed = false,
@@ -60,9 +61,9 @@ export function createEditorWriter(
     report("saving");
     running = (async () => {
       while (pending.length && !stopped) {
-        const commit = pending.shift()!;
+        const { commit, history } = pending.shift()!;
         try {
-          head = await saveEditCommit(recordingId, commit, head);
+          head = await saveEditCommit(recordingId, commit, head, history);
         } catch (error) {
           failure = error;
           report(
@@ -79,9 +80,9 @@ export function createEditorWriter(
     });
   };
   const writer: EditorWriter = {
-    enqueue(commit) {
+    enqueue(commit, history) {
       if (stopped) return;
-      latest = structuredClone(commit);
+      latest = structuredClone({ commit, ...(history ? { history } : {}) });
       pending.push(latest);
       pump();
     },
