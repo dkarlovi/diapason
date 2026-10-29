@@ -9,6 +9,9 @@
         16px/1.5 system-ui,
         sans-serif;
       color-scheme: light dark;
+      background: var(--host-background, light-dark(#f5f7f9, #14181c));
+      color: var(--host-foreground, light-dark(#253039, #e1e5e9));
+      accent-color: var(--host-primary);
     }
     body {
       max-width: 1100px;
@@ -24,6 +27,70 @@
       gap: 16px;
       align-items: end;
       margin: 24px 0;
+    }
+    fieldset {
+      min-width: 0;
+      border: 1px solid var(--host-border, #888);
+      border-radius: 5px;
+      padding: 12px 16px 16px;
+    }
+    legend {
+      font-weight: 600;
+      padding: 0 6px;
+    }
+    .theme-settings {
+      flex: 1 0 100%;
+    }
+    .theme-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: end;
+    }
+    .theme-modes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .theme-seeds {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .theme-seeds label,
+    .theme-seeds label:has([type="checkbox"]) {
+      display: grid;
+      gap: 4px;
+      align-content: start;
+    }
+    .theme-seeds label span {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .theme-seeds input[type="color"] {
+      width: 100%;
+      min-width: 82px;
+      height: 38px;
+      padding: 3px;
+    }
+    output {
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .theme-settings p {
+      margin-bottom: 0;
+      font-size: 0.875rem;
+      max-width: 75ch;
+    }
+    input:disabled {
+      opacity: 0.55;
+    }
+    @media (max-width: 580px) {
+      .theme-modes {
+        grid-template-columns: 1fr;
+      }
     }
     label {
       display: grid;
@@ -62,7 +129,8 @@
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       padding: 16px;
-      background: light-dark(#eee, #222);
+      background: var(--host-card, light-dark(#eee, #222));
+      border: 1px solid var(--host-border, #888);
     }
   </style>
   <h1>Embed playground</h1>
@@ -87,7 +155,110 @@
       ><input name="crossOrigin" type="checkbox" checked /> Cross-origin (localhost ↔
       127.0.0.1)</label
     >
+    <fieldset class="theme-settings">
+      <legend>Studio theme</legend>
+      <div class="theme-options">
+        <label
+          >Palette
+          <select name="palette">
+            <option value="default">App default — blue &amp; slate</option>
+            <option value="blue">Custom blue</option>
+            <option value="forest">Forest</option>
+            <option value="terracotta">Terracotta</option>
+            <option value="plum">Plum</option>
+            <option value="yellow">Bright yellow — contrast stress test</option>
+          </select>
+        </label>
+        <label
+          >Appearance
+          <select name="scheme">
+            <option value="auto">Auto — follow system</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <label
+          ><input type="checkbox" name="deriveDark" checked /> Derive dark from light seeds</label
+        >
+      </div>
+      <div class="theme-modes">
+        <fieldset id="light-seeds">
+          <legend>Light seeds</legend>
+          <div class="theme-seeds">
+            <label
+              ><span>Primary</span
+              ><input type="color" id="lightPrimary" name="lightPrimary" value="#0072b1" /><output
+                for="lightPrimary"
+                >#0072b1</output
+              ></label
+            >
+            <label
+              ><span><input type="checkbox" name="lightNeutralEnabled" checked /> Neutral</span
+              ><input
+                type="color"
+                id="lightNeutral"
+                aria-label="Light neutral seed"
+                name="lightNeutral"
+                value="#64748b"
+              /><output for="lightNeutral">#64748b</output></label
+            >
+            <label
+              ><span><input type="checkbox" name="lightSecondaryEnabled" checked /> Secondary</span
+              ><input
+                type="color"
+                id="lightSecondary"
+                aria-label="Light secondary seed"
+                name="lightSecondary"
+                value="#a16a12"
+              /><output for="lightSecondary">#a16a12</output></label
+            >
+          </div>
+        </fieldset>
+        <fieldset id="dark-seeds">
+          <legend>Dark seeds</legend>
+          <div class="theme-seeds">
+            <label
+              ><span>Primary</span
+              ><input type="color" id="darkPrimary" name="darkPrimary" value="#8bc1f1" /><output
+                for="darkPrimary"
+                >#8bc1f1</output
+              ></label
+            >
+            <label
+              ><span><input type="checkbox" name="darkNeutralEnabled" /> Neutral</span
+              ><input
+                type="color"
+                id="darkNeutral"
+                aria-label="Dark neutral seed"
+                name="darkNeutral"
+                value="#64748b"
+              /><output for="darkNeutral">#64748b</output></label
+            >
+            <label
+              ><span><input type="checkbox" name="darkSecondaryEnabled" /> Secondary</span
+              ><input
+                type="color"
+                id="darkSecondary"
+                aria-label="Dark secondary seed"
+                name="darkSecondary"
+                value="#a16a12"
+              /><output for="darkSecondary">#a16a12</output></label
+            >
+          </div>
+        </fieldset>
+      </div>
+      <p>
+        Choose a palette to customize its seeds. Primary colors actions and MIDI; Neutral influences
+        surfaces; Secondary colors playback and original audio. Uncheck Neutral and Secondary to try
+        just one seed. Colors are adjusted for readable contrast. The surrounding page previews the
+        same theme.
+      </p>
+    </fieldset>
     <button>Reload studio</button>
+    <span
+      >Apply these settings by reloading. Reloading ends any active recording and reopens the
+      example tune.</span
+    >
   </form>
   <p id="size" role="status"></p>
   <div class="viewport" id="viewport"></div>
@@ -111,6 +282,15 @@
     belong to the iframe origin and may be restricted by browser privacy settings.
   </p>
   <script type="module">
+    import { encodeTheme } from "/diapason/src/theme-config.ts";
+    import { generateTheme } from "/diapason/src/theme-palette.ts";
+    const palettes = {
+      blue: ["#0072b1", "#64748b", "#a16a12"],
+      forest: ["#28714b", "#657367", "#a15e35"],
+      terracotta: ["#b34e36", "#86746b", "#327a83"],
+      plum: ["#84476f", "#807383", "#4c7763"],
+      yellow: ["#ffff00", "#808080", "#0000ff"],
+    };
     const exampleTune =
       "RFBTTgEBABJGbHkgbWUgdG8gdGhlIG1vb27AhAEAAAAAAMBbQAQCABs5rzGxRptNQCDLRqfjjllACAACIAEA4AN5L3lXoclWQAGLBMAC4LT7L3X1VkABwALqATQonEConlZAAeoBqwLdXOG4WxxWQAWWA7UDGve7bqS7VUBWAdUDqwPz50GBZyNVQAWABMADdaztr3vAVUBWAesD4ANMaMpvkiFWQAWVBKAEJfRq0nMZV0BbAaAEgAFis2uz1YZWQAWAAdUGajAqKq_AVkBaAfUHwAFn0YytHiFWQAXgAaACCIAqXRO6VUBWAesCdeibVJdKYVVAAXXrASWyqCgoIlVAAeAClgVASAJabr9UQAHgEusDJxv_AqwBVkABiwTAAugJaxAaCFZAAcAC9QHye8038ZFVQAH1AZYBSkA3qU4vVUABlgGqAe89jrQqIVVAAdUBlQN5hjcrLNZUQAHrA7UDBr22rQVAVEAB4AOqA6hrfoWFBVVAAaAEwAPqXjJQEUpVQAGVBNUFYvEfDmcjVkAB4AarA6D7lgitx1VAAZUEqwLsHlA-mr5VQAHLAusB6Px-C0ApVUAB6wGqAlSh_AxT1FRAAYAD6gLjTIrM3GpUQAHABVVuYkHihuRTQA";
     const form = document.querySelector("form");
@@ -123,6 +303,29 @@
         editor ? "/diapason/tune?embed=1" : "/diapason/new?embed=1",
         location.href,
       );
+      const scheme = settings.get("scheme");
+      if (scheme !== "auto") url.searchParams.set("scheme", scheme);
+      const seedValues = (mode) => {
+        const seeds = { primary: settings.get(`${mode}Primary`) };
+        if (settings.has(`${mode}NeutralEnabled`)) seeds.neutral = settings.get(`${mode}Neutral`);
+        if (settings.has(`${mode}SecondaryEnabled`))
+          seeds.secondary = settings.get(`${mode}Secondary`);
+        return seeds;
+      };
+      let theme;
+      if (settings.get("palette") !== "default") {
+        theme = { light: seedValues("light") };
+        if (!settings.has("deriveDark")) theme.dark = seedValues("dark");
+        url.searchParams.set("theme", encodeTheme(theme));
+      }
+      const generated = generateTheme(theme);
+      for (const key of ["background", "foreground", "card", "border", "primary"]) {
+        document.documentElement.style.setProperty(
+          `--host-${key}`,
+          `light-dark(${generated.light[key]}, ${generated.dark[key]})`,
+        );
+      }
+      document.documentElement.style.colorScheme = scheme === "auto" ? "light dark" : scheme;
       if (editor) url.hash = `tune=${exampleTune}`;
       if (settings.has("crossOrigin"))
         url.hostname = location.hostname === "localhost" ? "127.0.0.1" : "localhost";
@@ -150,7 +353,34 @@
       document.querySelector("#editor-help").hidden = !editor;
     }
     form.elements.mode.addEventListener("change", updateMode);
+    function updateThemeInputs() {
+      const defaults = form.elements.palette.value === "default";
+      document.querySelector("#light-seeds").disabled = defaults;
+      document.querySelector("#dark-seeds").disabled = defaults || form.elements.deriveDark.checked;
+      for (const mode of ["light", "dark"]) {
+        for (const role of ["Neutral", "Secondary"]) {
+          form.elements[`${mode}${role}`].disabled =
+            !form.elements[`${mode}${role}Enabled`].checked;
+        }
+      }
+      for (const input of form.querySelectorAll('input[type="color"]')) {
+        form.querySelector(`output[for="${input.name}"]`).value = input.value;
+      }
+    }
+    form.elements.palette.addEventListener("change", () => {
+      const colors = palettes[form.elements.palette.value];
+      if (colors) {
+        for (const mode of ["light", "dark"]) {
+          ["Primary", "Neutral", "Secondary"].forEach((role, index) => {
+            form.elements[`${mode}${role}`].value = colors[index];
+          });
+        }
+      }
+      updateThemeInputs();
+    });
+    form.addEventListener("input", updateThemeInputs);
     updateMode();
+    updateThemeInputs();
     form.addEventListener("submit", reload);
     reload();
   </script>

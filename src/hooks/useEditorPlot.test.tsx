@@ -132,3 +132,15 @@ it("redraws the playhead and follows playback without re-rendering", () => {
   act(() => playhead.getState().set(null));
   expect(drawTrace.mock.lastCall?.[2].playheadTime).toBeUndefined();
 });
+
+it("redraws saved charts after a seed change without re-rendering or stopping playback", () => {
+  let renders = 0;
+  const { playhead } = setup(() => renders++);
+  act(() => playhead.getState().set(2));
+  const before = renders;
+  drawTrace.mockClear();
+  act(() => window.dispatchEvent(new Event("studio-theme-change")));
+  expect(drawTrace.mock.calls).toHaveLength(1);
+  expect(drawTrace.mock.lastCall?.[2].playheadTime).toBe(2);
+  expect(renders).toBe(before);
+});

@@ -555,3 +555,10 @@ main.studio-shell.library-shell {
   border-radius: 7px;
   background: var(--color-card);
 }
+
+/* Decorative dividers stay quiet; interactive boundaries need stronger contrast. */
+.studio-shell :is(input, select, textarea),
+.studio-shell [data-slot="button"],
+.studio-shell .button {
+  border-color: var(--color-input-border);
+}

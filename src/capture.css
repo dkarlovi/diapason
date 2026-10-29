@@ -531,14 +531,14 @@ body:has(.studio-shell) {
   background: currentColor;
 }
 .studio-shell [data-slot="button"].record-toggle[aria-pressed="true"] {
-  background: #e52232;
-  border-color: #e52232;
-  color: #fff;
+  background: var(--color-destructive);
+  border-color: var(--color-destructive);
+  color: var(--color-destructive-foreground);
 }
 .studio-shell [data-slot="button"].record-toggle[aria-pressed="true"]:hover:not(:disabled) {
-  background: #c71725;
-  border-color: #c71725;
-  color: #fff;
+  background: var(--color-destructive);
+  border-color: var(--color-destructive);
+  color: var(--color-destructive-foreground);
   filter: none;
 }
 .capture-wizard input[type="range"] {
