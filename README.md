@@ -590,8 +590,9 @@ To embed a specific tune, use its shared URL with `embed=1` before the fragment:
 ></iframe>
 ```
 
-Tune embeds start directly in the editor and need no microphone delegation. The
-visitor can play, edit, export, or **Save** from the actions dropdown. Capture and
+Tune embeds start directly in the editor and need no microphone delegation.
+Show original and Trace overlay controls are hidden for embedded tunes without audio.
+The visitor can play, edit, export, or **Save** from the actions dropdown. Capture and
 Library navigation are unavailable, including after Save opens the recording
 editor. The saved URL preserves `embed=1&tuneEmbed=1`; hosts do not need to add
 `tuneEmbed` to the original tune link. Delete and Duplicate are unavailable in

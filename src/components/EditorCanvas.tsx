@@ -161,6 +161,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
   );
 }
 function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) {
+  const { embedded } = useStudioMode();
   return (
     <>
       <p id="roll-instructions" className="sr-only">
@@ -175,6 +176,7 @@ function MidiOverlays({ state, layout }: Pick<CanvasProps, "state" | "layout">) 
       <div className="editor-canvas-footer">
         <Button
           className="editor-trace-toggle"
+          hidden={embedded && !!state.record?.noteSource}
           disabled={!state.capabilities?.analysis}
           aria-pressed={state.viewport.traceOverlay}
           onClick={() => state.viewport.setTraceOverlay(!state.viewport.traceOverlay)}

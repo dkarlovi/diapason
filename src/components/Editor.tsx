@@ -68,6 +68,7 @@ export function Editor({ id, session }: { id: string; session?: AdHocTuneSession
         <EditorCanvas kind="midi" state={state} layout={layout} />
         <Button
           className="editor-source-handle"
+          hidden={embedded && !!state.record?.noteSource}
           disabled={!state.capabilities?.audio}
           title={
             state.record?.noteSource
