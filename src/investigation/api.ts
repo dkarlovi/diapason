@@ -1,0 +1,12 @@
+export { summarizePackage, makeReport, exitCode } from "./report";
+export { readRecordingPackage } from "../recording-package";
+export { compareRecordingPackage } from "../recording-package-comparison";
+export { formatPackageComparison } from "../recording-package-report";
+export { encodeTuneMidi } from "../tune-midi";
+export { BUILD_INFO } from "../build-info";
+export { verifyPackage, overallChecks } from "./verification";
+export { computeComparison } from "./computation";
+export { getView } from "./views";
+export { queryNotes } from "./notes";
+export { queryControls } from "./controls";
+export { queryStages } from "./stages";

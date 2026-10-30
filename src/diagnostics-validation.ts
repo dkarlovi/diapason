@@ -117,3 +117,56 @@ export function firstDifference(expected: unknown, actual: unknown, path: string
   if (isObject(expected) && isObject(actual)) return objectDifference(expected, actual, path);
   return path;
 }
+
+export interface ValueDifference {
+  path: string;
+  expected: unknown;
+  actual: unknown;
+  numericDelta: number | null;
+}
+export interface ValueComparison {
+  firstDifference: string | null;
+  maxNumericDelta: { path: string; absolute: number } | null;
+  differences: ValueDifference[];
+}
+function compareNumber(a: number, b: number, path: string, result: ValueComparison): boolean {
+  const absolute = Math.abs(a - b);
+  if (
+    Number.isFinite(absolute) &&
+    (!result.maxNumericDelta || absolute > result.maxNumericDelta.absolute)
+  )
+    result.maxNumericDelta = { path, absolute };
+  return absolute <= NUMERIC_COMPARISON_TOLERANCE;
+}
+function walkArray(a: unknown[], b: unknown[], path: string, result: ValueComparison): void {
+  if (a.length !== b.length) walkComparison(a.length, b.length, `${path}.length`, result);
+  for (let i = 0; i < Math.max(a.length, b.length); i++)
+    walkComparison(a[i], b[i], `${path}[${i}]`, result);
+}
+function walkComparison(a: unknown, b: unknown, path: string, result: ValueComparison): void {
+  if (typeof a === "number" && typeof b === "number") {
+    if (compareNumber(a, b, path, result)) return;
+  } else if (a === b) return;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    walkArray(a, b, path, result);
+    return;
+  }
+  if (isObject(a) && isObject(b)) {
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)]))
+      walkComparison(a[key], b[key], `${path}.${key}`, result);
+    return;
+  }
+  result.firstDifference ??= path;
+  result.differences.push({
+    path,
+    expected: a,
+    actual: b,
+    numericDelta: typeof a === "number" && typeof b === "number" ? Math.abs(a - b) : null,
+  });
+}
+/** Collect meaningful differences while retaining the largest raw floating-point delta. */
+export function compareValues(expected: unknown, actual: unknown, path: string): ValueComparison {
+  const result: ValueComparison = { firstDifference: null, maxNumericDelta: null, differences: [] };
+  walkComparison(expected, actual, path, result);
+  return result;
+}

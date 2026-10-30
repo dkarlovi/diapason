@@ -1,6 +1,6 @@
 import { analyzeBuffer, type AnalyzeOptions } from "./recorder";
 import type { Frame } from "./notes";
-import { unpackFrames } from "./analysis-cache";
+import { unpackFrames } from "./frame-storage";
 
 export interface AnalysisRequest {
   samples: Float32Array<ArrayBuffer>;

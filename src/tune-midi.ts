@@ -1,14 +1,11 @@
 import { TUNE_MIDI_PREFIX, readTuneMidiPayload } from "./tune-midi-reader";
 import { midiVarLen, notesToMidi } from "./midi";
 import { PROGRAMS } from "./midi-playback";
-import { recordingFromPortableTune, type PortableTune } from "./portable-tune";
-import { recordingNotes } from "./recording";
+import type { PortableTune } from "./portable-tune";
+import { tunePlaybackEvents } from "./investigation/events";
 import { decodeTune, encodeTune, toBase64Url } from "./tune-codec";
 async function midiBytes(tune: PortableTune, payload: Uint8Array): Promise<Uint8Array> {
-  const record = recordingFromPortableTune(tune, "export", 0);
-  const rendered = recordingNotes(record, [])
-    .map((n) => ({ ...n, midi: n.midi + 12 * tune.play.octave }))
-    .filter((n) => n.midi >= 0 && n.midi <= 127);
+  const rendered = tunePlaybackEvents(tune).notes;
   const standard = new Uint8Array(await notesToMidi(rendered, { bpm: tune.bpm }).arrayBuffer());
   const metadata = new TextEncoder().encode(TUNE_MIDI_PREFIX + toBase64Url(payload));
   const track = [

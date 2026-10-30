@@ -1,3 +1,14 @@
 {
-  "entry": ["tools/diapason.mjs", "src/recording-package-report.ts"]
+  "entry": ["src/recording-package-report.ts"],
+  "framework": [
+    {
+      "name": "diapason-development-cli",
+      "detection": {
+        "type": "fileExists",
+        "pattern": "tools/diapason.mjs"
+      },
+      "entryPoints": ["tools/diapason.mjs"],
+      "entryPointRole": "support"
+    }
+  ]
 }

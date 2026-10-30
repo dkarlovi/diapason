@@ -42,7 +42,9 @@ async function makePackage() {
 it("inspects and compares repeatedly from outside the repo without changing the WAV", async () => {
   const file = await makePackage();
   const before = await readFile(file);
-  const inspection = await exec(process.execPath, [cli, "inspect", file, "--json"], { cwd: dir });
+  const inspection = await exec(process.execPath, [cli, "inspect", file, "--raw", "--json"], {
+    cwd: dir,
+  });
   expect(inspection.stdout, inspection.stderr).not.toBe("");
   expect(JSON.parse(inspection.stdout)).toMatchObject({
     schemaVersion: 2,
@@ -108,3 +110,153 @@ it("inspects legacy WAVs but refuses comparison without a saved melody", async (
     }),
   ).rejects.toHaveProperty("code", 2);
 }, 15000);
+
+it("prints focused summaries in JSON and Markdown without exporting files", async () => {
+  const file = await makePackage();
+  const json = await exec(process.execPath, [cli, "inspect", file, "--json"], { cwd: dir });
+  expect(JSON.parse(json.stdout)).toMatchObject({
+    schemaVersion: 1,
+    kind: "inspect",
+    execution: { interpretationVersion: 1 },
+    data: { name: "Whistle" },
+  });
+  const markdown = await exec(process.execPath, [cli, "inspect", file, "--format", "markdown"], {
+    cwd: dir,
+  });
+  expect(markdown.stdout).toContain("Whistle");
+  expect(markdown.stdout).not.toContain("\x1b");
+  const bad = spawnSync(
+    process.execPath,
+    [cli, "inspect", file, "--format", "json", "--json", "--color", "invalid"],
+    { cwd: dir, encoding: "utf8" },
+  );
+  expect(bad.status).toBe(2);
+  expect(JSON.parse(bad.stdout)).toMatchObject({ kind: "error", overall: "fail" });
+}, 15000);
+
+it("reports JSON usage and damaged input errors without mixing stderr into stdout", async () => {
+  const file = await makePackage();
+  const damaged = join(dir, "damaged.wav");
+  await writeFile(damaged, "not a WAV");
+  for (const args of [
+    ["unknown", "--json"],
+    ["inspect", file, "--json", "--format", "markdown"],
+    ["inspect", damaged, "--json"],
+    ["inspect", file, "--json", "--note", "nonsense"],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, ...args], { cwd: dir, encoding: "utf8" });
+    expect(result.status).toBe(2);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      schemaVersion: 1,
+      kind: "error",
+      overall: "fail",
+    });
+  }
+  const colored = await exec(process.execPath, [cli, "inspect", file, "--color", "always"], {
+    cwd: dir,
+  });
+  expect(colored.stdout).toContain("\x1b[");
+  const plain = await exec(process.execPath, [cli, "inspect", file, "--color", "never"], {
+    cwd: dir,
+  });
+  expect(plain.stdout).not.toContain("\x1b[");
+}, 15000);
+it("verifies packages by default and supports a focused read-only comparison", async () => {
+  const file = await makePackage();
+  const verified = await exec(process.execPath, [cli, "verify", file, "--json"], { cwd: dir });
+  expect(JSON.parse(verified.stdout)).toMatchObject({
+    kind: "verify",
+    overall: "pass",
+    data: {
+      checks: expect.arrayContaining([
+        expect.objectContaining({ id: "source.non-mutation", status: "pass" }),
+      ]),
+    },
+  });
+  const summary = await exec(process.execPath, [cli, "inspect", file, "--format", "markdown"], {
+    cwd: dir,
+  });
+  expect(summary.stdout).toContain("replay.edited");
+  expect(summary.stdout).not.toContain("verification has not run");
+  const compared = await exec(process.execPath, [cli, "compare", file, "--json"], { cwd: dir });
+  expect(JSON.parse(compared.stdout)).toMatchObject({ kind: "compare", overall: "pass" });
+}, 15000);
+
+it("keeps cold, warm and disabled cache verification equivalent and exposes cache maintenance", async () => {
+  const file = await makePackage();
+  const cache = join(dir, "private-cache");
+  const run = async (extra: string[] = []) =>
+    JSON.parse(
+      (
+        await exec(
+          process.execPath,
+          [cli, "verify", file, "--cache-dir", cache, "--json", ...extra],
+          { cwd: dir },
+        )
+      ).stdout,
+    );
+  const cold = await run();
+  const warm = await run();
+  const fresh = await run(["--no-cache"]);
+  expect(cold.data.provenance[0].disposition).toBe("recomputed");
+  expect(warm.data.provenance[0].disposition).toBe("reused");
+  expect(fresh.data.provenance[0].disposition).toBe("recomputed");
+  expect(warm.data.checks).toEqual(cold.data.checks);
+  expect(fresh.data.checks).toEqual(cold.data.checks);
+  expect(cold.execution.codeRuntimeKey).toMatch(/^[a-f0-9]{64}$/);
+  const status = async () =>
+    JSON.parse(
+      (
+        await exec(process.execPath, [cli, "cache", "status", "--cache-dir", cache, "--json"], {
+          cwd: dir,
+        })
+      ).stdout,
+    );
+  expect((await status()).data.entries).toBeGreaterThan(0);
+  await exec(process.execPath, [cli, "cache", "clear", "--cache-dir", cache], { cwd: dir });
+  expect((await status()).data.entries).toBe(0);
+}, 20000);
+
+it("browses full-context notes, controls and source stages with complete paginated reports", async () => {
+  const { investigationInput } = await import("./test-support/investigation");
+  const { bytes } = await investigationInput();
+  const file = join(dir, "queries.wav");
+  await writeFile(file, new Uint8Array(bytes));
+  const query = async (kind: string, extra: string[] = []) =>
+    JSON.parse(
+      (await exec(process.execPath, [cli, kind, file, "--json", ...extra], { cwd: dir })).stdout,
+    );
+  const all = await query("notes", ["--all"]);
+  expect(all.data.rows[0]).toMatchObject({ id: 1, intendedMidi: null });
+  expect((await query("notes", ["--note", "1"])).data.rows).toEqual(all.data.rows);
+  expect((await query("notes", ["--corrected"])).data.rows).toEqual([]);
+  const automatic = await query("notes", ["--view", "automatic"]);
+  expect(automatic.view).toBe("automatic");
+  const selected = await query("notes", ["--view", "automatic", "--time", "0.1:0.3"]);
+  expect(selected.data.rows).toEqual(
+    automatic.data.rows.filter(
+      (row: { source: { start: number; end: number } }) =>
+        row.source.start < 0.3 && row.source.end > 0.1,
+    ),
+  );
+  const controls = await query("controls", ["--all"]);
+  const first = await query("controls", ["--limit", "5"]);
+  const rest = await query("controls", ["--offset", "5", "--limit", "20"]);
+  expect([...first.data.rows, ...rest.data.rows]).toEqual(controls.data.rows);
+  expect(first.scope.omitted).toBeGreaterThan(0);
+  expect((await query("stages", ["--view", "replay", "--note", "1"])).data.rows[0]).toMatchObject({
+    kind: "matched",
+    firstDifferingStage: null,
+  });
+  const markdown = await exec(process.execPath, [cli, "notes", file, "--format", "markdown"], {
+    cwd: dir,
+  });
+  expect(markdown.stdout).toContain("B5");
+  for (const extra of [
+    ["--note", "999"],
+    ["--time", "NaN:2"],
+    ["--note", "1", "--time", "0:1"],
+    ["--limit", "-1"],
+  ])
+    await expect(query("notes", extra)).rejects.toHaveProperty("code", 2);
+}, 25000);

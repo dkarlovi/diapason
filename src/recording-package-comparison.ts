@@ -1,3 +1,5 @@
+import type { AudioRecording } from "./db";
+import type { Frame } from "./notes";
 import { encodeTuneMidi } from "./tune-midi";
 import { BUILD_INFO } from "./build-info";
 import { captureRecordingPackage, restoreRecordingPackage } from "./recording-package";
@@ -7,9 +9,10 @@ import type {
   CapturedRecordingPackage,
   ProcessingEvidence,
   ReadRecordingPackage,
+  RecordingPackageV2,
 } from "./recording-package-types";
 import type { SourceRange } from "./note-edits";
-import { withControlDefaults } from "./melody/knobs";
+import { historicalControls } from "./melody/knobs";
 
 export interface SourceMatch {
   savedIndex: number | null;
@@ -112,6 +115,11 @@ export interface PackageComparison {
 }
 export async function compareRecordingPackage(
   input: ReadRecordingPackage,
+  acousticFrames?: Frame[],
+  capture?: (
+    record: AudioRecording,
+    view: "edited" | "automatic",
+  ) => Promise<CapturedRecordingPackage>,
 ): Promise<PackageComparison> {
   const saved = input.metadata;
   if (saved.schemaVersion !== 2)
@@ -123,38 +131,25 @@ export async function compareRecordingPackage(
       saved,
     };
   const record = await restoreRecordingPackage(input, "", "restore");
-  const frames = analyzeRecording(input.pcm, input.sampleRate, record);
-  const edited = captureRecordingPackage(
-    record,
-    input.pcm,
-    frames,
-    saved.exported.context,
-    saved.exported.at,
-  );
+  const frames = acousticFrames ?? analyzeRecording(input.pcm, input.sampleRate, record);
+  const snapshot = (value: AudioRecording, view: "edited" | "automatic") =>
+    capture
+      ? capture(value, view)
+      : captureRecordingPackage(
+          value,
+          input.pcm,
+          frames,
+          saved.exported.context,
+          saved.exported.at,
+        );
+  const edited = await snapshot(record, "edited");
   const freshRecord = { ...record };
   delete freshRecord.noteEdits;
   delete freshRecord.muted;
-  const automatic = captureRecordingPackage(
-    freshRecord,
-    input.pcm,
-    frames,
-    saved.exported.context,
-    saved.exported.at,
-  );
-  const expected = {
-    frames: saved.frames,
-    evidence: {
-      ...saved.evidence,
-      settings: { ...saved.evidence.settings, origins: undefined },
-      stages: { ...saved.evidence.stages, knobs: withControlDefaults(saved.evidence.stages.knobs) },
-    },
-    tune: { ...saved.tune, effectiveKnobs: withControlDefaults(saved.tune.effectiveKnobs) },
-    midiBytes: saved.midiBytes,
-  };
+  const automatic = await snapshot(freshRecord, "automatic");
+  const expected = { ...replayObservation(saved), midiBytes: saved.midiBytes };
   const actual = {
-    frames: edited.frames,
-    evidence: { ...edited.evidence, settings: { ...edited.evidence.settings, origins: undefined } },
-    tune: edited.tune,
+    ...replayObservation(edited),
     midiBytes: Array.from(new Uint8Array(await (await encodeTuneMidi(edited.tune)).arrayBuffer())),
   };
   const difference = firstDifference(expected, actual, "replay");
@@ -175,5 +170,24 @@ export async function compareRecordingPackage(
     automatic,
     editedDifferences: compareSavedMelody(saved.evidence, edited.evidence),
     automaticDifferences: compareSavedMelody(saved.evidence, automatic.evidence),
+  };
+}
+
+export function replayObservation(value: Pick<RecordingPackageV2, "frames" | "evidence" | "tune">) {
+  const version = value.tune.noteSource.interpretationVersion;
+  return {
+    frames: value.frames,
+    evidence: {
+      ...value.evidence,
+      settings: { ...value.evidence.settings, origins: undefined },
+      stages: {
+        ...value.evidence.stages,
+        knobs: historicalControls(value.evidence.stages.knobs, version).values,
+      },
+    },
+    tune: {
+      ...value.tune,
+      effectiveKnobs: historicalControls(value.tune.effectiveKnobs, version).values,
+    },
   };
 }

@@ -1,3 +1,4 @@
+import { PackageError, packageError } from "./package-error";
 import { mergePackageExtensions } from "./recording-package-extensions";
 import { encodeTuneMidi } from "./tune-midi";
 import type { AudioRecording } from "./db";
@@ -92,6 +93,13 @@ export async function encodeRecordingPackage(snapshot: CapturedRecordingPackage)
   return new Blob([wavBytes(pcm, record.sampleRate, chunks)], { type: "audio/wav" });
 }
 export async function readRecordingPackage(bytes: ArrayBuffer): Promise<ReadRecordingPackage> {
+  try {
+    return await readPackage(bytes);
+  } catch (error) {
+    throw packageError(error, "wav", "wav.container");
+  }
+}
+async function readPackage(bytes: ArrayBuffer): Promise<ReadRecordingPackage> {
   const chunks = wavChunks(bytes);
   const found = chunks.filter((c) => c.id === METADATA_CHUNK);
   if (!found.length) throw new Error("Only WAVs exported from diapason can be imported for now.");
@@ -100,7 +108,7 @@ export async function readRecordingPackage(bytes: ArrayBuffer): Promise<ReadReco
     chunks.filter((c) => c.id === "data").length !== 1 ||
     chunks.filter((c) => c.id === "fmt ").length !== 1
   )
-    throw new Error("Duplicate WAV chunks.");
+    throw new PackageError("malformed", "wav.chunks", "wav.unique-chunks", "Duplicate WAV chunks.");
   const chunk = found[0]!;
   if (chunk.length > MAX_PACKAGE_METADATA_BYTES)
     throw new Error("Recording metadata is too large.");
@@ -116,11 +124,26 @@ export async function readRecordingPackage(bytes: ArrayBuffer): Promise<ReadReco
     return { metadata: payload, pcm, sampleRate };
   }
   if (Number(payload.schemaVersion) > 2)
-    throw new Error("This WAV was exported by a newer diapason. Update diapason and try again.");
+    throw new PackageError(
+      "unsupported",
+      "schemaVersion",
+      "package.schema",
+      "This WAV was exported by a newer diapason. Update diapason and try again.",
+    );
   const metadata = validateRecordingPackage(payload, pcm.length, sampleRate);
   const data = chunks.find((c) => c.id === "data")!;
   if ((await sha256(bytes.slice(data.start, data.start + data.length))) !== metadata.audio.sha256)
-    throw new Error("WAV audio does not match its saved SHA-256.");
+    throw new PackageError(
+      "malformed",
+      "audio.sha256",
+      "pcm.identity",
+      "WAV audio does not match its saved SHA-256.",
+      {
+        schemaVersion: metadata.schemaVersion,
+        interpretationVersion: metadata.tune.noteSource.interpretationVersion,
+        build: metadata.exported.context.build,
+      },
+    );
   return { metadata, pcm, sampleRate };
 }
 export async function restoreRecordingPackage(

@@ -1,3 +1,4 @@
+import type { MidiEvent } from "./midi";
 import { TUNE_LIMITS } from "./portable-tune";
 import { fromBase64Url } from "./tune-codec";
 export const TUNE_MIDI_PREFIX = "diapason:tune:1:";
@@ -9,6 +10,11 @@ const invalid = () => {
 class MidiReader {
   position = 22;
   ended = false;
+  tick = 0;
+  events: MidiEvent[] = [];
+  program = 0;
+  beatsPerBar = 4;
+  microsecondsPerQuarter = 500000;
   constructor(private bytes: Uint8Array) {}
   byte(): number {
     if (this.position >= this.bytes.length) return invalid();
@@ -38,20 +44,41 @@ class MidiReader {
     }
     if (type === 81 && (data.length !== 3 || data.every((b) => b === 0))) return invalid();
     if (type === 88 && data.length !== 4) return invalid();
+    if (type === 81) this.microsecondsPerQuarter = data[0]! * 65536 + data[1]! * 256 + data[2]!;
+    if (type === 88) this.beatsPerBar = data[0]!;
     return type === 1 ? new TextDecoder("utf-8", { fatal: true }).decode(data) : undefined;
   }
   event(): string | undefined {
-    this.variable();
+    this.tick += this.variable();
     const status = this.byte();
     if (status === 0xff) return this.metaEvent();
     const lengths: Record<number, number> = { 192: 1, 144: 2, 128: 2 };
     const length = lengths[status];
     if (length === undefined) return invalid();
-    if (this.take(length).some((b) => b >= 128)) return invalid();
+    const data = this.take(length);
+    if (data.some((b) => b >= 128)) return invalid();
+    if (status === 192) this.program = data[0]!;
+    else
+      this.events.push({
+        tick: this.tick,
+        type: status === 144 && data[1] !== 0 ? "on" : "off",
+        midi: data[0]!,
+      });
     return undefined;
   }
 }
 export function readTuneMidiPayload(bytes: Uint8Array): Uint8Array {
+  return readTuneMidiMusic(bytes).payload;
+}
+/** Decode actual saved musical events using the same strict exported-MIDI reader. */
+export function readTuneMidiMusic(bytes: Uint8Array): {
+  payload: Uint8Array;
+  events: MidiEvent[];
+  program: number;
+  beatsPerBar: number;
+  microsecondsPerQuarter: number;
+  ppq: number;
+} {
   if (bytes.length < 26 || bytes.length > TUNE_LIMITS.encoded * 2) return invalid();
   const header = [77, 84, 104, 100, 0, 0, 0, 6, 0, 0, 0, 1, 1, 224, 77, 84, 114, 107];
   if (header.some((b, i) => bytes[i] !== b)) return invalid();
@@ -66,5 +93,12 @@ export function readTuneMidiPayload(bytes: Uint8Array): Uint8Array {
     payload = fromBase64Url(text.slice(TUNE_MIDI_PREFIX.length));
   }
   if (!reader.ended) return invalid();
-  return payload ?? invalid();
+  return {
+    payload: payload ?? invalid(),
+    events: reader.events,
+    program: reader.program,
+    beatsPerBar: reader.beatsPerBar,
+    microsecondsPerQuarter: reader.microsecondsPerQuarter,
+    ppq: 480,
+  };
 }
