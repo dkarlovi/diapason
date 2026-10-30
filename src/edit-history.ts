@@ -1,15 +1,6 @@
-import { sameEditSnapshot, type EditSnapshot } from "./edit-state";
-export interface EditCommit {
-  id: string;
-  label: string;
-  createdAt: number;
-  snapshot: EditSnapshot;
-}
-export interface EditHistory {
-  commits: readonly EditCommit[];
-  cursor: number;
-  draft: { label: string; snapshot: EditSnapshot } | null;
-}
+import { sameEditSnapshot } from "./edit-state";
+import type { EditCommit, EditHistory, EditSnapshot } from "./Recording/RecordingEdit.type";
+
 export type EditHistoryEvent =
   | { type: "begin"; label: string }
   | { type: "update"; snapshot: EditSnapshot }

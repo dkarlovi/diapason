@@ -1,6 +1,7 @@
 import { BASE } from "./router";
-import { type PortableTune } from "./portable-tune";
 import { decodeTune, encodeTune, fromBase64Url, toBase64Url } from "./tune-codec";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 const MAX_TUNE_URL = 16_384;
 export async function tuneUrl(tune: PortableTune, origin: string): Promise<string> {
   const url = `${origin}${BASE}tune#tune=${toBase64Url(await encodeTune(tune))}`;

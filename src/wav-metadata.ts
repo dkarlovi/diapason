@@ -1,10 +1,6 @@
 import { BUILD_INFO } from "./build-info";
 import { encodeAudio } from "./codec";
-import type {
-  CaptureMeta,
-  AudioRecording as Recording,
-  RecordingOrigin,
-} from "./Recording/Recording.type";
+import type { AudioRecording as Recording, RecordingOrigin } from "./Recording/Recording.type";
 import { DEFAULT_PRESET, resolveKnobs } from "./melody/knobs";
 import { newRecordingMelody } from "./melody/settings";
 import { analysisOptionsFor, getSoundProfile, SOUND_PROFILES } from "./recording-profiles";
@@ -12,34 +8,13 @@ import { validTempo } from "./recording-setup";
 import { summarizeWaveform } from "./waveform";
 import { encodeWav, type WavChunk } from "./wav";
 import { decodeWav, wavChunks } from "./wav-reader";
+import type { ExportContext, WavMetadata } from "./Recording/WavMetadata.type";
 
 // Capture metadata shared by legacy schema-1 WAVs and schema-2 packages.
 // recording-package.ts adds the current tune, edit intent, and processing evidence.
 
 export const METADATA_CHUNK = "dpsn";
 const METADATA_SCHEMA = 1;
-
-export type ExportContext = Omit<RecordingOrigin, "build">;
-
-export interface WavMetadata {
-  app: "diapason";
-  schemaVersion: 1;
-  /** Only recordings rebuild a take; other kinds (such as a rendered melody) must never import as one. */
-  kind: "recording";
-  recording: {
-    id: string;
-    name: string;
-    createdAt: number;
-    bpm: number;
-    beatsPerBar: number;
-    /** Sample where beat 1 falls; our own recordings always start on it. */
-    downbeatSample: number;
-    source: NonNullable<Recording["source"]>;
-    capture: CaptureMeta & { rmsGate: number };
-  };
-  provenance: RecordingOrigin;
-}
-
 const UNTAGGED = "Only WAVs exported from diapason can be imported for now.";
 const NEWER = "This WAV was exported by a newer diapason. Update diapason and try again.";
 const DAMAGED = "This WAV's diapason data is damaged or unsupported.";

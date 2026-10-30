@@ -1,9 +1,9 @@
 import type { RecordingOrigin } from "../Recording/Recording.type";
 import type { Knobs } from "../melody/knobs";
 import type { KeyChoice } from "../melody/interpret";
-import type { PortableTune } from "../portable-tune";
-import type { ReadRecordingPackage } from "../recording-package-types";
+import type { ReadRecordingPackage } from "../Recording/RecordingPackage.type";
 import type { AnalysisSettings } from "../Recording/SoundProfile.type";
+import type { PortableTune } from "../Tune/PortableTune.type";
 
 export type ViewName = "saved" | "replay" | "automatic";
 export type OverallResult = "pass" | "incomplete" | "mismatch" | "fail";

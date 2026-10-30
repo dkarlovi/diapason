@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import type { PortableTune } from "../portable-tune";
 import { loadShareTune } from "../tune-sharing";
 import { tuneUrl } from "../tune-url";
 import { encodeTuneMidi } from "../tune-midi";
 import { downloadBlob } from "../ui";
 import { exportSlug } from "../editor-model";
 import type { Notice } from "./useNotice";
+import type { PortableTune } from "../Tune/PortableTune.type";
+
 export function useTuneShare(
   showNotice: (notice: Notice | null) => void,
   beforeShare?: () => Promise<void>,

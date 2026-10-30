@@ -1,8 +1,9 @@
+import type { RecordingSettings } from "./Recording/ProcessingEvidence.type";
 import type { Recording } from "./Recording/Recording.type";
 import { DEFAULT_PLAY } from "./instruments";
 import { analysisOptionsFor } from "./recording-profiles";
 import { melodySettingFor } from "./melody/settings";
-export function resolveRecordingSettings(record: Recording) {
+export function resolveRecordingSettings(record: Recording): RecordingSettings {
   return {
     melody: melodySettingFor(record),
     play: { ...DEFAULT_PLAY, ...record.play },

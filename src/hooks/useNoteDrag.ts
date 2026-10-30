@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { draggedPitch, hitsSelectedNote, type RollPoint } from "../editor-model";
 import type { EditGesture } from "./useSliderCommit";
 import { listenForDrag } from "./pointer-drag";
-import type { NoteItem } from "../recording";
 import type { TraceView } from "../trace";
+import type { NoteItem } from "../Recording/NoteItem.type";
 
 interface Options {
   rollRef: RefObject<HTMLCanvasElement | null>;

@@ -1,6 +1,6 @@
 import type { Interpretation, KeyChoice } from "../melody/interpret";
 import type { Knobs, PresetId } from "../melody/knobs";
-import type { MelodySetting } from "../melody/settings";
+import type { MelodySetting } from "../melody/MelodySetting.type";
 
 export interface MelodyPanelProps {
   melody: MelodySetting;

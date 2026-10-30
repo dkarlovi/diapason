@@ -8,11 +8,13 @@ import type {
   ReadRecordingPackage,
   TuneImportMode,
   ImportDisposition,
-} from "../recording-package-types";
-import { recordingFromPortableTune, TUNE_LIMITS, type PortableTune } from "../portable-tune";
+} from "../Recording/RecordingPackage.type";
+import { recordingFromPortableTune, TUNE_LIMITS } from "../portable-tune";
 import { decodeTuneMidi } from "../tune-midi";
 import { tuneFromFragment } from "../tune-url";
 import type { Notice } from "./useNotice";
+import type { PortableTune } from "../Tune/PortableTune.type";
+
 export interface ImportCandidate {
   file: string;
   record?: Recording;

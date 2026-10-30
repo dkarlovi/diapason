@@ -2,7 +2,8 @@ import { adHocRecording, validateAdHocDraft, type AdHocTuneDraft } from "./ad-ho
 import type { NoteRecording } from "./Recording/Recording.type";
 import { databaseTransaction } from "./db-connection";
 import { currentEditCommit } from "./edit-history";
-import type { PortableTune } from "./portable-tune";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 export async function promoteAdHocTune(
   tune: PortableTune,
   draft: AdHocTuneDraft,

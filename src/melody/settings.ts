@@ -5,15 +5,9 @@ import {
   isKnobs,
   DEFAULT_PRESET,
   type Knobs,
-  type PresetId,
   type GridSubdivision,
 } from "./knobs";
-import type { KeyChoice } from "./interpret";
-export interface MelodySetting {
-  preset: PresetId;
-  overrides: Partial<Knobs>;
-  key: KeyChoice;
-}
+import type { MelodySetting } from "./MelodySetting.type";
 
 /** Compare recipes, including explicit overrides, without relying on property order. */
 export function sameMelodySetting(left: MelodySetting, right: MelodySetting): boolean {

@@ -1,6 +1,7 @@
 import { adHocRecording, isAdHocDirty, type AdHocTuneDraft } from "./ad-hoc-tune";
 import { clearAdHocDraft, writeAdHocDraft } from "./ad-hoc-storage";
-import type { PortableTune } from "./portable-tune";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 export const RECOVERY_WARNING =
   "Temporary edits could not be stored. Refreshing may lose your work. You can still Save this tune.";
 export class AdHocTuneSession {

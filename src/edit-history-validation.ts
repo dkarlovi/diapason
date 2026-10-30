@@ -1,5 +1,5 @@
-import type { EditCommit, EditHistory } from "./edit-history";
 import { validateEditSnapshot } from "./edit-snapshot-validation";
+import type { EditCommit, EditHistory } from "./Recording/RecordingEdit.type";
 
 export function validateEditCommit(value: unknown, duration: number): asserts value is EditCommit {
   const commit = value as EditCommit | null;

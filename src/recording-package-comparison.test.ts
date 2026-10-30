@@ -11,7 +11,7 @@ import {
   compareSavedMelody,
   matchSourceItems,
 } from "./recording-package-comparison";
-import type { ReadRecordingPackage } from "./recording-package-types";
+import type { ReadRecordingPackage } from "./Recording/RecordingPackage.type";
 let input: ReadRecordingPackage;
 it("replays historical packages with a missing Context correction control as zero without changing saved evidence", async () => {
   const historical = structuredClone(input);

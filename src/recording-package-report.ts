@@ -1,5 +1,5 @@
 import { midiToName } from "./notes";
-import type { ReadRecordingPackage } from "./recording-package-types";
+import type { ReadRecordingPackage } from "./Recording/RecordingPackage.type";
 import type { PackageComparison } from "./recording-package-comparison";
 export function formatPackageInspection(input: ReadRecordingPackage): string {
   const p = input.metadata;

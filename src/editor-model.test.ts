@@ -9,7 +9,7 @@ import {
   draggedPitch,
 } from "./editor-model";
 import { KNOB_DEFS } from "./melody/knobs";
-import type { NoteItem } from "./recording";
+import type { NoteItem } from "./Recording/NoteItem.type";
 
 const item: NoteItem = {
   source: { start: 0.25, end: 0.75 },

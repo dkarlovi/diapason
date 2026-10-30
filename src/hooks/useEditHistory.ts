@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Recording } from "../Recording/Recording.type";
-import { applyEditSnapshot, captureEditSnapshot, type EditSnapshot } from "../edit-state";
+import { applyEditSnapshot, captureEditSnapshot } from "../edit-state";
 import {
   canRedoEdit,
   canUndoEdit,
@@ -8,12 +8,14 @@ import {
   currentEditCommit,
   displayEditSnapshot,
   reduceEditHistory,
-  type EditHistory,
   type EditHistoryEvent,
 } from "../edit-history";
 import { createEditorWriter, type EditorWriter } from "../editor-save-queue";
 import type { AdHocTuneSession } from "./useAdHocTune";
 import { validateEditHistory } from "../edit-history-validation";
+import type { EditHistory } from "../Recording/RecordingEdit.type";
+import type { EditSnapshot } from "../Recording/RecordingEdit.type";
+
 interface Options {
   session?: AdHocTuneSession | undefined;
   record: Recording | null;

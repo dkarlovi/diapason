@@ -6,9 +6,9 @@ import type { Frame } from "../notes";
 import { encodeTuneMidi } from "../tune-midi";
 import { createPortableTune } from "../portable-tune";
 import { captureRecordingPackage, encodeRecordingPackage } from "../recording-package";
-import type { ExportContext } from "../wav-metadata";
 import { downloadBlob } from "../ui";
 import { exportSlug } from "../editor-model";
+import type { ExportContext } from "../Recording/WavMetadata.type";
 
 const exportContext = (): ExportContext => ({
   browser: navigator.userAgent,

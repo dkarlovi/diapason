@@ -1,9 +1,10 @@
 import type { Recording, MutedNote, QuantizeSetting } from "./Recording/Recording.type";
-import type { EditSnapshot } from "./edit-state";
 import { EditStorageError } from "./edit-storage-error";
 import { isNoteEdits } from "./note-edits";
 import { isMelodySetting } from "./melody/settings";
 import { INSTRUMENTS } from "./instruments";
+import type { EditSnapshot } from "./Recording/RecordingEdit.type";
+
 const invalid = () =>
   new EditStorageError("invalid-version", "This version contains unsupported editing data.");
 function isPlaybackIntent(value: unknown): boolean {

@@ -8,7 +8,6 @@ import {
 } from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 import { captureEditSnapshot } from "./edit-state";
-import type { EditCommit } from "./edit-history";
 import { openDatabase } from "./db-connection";
 import {
   deleteVersion,
@@ -20,6 +19,8 @@ import {
   validateEditSnapshot,
   type SavedVersion,
 } from "./edit-storage";
+import type { EditCommit } from "./Recording/RecordingEdit.type";
+
 const commit = (id: string, octave = 0): EditCommit => ({
   id,
   createdAt: 1,

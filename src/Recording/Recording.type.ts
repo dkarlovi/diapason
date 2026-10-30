@@ -1,13 +1,13 @@
-import type { EditHead } from "../edit-storage";
-import type { EditHistory } from "../edit-history";
 import type { NoteEdits } from "../note-edits";
-import type { NoteSource } from "../note-source";
-import type { MelodySetting } from "../melody/settings";
 import type { PlaySettings } from "../instruments";
 import type { WaveformSummary } from "../waveform";
-import type { WavMetadata } from "../wav-metadata";
-import type { RecordingPackageV2, TuneImportMode } from "../recording-package-types";
+import type { RecordingPackageV2, TuneImportMode } from "./RecordingPackage.type";
 import type { SoundProfile } from "./SoundProfile.type";
+import type { EditHead } from "./RecordingEdit.type";
+import type { EditHistory } from "./RecordingEdit.type";
+import type { NoteSource } from "./NoteSource.type";
+import type { MelodySetting } from "../melody/MelodySetting.type";
+import type { WavMetadata } from "./WavMetadata.type";
 
 export interface CaptureMeta {
   gain: number;

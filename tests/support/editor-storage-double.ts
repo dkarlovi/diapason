@@ -2,8 +2,10 @@
 import type { Recording } from "../../src/Recording/Recording.type";
 import { getRecording, putRecording } from "../../src/Recording/Recording.storage";
 import { applyEditSnapshot } from "../../src/edit-state";
-import type { EditCommit, EditHistory } from "../../src/edit-history";
-import type { EditHead, SavedVersion } from "../../src/edit-storage";
+import type { SavedVersion } from "../../src/edit-storage";
+import type { EditHead } from "../../src/Recording/RecordingEdit.type";
+import type { EditCommit, EditHistory } from "../../src/Recording/RecordingEdit.type";
+
 const records = new Map<string, Recording>();
 export const resetEditorStorageDouble = () => records.clear();
 async function writeFixtureCommit(

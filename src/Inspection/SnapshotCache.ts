@@ -1,6 +1,9 @@
 import type { AudioRecording } from "../Recording/Recording.type";
 import type { Frame } from "../notes";
-import type { CapturedRecordingPackage, RecordingPackageV2 } from "../recording-package-types";
+import type {
+  CapturedRecordingPackage,
+  RecordingPackageV2,
+} from "../Recording/RecordingPackage.type";
 import { captureRecordingPackage } from "../recording-package";
 import { validateRecordingPackage } from "../recording-package-validation";
 import { encodeTuneMidi } from "../tune-midi";
