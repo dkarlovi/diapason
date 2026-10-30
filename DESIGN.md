@@ -225,11 +225,14 @@ owning hook; the primitive does not schedule rendering or own audio data.
 
 ### Floating tools and menus
 
-Tune has two explicit groups in DOM and reading order. Playback sound contains
-Instrument and Octave. Melody correction contains Preset and Key directly above
+Tune has two explicit groups in DOM and reading order. MIDI sound contains
+Instrument and Octave, which apply to note playback and MIDI downloads.
+Melody correction contains Preset and Key directly above
 the Essentials/Pitch/Rhythm/Detection category rail and its sliders. Presets own
-the slider recipe; Key is its musical context. Playback settings remain separate
-from exported-note correction. The category selection uses the primary fill and
+the slider recipe; Key is its musical context. MIDI sound settings remain separate
+from melody correction; downloads render the selected octave and General MIDI
+instrument while retaining untransposed source pitches in editable metadata.
+The category selection uses the primary fill and
 primary foreground, and measurements use tabular numerals. The toolbox uses a
 muted ground, a card header, and clear spacing between its two groups.
 

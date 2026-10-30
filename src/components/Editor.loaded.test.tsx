@@ -99,14 +99,14 @@ it("loads a recording and applies a melody preset through React controls", async
   );
 });
 
-it("groups playback separately from the preset, key, and the controls they shape", async () => {
+it("groups MIDI sound separately from the preset, key, and the controls they shape", async () => {
   render(
     <MemoryRouter>
       <Editor id="one" />
     </MemoryRouter>,
   );
   await readyEditor();
-  const playback = screen.getByRole("region", { name: "Playback sound" });
+  const playback = screen.getByRole("region", { name: "MIDI sound" });
   const correction = screen.getByRole("region", { name: "Melody correction" });
   expect(within(playback).getByRole("button", { name: "Choose instrument" })).toBeTruthy();
   expect(within(playback).getByRole("button", { name: "Choose octave" })).toBeTruthy();

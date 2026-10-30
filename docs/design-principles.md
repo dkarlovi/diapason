@@ -115,7 +115,8 @@ are noninteractive. Tune's footer offers one-step Undo tuning change beside
 the confirmed full Reset. Undo affects melody/playback settings and preserves
 manual note edits, muting, recording names, and original audio. Its history
 belongs to the open take.
-Tune separates Playback sound (Instrument, Octave) from Melody correction.
+Tune separates MIDI sound (Instrument, Octave) from Melody correction.
+Instrument and Octave apply to both note playback and MIDI downloads.
 Preset and Key sit immediately above Essentials, Pitch, Rhythm, and Detection,
 so the recipe stays next to the controls it sets. The tonal toolbox, stronger
 category rail, and quieter reset controls follow the approved Bolder study.
