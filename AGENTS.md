@@ -4,7 +4,7 @@
 
 diapason is a fully client-side whistle-to-MIDI studio built with React, TypeScript, and Vite. `src/main.tsx` mounts the app; `src/router.ts` defines route helpers. Screens live in `src/components/`, generic design-system parts in `src/UI/`, browser effects in `src/hooks/`, the recording inspection logic behind `bin/diapason` in `src/Inspection/`, and pure screen calculations in `src/capture-model.ts` and `src/editor-model.ts`. Audio processing, MIDI/WAV encoding, and IndexedDB storage are separate modules under `src/`. Tests sit beside their source files; shared fixtures live in `tests/fixtures/` and test helpers in `tests/support/`. Shared styles live in `src/styles.css`; `index.html` is the HTML entry point. Plans live in `plans/` and `docs/superpowers/plans/`. Generated output goes to `dist/` and `coverage/`.
 
-The tree is migrating to the layout enforced by `.ls-lint.yml` (naming) and `.dependency-cruiser.mjs` (layering): PascalCase domain folders under `src/`, PascalCase filenames, `use*` hooks, and singular lowercase role suffixes such as `Capture.model.ts` or `Recording.type.ts`. React belongs only in `src/App`, `src/Features/<Feature>`, and `src/UI`; `tools/` is a thin CLI view over `src/Inspection`; shared test fixtures and support live in `tests/`. Put new files where these configs expect them. Never add entries to `.dependency-cruiser-known-violations.json` to make `npm run arch` pass; run `npm run arch:baseline` only after removing violations.
+The tree is migrating to the layout enforced by `.ls-lint.yml` (naming) and `.dependency-cruiser.mjs` (layering): PascalCase domain folders under `src/`, PascalCase filenames, `use*` hooks, and singular lowercase role suffixes such as `Capture.model.ts` or `Recording.type.ts`. React belongs only in `src/App`, `src/Features/<Feature>`, and `src/UI`; `tools/` is a thin CLI view over `src/Inspection`; shared test fixtures and support live in `tests/`. Put new files where these configs expect them. `npm run arch` has no baseline: fix a new violation rather than suppressing it. Shapes that cross module boundaries, and anything persisted, get explicit types in `*.type.ts` files rather than `ReturnType<typeof …>` of runtime code.
 
 ## Quality Enforcement Hierarchy
 
@@ -24,7 +24,7 @@ Active quality rules live in:
 
 - `tsconfig.json`: strict compiler options.
 - `npm run lint`: oxlint with its default rules (no config file yet; add `.oxlintrc.json` when a rule needs configuring).
-- `.dependency-cruiser.mjs` + `.dependency-cruiser-known-violations.json`: layering and import cycles, with a ratcheting baseline.
+- `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `.ls-lint.yml`: folder and filename rules.
 - `.fallowrc.json` + `.fallow-*-baseline.json`: dead code, duplication, and health gates with ratcheting baselines.
 - `npm run check` and `.github/workflows/pages.yml`: every gate that blocks merge.

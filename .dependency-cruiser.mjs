@@ -24,10 +24,10 @@ export default {
     {
       name: "no-type-cycle",
       comment:
-        "Type-level cycles couple modules even though they vanish at runtime; move the shared shapes into a *.type.ts file both sides import.",
+        "Type-level cycles couple modules even though they vanish at runtime; move the shared shapes into *.type.ts files. Cycles among *.type.ts files alone are recursive data shapes and allowed.",
       severity: "error",
       from: {},
-      to: { circular: true },
+      to: { circular: true, via: { pathNot: "\\.type\\.ts$" } },
     },
     {
       name: "not-to-unresolvable",
@@ -107,8 +107,7 @@ export default {
   options: {
     // TypeScript 7 has no JS API yet, so dependency-cruiser parses with swc.
     parser: "swc",
-    // The npm script still passes the scan roots and --ignore-known: the config format has no
-    // field for either (options.ignoreKnown is read only from the CLI).
+    // The npm script still passes the scan roots: the config format has no field for them.
     doNotFollow: { path: "node_modules" },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: "tsconfig.json" },

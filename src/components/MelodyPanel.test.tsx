@@ -3,9 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { MelodyPanel } from "./MelodyPanel";
-import type { MelodySetting } from "../melody/settings";
 import { PRESETS } from "../melody/knobs";
 import type { Interpretation } from "../melody/interpret";
+import type { MelodySetting } from "../melody/MelodySetting.type";
+
 afterEach(cleanup);
 it("offers Context correction on any preset and Auto tune only supplies its starting value", () => {
   render(<Harness />);

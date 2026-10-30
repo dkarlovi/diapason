@@ -1,6 +1,6 @@
 import { databaseTransaction } from "./db-connection";
 import type { Recording } from "./Recording/Recording.type";
-import type { ImportDisposition } from "./recording-package-types";
+import type { ImportDisposition } from "./Recording/RecordingPackage.type";
 export async function insertImportedRecording(
   record: Recording,
   disposition: ImportDisposition,

@@ -1,19 +1,16 @@
+import { EDIT_FIELDS } from "./Recording/EditFields";
 import type { Recording } from "./Recording/Recording.type";
+import type { EditSnapshot } from "./Recording/RecordingEdit.type";
 
-const FIELDS = ["melody", "tuning", "quantize", "noteEdits", "muted", "play"] as const;
-export interface EditSnapshot {
-  schemaVersion: 1;
-  intent: Pick<Recording, (typeof FIELDS)[number]>;
-}
 export function captureEditSnapshot(record: Recording): EditSnapshot {
   const intent = Object.fromEntries(
-    FIELDS.filter((key) => record[key] !== undefined).map((key) => [key, record[key]]),
+    EDIT_FIELDS.filter((key) => record[key] !== undefined).map((key) => [key, record[key]]),
   );
   return structuredClone({ schemaVersion: 1, intent }) as EditSnapshot;
 }
 export function applyEditSnapshot(record: Recording, snapshot: EditSnapshot): Recording {
   const next = { ...record };
-  for (const key of FIELDS) delete next[key];
+  for (const key of EDIT_FIELDS) delete next[key];
   return Object.assign(next, structuredClone(snapshot.intent));
 }
 function canonical(value: unknown): unknown {

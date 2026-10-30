@@ -354,8 +354,7 @@ npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
 npm run lint      # oxlint
-npm run arch      # dependency-cruiser layering rules against the known-violations baseline
-npm run arch:baseline # regenerate .dependency-cruiser-known-violations.json
+npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules (not yet part of check)
 npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run audit     # Fallow dead code, complexity, duplication, and styling review
@@ -384,9 +383,9 @@ filenames name the thing, and lowercase dotted suffixes (`.model`, `.type`,
 `.storage`, …) name the role. `.ls-lint.yml` describes that layout and
 `.dependency-cruiser.mjs` its layering: React stays in `src/App`, `src/Features`
 and `src/UI`; other `src/` folders stay framework-free; `tools/` only renders data
-from `src/Inspection`; runtime import cycles are forbidden, and cycles that pass through type-only imports are held to a shrinking baseline. Existing dependency violations
-are recorded in `.dependency-cruiser-known-violations.json`; new ones fail
-`npm run arch`. Regenerate the baseline only after removing violations. `lint:names`
+from `src/Inspection`; import cycles are forbidden unless every module in them is a
+`*.type.ts` file (mutually recursive data shapes such as a recording and its edit
+history). The tree has no known violations, so any new one fails `npm run arch`. `lint:names`
 joins `npm run check` once the files have moved. dependency-cruiser parses with swc
 because it cannot load TypeScript 7 yet, and prints a missing-transpiler notice on
 every run until it can.

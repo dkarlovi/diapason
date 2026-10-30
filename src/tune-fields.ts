@@ -1,8 +1,16 @@
 import { INSTRUMENTS } from "./instruments";
-import { KNOB_DEFS, PRESETS, resolveKnobs, type Knobs, type PresetId } from "./melody/knobs";
-import { DETECTION_KNOBS, type NoteSource } from "./note-source";
-import { TUNE_LIMITS, validatePortableTune, type PortableTune } from "./portable-tune";
+import {
+  DETECTION_KNOBS,
+  KNOB_DEFS,
+  PRESETS,
+  resolveKnobs,
+  type Knobs,
+  type PresetId,
+} from "./melody/knobs";
+import { TUNE_LIMITS, validatePortableTune } from "./portable-tune";
 import { TuneReader, TuneWriter } from "./tune-binary";
+import type { NoteSource } from "./Recording/NoteSource.type";
+import type { PortableTune } from "./Tune/PortableTune.type";
 
 // Wire order is frozen for format v1. Never derive instrument/preset codes from UI ordering.
 const instruments = ["beep", "epiano", "pluck", "flute", "trumpet", "saxophone", "pad"] as const;

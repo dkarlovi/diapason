@@ -1,15 +1,12 @@
-import type { AudioRecording, RecordingOrigin } from "./Recording/Recording.type";
-import type { buildReportData } from "./diagnostics";
-import type { EditSnapshot } from "./edit-state";
-import type { Frame } from "./notes";
-import type { PortableTune } from "./portable-tune";
-import type { ExportContext, WavMetadata } from "./wav-metadata";
+import type { AudioRecording, RecordingOrigin } from "./Recording.type";
+import type { Frame } from "../notes";
+import type { ProcessingEvidence } from "./ProcessingEvidence.type";
+import type { EditSnapshot } from "./RecordingEdit.type";
+import type { ExportContext, WavMetadata } from "./WavMetadata.type";
+import type { PortableTune } from "../Tune/PortableTune.type";
+
 export type TuneImportMode = "restore" | "fresh";
 export type ImportDisposition = "original" | "copy";
-export type ProcessingEvidence = Pick<
-  ReturnType<typeof buildReportData>,
-  "settings" | "analysis" | "stages" | "config" | "quality" | "notes"
->;
 export interface RecordingPackageV2 {
   app: "diapason";
   schemaVersion: 2;

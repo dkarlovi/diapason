@@ -3,8 +3,10 @@ export { toBase64Url } from "./base64url";
 import { recordingFromPortableTune } from "./portable-tune";
 import { processRecording } from "./recording";
 import { requireTune } from "./tune-validation";
-import { TUNE_LIMITS, type PortableTune } from "./portable-tune";
+import { TUNE_LIMITS } from "./portable-tune";
 import { packTune, unpackTune } from "./tune-fields";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 const MAGIC = [68, 80, 83, 78, 1]; // DPSN, schema; interpretation version follows.
 async function transform(bytes: Uint8Array, compressed: boolean): Promise<Uint8Array> {
   const stream = new Response(new Uint8Array(bytes).buffer).body!.pipeThrough(

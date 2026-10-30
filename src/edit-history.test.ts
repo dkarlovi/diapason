@@ -7,9 +7,9 @@ import {
   currentEditCommit,
   displayEditSnapshot,
   reduceEditHistory,
-  type EditCommit,
-  type EditHistory,
 } from "./edit-history";
+import type { EditCommit, EditHistory } from "./Recording/RecordingEdit.type";
+
 const snapshot = (octave: number) =>
   captureEditSnapshot(recording({ play: { instrument: "beep", octave } }));
 const baseline: EditCommit = {

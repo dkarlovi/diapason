@@ -282,3 +282,6 @@ export function historicalControls(
       throw new PackageError("malformed", `${path}.${key}`, "controls.known");
   return { values: values as Knobs, defaults };
 }
+
+/** Knobs that shape note detection; a note source freezes them when it is captured. */
+export const DETECTION_KNOBS = ["steadiness", "minNoteMs", "silenceGapMs", "levelGate"] as const;

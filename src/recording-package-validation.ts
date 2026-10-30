@@ -9,11 +9,13 @@ import { covers } from "./recording";
 import { midiToName } from "./notes";
 import { validateEditSnapshot } from "./edit-snapshot-validation";
 import { validatePortableTune } from "./portable-tune";
-import { validMetadata, type WavMetadata } from "./wav-metadata";
-import type { ProcessingEvidence, RecordingPackageV2 } from "./recording-package-types";
+import { validMetadata } from "./wav-metadata";
+import type { ProcessingEvidence } from "./Recording/ProcessingEvidence.type";
+import type { RecordingPackageV2 } from "./Recording/RecordingPackage.type";
 import { finiteJson, isObject } from "./diagnostics-validation";
 import type { Frame, NoteEvent } from "./notes";
-import type { NoteItem } from "./recording";
+import type { WavMetadata } from "./Recording/WavMetadata.type";
+import type { NoteItem } from "./Recording/NoteItem.type";
 
 // Bound work before parsing untrusted JSON, independently of share-link limits.
 export const MAX_PACKAGE_METADATA_BYTES = 128 * 1024 * 1024;

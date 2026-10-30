@@ -3,25 +3,16 @@ import {
   pitchEditFor,
   protectedNoteBoundaries,
   summarizePitchEdits,
-  type SourceRange,
 } from "./note-edits";
 import type { MutedNote, Recording } from "./Recording/Recording.type";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "./notes";
 import { resolveRecordingSettings } from "./recording-settings";
 import { resolveKnobs } from "./melody/knobs";
 import { interpretSegments, interpretMelody } from "./melody/interpret";
-import { melodySettingFor, type MelodySetting } from "./melody/settings";
+import { melodySettingFor } from "./melody/settings";
 import { analysisOptionsFor } from "./recording-profiles";
-export interface NoteItem {
-  source: SourceRange;
-  automatic: NoteEvent;
-  editState: { ids: string[]; axes: "pitch"[]; differingAxes: "pitch"[] };
-  id: number;
-  raw: NoteEvent;
-  note: NoteEvent;
-  muted: boolean;
-  fixedSource?: boolean;
-}
+import type { MelodySetting } from "./melody/MelodySetting.type";
+import type { NoteItem } from "./Recording/NoteItem.type";
 export const covers = (anchor: MutedNote, raw: NoteEvent): boolean =>
   anchor.t >= raw.start &&
   anchor.t <= raw.start + raw.duration &&

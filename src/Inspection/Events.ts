@@ -1,7 +1,9 @@
 import { midiEvents } from "../midi";
-import { recordingFromPortableTune, type PortableTune } from "../portable-tune";
+import { recordingFromPortableTune } from "../portable-tune";
 import { recordingNotes } from "../recording";
 import type { NoteEvent } from "../notes";
+import type { PortableTune } from "../Tune/PortableTune.type";
+
 export function logicalPlaybackEvents(
   notes: NoteEvent[],
   tune: Pick<PortableTune, "play" | "bpm" | "beatsPerBar">,

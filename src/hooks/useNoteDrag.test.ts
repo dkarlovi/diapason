@@ -2,7 +2,7 @@ import { useState } from "react";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useNoteDrag } from "./useNoteDrag";
-import type { NoteItem } from "../recording";
+import type { NoteItem } from "../Recording/NoteItem.type";
 
 afterEach(cleanup);
 const note = { midi: 69, name: "A4", start: 0, duration: 1 };

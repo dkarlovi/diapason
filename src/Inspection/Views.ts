@@ -1,6 +1,5 @@
 import type { Frame } from "../notes";
-import type { PortableTune } from "../portable-tune";
-import type { ProcessingEvidence } from "../recording-package-types";
+import type { ProcessingEvidence } from "../Recording/ProcessingEvidence.type";
 import type {
   ExecutionIdentity,
   InputIdentity,
@@ -10,6 +9,8 @@ import type {
   ViewName,
 } from "./Inspection.type";
 import { computeComparison } from "./Computation";
+import type { PortableTune } from "../Tune/PortableTune.type";
+
 export interface EvidenceView {
   name: ViewName;
   runKey: string | null;

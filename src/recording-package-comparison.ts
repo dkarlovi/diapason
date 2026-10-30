@@ -7,10 +7,10 @@ import { analyzeRecording } from "./recording-analysis";
 import { firstDifference, NUMERIC_COMPARISON_TOLERANCE } from "./diagnostics-validation";
 import type {
   CapturedRecordingPackage,
-  ProcessingEvidence,
   ReadRecordingPackage,
   RecordingPackageV2,
-} from "./recording-package-types";
+} from "./Recording/RecordingPackage.type";
+import type { ProcessingEvidence } from "./Recording/ProcessingEvidence.type";
 import type { SourceRange } from "./note-edits";
 import { historicalControls } from "./melody/knobs";
 

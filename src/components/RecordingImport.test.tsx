@@ -5,7 +5,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { RecordingImport } from "./RecordingImport";
 import { Popover } from "../UI/Popover";
 import { recording } from "../../tests/support/recording";
-import type { ReadRecordingPackage } from "../recording-package-types";
+import type { ReadRecordingPackage } from "../Recording/RecordingPackage.type";
 afterEach(cleanup);
 it("offers restoration or fresh audio independently of the collision-copy choice", async () => {
   const record = recording({ id: "incoming" });

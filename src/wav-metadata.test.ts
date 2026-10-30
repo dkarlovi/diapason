@@ -11,10 +11,10 @@ import {
   METADATA_CHUNK,
   recordingFromTaggedWav,
   recordingMetadata,
-  type WavMetadata,
 } from "./wav-metadata";
 import { wavChunks } from "./wav-reader";
 import { getSoundProfile } from "./recording-profiles";
+import type { WavMetadata } from "./Recording/WavMetadata.type";
 
 const context = { browser: "UA", audioOutput: "unknown", midiOutput: "Browser synth" };
 const pcm = Float32Array.from([0, 0.25, -0.5, 0.5, -0.25], (sample) => sample);

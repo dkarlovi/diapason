@@ -1,9 +1,10 @@
 import { TUNE_MIDI_PREFIX, readTuneMidiPayload } from "./tune-midi-reader";
 import { midiVarLen, notesToMidi } from "./midi";
 import { PROGRAMS } from "./midi-playback";
-import type { PortableTune } from "./portable-tune";
 import { tunePlaybackEvents } from "./Inspection/Events";
 import { decodeTune, encodeTune, toBase64Url } from "./tune-codec";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 async function midiBytes(tune: PortableTune, payload: Uint8Array): Promise<Uint8Array> {
   const rendered = tunePlaybackEvents(tune).notes;
   const standard = new Uint8Array(await notesToMidi(rendered, { bpm: tune.bpm }).arrayBuffer());

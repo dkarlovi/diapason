@@ -32,8 +32,8 @@ import type { QualityStats } from "../recorder";
 import type { Frame } from "../notes";
 import { useEditorPlot } from "./useEditorPlot";
 import { rollPoint, useNoteDrag } from "./useNoteDrag";
-import { processRecording, type NoteItem } from "../recording";
-import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
+import { processRecording } from "../recording";
+import { melodySettingFor, sameMelodySetting } from "../melody/settings";
 import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../melody/knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
@@ -48,6 +48,8 @@ import {
   selectedSourceItem,
   toggleMuted,
 } from "../editor-model";
+import type { MelodySetting } from "../melody/MelodySetting.type";
+import type { NoteItem } from "../Recording/NoteItem.type";
 
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;

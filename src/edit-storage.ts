@@ -1,17 +1,16 @@
 import { databaseTransaction } from "./db-connection";
 import type { Recording } from "./Recording/Recording.type";
 import { validateEditHistory } from "./edit-history-validation";
-import { currentEditCommit, type EditHistory } from "./edit-history";
+import { currentEditCommit } from "./edit-history";
 import { sameEditSnapshot } from "./edit-state";
-import type { EditCommit } from "./edit-history";
 import { applyEditSnapshot } from "./edit-state";
 import { EditStorageError } from "./edit-storage-error";
 import { validateEditSnapshot } from "./edit-snapshot-validation";
+import type { EditHead, EditHistory } from "./Recording/RecordingEdit.type";
+import type { EditCommit } from "./Recording/RecordingEdit.type";
+
 export { EditStorageError, validateEditSnapshot };
-export interface EditHead {
-  commitId: string;
-  revision: number;
-}
+
 export interface SavedVersion {
   id: string;
   recordingId: string;

@@ -1,5 +1,5 @@
 import { keyName } from "../melody/key";
-import type { ReadRecordingPackage } from "../recording-package-types";
+import type { ReadRecordingPackage } from "../Recording/RecordingPackage.type";
 import type { InputIdentity, Report, OverallResult } from "./Inspection.type";
 export function makeReport<T>(
   kind: string,

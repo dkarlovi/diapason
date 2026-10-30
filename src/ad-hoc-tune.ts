@@ -1,9 +1,12 @@
 import type { NoteRecording } from "./Recording/Recording.type";
 import type { SavedVersion } from "./edit-storage";
-import { createEditHistory, displayEditSnapshot, type EditHistory } from "./edit-history";
+import { createEditHistory, displayEditSnapshot } from "./edit-history";
 import { validateEditCommit, validateEditHistory } from "./edit-history-validation";
 import { applyEditSnapshot, captureEditSnapshot, sameEditSnapshot } from "./edit-state";
-import { recordingFromPortableTune, type PortableTune } from "./portable-tune";
+import { recordingFromPortableTune } from "./portable-tune";
+import type { EditHistory } from "./Recording/RecordingEdit.type";
+import type { PortableTune } from "./Tune/PortableTune.type";
+
 export interface AdHocTuneDraft {
   schemaVersion: 1;
   fragment: string;

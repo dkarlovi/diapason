@@ -1,5 +1,7 @@
-import { EditStorageError, saveEditCommit, type EditHead } from "./edit-storage";
-import type { EditCommit, EditHistory } from "./edit-history";
+import { EditStorageError, saveEditCommit } from "./edit-storage";
+import type { EditHead } from "./Recording/RecordingEdit.type";
+import type { EditCommit, EditHistory } from "./Recording/RecordingEdit.type";
+
 export interface EditorSaveStatus {
   recordingId: string;
   state: "saved" | "saving" | "unsaved" | "conflict";

@@ -1,22 +1,19 @@
 import { requireTune, finiteBetween, integerBetween } from "./tune-validation";
 import type { NoteRecording, Recording } from "./Recording/Recording.type";
-import { DEFAULT_PLAY, INSTRUMENTS, type PlaySettings } from "./instruments";
+import { DEFAULT_PLAY, INSTRUMENTS } from "./instruments";
 import {
   isKnobs,
   resolveKnobs,
   withControlDefaults,
   interpretationVersionForControls,
   type Knobs,
-} from "./melody/knobs";
-import { isMelodySetting, melodySettingFor, type MelodySetting } from "./melody/settings";
-import {
   DETECTION_KNOBS,
-  noteSourceFromAnalysis,
-  validateNoteSource,
-  type NoteSource,
-} from "./note-source";
+} from "./melody/knobs";
+import { isMelodySetting, melodySettingFor } from "./melody/settings";
+import { noteSourceFromAnalysis, validateNoteSource } from "./note-source";
 import { processRecording } from "./recording";
 import type { Frame } from "./notes";
+import type { PortableTune } from "./Tune/PortableTune.type";
 
 export const TUNE_LIMITS = {
   encoded: 1_048_576,
@@ -25,19 +22,7 @@ export const TUNE_LIMITS = {
   durationMs: 3_600_000,
   nameBytes: 1024,
 };
-export interface PortableTune {
-  schemaVersion: 1;
-  name: string;
-  durationMs: number;
-  bpm: number;
-  beatsPerBar: number;
-  noteSource: NoteSource;
-  melody: MelodySetting;
-  effectiveKnobs: Knobs;
-  play: PlaySettings;
-  pitchEdits: { noteIndex: number; midi: number }[];
-  mutedIndices: number[];
-}
+
 export function createPortableTune(record: Recording, frames: Frame[]): PortableTune {
   const processed = processRecording(record, frames);
   const melody = melodySettingFor(record);

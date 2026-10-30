@@ -16,7 +16,7 @@ import type {
   CapturedRecordingPackage,
   ReadRecordingPackage,
   TuneImportMode,
-} from "./recording-package-types";
+} from "./Recording/RecordingPackage.type";
 import {
   MAX_PACKAGE_METADATA_BYTES,
   validateRecordingPackage,
@@ -24,14 +24,8 @@ import {
 import { summarizeWaveform } from "./waveform";
 import { wavBytes } from "./wav";
 import { decodeWav, wavChunks } from "./wav-reader";
-import {
-  METADATA_CHUNK,
-  metadataChunks,
-  recordingMetadata,
-  validMetadata,
-  type ExportContext,
-  type WavMetadata,
-} from "./wav-metadata";
+import { METADATA_CHUNK, metadataChunks, recordingMetadata, validMetadata } from "./wav-metadata";
+import type { ExportContext, WavMetadata } from "./Recording/WavMetadata.type";
 
 export function captureRecordingPackage(
   record: AudioRecording,

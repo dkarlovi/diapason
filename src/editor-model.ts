@@ -3,14 +3,15 @@ import { type Frame } from "./notes";
 import type { QualityStats } from "./recorder";
 import { analysisOptionsFor } from "./recording-profiles";
 import type { ReportInput } from "./diagnostics";
-import type { NoteItem } from "./recording";
 import { covers } from "./recording";
 import { traceHorizontalPadding, type TraceView } from "./trace";
 import type { KnobDef, Knobs } from "./melody/knobs";
 import { melodySettingFor } from "./melody/settings";
 import { keyName, type Key } from "./melody/key";
-import type { MelodySetting } from "./melody/settings";
 import { KNOB_DEFS, PRESETS, resolveKnobs } from "./melody/knobs";
+import type { MelodySetting } from "./melody/MelodySetting.type";
+import type { NoteItem } from "./Recording/NoteItem.type";
+
 export function knobValueLabel(def: KnobDef, value: Knobs[keyof Knobs]): string {
   if (def.kind === "select")
     return def.options.find((option) => option.value === value)?.label ?? String(value);
