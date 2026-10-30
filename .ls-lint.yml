@@ -8,7 +8,7 @@ x-src-rules: &src-rules
   .*.ts: exists:0
   .*.tsx: exists:0
   .ts: PascalCase | regex:use[A-Z][A-Za-z0-9]*
-  .tsx: PascalCase
+  .tsx: PascalCase | regex:use[A-Z][A-Za-z0-9]*
   .css: PascalCase
   .model.ts: PascalCase
   .type.ts: PascalCase
@@ -23,6 +23,8 @@ x-src-rules: &src-rules
   .model.test.ts: PascalCase
   .codec.test.ts: PascalCase
   .storage.test.ts: PascalCase
+  .validation.test.ts: PascalCase
+  .store.test.ts: PascalCase
   .integration.test.ts: PascalCase
   .integration.test.tsx: PascalCase
 
@@ -41,7 +43,7 @@ ls:
     .d.ts: regex:vite-env
   src/*:
     <<: *src-rules
-    .dir: regex:App|Features|UI|Theme|Audio|Analysis|Melody|Midi|Playback|Recording|Tune|Storage|Diagnostics|Inspection|Encoding
+    .dir: regex:App|Features|Studio|UI|Theme|Audio|Analysis|Diagnostics|Editing|Encoding|Inspection|Melody|Midi|Playback|Recording|Routing|Storage|Tune
   src/*/*: *src-rules
   src/*/*/**: *src-rules
 
@@ -55,4 +57,8 @@ ls:
     .wav: kebab-case
     .mid: kebab-case
 
-  tools/**: *lowercase-rules
+  tools/**:
+    <<: *lowercase-rules
+    # The CLI is still JavaScript; drop these once tools/ is converted to TypeScript.
+    .mjs: kebab-case
+    .test.mjs: kebab-case

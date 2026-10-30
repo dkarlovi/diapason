@@ -147,7 +147,7 @@ The Recording reference remains
 
 ## Seed-generated color system
 
-Use Material Color Utilities Tonal Spot through `src/theme-palette.ts`; supplied
+Use Material Color Utilities Tonal Spot through `src/Theme/ThemePalette.ts`; supplied
 primary, neutral, and secondary colors are seeds, not exact CSS overrides. The
 neutral family stays subdued, with independently composed light and dark surfaces.
 Use primary for actions/MIDI, playback for audition/original audio, and controlled

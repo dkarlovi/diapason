@@ -1,12 +1,12 @@
-import type { NoteEdits } from "../note-edits";
-import type { PlaySettings } from "../instruments";
-import type { WaveformSummary } from "../waveform";
+import type { NoteEdits } from "../Editing/NoteEdits";
+import type { PlaySettings } from "../Playback/Instruments";
+import type { WaveformSummary } from "../Audio/Waveform";
 import type { RecordingPackageV2, TuneImportMode } from "./RecordingPackage.type";
 import type { SoundProfile } from "./SoundProfile.type";
 import type { EditHead } from "./RecordingEdit.type";
 import type { EditHistory } from "./RecordingEdit.type";
 import type { NoteSource } from "./NoteSource.type";
-import type { MelodySetting } from "../melody/MelodySetting.type";
+import type { MelodySetting } from "../Melody/MelodySetting.type";
 import type { WavMetadata } from "./WavMetadata.type";
 
 export interface CaptureMeta {

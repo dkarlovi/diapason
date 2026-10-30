@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { PIPELINE_VERSION } from "./src/build-info.ts";
+import { PIPELINE_VERSION } from "./src/Diagnostics/BuildInfo.ts";
 
 let revision = "unknown";
 try {

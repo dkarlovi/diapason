@@ -1,9 +1,9 @@
-import { isObject } from "../diagnostics-validation";
-import { analyzeRecording, resolveAnalysisOptions } from "../recording-analysis";
-import { restoreRecordingPackage } from "../recording-package";
-import { compareRecordingPackage } from "../recording-package-comparison";
+import { isObject } from "../Diagnostics/Diagnostics.validation";
+import { analyzeRecording, resolveAnalysisOptions } from "../Analysis/RecordingAnalysis";
+import { restoreRecordingPackage } from "../Recording/RecordingPackage";
+import { compareRecordingPackage } from "../Recording/RecordingPackageComparison";
 import { cachedSnapshot } from "./SnapshotCache";
-import { packFrames, unpackFrames } from "../frame-storage";
+import { packFrames, unpackFrames } from "../Analysis/Frame.storage";
 import type { InvestigationContext, StageProvenance } from "./Inspection.type";
 
 function validPackedNumber(n: unknown, index: number): boolean {

@@ -1,8 +1,8 @@
 // Minimal IndexedDB wrapper for the recordings library. No dependencies.
-import { databaseTransaction, openDatabase } from "../db-connection";
+import { databaseTransaction, openDatabase } from "../Storage/Database";
 import { isAudioRecording } from "./Recording";
 import type { Recording } from "./Recording.type";
-import type { WaveformSummary } from "../waveform";
+import type { WaveformSummary } from "../Audio/Waveform";
 
 const STORE = "recordings";
 

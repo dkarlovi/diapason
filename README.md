@@ -355,13 +355,13 @@ npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
 npm run lint      # oxlint
 npm run arch      # dependency-cruiser layering and import-cycle rules
-npm run lint:names # ls-lint folder and filename rules (not yet part of check)
+npm run lint:names # ls-lint folder and filename rules
 npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run audit     # Fallow dead code, complexity, duplication, and styling review
 npm run metrics   # advisory health scores, hotspots, and refactoring targets
 npm run format    # oxfmt
 npm run format:check # verify formatting
-npm run check     # typecheck + lint + arch + format check + Fallow + tests + build
+npm run check     # typecheck + lint + names + arch + format check + Fallow + tests + build
 ```
 
 The duplication check normalizes renamed variables and changed literals. Its baseline
@@ -378,15 +378,16 @@ baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
 GitHub's pull request merge commit and the previous `main` commit after merge.
 Run checks from a Git checkout with both refs available.
 
-The source tree is moving to a layout where folders name the domain, PascalCase
+The source tree uses a layout where folders name the domain, PascalCase
 filenames name the thing, and lowercase dotted suffixes (`.model`, `.type`,
 `.storage`, …) name the role. `.ls-lint.yml` describes that layout and
-`.dependency-cruiser.mjs` its layering: React stays in `src/App`, `src/Features`
-and `src/UI`; other `src/` folders stay framework-free; `tools/` only renders data
+`.dependency-cruiser.mjs` its layering: React stays in `src/App`, `src/Features`,
+`src/Studio` and `src/UI`, each importing only the layers after it; features never
+import each other; `src/UI` is a generic design system that knows nothing about diapason; other `src/` folders stay framework-free; `tools/` only renders data
 from `src/Inspection`; import cycles are forbidden unless every module in them is a
 `*.type.ts` file (mutually recursive data shapes such as a recording and its edit
-history). The tree has no known violations, so any new one fails `npm run arch`. `lint:names`
-joins `npm run check` once the files have moved. dependency-cruiser parses with swc
+history). The tree has no known violations, so any new one fails `npm run check`. `tools/`
+is still JavaScript, so ls-lint allows `.mjs` there for now. dependency-cruiser parses with swc
 because it cannot load TypeScript 7 yet, and prints a missing-transpiler notice on
 every run until it can.
 
@@ -404,30 +405,30 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 
 ## How it works
 
-| Stage                           | File                                          | Notes                                                           |
-| ------------------------------- | --------------------------------------------- | --------------------------------------------------------------- |
-| Mic capture (raw, DSP off)      | `src/audio.ts`                                | `getUserMedia` + `AnalyserNode`                                 |
-| Pitch detection                 | `src/pitch.ts`                                | McLeod / NSDF, band-limited to whistle range                    |
-| Melody interpretation           | `src/melody/`                                 | Viterbi note decisions, key/harmony priors, rhythm and presets  |
-| PCM recorder + offline analysis | `src/recorder.ts`                             | AudioWorklet capture, re-analyze buffers, quality stats         |
-| Pitch-trace visualization       | `src/trace.ts`                                | Canvas 2D pitch-over-time renderer                              |
-| WAV encoder                     | `src/wav.ts`                                  | Mono 16-bit PCM WAV for offline inspection                      |
-| Processing evidence             | `src/diagnostics.ts`                          | Structured processing evidence for WAV packages and CLI replay  |
-| MIDI file writer                | `src/midi.ts`                                 | Standard MIDI File (Type 0), no deps                            |
-| Metronome                       | `src/metronome.ts`                            | Count-in + audible click, AudioContext-scheduled                |
-| Tempo quantization              | `src/quantize.ts`                             | Snap note start/length to a beat grid                           |
-| Audio and note playback         | `src/playback.ts`, `src/instruments.ts`       | Raw audio, or synth notes scheduled 2s ahead of the audio clock |
-| Web MIDI output                 | `src/midiout.ts`, `src/midi-playback.ts`      | Device selection and scheduled external note playback           |
-| Tempo estimation                | `src/tempo-model.ts`, `src/clap-detector.ts`  | Estimate BPM from taps or microphone claps                      |
-| Sound source profiles           | `src/recording-profiles.ts`                   | Whistle analysis settings and calibration checks                |
-| Storage codec                   | `src/codec.ts`                                | Float32↔Int16, gzip via `CompressionStream`                     |
-| IndexedDB library               | `src/db.ts`                                   | Persisted recordings (no deps)                                  |
-| Per-recording melody settings   | `src/melody/settings.ts`                      | Preset, overrides, key choice and legacy migration              |
-| Path router                     | `src/main.tsx`, `src/router.ts`               | React Router and route helpers                                  |
-| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`      | React rendering and browser effects                             |
-| Screen models                   | `src/capture-model.ts`, `src/editor-model.ts` | Pure calculations shared by hooks and tests                     |
-| Editor playhead                 | `src/playhead-store.ts`                       | Zustand store; playback ticks redraw canvases outside React     |
-| Shared UI + entry               | `src/UI/Primitives.tsx`, `src/main.tsx`       | controls and app root                                           |
+| Stage                           | File                                                               | Notes                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Mic capture (raw, DSP off)      | `src/Audio/Audio.ts`                                               | `getUserMedia` + `AnalyserNode`                                                         |
+| Pitch detection                 | `src/Audio/Pitch.ts`                                               | McLeod / NSDF, band-limited to whistle range                                            |
+| Melody interpretation           | `src/Melody/`                                                      | Viterbi note decisions, key/harmony priors, rhythm and presets                          |
+| PCM recorder + offline analysis | `src/Audio/Recorder.ts`                                            | AudioWorklet capture, re-analyze buffers, quality stats                                 |
+| Pitch-trace visualization       | `src/Audio/Trace.ts`                                               | Canvas 2D pitch-over-time renderer                                                      |
+| WAV encoder                     | `src/Encoding/Wav.ts`                                              | Mono 16-bit PCM WAV for offline inspection                                              |
+| Processing evidence             | `src/Diagnostics/Diagnostics.ts`                                   | Structured processing evidence for WAV packages and CLI replay                          |
+| MIDI file writer                | `src/Midi/Midi.ts`                                                 | Standard MIDI File (Type 0), no deps                                                    |
+| Metronome                       | `src/Audio/Metronome.ts`                                           | Count-in + audible click, AudioContext-scheduled                                        |
+| Tempo quantization              | `src/Melody/Quantize.ts`                                           | Snap note start/length to a beat grid                                                   |
+| Audio and note playback         | `src/Playback/Playback.ts`, `src/Playback/Instruments.ts`          | Raw audio, or synth notes scheduled 2s ahead of the audio clock                         |
+| Web MIDI output                 | `src/Midi/MidiOutput.ts`, `src/Midi/MidiPlayback.ts`               | Device selection and scheduled external note playback                                   |
+| Tempo estimation                | `src/Features/Capture/Tempo.model.ts`, `src/Audio/ClapDetector.ts` | Estimate BPM from taps or microphone claps                                              |
+| Sound source profiles           | `src/Recording/RecordingProfiles.ts`                               | Whistle analysis settings and calibration checks                                        |
+| Storage codec                   | `src/Audio/Codec.ts`                                               | Float32↔Int16, gzip via `CompressionStream`                                             |
+| IndexedDB library               | `src/Recording/Recording.storage.ts`                               | Persisted recordings (no deps)                                                          |
+| Per-recording melody settings   | `src/Melody/Settings.ts`                                           | Preset, overrides, key choice and legacy migration                                      |
+| Path router                     | `src/App/AppRouter.tsx`, `src/Routing/Routes.ts`                   | React Router and route helpers                                                          |
+| Screens and hooks               | `src/Features/<Screen>/`, `src/App/`, `src/Studio/`                | React rendering and browser effects, per screen; app shell; behaviour shared by screens |
+| Screen models                   | `src/Recording/Capture.model.ts`, `src/Editing/Editor.model.ts`    | Pure calculations shared by hooks and tests                                             |
+| Editor playhead                 | `src/Playback/Playhead.store.ts`                                   | Zustand store; playback ticks redraw canvases outside React                             |
+| Shared UI + entry               | `src/UI/Primitives.tsx`, `src/main.tsx`                            | controls and app root                                                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a recording is opened, so the editor always reflects the

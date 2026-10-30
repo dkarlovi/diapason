@@ -2,8 +2,8 @@
 import { expect, it } from "vitest";
 import { investigationContext } from "../../tests/support/investigation";
 import { tunePlaybackEvents } from "./Events";
-import { readTuneMidiMusic } from "../tune-midi-reader";
-import { encodeTuneMidi } from "../tune-midi";
+import { readTuneMidiMusic } from "../Midi/TuneMidiReader";
+import { encodeTuneMidi } from "../Midi/TuneMidi";
 it("uses exported instrument/octave and independently reads actual MIDI events", async () => {
   const { context } = await investigationContext();
   const p = context.input.metadata;

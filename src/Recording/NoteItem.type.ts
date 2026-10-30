@@ -1,5 +1,5 @@
-import type { SourceRange } from "../note-edits";
-import type { NoteEvent } from "../notes";
+import type { SourceRange } from "../Editing/NoteEdits";
+import type { NoteEvent } from "../Melody/Notes";
 
 export interface NoteItem {
   source: SourceRange;

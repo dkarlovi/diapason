@@ -1,5 +1,5 @@
-import { matchSourceItems } from "../recording-package-comparison";
-import { firstDifference } from "../diagnostics-validation";
+import { matchSourceItems } from "../Recording/RecordingPackageComparison";
+import { firstDifference } from "../Diagnostics/Diagnostics.validation";
 import {
   pagedReport,
   selectorRange,

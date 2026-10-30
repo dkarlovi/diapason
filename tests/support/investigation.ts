@@ -1,13 +1,13 @@
 import type { InvestigationContext } from "../../src/Inspection/Inspection.type";
 import type { AudioRecording } from "../../src/Recording/Recording.type";
-import { floatToPcm16, pcm16ToFloat } from "../../src/pcm";
+import { floatToPcm16, pcm16ToFloat } from "../../src/Audio/Pcm";
 import { recording } from "./recording";
-import { analyzeRecording } from "../../src/recording-analysis";
+import { analyzeRecording } from "../../src/Analysis/RecordingAnalysis";
 import {
   captureRecordingPackage,
   encodeRecordingPackage,
   readRecordingPackage,
-} from "../../src/recording-package";
+} from "../../src/Recording/RecordingPackage";
 export async function investigationInput(
   name = "Whistle | Δ",
   overrides: Partial<AudioRecording> = {},
@@ -36,7 +36,7 @@ export async function investigationContext(): Promise<{
   bytes: ArrayBuffer;
   context: InvestigationContext;
 }> {
-  const { BUILD_INFO } = await import("../../src/build-info");
+  const { BUILD_INFO } = await import("../../src/Diagnostics/BuildInfo");
   const { input, bytes } = await investigationInput();
   const cache = new Map<string, unknown>();
   return {

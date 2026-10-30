@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { decodeWav } from "../../src/wav-reader";
-import { analyzeRecording } from "../../src/recording-analysis";
+import { decodeWav } from "../../src/Encoding/WavReader";
+import { analyzeRecording } from "../../src/Analysis/RecordingAnalysis";
 import { recording } from "./recording";
 
 export function loadFixture(

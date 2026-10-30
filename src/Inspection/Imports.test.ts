@@ -19,7 +19,7 @@ it("retains hidden edits and mutes in restore while fresh preserves only receive
     captureRecordingPackage,
     encodeRecordingPackage,
     readRecordingPackage,
-  } = await import("../recording-package");
+  } = await import("../Recording/RecordingPackage");
   const p = context.input.metadata;
   if (p.schemaVersion !== 2) throw new Error("fixture");
   const record = await restoreRecordingPackage(context.input, "test.wav", "restore");

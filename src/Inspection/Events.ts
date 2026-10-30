@@ -1,7 +1,7 @@
-import { midiEvents } from "../midi";
-import { recordingFromPortableTune } from "../portable-tune";
-import { recordingNotes } from "../recording";
-import type { NoteEvent } from "../notes";
+import { midiEvents } from "../Midi/Midi";
+import { recordingFromPortableTune } from "../Tune/PortableTune";
+import { recordingNotes } from "../Recording/Processing";
+import type { NoteEvent } from "../Melody/Notes";
 import type { PortableTune } from "../Tune/PortableTune.type";
 
 export function logicalPlaybackEvents(

@@ -1,14 +1,14 @@
-import { replayObservation } from "../recording-package-comparison";
+import { replayObservation } from "../Recording/RecordingPackageComparison";
 import {
   compareValues,
   NUMERIC_COMPARISON_TOLERANCE,
   type ValueComparison,
-} from "../diagnostics-validation";
-import { readTuneMidiMusic } from "../tune-midi-reader";
-import { encodeTuneMidi } from "../tune-midi";
-import { PROGRAMS } from "../midi-playback";
-import { wavBytes } from "../wav";
-import { decodeWav } from "../wav-reader";
+} from "../Diagnostics/Diagnostics.validation";
+import { readTuneMidiMusic } from "../Midi/TuneMidiReader";
+import { encodeTuneMidi } from "../Midi/TuneMidi";
+import { PROGRAMS } from "../Midi/MidiPlayback";
+import { wavBytes } from "../Encoding/Wav";
+import { decodeWav } from "../Encoding/WavReader";
 import { verifyImportModes } from "./Imports";
 import { logicalPlaybackEvents, tunePlaybackEvents } from "./Events";
 import { computeComparison } from "./Computation";
