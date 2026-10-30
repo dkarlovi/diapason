@@ -356,13 +356,14 @@ npm test          # Vitest regression tests
 npm run lint      # oxlint
 npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules
+npm run structure # thin modules, shared export names, and re-exports
 npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run audit     # Fallow dead code, complexity, duplication, and styling review
 npm run health    # Fallow complexity gate against the health baseline (needs coverage)
 npm run metrics   # advisory health scores, hotspots, and refactoring targets
 npm run format    # oxfmt
 npm run format:check # verify formatting
-npm run check     # typecheck + lint + names + arch + format check + Fallow + tests + build
+npm run check     # typecheck + lint + names + arch + structure + format check + Fallow + tests + build
 ```
 
 The duplication check normalizes renamed variables and changed literals. Its baseline

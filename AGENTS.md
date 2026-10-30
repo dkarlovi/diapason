@@ -25,6 +25,7 @@ Active quality rules live in:
 - `tsconfig.json`: strict compiler options.
 - `npm run lint`: oxlint with its default rules (no config file yet; add `.oxlintrc.json` when a rule needs configuring).
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
+- `tools/structure.ts` + `.structurerc.json`: fails on a small module with one importer and no test of its own (inline it), an export name declared by more than one module (rename one), and any re-export (import from the module that declares the name). `.structurerc.json` holds the deliberate exceptions, each with a reason; an entry that matches nothing fails too.
 - `.ls-lint.yml`: folder and filename rules.
 - `.fallowrc.jsonc` + `.fallow-*-baseline.json`: dead code, duplication, and health gates with ratcheting baselines that fail when an entry goes stale.
 - `npm run check` and `.github/workflows/pages.yml`: every gate that blocks merge.

@@ -1,6 +1,6 @@
 import type { MidiEvent } from "./Midi";
 import { TUNE_LIMITS } from "../Tune/PortableTune";
-import { fromBase64Url } from "../Tune/Tune.codec";
+import { fromTuneBase64Url } from "../Tune/Tune.codec";
 export const TUNE_MIDI_PREFIX = "diapason:tune:1:";
 const invalid = () => {
   throw new Error(
@@ -90,7 +90,7 @@ export function readTuneMidiMusic(bytes: Uint8Array): {
     const text = reader.event();
     if (!text?.startsWith(TUNE_MIDI_PREFIX)) continue;
     if (payload) return invalid();
-    payload = fromBase64Url(text.slice(TUNE_MIDI_PREFIX.length));
+    payload = fromTuneBase64Url(text.slice(TUNE_MIDI_PREFIX.length));
   }
   if (!reader.ended) return invalid();
   return {

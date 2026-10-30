@@ -11,10 +11,10 @@ import {
   type EditHistoryEvent,
 } from "../../Editing/EditHistory";
 import { createEditorWriter, type EditorWriter } from "../../Editing/EditorSaveQueue";
-import type { AdHocTuneSession } from "./useAdHocTune";
 import { validateEditHistory } from "../../Editing/EditHistory.validation";
 import type { EditHistory } from "../../Recording/RecordingEdit.type";
 import type { EditSnapshot } from "../../Recording/RecordingEdit.type";
+import type { AdHocTuneSession } from "./AdHocSession";
 
 interface Options {
   session?: AdHocTuneSession | undefined;

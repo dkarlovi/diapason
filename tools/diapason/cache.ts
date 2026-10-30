@@ -15,7 +15,7 @@ export interface CacheStatus {
   enabled: boolean;
   available?: false;
 }
-export interface StageStore extends InspectionStageStore {
+export interface CacheStageStore extends InspectionStageStore {
   status(): Promise<CacheStatus>;
   clear(): Promise<void>;
 }
@@ -84,7 +84,7 @@ export function createStageStore({
   maxIdleMs = 604800000,
   scope,
   diagnostic = () => {},
-}: StageStoreOptions = {}): StageStore {
+}: StageStoreOptions = {}): CacheStageStore {
   const root = resolve(directory);
   if (scope !== undefined && !validKey(scope)) throw new Error("Invalid cache WAV scope.");
   const reference = (key: string) => join(root, `${scope}.${key}.ref`);

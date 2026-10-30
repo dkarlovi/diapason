@@ -1,6 +1,7 @@
 import { BASE } from "../Routing/Routes";
-import { decodeTune, encodeTune, fromBase64Url, toBase64Url } from "./Tune.codec";
+import { decodeTune, encodeTune, fromTuneBase64Url } from "./Tune.codec";
 import type { PortableTune } from "./PortableTune.type";
+import { toBase64Url } from "../Encoding/Base64Url";
 
 const MAX_TUNE_URL = 16_384;
 export async function tuneUrl(tune: PortableTune, origin: string): Promise<string> {
@@ -13,5 +14,5 @@ export async function tuneFromFragment(fragment: string): Promise<PortableTune |
   if (!fragment.startsWith("#tune=")) return null;
   if (fragment.length > MAX_TUNE_URL)
     throw new Error("This tune link is too large. Import Diapason MIDI instead.");
-  return decodeTune(fromBase64Url(fragment.slice(6)));
+  return decodeTune(fromTuneBase64Url(fragment.slice(6)));
 }

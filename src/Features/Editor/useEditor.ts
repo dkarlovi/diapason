@@ -1,5 +1,4 @@
 import { compareSavedMelody } from "../../Recording/RecordingPackageComparison";
-import type { AdHocTuneSession } from "./useAdHocTune";
 import { createPortableTune } from "../../Tune/PortableTune";
 import { useSaveTune } from "./useSaveTune";
 import { useLocation } from "react-router";
@@ -13,7 +12,6 @@ import {
 } from "../../Recording/RecordingCapabilities";
 import { useEditorVersions } from "./useEditorVersions";
 import { applyEditSnapshot } from "../../Editing/EditState";
-import { validateEditSnapshot } from "../../Editing/Edit.storage";
 import { captureEditSnapshot } from "../../Editing/EditState";
 import { KNOB_DEFS, isKnobs, type Knobs } from "../../Melody/Knobs";
 import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../../Editing/NoteEdits";
@@ -50,6 +48,8 @@ import {
 } from "../../Editing/Editor.model";
 import type { MelodySetting } from "../../Melody/MelodySetting.type";
 import type { NoteItem } from "../../Recording/NoteItem.type";
+import { validateEditSnapshot } from "../../Editing/EditSnapshot.validation";
+import type { AdHocTuneSession } from "./AdHocSession";
 
 const NO_MELODY: MelodySetting = { preset: DEFAULT_PRESET, overrides: {}, key: "auto" };
 const uid = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;

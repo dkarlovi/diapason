@@ -16,10 +16,10 @@ import {
   saveEditCommit,
   saveRecordingName,
   saveVersion,
-  validateEditSnapshot,
   type SavedVersion,
 } from "./Edit.storage";
 import type { EditCommit } from "../Recording/RecordingEdit.type";
+import { validateEditSnapshot } from "./EditSnapshot.validation";
 
 const commit = (id: string, octave = 0): EditCommit => ({
   id,

@@ -1,5 +1,4 @@
 import { fromBase64Url as decodeBase64Url } from "../Encoding/Base64Url";
-export { toBase64Url } from "../Encoding/Base64Url";
 import { recordingFromPortableTune } from "./PortableTune";
 import { processRecording } from "../Recording/Processing";
 import { requireTune } from "./Tune.validation";
@@ -84,6 +83,6 @@ export async function decodeTune(bytes: Uint8Array): Promise<PortableTune> {
   processRecording(recordingFromPortableTune(tune, "import-check", 0), []);
   return tune;
 }
-export function fromBase64Url(text: string): Uint8Array {
+export function fromTuneBase64Url(text: string): Uint8Array {
   return decodeBase64Url(text, Math.ceil((TUNE_LIMITS.encoded * 4) / 3));
 }

@@ -12,7 +12,8 @@ import { MelodyTools } from "./EditorTools";
 import { EditorRecordingActions } from "./EditorRecordingActions";
 import { Button } from "../../UI/Button";
 import { EditorSessionNavigation } from "./AdHocNavigation";
-import type { AdHocTuneSession } from "./useAdHocTune";
+import type { AdHocTuneSession } from "./AdHocSession";
+
 function ImportAnalysisNotice({ mismatch }: { mismatch: boolean }) {
   if (!mismatch) return null;
   return (

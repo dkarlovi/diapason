@@ -1,0 +1,9 @@
+{
+  "thinModules": {
+    "src/Inspection/Api.ts": "The CLI's single Vite SSR entry point; tools-through-inspection routes every tools/ import through it."
+  },
+  "sharedNames": {},
+  "reExports": {
+    "src/Inspection/Api.ts": "Facade the CLI loads through Vite SSR, so the CLI depends on one module instead of the whole tree."
+  }
+}

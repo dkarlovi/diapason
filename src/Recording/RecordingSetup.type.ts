@@ -1,9 +1,9 @@
-export type CheckStatus = "unchecked" | "checking" | "passed" | "attention";
+export type SetupCheckStatus = "unchecked" | "checking" | "passed" | "attention";
 
 export interface SetupCheck {
   id: string;
   label: string;
-  status: CheckStatus;
+  status: SetupCheckStatus;
   detail: string;
   blocking: boolean;
 }
