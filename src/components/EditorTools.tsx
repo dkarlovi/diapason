@@ -91,8 +91,8 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
               audition(() => state.previewMelody(change, id), id);
             }}
           >
-            <section className="editor-tune-group" aria-label="Playback sound">
-              <h3>Playback sound</h3>
+            <section className="editor-tune-group" aria-label="MIDI sound">
+              <h3>MIDI sound</h3>
               <PlaybackSettings
                 state={state}
                 onPreview={(settings, id, label) =>

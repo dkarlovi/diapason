@@ -142,7 +142,8 @@ Radix popovers float above the canvas, stay inside the viewport, and dismiss
 with an outside click or Escape. The Key menu includes Auto, suggestions, and all 24 keys;
 Essentials, Pitch, Rhythm, and Detection expose the same complete controls.
 Tune uses a tonal toolbox with a strong blue category selection and quieter reset
-controls. **Playback sound** groups Instrument and Octave. **Melody correction**
+controls. **MIDI sound** groups Instrument and Octave, which apply to both note
+playback and MIDI downloads. **Melody correction**
 places Preset and Key directly above the correction tabs and sliders, keeping the
 recipe beside the values it controls. Rename lives in the header, with Versions, duplicate,
 and delete under Recording actions. Mobile
@@ -856,8 +857,8 @@ settings to recover it; Recording actions shows an inactive pitch-edit count and
 **Reset all note edits**, with confirmation, to clear active and hidden edits.
 Tune reset preserves manual edits. Pitch controls are disabled during tuning
 previews; Stop restores applied notes and selection. Playback octave shifts edited
-notes once, for both browser and external MIDI playback, without changing the roll,
-stored pitch, or exported MIDI. Original audio stays untouched. Timing and velocity
+notes once, for browser playback, external MIDI playback, and MIDI downloads,
+without changing the roll or stored pitch. Original audio stays untouched. Timing and velocity
 editing remain deferred.
 
 ## Runtime test coverage
