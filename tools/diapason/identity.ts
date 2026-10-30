@@ -1,24 +1,31 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
+import type { BinaryLike } from "node:crypto";
 import { join } from "node:path";
-export const digest = (value) => createHash("sha256").update(value).digest("hex");
-function canonical(value) {
+import type { InputIdentity } from "../../src/Inspection/Inspection.type.ts";
+export const digest = (value: BinaryLike) => createHash("sha256").update(value).digest("hex");
+function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object")
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
     return Object.fromEntries(
-      Object.keys(value)
+      Object.keys(record)
         .sort()
-        .filter((k) => value[k] !== undefined)
-        .map((k) => [k, canonical(value[k])]),
+        .filter((k) => record[k] !== undefined)
+        .map((k) => [k, canonical(record[k])]),
     );
+  }
   return value;
 }
-const key = (value) => digest(JSON.stringify(canonical(value)));
-export const stageKey = (identity, stage, dependencies) =>
+const key = (value: unknown) => digest(JSON.stringify(canonical(value)));
+export const stageKey = (identity: string | null, stage: string, dependencies: unknown) =>
   identity ? key({ schemaVersion: 1, identity, stage, dependencies }) : null;
-export const runKey = (identity, input, recipe) =>
-  stageKey(identity, "run", { wavSha256: input.wavSha256, recipe, reportSchema: 1 });
-async function sources(directory, suffix) {
+export const runKey = (
+  identity: string | null,
+  input: Pick<InputIdentity, "wavSha256">,
+  recipe: unknown,
+) => stageKey(identity, "run", { wavSha256: input.wavSha256, recipe, reportSchema: 1 });
+async function sources(directory: string, suffix: RegExp): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(
     entries.map(async (entry) => {
@@ -34,7 +41,7 @@ async function sources(directory, suffix) {
   return nested.flat().sort();
 }
 export async function codeRuntimeIdentity(
-  root,
+  root: string,
   runtime = JSON.stringify({
     node: process.version,
     versions: process.versions,
@@ -45,7 +52,7 @@ export async function codeRuntimeIdentity(
   try {
     const paths = [
       ...(await sources(join(root, "src"), /\.(ts|tsx)$/)),
-      ...(await sources(join(root, "tools"), /\.mjs$/)),
+      ...(await sources(join(root, "tools"), /\.ts$/)),
       join(root, "package-lock.json"),
       join(root, "vite.config.ts"),
     ];

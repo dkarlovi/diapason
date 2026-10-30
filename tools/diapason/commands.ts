@@ -1,12 +1,25 @@
-import { errorReport } from "./errors.mjs";
-import { registerQueries } from "./queries.mjs";
+import { errorReport, type CliError } from "./errors.ts";
+import { registerQueries, type CommandContext, type OutputFormat } from "./queries.ts";
 import { Command, Option } from "commander";
 import { readFile } from "node:fs/promises";
-import { digest } from "./identity.mjs";
-import { createStageStore } from "./cache.mjs";
-import { renderReport } from "./render.mjs";
-import { inspectRecording, verifyRecording, compareRecording, withRecording } from "./handlers.mjs";
-function preferredFormat(argv) {
+import { digest } from "./identity.ts";
+import { createStageStore } from "./cache.ts";
+import { renderReport } from "./render.ts";
+import { inspectRecording, verifyRecording, compareRecording, withRecording } from "./handlers.ts";
+import type { CliResult } from "./handlers.ts";
+
+export interface CliIo {
+  stdout: (text: string) => void;
+  stderr: (text: string) => void;
+}
+interface GlobalOptions {
+  format?: string;
+  json?: boolean;
+  cacheDir?: string;
+  cache?: boolean;
+  color: string;
+}
+function preferredFormat(argv: string[]) {
   // A permissive Commander pass selects error serialization even for malformed commands.
   try {
     const format = new Command()
@@ -24,9 +37,12 @@ function preferredFormat(argv) {
   return "text";
 }
 export async function runCli(
-  argv,
-  io = { stdout: (s) => process.stdout.write(s), stderr: (s) => process.stderr.write(s) },
-) {
+  argv: string[],
+  io: CliIo = {
+    stdout: (s) => void process.stdout.write(s),
+    stderr: (s) => void process.stderr.write(s),
+  },
+): Promise<number> {
   const selectedFormat = preferredFormat(argv);
   const program = new Command()
     .name("bin/diapason")
@@ -44,13 +60,13 @@ export async function runCli(
         .choices(["auto", "always", "never"])
         .default("auto"),
     );
-  const runtimeOptions = () => ({
-    ...program.opts(),
-    diagnostic: (message) => io.stderr(message + "\n"),
+  const runtimeOptions: CommandContext["runtimeOptions"] = () => ({
+    ...program.opts<GlobalOptions>(),
+    diagnostic: (message: string) => io.stderr(message + "\n"),
   });
   let code = 0;
-  const outputOptions = () => {
-    const opts = program.opts();
+  const outputOptions = (): OutputFormat => {
+    const opts = program.opts<GlobalOptions>();
     if (opts.json && opts.format && opts.format !== "json")
       throw new Error("--json conflicts with --format.");
     return {
@@ -59,8 +75,8 @@ export async function runCli(
       width: process.stdout.columns ?? 80,
     };
   };
-  const emit = (result, format) => {
-    if (result.raw) {
+  const emit = (result: CliResult, format: OutputFormat) => {
+    if ("raw" in result) {
       io.stdout(JSON.stringify(result.raw, null, 2) + "\n");
       return;
     }
@@ -75,7 +91,7 @@ export async function runCli(
     .command("inspect <wav>")
     .description("Executive summary with applicable verification checks")
     .option("--raw", "return original package JSON")
-    .action(async (file, options) => {
+    .action(async (file: string, options: { raw?: boolean }) => {
       const format = outputOptions();
       if (options.raw && format.format !== "json") throw new Error("--raw requires --format json.");
       emit(
@@ -86,7 +102,7 @@ export async function runCli(
   program
     .command("verify <wav>")
     .description("Detailed integrity, replay, import and MIDI checks")
-    .action(async (file) => {
+    .action(async (file: string) => {
       const format = outputOptions();
       emit(await verifyRecording(file, runtimeOptions()), format);
     });
@@ -94,7 +110,7 @@ export async function runCli(
     .command("compare <wav>")
     .description("Compare saved, edited replay and automatic results")
     .option("--out <directory>", "write complete comparison reports and MIDI to a new destination")
-    .action(async (file, options) => {
+    .action(async (file: string, options: { out?: string }) => {
       const format = outputOptions();
       emit(await compareRecording(file, { ...runtimeOptions(), ...options }), format);
     });
@@ -103,7 +119,7 @@ export async function runCli(
     .command("cache")
     .description("Inspect or clear disposable cached computations");
   for (const action of ["status", "clear"])
-    cache.command(`${action} [wav]`).action(async (wav) => {
+    cache.command(`${action} [wav]`).action(async (wav: string | undefined) => {
       const format = outputOptions();
       const options = runtimeOptions();
       const store = createStageStore({
@@ -134,7 +150,8 @@ export async function runCli(
   try {
     await program.parseAsync(argv, { from: "user" });
     return code;
-  } catch (error) {
+  } catch (caught) {
+    const error = caught as CliError;
     if (error.code === "commander.helpDisplayed" || error.code === "commander.help") return 0;
     const report = errorReport(error);
     if (selectedFormat === "json" || selectedFormat === "markdown")

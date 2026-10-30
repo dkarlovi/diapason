@@ -1,10 +1,18 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { renderReport, commandText } from "./render.mjs";
-const report = {
+import { renderReport, commandText, type RenderableReport } from "./render.ts";
+const report: RenderableReport = {
   schemaVersion: 1,
   kind: "inspect",
-  input: { path: "/tmp/song.wav" },
+  input: {
+    path: "/tmp/song.wav",
+    wavSha256: "a".repeat(64),
+    pcmSha256: null,
+    sampleRate: 48000,
+    sampleCount: 24000,
+  },
+  view: null,
+  execution: null,
   overall: "incomplete",
   scope: { total: 0, returned: 0, offset: 0, limit: 20, omitted: 0 },
   findings: [],
@@ -56,12 +64,19 @@ it("quotes user paths as arguments rather than shell expressions", () => {
 import { spawnSync } from "node:child_process";
 
 it("retains detailed check deltas, findings, pagination and diagnostic paths in both human formats", () => {
-  const detailed = {
+  const detailed: RenderableReport = {
     ...report,
     kind: "verify",
     overall: "mismatch",
     scope: { total: 25, returned: 20, offset: 0, limit: 20, omitted: 5 },
-    findings: [{ severity: "info", message: "Historical observations differ." }],
+    findings: [
+      {
+        code: "history.differs",
+        severity: "info",
+        message: "Historical observations differ.",
+        evidence: [],
+      },
+    ],
     data: {
       checks: [
         {
@@ -79,7 +94,7 @@ it("retains detailed check deltas, findings, pagination and diagnostic paths in 
       },
     },
   };
-  for (const format of ["text", "markdown"]) {
+  for (const format of ["text", "markdown"] as const) {
     const rendered = renderReport(detailed, { format, color: "never", width: 120 });
     for (const value of [
       "replay.edited",

@@ -3,8 +3,8 @@ import { afterEach, expect, it } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { codeRuntimeIdentity, runKey, stageKey } from "./identity.mjs";
-const roots = [];
+import { codeRuntimeIdentity, runKey, stageKey } from "./identity.ts";
+const roots: string[] = [];
 afterEach(async () => {
   await Promise.all(roots.splice(0).map((p) => rm(p, { recursive: true, force: true })));
 });
@@ -17,7 +17,7 @@ it("invalidates current computations for uncommitted production, CLI, dependency
   await writeFile(join(root, "vite.config.ts"), "config");
   const initial = await codeRuntimeIdentity(root);
   expect(initial).toMatch(/^[a-f0-9]{64}$/);
-  for (const file of ["src/pitch.ts", "tools/diapason/runtime.mjs", "package-lock.json"]) {
+  for (const file of ["src/pitch.ts", "tools/diapason/runtime.ts", "package-lock.json"]) {
     const before = await codeRuntimeIdentity(root);
     await writeFile(join(root, file), "changed");
     expect(await codeRuntimeIdentity(root)).not.toBe(before);

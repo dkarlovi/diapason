@@ -336,7 +336,7 @@ or HTTPS. Audio and recordings remain local in IndexedDB.
 
 ## Running it
 
-Requires Node 22.12+.
+Requires Node 22.18+.
 
 ```bash
 npm ci
@@ -386,8 +386,9 @@ filenames name the thing, and lowercase dotted suffixes (`.model`, `.type`,
 import each other; `src/UI` is a generic design system that knows nothing about diapason; other `src/` folders stay framework-free; `tools/` only renders data
 from `src/Inspection`; import cycles are forbidden unless every module in them is a
 `*.type.ts` file (mutually recursive data shapes such as a recording and its edit
-history). The tree has no known violations, so any new one fails `npm run check`. `tools/`
-is still JavaScript, so ls-lint allows `.mjs` there for now. dependency-cruiser parses with swc
+history). The tree has no known violations, so any new one fails `npm run check`. `tools/` is
+TypeScript that Node runs directly through its built-in type stripping, and `tsc` checks
+it with the rest of the project. dependency-cruiser parses with swc
 because it cannot load TypeScript 7 yet, and prints a missing-transpiler notice on
 every run until it can.
 
@@ -438,7 +439,7 @@ current code and melody settings.
 
 Download one WAV from the editor and give that file to the developer or agent.
 Browser log/JSON downloads and clipboard diagnostics have been replaced by a
-repository CLI (Node 22.12+ and `npm ci` required). Agents can use the repository's
+repository CLI (Node 22.18+ and `npm ci` required). Agents can use the repository's
 [`diapason-recordings` skill](.agents/skills/diapason-recordings/SKILL.md): it starts
 with inspection and loads focused workflow references only as needed.
 

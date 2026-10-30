@@ -1,4 +1,16 @@
 import { createServer } from "vite";
+
+interface PayloadRow {
+  name: string;
+  notes: number;
+  json: number;
+  packed: number;
+  encoded: number;
+  urlCharacters: number;
+}
+interface MeasuredTune {
+  noteSource: { segments: unknown[] };
+}
 const server = await createServer({
   mode: "replay",
   server: { middlewareMode: true, hmr: false, ws: false, watch: null },
@@ -10,8 +22,8 @@ try {
   const { packTune } = await server.ssrLoadModule("/src/Tune/TuneFields.ts");
   const { encodeTune, toBase64Url } = await server.ssrLoadModule("/src/Tune/Tune.codec.ts");
   const { noteRecording } = await server.ssrLoadModule("/tests/support/note-recording.ts");
-  const rows = [];
-  async function measure(name, tune) {
+  const rows: PayloadRow[] = [];
+  async function measure(name: string, tune: MeasuredTune) {
     const raw = packTune(tune),
       encoded = await encodeTune(tune);
     rows.push({
