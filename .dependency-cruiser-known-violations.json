@@ -1,0 +1,2408 @@
+[
+  {
+    "type": "dependency",
+    "from": "src/components/AdHocTuneRoute.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/AppShell.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/AppShell.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/AppShell.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/AuditionMenuContext.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Capture.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Capture.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/CaptureActions.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/CaptureActions.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/CaptureControls.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Editor.loaded.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Editor.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Editor.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Editor.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorCanvas.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorCanvas.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorHistoryActions.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorHistoryActions.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorRecordingActions.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorRecordingActions.tsx",
+    "to": "node_modules/react-dom/index.js",
+    "unresolvedTo": "react-dom",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorRecordingActions.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorTools.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorTools.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorVersions.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EditorVersions.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EmbeddedRecordingActions.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EmbeddedRecordingActions.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Library.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Library.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Library.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Library.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/LiveBeat.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/LiveMonitor.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/LiveMonitor.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/LockedRecordingNavigation.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/LockedRecordingNavigation.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/MelodyDropdown.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/MelodyDropdown.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/MelodyKnob.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/MelodyPanel.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/MelodyPanel.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/NoteDetail.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/NoteDetail.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PitchCanvas.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PitchCanvas.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PreviewOption.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PreviewOption.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/primitives.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/RecordingImport.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/RecordingImport.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ResetControl.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/TempoSetup.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/TempoSetup.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Toast.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Toast.tsx",
+    "to": "node_modules/lucide-react/dist/cjs/lucide-react.js",
+    "unresolvedTo": "lucide-react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Toast.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Toast.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ui/button.tsx",
+    "to": "node_modules/@radix-ui/react-slot/dist/index.d.mts",
+    "unresolvedTo": "@radix-ui/react-slot",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ui/button.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ui/popover.tsx",
+    "to": "node_modules/@radix-ui/react-popover/dist/index.d.mts",
+    "unresolvedTo": "@radix-ui/react-popover",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ui/popover.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/WaveformThumbnail.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useAdHocNavigation.ts",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useAdHocNavigation.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useAdHocTune.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useAnalysisStatus.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useAudioClock.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useCapture.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useCaptureWizard.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditHistory.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditHistory.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditor.note-edits.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditor.ts",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditor.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorExports.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorGestures.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorHistoryKeys.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorHistoryKeys.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorLayout.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorPlayback.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorPlayback.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorPlayback.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorPlot.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorSaveStatus.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorVersions.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useEditorVersions.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useLibrary.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useMeasurements.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useMelodySettings.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useMicrophone.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useMidiOutput.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useNoteDrag.test.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useNoteDrag.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useNotice.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useRecordingImport.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useRecordingSetup.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useSaveTune.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useSliderCommit.test.tsx",
+    "to": "node_modules/react-dom/index.js",
+    "unresolvedTo": "react-dom",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useSliderCommit.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useSliderCommit.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioFullscreen.test.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioFullscreen.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioMode.tsx",
+    "to": "node_modules/react-router/dist/production/index.d.ts",
+    "unresolvedTo": "react-router",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioMode.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioTheme.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useStudioTitle.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useTempo.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useTempoEstimate.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useTuneShare.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useWavDrop.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useWaveformBackfill.test.tsx",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useWaveformBackfill.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/hooks/useWaveformLayout.ts",
+    "to": "node_modules/react/index.js",
+    "unresolvedTo": "react",
+    "dependencyTypes": ["npm", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "domain-without-react"
+    }
+  },
+  {
+    "type": "cycle",
+    "from": "src/capture-model.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/voice-range.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/capture-model.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/capture-model.ts",
+    "to": "src/recording-setup.ts",
+    "unresolvedTo": "./recording-setup",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-setup.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/capture-model.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/components/MelodyKeyControls.tsx",
+    "to": "src/components/MelodyPanel.tsx",
+    "unresolvedTo": "./MelodyPanel",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/components/MelodyPanel.tsx",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/components/MelodyKeyControls.tsx",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/components/MelodyKnob.tsx",
+    "to": "src/components/MelodyPanel.tsx",
+    "unresolvedTo": "./MelodyPanel",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/components/MelodyPanel.tsx",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/components/MelodyKnob.tsx",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/components/MelodyPanel.tsx",
+    "to": "src/components/MelodyPresets.tsx",
+    "unresolvedTo": "./MelodyPresets",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/components/MelodyPresets.tsx",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/components/MelodyPanel.tsx",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/edit-history.ts",
+    "unresolvedTo": "./edit-history",
+    "dependencyTypes": ["local", "type-import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-history.ts",
+        "dependencyTypes": ["local", "type-import"]
+      },
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/edit-storage.ts",
+    "unresolvedTo": "./edit-storage",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/note-source.ts",
+    "unresolvedTo": "./note-source",
+    "dependencyTypes": ["local", "type-import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/note-source.ts",
+        "dependencyTypes": ["local", "type-import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/recording-package-types.ts",
+    "unresolvedTo": "./recording-package-types",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/db.ts",
+    "to": "src/wav-metadata.ts",
+    "unresolvedTo": "./wav-metadata",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/diagnostics.ts",
+    "to": "src/db.ts",
+    "unresolvedTo": "./db",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/diagnostics.ts",
+    "to": "src/recording-analysis.ts",
+    "unresolvedTo": "./recording-analysis",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-analysis.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/diagnostics.ts",
+    "to": "src/recording.ts",
+    "unresolvedTo": "./recording",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-history-validation.ts",
+    "to": "src/edit-history.ts",
+    "unresolvedTo": "./edit-history",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-history.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-history-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-history-validation.ts",
+    "to": "src/edit-snapshot-validation.ts",
+    "unresolvedTo": "./edit-snapshot-validation",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-snapshot-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-history-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-snapshot-validation.ts",
+    "to": "src/db.ts",
+    "unresolvedTo": "./db",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-snapshot-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-snapshot-validation.ts",
+    "to": "src/edit-state.ts",
+    "unresolvedTo": "./edit-state",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-snapshot-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-snapshot-validation.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-snapshot-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-storage.ts",
+    "to": "src/edit-history.ts",
+    "unresolvedTo": "./edit-history",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-history.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-storage.ts",
+    "to": "src/edit-state.ts",
+    "unresolvedTo": "./edit-state",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/melody/context-correction.ts",
+    "to": "src/melody/decode.ts",
+    "unresolvedTo": "./decode",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/decode.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/melody/context-correction.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/midi-playback.ts",
+    "to": "src/playback.ts",
+    "unresolvedTo": "./playback",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/playback.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/midi-playback.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/note-source.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/note-source.ts",
+        "dependencyTypes": ["local", "type-import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/note-source.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/note-source.ts",
+        "dependencyTypes": ["local", "type-import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/portable-tune.ts",
+    "to": "src/db.ts",
+    "unresolvedTo": "./db",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/portable-tune.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/portable-tune.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/portable-tune.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/portable-tune.ts",
+    "to": "src/note-source.ts",
+    "unresolvedTo": "./note-source",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/note-source.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/portable-tune.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/portable-tune.ts",
+    "to": "src/recording.ts",
+    "unresolvedTo": "./recording",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/portable-tune.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-analysis.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-analysis.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-package-types.ts",
+    "to": "src/edit-state.ts",
+    "unresolvedTo": "./edit-state",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-package-types.ts",
+    "to": "src/wav-metadata.ts",
+    "unresolvedTo": "./wav-metadata",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-profiles.ts",
+    "to": "src/voice-range.ts",
+    "unresolvedTo": "./voice-range",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/voice-range.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-settings.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-settings.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-settings.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-settings.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-setup.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/voice-range.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-setup.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-setup.ts",
+    "to": "src/voice-range.ts",
+    "unresolvedTo": "./voice-range",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/voice-range.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-setup.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording.ts",
+    "to": "src/recording-settings.ts",
+    "unresolvedTo": "./recording-settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/wav-metadata.ts",
+    "to": "src/melody/settings.ts",
+    "unresolvedTo": "./melody/settings",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/wav-metadata.ts",
+    "to": "src/recording-profiles.ts",
+    "unresolvedTo": "./recording-profiles",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/wav-metadata.ts",
+    "to": "src/recording-setup.ts",
+    "unresolvedTo": "./recording-setup",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/recording-setup.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/capture-model.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/db.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "dependency",
+    "from": "tools/diapason/errors.test.mjs",
+    "to": "src/package-error.ts",
+    "unresolvedTo": "../../src/package-error.ts",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "tools-through-inspection"
+    }
+  }
+]

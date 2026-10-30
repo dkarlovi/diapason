@@ -4,6 +4,8 @@
 
 diapason is a fully client-side whistle-to-MIDI studio built with React, TypeScript, and Vite. `src/main.tsx` mounts the app; `src/router.ts` defines route helpers. Screens and shared controls live in `src/components/`, browser effects in `src/hooks/`, and pure screen calculations in `src/capture-model.ts` and `src/editor-model.ts`. Audio processing, MIDI/WAV encoding, and IndexedDB storage are separate modules under `src/`. Tests sit beside their source files. Shared styles live in `src/styles.css`; `index.html` is the HTML entry point. Plans live in `plans/` and `docs/superpowers/plans/`. Generated output goes to `dist/` and `coverage/`.
 
+The tree is migrating to the layout enforced by `.ls-lint.yml` (naming) and `.dependency-cruiser.mjs` (layering): PascalCase domain folders under `src/`, PascalCase filenames, `use*` hooks, and singular lowercase role suffixes such as `Capture.model.ts` or `Recording.type.ts`. React belongs only in `src/App`, `src/Features/<Feature>`, and `src/UI`; `tools/` is a thin CLI view over `src/Inspection`; shared test fixtures and support live in `tests/`. Put new files where these configs expect them. Never add entries to `.dependency-cruiser-known-violations.json` to make `npm run arch` pass; run `npm run arch:baseline` only after removing violations.
+
 ## Build, Test, and Development Commands
 
 Use Node 22+ and install locked dependencies with `npm ci`.
