@@ -100,7 +100,6 @@ export default {
     parser: "swc",
     // The npm script still passes the scan roots: the config format has no field for them.
     doNotFollow: { path: "node_modules" },
-    tsPreCompilationDeps: true,
     tsConfig: { fileName: "tsconfig.json" },
     enhancedResolveOptions: {
       exportsFields: ["exports"],

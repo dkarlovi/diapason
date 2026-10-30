@@ -23,7 +23,7 @@ Before suggesting "the agent should check X" or "by convention we do Y", ask: _c
 Active quality rules live in:
 
 - `tsconfig.json`: strict compiler options.
-- `npm run lint`: oxlint with its default rules (no config file yet; add `.oxlintrc.json` when a rule needs configuring).
+- `.oxlintrc.json` + `.oxlint-baseline.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` rule in `tools/oxlint/`. oxlint has no baseline of its own, so `npm run lint` (`tools/lint-baseline.ts`) holds its findings to the committed counts per file and rule: a count that grows fails with the new findings, and a count that shrinks fails until `npm run lint:baseline` lowers it. Never re-save the baseline to absorb a new finding.
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `tools/structure.ts` + `.structurerc.json`: fails on a small module with one importer and no test of its own (inline it), an export name declared by more than one module (rename one), and any re-export (import from the module that declares the name). `.structurerc.json` holds the deliberate exceptions, each with a reason; an entry that matches nothing fails too.
 - `.ls-lint.yml`: folder and filename rules.
@@ -47,6 +47,10 @@ Use Node 22.18+ (it runs `tools/` TypeScript directly) and install locked depend
 - `npm run check`: run typechecking, oxlint, dependency-cruiser (`npm run arch`), formatting checks, Fallow checks, coverage tests, and the production build.
 
 Fallow checks require `origin/main` and `HEAD^`. Avoid growing the committed duplication and health baselines. After moving or fixing a baselined file, re-save the baseline (`fallow health --complexity --coverage coverage/coverage-final.json --save-baseline .fallow-health-baseline.json`) or prune it (`fallow baselines prune`).
+
+## Comments
+
+Comments explain why code exists: a non-obvious decision, a workaround, a spec quirk. Naming, structure, and test names carry how it works. Never narrate steps or sections (`// Step 1:`, `// --- Persistence ---`); extract a named function instead. Never compare against a version the reader cannot see (`no longer`, `previously`, `instead of the old`); state the present-tense fact. Never cite plan, issue, or attempt numbers; cite a spec, a bug URL, or a test name. `local/no-narrative-comments` enforces these; restating the code stays a review judgement.
 
 ## Coding Style & Naming Conventions
 

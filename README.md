@@ -353,7 +353,8 @@ npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
-npm run lint      # oxlint
+npm run lint      # oxlint, held to .oxlint-baseline.json
+npm run lint:baseline # lower the oxlint baseline after fixing findings
 npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules
 npm run structure # thin modules, shared export names, and re-exports
@@ -393,8 +394,8 @@ from `src/Inspection`; import cycles are forbidden unless every module in them i
 history). The tree has no known violations, so any new one fails `npm run check`. `tools/` is
 TypeScript that Node runs directly through its built-in type stripping, and `tsc` checks
 it with the rest of the project. dependency-cruiser parses with swc
-because it cannot load TypeScript 7 yet, and prints a missing-transpiler notice on
-every run until it can.
+because it cannot load TypeScript 7 yet; swc still marks `import type` edges, which the
+cycle and `*.type.ts` rules rely on.
 
 ## Deployment
 

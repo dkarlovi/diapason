@@ -1,0 +1,87 @@
+{
+  "src/Features/Capture/Capture.tsx": {
+    "react(refs)": 1
+  },
+  "src/Features/Capture/useMicrophone.ts": {
+    "react-hooks(exhaustive-deps)": 2
+  },
+  "src/Features/Capture/useRecordingSetup.ts": {
+    "react(immutability)": 4,
+    "react-hooks(exhaustive-deps)": 3
+  },
+  "src/Features/Capture/useTempoEstimate.ts": {
+    "react-hooks(exhaustive-deps)": 1
+  },
+  "src/Features/Editor/Editor.tsx": {
+    "react(refs)": 3
+  },
+  "src/Features/Editor/EditorCanvas.tsx": {
+    "react(refs)": 3
+  },
+  "src/Features/Editor/NoteDetail.tsx": {
+    "react(refs)": 1
+  },
+  "src/Features/Editor/useAdHocNavigation.ts": {
+    "react(refs)": 1
+  },
+  "src/Features/Editor/useAdHocTune.ts": {
+    "react(set-state-in-effect)": 1
+  },
+  "src/Features/Editor/useEditHistory.test.tsx": {
+    "react-hooks(exhaustive-deps)": 1,
+    "react-hooks(rules-of-hooks)": 2
+  },
+  "src/Features/Editor/useEditHistory.ts": {
+    "react(refs)": 3
+  },
+  "src/Features/Editor/useEditor.ts": {
+    "react(refs)": 2,
+    "react(set-state-in-effect)": 2,
+    "react-hooks(exhaustive-deps)": 5
+  },
+  "src/Features/Editor/useEditorExports.ts": {
+    "react(refs)": 1
+  },
+  "src/Features/Editor/useEditorGestures.ts": {
+    "react(refs)": 2
+  },
+  "src/Features/Editor/useEditorHistoryKeys.ts": {
+    "react(refs)": 1
+  },
+  "src/Features/Editor/useEditorPlayback.ts": {
+    "react(set-state-in-effect)": 1,
+    "react-hooks(exhaustive-deps)": 1
+  },
+  "src/Features/Editor/useEditorPlot.ts": {
+    "react(refs)": 2,
+    "react(set-state-in-effect)": 1
+  },
+  "src/Features/Editor/useEditorVersions.ts": {
+    "react(set-state-in-effect)": 1,
+    "react-hooks(exhaustive-deps)": 2
+  },
+  "src/Features/Editor/useMelodySettings.ts": {
+    "react-hooks(exhaustive-deps)": 1
+  },
+  "src/Features/Editor/useNoteDrag.ts": {
+    "react(refs)": 1
+  },
+  "src/Features/Editor/useSaveTune.ts": {
+    "react(immutability)": 1
+  },
+  "src/Features/Editor/useSliderCommit.test.tsx": {
+    "react(refs)": 1
+  },
+  "src/Features/Library/useLibrary.ts": {
+    "react-hooks(exhaustive-deps)": 3
+  },
+  "src/Features/Library/useWavDrop.ts": {
+    "react(refs)": 1
+  },
+  "src/Features/Library/useWaveformBackfill.ts": {
+    "react-hooks(exhaustive-deps)": 1
+  },
+  "src/UI/Toast.tsx": {
+    "react(set-state-in-effect)": 1
+  }
+}

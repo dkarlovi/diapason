@@ -2,13 +2,11 @@
 //   dupes/health  --baseline <file>        baseline files for whole-project runs
 //   dupes/health  --fail-on-stale-baseline fail when a baseline entry matches no finding
 //   dupes         --fail-on-issues
-//   dupes         --fail-on-baseline-growth --baseline-base origin/main
+//   dupes/audit   --fail-on-baseline-growth --baseline-base origin/main
 //   audit         --base HEAD^
-// TODO: restore `--fail-on-baseline-growth --baseline-base origin/main` on audit once the
-// re-keyed health baseline (files moved into domain folders) is on main; the growth gate
-// counts every moved path as a new finding.
 {
-  "entry": ["src/Recording/RecordingPackageReport.ts"],
+  // The local oxlint plugin is loaded from .oxlintrc.json, not imported.
+  "entry": ["src/Recording/RecordingPackageReport.ts", "tools/oxlint/local-plugin.ts"],
   "framework": [
     {
       "name": "diapason-development-cli",

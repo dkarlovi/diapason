@@ -3,8 +3,8 @@
 //   shared-name   one exported name declared by several modules lets importers pick the wrong one
 //   re-export     a module passing on another module's export gives it a second import path;
 //                 importers should name the module that provides it
-// Deliberate exceptions live in .structurerc.json, each with a reason; an entry that no longer
-// matches a finding fails too, so the list cannot go stale.
+// Deliberate exceptions live in .structurerc.json, each with a reason; an entry that matches no
+// finding fails too, so the list cannot go stale.
 import { existsSync, readFileSync } from "node:fs";
 import { cruise, type ICruiseResult } from "dependency-cruiser";
 import extractDepcruiseOptions from "dependency-cruiser/config-utl/extract-depcruise-options";
