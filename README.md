@@ -354,12 +354,15 @@ npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
 npm run lint      # oxlint
+npm run arch      # dependency-cruiser layering rules against the known-violations baseline
+npm run arch:baseline # regenerate .dependency-cruiser-known-violations.json
+npm run lint:names # ls-lint folder and filename rules (not yet part of check)
 npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run audit     # Fallow dead code, complexity, duplication, and styling review
 npm run metrics   # advisory health scores, hotspots, and refactoring targets
 npm run format    # oxfmt
 npm run format:check # verify formatting
-npm run check     # typecheck + lint + format check + Fallow + tests + build
+npm run check     # typecheck + lint + arch + format check + Fallow + tests + build
 ```
 
 The duplication check normalizes renamed variables and changed literals. Its baseline
@@ -375,6 +378,18 @@ in local checks and CI without blocking on existing hotspots. Fallow compares
 baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
 GitHub's pull request merge commit and the previous `main` commit after merge.
 Run checks from a Git checkout with both refs available.
+
+The source tree is moving to a layout where folders name the domain, PascalCase
+filenames name the thing, and lowercase dotted suffixes (`.model`, `.type`,
+`.storage`, …) name the role. `.ls-lint.yml` describes that layout and
+`.dependency-cruiser.mjs` its layering: React stays in `src/App`, `src/Features`
+and `src/UI`; other `src/` folders stay framework-free; `tools/` only renders data
+from `src/Inspection`; import cycles are forbidden. Existing dependency violations
+are recorded in `.dependency-cruiser-known-violations.json`; new ones fail
+`npm run arch`. Regenerate the baseline only after removing violations. `lint:names`
+joins `npm run check` once the files have moved. dependency-cruiser parses with swc
+because it cannot load TypeScript 7 yet, and prints a missing-transpiler notice on
+every run until it can.
 
 ## Deployment
 
