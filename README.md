@@ -358,6 +358,7 @@ npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules
 npm run dupes     # Fallow semantic/near-miss duplicate check
 npm run audit     # Fallow dead code, complexity, duplication, and styling review
+npm run health    # Fallow complexity gate against the health baseline (needs coverage)
 npm run metrics   # advisory health scores, hotspots, and refactoring targets
 npm run format    # oxfmt
 npm run format:check # verify formatting
@@ -369,11 +370,13 @@ is empty; new matches fail the check. Fallow's separate model-backed `similar-co
 suggest functions with different structures for manual review, but is not a CI gate.
 The development CLI is a support entry in Fallow's graph, keeping its Node-only
 libraries in `devDependencies` while browser runtime imports remain checked.
-The audit also blocks new dead code and complexity findings. Its health baseline
-records five existing complexity hotspots and one coverage-aware risk finding for
-later refactoring; CSS findings
-are advisory while styling work is pending. The metrics report remains visible
-in local checks and CI without blocking on existing hotspots. Fallow compares
+The audit also blocks new dead code and complexity findings in changed files, and
+`npm run health` blocks them across the whole project. The health baseline records the
+existing hotspots in `useEditor`, `useCapture`, `Pitch` and `Trace` for later
+refactoring; CSS findings are advisory while styling work is pending. Both baseline
+gates also fail when an entry matches no current finding, so a moved file or a fixed
+hotspot forces the baseline to be updated instead of silently going stale. The
+advisory metrics report stays available as `npm run metrics:coverage`. Fallow compares
 baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
 GitHub's pull request merge commit and the previous `main` commit after merge.
 Run checks from a Git checkout with both refs available.
@@ -941,7 +944,7 @@ editing remain deferred.
 
 ## Runtime test coverage
 
-`npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and reports coverage-aware metrics. No percentage gate is imposed before establishing a baseline.
+`npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and gates coverage-aware complexity against the health baseline. No percentage gate is imposed before establishing a baseline.
 
 In portrait recording, the live monitor grows down toward the fixed Stop row.
 The setup controls fold away and Back crossfades to the logo in that row.

@@ -26,7 +26,7 @@ Active quality rules live in:
 - `npm run lint`: oxlint with its default rules (no config file yet; add `.oxlintrc.json` when a rule needs configuring).
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `.ls-lint.yml`: folder and filename rules.
-- `.fallowrc.json` + `.fallow-*-baseline.json`: dead code, duplication, and health gates with ratcheting baselines.
+- `.fallowrc.jsonc` + `.fallow-*-baseline.json`: dead code, duplication, and health gates with ratcheting baselines that fail when an entry goes stale.
 - `npm run check` and `.github/workflows/pages.yml`: every gate that blocks merge.
 
 **Tool output rule: actionable or silent.** Every gate in `npm run check` must fail on regression and should print nothing a reader must act on when the tree is clean. Do not add warn-level rules with a standing backlog; a warning nobody must act on hides the findings that matter. If a rule cannot be clean today, close the gate at the current state, record the backlog in a baseline file, and ratchet it down. Advisory reports belong in separate scripts such as `npm run metrics`, not in blocking gates.
@@ -45,7 +45,7 @@ Use Node 22.18+ (it runs `tools/` TypeScript directly) and install locked depend
 - `npm run format`: apply oxfmt formatting.
 - `npm run check`: run typechecking, oxlint, dependency-cruiser (`npm run arch`), formatting checks, Fallow checks, coverage tests, and the production build.
 
-Fallow checks require `origin/main` and `HEAD^`. Avoid growing the committed duplication and health baselines.
+Fallow checks require `origin/main` and `HEAD^`. Avoid growing the committed duplication and health baselines. After moving or fixing a baselined file, re-save the baseline (`fallow health --complexity --coverage coverage/coverage-final.json --save-baseline .fallow-health-baseline.json`) or prune it (`fallow baselines prune`).
 
 ## Coding Style & Naming Conventions
 
