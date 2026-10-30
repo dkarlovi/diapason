@@ -9,6 +9,7 @@ import type {
   ReadRecordingPackage,
 } from "./recording-package-types";
 import type { SourceRange } from "./note-edits";
+import { withControlDefaults } from "./melody/knobs";
 
 export interface SourceMatch {
   savedIndex: number | null;
@@ -142,8 +143,12 @@ export async function compareRecordingPackage(
   );
   const expected = {
     frames: saved.frames,
-    evidence: { ...saved.evidence, settings: { ...saved.evidence.settings, origins: undefined } },
-    tune: saved.tune,
+    evidence: {
+      ...saved.evidence,
+      settings: { ...saved.evidence.settings, origins: undefined },
+      stages: { ...saved.evidence.stages, knobs: withControlDefaults(saved.evidence.stages.knobs) },
+    },
+    tune: { ...saved.tune, effectiveKnobs: withControlDefaults(saved.tune.effectiveKnobs) },
     midiBytes: saved.midiBytes,
   };
   const actual = {

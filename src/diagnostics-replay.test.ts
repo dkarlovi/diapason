@@ -22,6 +22,16 @@ async function sample() {
   return diagnosticSnapshot(makeReportInput(rec, frames, qualityStats(frames, pcm)), pcm);
 }
 
+it("treats an absent historical Context correction control as zero without rewriting the report", async () => {
+  const { report, wav } = await sample();
+  const historical = JSON.parse(JSON.stringify(report));
+  delete historical.stages.knobs.contextCorrection;
+  const before = JSON.stringify(historical);
+  const replay = await replayDiagnostics(historical, await wav.arrayBuffer());
+  expect(replay.status).toBe("match");
+  expect(JSON.stringify(historical)).toBe(before);
+});
+
 it("replays a serialized JSON/WAV pair through the real processing pipeline", async () => {
   const { report, wav } = await sample();
   const replay = await replayDiagnostics(

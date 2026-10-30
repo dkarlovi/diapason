@@ -2,6 +2,7 @@ import type { SourceRange } from "../note-edits";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "../notes";
 import { scalePitchClasses, type Key } from "./key";
 import type { Knobs } from "./knobs";
+import { contextPitchScore } from "./context-correction";
 export interface PitchContext {
   key: Key | null;
   harmony: { start: number; end: number; pitchClasses: ReadonlySet<number> }[];
@@ -296,11 +297,18 @@ function fixWrongNote(segment: Segment, midi: number, knobs: Knobs, context: Pit
       best = candidate;
   return best;
 }
-function bestPredecessor(previous: Float64Array, state: number, leapPenalty: number) {
+function bestPredecessor(
+  previous: Float64Array,
+  state: number,
+  leapPenalty: number,
+  contextCorrection: number,
+) {
   let best = -Infinity,
     from = 0;
   for (let p = 0; p < previous.length; p++) {
-    const candidate = previous[p]! - (leapPenalty * Math.abs(state - p)) / 2;
+    const distance = Math.abs(state - p);
+    const stepCost = 3 * contextCorrection * leapPenalty * Math.max(0, distance - 2) ** 2;
+    const candidate = previous[p]! - (leapPenalty * distance) / 2 - stepCost;
     if (candidate > best) {
       best = candidate;
       from = p;
@@ -326,9 +334,13 @@ function labelSegments(segments: Segment[], knobs: Knobs, context: PitchContext)
     const from = new Int32Array(space.count);
     previous = scores.map((emission, s) => {
       if (emission === -Infinity) return emission;
-      const step = bestPredecessor(previous, s, leap);
+      const correction = knobs.contextCorrection ?? 0;
+      const step = bestPredecessor(previous, s, leap, correction);
       from[s] = step.from;
-      return step.best + emission;
+      const scale = correction
+        ? correction * knobs.keyPull * contextPitchScore(segment, low + s, context)
+        : 0;
+      return step.best + emission + scale;
     });
     back.push(from);
   }

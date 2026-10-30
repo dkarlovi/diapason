@@ -22,6 +22,12 @@ Fallow checks require `origin/main` and `HEAD^`. Avoid growing the committed dup
 
 Use strict TypeScript, two-space indentation, double quotes, and semicolons; let oxfmt enforce formatting. Use PascalCase component filenames (`Capture.tsx`), `use`-prefixed hooks (`useCapture.ts`), and descriptive lowercase or kebab-case module names (`editor-model.ts`). Prefer explicit type-only imports. Keep browser effects in hooks and reusable calculations in pure modules.
 
+## Presets and Controls Invariant
+
+Presets only provide values for explicit user-facing controls. All detection and musical interpretation behavior must depend on the effective control values, never on the preset's identity. Do not introduce branches such as `if (preset === "auto-tune")` to enable a different algorithm or hidden scoring behavior.
+
+If new behavior needs another parameter or mode, expose it as a slider, toggle, selector, or other appropriate control; the preset supplies its value. Given the same input, interpretation version, and effective control values, results must be identical regardless of which preset supplied those values. Preserve this invariant in previews, saved recordings, diagnostics, sharing, and MIDI export.
+
 ## Testing Guidelines
 
 Use Vitest and React Testing Library. Name tests `*.test.ts` or `*.test.tsx`; use `*.integration.test.tsx` for integration scenarios. Cover observable behavior and regressions, mocking browser audio or MIDI APIs where needed. Run a focused test with `npm test -- src/take.test.ts`. Coverage includes all production TypeScript; no percentage threshold is currently enforced.
@@ -31,6 +37,8 @@ Use Vitest and React Testing Library. Name tests `*.test.ts` or `*.test.tsx`; us
 Review and update `README.md` on every feature branch so it reflects the resulting app behavior, available features, setup instructions, and known limitations. Remove or revise roadmap ideas as they are implemented.
 
 History uses short descriptive subjects such as `React UI` and `Fallow health`; no mandatory prefix convention is evident. Keep commits focused. Describe the problem, resulting behavior, and validation in pull requests; link relevant issues and include screenshots for visible changes. Run `npm run check` before submission. GitHub Actions checks pull requests targeting `main`; pushes to `main` deploy to GitHub Pages.
+
+Screenshots belong in the relevant GitHub pull request or issue as GitHub user attachments, embedded in its body or comments. Do not add or commit screenshots to the repository to satisfy this requirement. Keep captures in a temporary location and upload them directly, for example with `gh pr create --attach`, `gh pr edit --attach`, or the corresponding issue commands.
 
 ## Browser Configuration
 

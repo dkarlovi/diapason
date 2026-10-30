@@ -1,7 +1,7 @@
 import { readTuneMidiPayload } from "./tune-midi-reader";
 import { validateNoteSource } from "./note-source";
 import { sameMelodySetting } from "./melody/settings";
-import { KNOB_DEFS, isKnobs } from "./melody/knobs";
+import { KNOB_DEFS, isKnobs, withControlDefaults } from "./melody/knobs";
 import { firstDifference } from "./diagnostics-validation";
 import { pitchEditFor, summarizePitchEdits } from "./note-edits";
 import { covers } from "./recording";
@@ -128,6 +128,8 @@ function validateRelationships(p: RecordingPackageV2, duration: number) {
   const a = p.recording.source.analysis;
   const context = { ...p.tune.noteSource, segments: e.stages.segments };
   validateNoteSource(context, duration, true);
+  const evidenceKnobs = withControlDefaults(e.stages.knobs);
+  const tuneKnobs = withControlDefaults(p.tune.effectiveKnobs);
   requireFields(
     e.stages.items.length === e.stages.segments.length,
     e.stages.items.length === p.tune.noteSource.segments.length,
@@ -135,8 +137,8 @@ function validateRelationships(p: RecordingPackageV2, duration: number) {
       (notes) => Array.isArray(notes) && notes.every(validNote),
     ),
     isKnobs(e.stages.knobs),
-    KNOB_DEFS.every((d) => d.key in e.stages.knobs),
-    firstDifference(p.tune.effectiveKnobs, e.stages.knobs, "knobs") === null,
+    KNOB_DEFS.every((d) => d.key in evidenceKnobs),
+    firstDifference(tuneKnobs, evidenceKnobs, "knobs") === null,
     e.config.rmsGate === p.tune.effectiveKnobs.levelGate,
     e.config.windowSize === a.windowSize,
     e.config.hop === a.hop,
@@ -207,7 +209,7 @@ function validateTuneContext(p: RecordingPackageV2, duration: number) {
     p.intent.intent.play !== undefined,
     sameMelodySetting(p.intent.intent.melody!, p.tune.melody),
     samePlay(p.intent.intent.play!, p.tune.play),
-    KNOB_DEFS.every((d) => d.key in p.tune.effectiveKnobs),
+    KNOB_DEFS.every((d) => d.key in withControlDefaults(p.tune.effectiveKnobs)),
     p.evidence.settings.bpm === p.recording.bpm,
     p.evidence.settings.beatsPerBar === p.recording.beatsPerBar,
   );
