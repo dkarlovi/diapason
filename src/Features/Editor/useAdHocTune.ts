@@ -3,7 +3,7 @@ import { createAdHocDraft, validateAdHocDraft } from "./AdHocTune";
 import { clearAdHocDraft, readAdHocDraft } from "./AdHoc.storage";
 import { AdHocTuneSession, RECOVERY_WARNING } from "./AdHocSession";
 import { tuneFromFragment } from "../../Tune/TuneUrl";
-export type { AdHocTuneSession } from "./AdHocSession";
+
 export function useAdHocTune(fragment: string) {
   const [session, setSession] = useState<AdHocTuneSession | null>(null);
   const [error, setError] = useState<string | null>(null);

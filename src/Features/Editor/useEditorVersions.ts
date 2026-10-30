@@ -5,12 +5,13 @@ import {
   listVersions,
   renameVersion,
   saveVersion,
-  validateEditSnapshot,
   type SavedVersion,
 } from "../../Editing/Edit.storage";
 import type { useEditHistory } from "./useEditHistory";
-import type { AdHocTuneSession } from "./useAdHocTune";
 import { updateAdHocVersion } from "./AdHocVersions";
+import { validateEditSnapshot } from "../../Editing/EditSnapshot.validation";
+import type { AdHocTuneSession } from "./AdHocSession";
+
 interface Options {
   session?: AdHocTuneSession | undefined;
   recordingId: string;

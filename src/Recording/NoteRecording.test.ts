@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import "fake-indexeddb/auto";
-import { isAudioRecording } from "./Recording";
+import { isAudioRecording } from "./Recording.storage";
 import { getRecording, putRecording } from "./Recording.storage";
 import { processRecording } from "./Processing";
 import { noteRecording } from "../../tests/support/note-recording";

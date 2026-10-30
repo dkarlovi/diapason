@@ -1,8 +1,9 @@
-import { EditStorageError, saveEditCommit } from "./Edit.storage";
+import { saveEditCommit } from "./Edit.storage";
 import type { EditHead } from "../Recording/RecordingEdit.type";
 import type { EditCommit, EditHistory } from "../Recording/RecordingEdit.type";
+import { EditStorageError } from "./EditStorageError";
 
-export interface EditorSaveStatus {
+export interface EditorSaveState {
   recordingId: string;
   state: "saved" | "saving" | "unsaved" | "conflict";
   error: string | null;
@@ -17,11 +18,11 @@ export interface EditorWriter {
 }
 interface RegisteredWriter {
   writer: EditorWriter;
-  status: EditorSaveStatus;
+  status: EditorSaveState;
 }
 const registry = new Set<RegisteredWriter>();
 const listeners = new Set<() => void>();
-let statuses: readonly EditorSaveStatus[] = [];
+let statuses: readonly EditorSaveState[] = [];
 function publish() {
   statuses = [...registry].map((r) => r.status);
   for (const listener of listeners) listener();
@@ -32,7 +33,7 @@ export const subscribeEditorSaves = (listener: () => void): (() => void) => {
     listeners.delete(listener);
   };
 };
-export const getEditorSaveStatuses = (): readonly EditorSaveStatus[] => statuses;
+export const getEditorSaveStatuses = (): readonly EditorSaveState[] => statuses;
 export function createEditorWriter(
   recordingId: string,
   initialHead: EditHead | null,
@@ -49,7 +50,7 @@ export function createEditorWriter(
     writer: null!,
     status: { recordingId, state: "saved", error: null },
   };
-  const report = (state: EditorSaveStatus["state"], error: unknown = null) => {
+  const report = (state: EditorSaveState["state"], error: unknown = null) => {
     entry.status = {
       recordingId,
       state,

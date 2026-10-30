@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useBlocker } from "react-router";
-import type { AdHocTuneSession } from "./useAdHocTune";
+import type { AdHocTuneSession } from "./AdHocSession";
+
 interface Options {
   session: AdHocTuneSession;
   embedded: boolean;

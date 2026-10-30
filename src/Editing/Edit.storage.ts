@@ -9,8 +9,6 @@ import { validateEditSnapshot } from "./EditSnapshot.validation";
 import type { EditHead, EditHistory } from "../Recording/RecordingEdit.type";
 import type { EditCommit } from "../Recording/RecordingEdit.type";
 
-export { EditStorageError, validateEditSnapshot };
-
 export interface SavedVersion {
   id: string;
   recordingId: string;

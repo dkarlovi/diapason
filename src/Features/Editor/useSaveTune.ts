@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { promoteAdHocTune } from "./TunePromotion.storage";
 import { recordingPath } from "../../Routing/Routes";
-import type { AdHocTuneSession } from "./useAdHocTune";
 import type { Notice } from "../../UI/useNotice";
 import { useStudioMode, useStudioNavigate } from "../../Studio/useStudioMode";
+import type { AdHocTuneSession } from "./AdHocSession";
+
 interface Options {
   session: AdHocTuneSession | undefined;
   ready: boolean;

@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import type { ViteDevServer } from "vite";
 import type * as InspectionApi from "../../src/Inspection/Api.ts";
 import type { InvestigationContext } from "../../src/Inspection/Inspection.type.ts";
-import type { StageStore } from "./cache.ts";
+import type { CacheStageStore } from "./cache.ts";
 
 export type Api = typeof InspectionApi;
 export interface RuntimeOptions {
@@ -16,7 +16,7 @@ export interface RuntimeOptions {
   diagnostic?: (message: string) => void;
 }
 export interface Runtime {
-  context: InvestigationContext & { stages: StageStore };
+  context: InvestigationContext & { stages: CacheStageStore };
   api: Api;
   close(): Promise<void>;
   assertUnchanged(): Promise<void>;
