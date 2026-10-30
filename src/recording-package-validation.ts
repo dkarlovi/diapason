@@ -1,7 +1,8 @@
+import { PackageError, packageError, atPackagePath, requirePackage } from "./package-error";
 import { readTuneMidiPayload } from "./tune-midi-reader";
 import { validateNoteSource } from "./note-source";
 import { sameMelodySetting } from "./melody/settings";
-import { KNOB_DEFS, isKnobs, withControlDefaults } from "./melody/knobs";
+import { KNOB_DEFS, isKnobs, withControlDefaults, historicalControls } from "./melody/knobs";
 import { firstDifference } from "./diagnostics-validation";
 import { pitchEditFor, summarizePitchEdits } from "./note-edits";
 import { covers } from "./recording";
@@ -16,7 +17,7 @@ import type { NoteItem } from "./recording";
 
 // Bound work before parsing untrusted JSON, independently of share-link limits.
 export const MAX_PACKAGE_METADATA_BYTES = 128 * 1024 * 1024;
-const damaged = () => new Error("This WAV's diapason package is damaged or unsupported.");
+const damaged = () => new PackageError("malformed", "$", "package.relationship");
 function requireFields(...checks: boolean[]): void {
   if (!checks.every(Boolean)) throw damaged();
 }
@@ -123,6 +124,11 @@ function samePlay(
 ) {
   return a.instrument === b.instrument && a.octave === b.octave;
 }
+function requireSame(expected: unknown, actual: unknown, path: string): boolean {
+  const difference = firstDifference(expected, actual, path);
+  requirePackage(difference === null, difference ?? path, "package.relationship");
+  return true;
+}
 function validateRelationships(p: RecordingPackageV2, duration: number) {
   const e = p.evidence;
   const a = p.recording.source.analysis;
@@ -138,7 +144,7 @@ function validateRelationships(p: RecordingPackageV2, duration: number) {
     ),
     isKnobs(e.stages.knobs),
     KNOB_DEFS.every((d) => d.key in evidenceKnobs),
-    firstDifference(tuneKnobs, evidenceKnobs, "knobs") === null,
+    requireSame(tuneKnobs, evidenceKnobs, "evidence.stages.knobs"),
     e.config.rmsGate === p.tune.effectiveKnobs.levelGate,
     e.config.windowSize === a.windowSize,
     e.config.hop === a.hop,
@@ -214,24 +220,85 @@ function validateTuneContext(p: RecordingPackageV2, duration: number) {
     p.evidence.settings.beatsPerBar === p.recording.beatsPerBar,
   );
 }
+function requiredObject(value: unknown, path: string): asserts value is Record<string, unknown> {
+  requirePackage(isObject(value), path, "package.structure");
+}
+function validateStructure(value: unknown): asserts value is RecordingPackageV2 {
+  requiredObject(value, "package");
+  for (const key of ["recording", "provenance", "exported", "audio", "intent", "tune", "evidence"])
+    requiredObject(value[key], key);
+  const p = value as unknown as RecordingPackageV2;
+  for (const [path, field] of [
+    ["tune.noteSource", p.tune.noteSource],
+    ["tune.effectiveKnobs", p.tune.effectiveKnobs],
+    ["evidence.stages", p.evidence.stages],
+    ["evidence.settings", p.evidence.settings],
+  ])
+    requiredObject(field, String(path));
+  requiredObject(p.evidence.stages.knobs, "evidence.stages.knobs");
+  for (const key of [
+    "items",
+    "segments",
+    "editCoverage",
+    "harmony",
+    "faithful",
+    "decoded",
+    "notes",
+  ] as const) {
+    requirePackage(
+      Array.isArray(p.evidence.stages[key]),
+      `evidence.stages.${key}`,
+      "package.stage-array",
+    );
+  }
+  requirePackage(Array.isArray(p.frames), "frames", "package.frames");
+  requirePackage(Array.isArray(p.evidence.notes), "evidence.notes", "package.notes");
+  requiredObject(p.recording.source, "recording.source");
+  requiredObject(p.recording.source.analysis, "recording.source.analysis");
+  requiredObject(p.recording.capture, "recording.capture");
+  requiredObject(p.exported.context, "exported.context");
+  requiredObject(p.provenance.build, "provenance.build");
+
+  const version = p.tune.noteSource.interpretationVersion;
+  if (version !== 1 && version !== 2)
+    throw new PackageError(
+      "unsupported",
+      "tune.noteSource.interpretationVersion",
+      "interpretation.supported",
+    );
+  historicalControls(p.evidence.stages.knobs, version, "evidence.stages.knobs");
+  historicalControls(p.tune.effectiveKnobs, version, "tune.effectiveKnobs");
+}
 export function validateRecordingPackage(
   value: unknown,
   sampleCount: number,
   sampleRate: number,
 ): RecordingPackageV2 {
   try {
-    const p = value as RecordingPackageV2;
-    requireFields(finiteJson(p));
-    validateIdentity(p, sampleCount, sampleRate);
-    validateMidi(p.midiBytes);
-    validateTuneContext(p, sampleCount / sampleRate);
-    validateFrames(p, sampleCount, sampleCount / sampleRate);
-    validateEvidence(p.evidence, sampleCount, sampleRate);
-    validateRelationships(p, sampleCount / sampleRate);
-    validateMusicalEvidence(p, sampleCount / sampleRate);
+    validateStructure(value);
+    const p = value;
+    requirePackage(finiteJson(p), "package", "package.finite-numbers");
+    atPackagePath("recording", () => validateIdentity(p, sampleCount, sampleRate));
+    atPackagePath("midiBytes", () => validateMidi(p.midiBytes));
+    atPackagePath("tune", () => validateTuneContext(p, sampleCount / sampleRate));
+    atPackagePath("frames", () => validateFrames(p, sampleCount, sampleCount / sampleRate));
+    atPackagePath("evidence", () => validateEvidence(p.evidence, sampleCount, sampleRate));
+    atPackagePath("evidence.stages", () => validateRelationships(p, sampleCount / sampleRate));
+    atPackagePath("evidence.quality", () => validateMusicalEvidence(p, sampleCount / sampleRate));
     return p;
-  } catch {
-    throw damaged();
+  } catch (error) {
+    const result = packageError(error, "package");
+    if (isObject(value)) {
+      const p = value as unknown as Partial<RecordingPackageV2>;
+      result.context = {
+        ...(typeof p.schemaVersion === "number" ? { schemaVersion: p.schemaVersion } : {}),
+        ...(typeof p.tune?.noteSource?.interpretationVersion === "number"
+          ? { interpretationVersion: p.tune.noteSource.interpretationVersion }
+          : {}),
+        ...(p.exported?.context?.build ? { build: p.exported.context.build } : {}),
+      };
+    }
+    throw result;
   }
 }
 

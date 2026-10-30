@@ -1,3 +1,4 @@
+import { PackageError } from "../package-error";
 export type GridSubdivision = 0 | 1 | 2 | 3 | 4;
 export type Mode = "auto" | "major" | "minor";
 type NumericKnob =
@@ -242,4 +243,42 @@ export function withControlDefaults(knobs: Knobs): Knobs {
 /** V1 cannot encode the new control, including an explicit zero override. */
 export function interpretationVersionForControls(knobs: Knobs, overrides: Partial<Knobs>): 1 | 2 {
   return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined ? 2 : 1;
+}
+
+/** Materialize documented historical fields; never consult today's preset recipe. */
+export function historicalControls(
+  value: Partial<Knobs>,
+  version: 1 | 2,
+  path = "knobs",
+): {
+  values: Knobs;
+  defaults: { key: keyof Knobs; value: number | string; reason: string }[];
+} {
+  const values = { ...value };
+  const defaults: { key: keyof Knobs; value: number | string; reason: string }[] = [];
+  if (version !== 1 && version !== 2)
+    throw new PackageError("unsupported", path, "controls.version");
+  for (const def of KNOB_DEFS) {
+    if (values[def.key] === undefined) {
+      if (def.key === "contextCorrection" && version === 1) {
+        values.contextCorrection = 0;
+        defaults.push({
+          key: "contextCorrection",
+          value: 0,
+          reason: "Interpretation 1 predates Context correction.",
+        });
+      } else
+        throw new PackageError(
+          "historical-default",
+          `${path}.${def.key}`,
+          "controls.historical-default",
+        );
+    }
+    if (!validValue(def, values[def.key]))
+      throw new PackageError("malformed", `${path}.${def.key}`, "controls.value");
+  }
+  for (const key of Object.keys(values))
+    if (!KNOB_DEFS.some((def) => def.key === key))
+      throw new PackageError("malformed", `${path}.${key}`, "controls.known");
+  return { values: values as Knobs, defaults };
 }

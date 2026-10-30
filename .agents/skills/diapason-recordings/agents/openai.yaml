@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diapason Recordings"
+  short_description: "Investigate WAV evidence with the diapason CLI"
+  default_prompt: "Use $diapason-recordings to investigate this diapason WAV and explain the evidence for its notes."

@@ -1,5 +1,5 @@
 import { analyzeBuffer } from "./recorder";
-import { packFrames } from "./analysis-cache";
+import { packFrames } from "./frame-storage";
 import type { AnalysisRequest, AnalysisMessage } from "./analysis-runner";
 
 // Worker-specific postMessage overload without adding WebWorker globals to the app's DOM types.
