@@ -1,6 +1,6 @@
 import type { RecordingOrigin } from "../Recording/Recording.type";
-import type { Knobs } from "../melody/knobs";
-import type { KeyChoice } from "../melody/interpret";
+import type { Knobs } from "../Melody/Knobs";
+import type { KeyChoice } from "../Melody/Interpret";
 import type { ReadRecordingPackage } from "../Recording/RecordingPackage.type";
 import type { AnalysisSettings } from "../Recording/SoundProfile.type";
 import type { PortableTune } from "../Tune/PortableTune.type";

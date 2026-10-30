@@ -1,10 +1,10 @@
 export { summarizePackage, makeReport, exitCode } from "./Report";
-export { readRecordingPackage } from "../recording-package";
-export { PackageError } from "../package-error";
-export { compareRecordingPackage } from "../recording-package-comparison";
-export { formatPackageComparison } from "../recording-package-report";
-export { encodeTuneMidi } from "../tune-midi";
-export { BUILD_INFO } from "../build-info";
+export { readRecordingPackage } from "../Recording/RecordingPackage";
+export { PackageError } from "../Recording/PackageError";
+export { compareRecordingPackage } from "../Recording/RecordingPackageComparison";
+export { formatPackageComparison } from "../Recording/RecordingPackageReport";
+export { encodeTuneMidi } from "../Midi/TuneMidi";
+export { BUILD_INFO } from "../Diagnostics/BuildInfo";
 export { verifyPackage, overallChecks } from "./Verification";
 export { computeComparison } from "./Computation";
 export { getView } from "./Views";

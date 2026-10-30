@@ -96,18 +96,18 @@ Preserve this established direction when refining or extending the interface.
 - Shared controls and semantic color roles across Library, Recording, and Editor.
 - Generated light/dark themes with explicit URL overrides, precise status, and playback feedback.
 
-This record describes the implemented system in `src/theme.css`, `src/capture.css`,
-`src/studio.css`, and `src/editor.css`, together with the existing agreements in
-`docs/design-principles.md`. `src/theme-palette.ts` owns generated runtime colors;
+This record describes the implemented system in `src/Theme/Theme.css`, `src/Features/Capture/Capture.css`,
+`src/App/Studio.css`, and `src/Features/Editor/Editor.css`, together with the existing agreements in
+`docs/design-principles.md`. `src/Theme/ThemePalette.ts` owns generated runtime colors;
 CSS owns mappings, loading fallbacks, layout, and state styles. Update this record
 and its `.impeccable/design.json` companion when changing the shared system.
-The legacy aliases in `src/styles.css` now reference the shared semantic tokens;
+The legacy aliases in `src/App/Styles.css` now reference the shared semantic tokens;
 they are not a second identity for new studio work.
 
 ## Colors
 
 The default palette combines quiet slate surfaces with a blue action and pitch accent.
-Frontmatter records generated default values. `src/theme-palette.ts` owns runtime
+Frontmatter records generated default values. `src/Theme/ThemePalette.ts` owns runtime
 generation with Material Color Utilities Tonal Spot; custom primary/neutral/secondary
 seeds remap these roles. The root follows the system through `color-scheme: light dark`
 unless `scheme=light|dark` forces a mode. Portals and canvas probes inherit it.
@@ -205,11 +205,11 @@ space for the scrollable tuning controls.
 
 ### Pitch canvas
 
-`src/components/PitchCanvas.tsx` is the common native canvas for live recording,
+`src/Studio/PitchCanvas.tsx` is the common native canvas for live recording,
 original audio, and MIDI. It requires an accessible name, supplies fallback text,
 and forwards the native ref and attributes without adding layout wrappers.
-`src/studio.css` owns its edge-to-edge geometry. `src/theme.css` owns its palette;
-`src/trace.ts` remains the common drawing implementation.
+`src/App/Studio.css` owns its edge-to-edge geometry. `src/Theme/Theme.css` owns its palette;
+`src/Audio/Trace.ts` remains the common drawing implementation.
 
 The owner retains behavior: `useMicrophone` draws the live scrolling trace;
 `useEditorPlot` draws saved audio and MIDI and handles theme/size redraws. The
@@ -318,7 +318,7 @@ Primary owns actions/MIDI; optional neutral owns quiet surfaces/text; optional
 secondary owns playback/original audio. Exact seed tones are not promised.
 Warning, destructive, and success retain their semantic hue families.
 
-`src/theme-config.ts` validates the public contract; `useStudioTheme` owns root
+`src/Theme/ThemeConfig.ts` validates the public contract; `useStudioTheme` owns root
 application and cleanup. Ordinary controls and separators use the subdued
 `--color-border`; `--color-input-border` is available for explicitly stronger
 boundaries. Focus rings and active-state borders retain their semantic accents. Chart caches invalidate

@@ -6,9 +6,9 @@ const server = await createServer({
 });
 try {
   const { loadFixture } = await server.ssrLoadModule("/tests/support/fixtures.ts");
-  const { createPortableTune } = await server.ssrLoadModule("/src/portable-tune.ts");
-  const { packTune } = await server.ssrLoadModule("/src/tune-fields.ts");
-  const { encodeTune, toBase64Url } = await server.ssrLoadModule("/src/tune-codec.ts");
+  const { createPortableTune } = await server.ssrLoadModule("/src/Tune/PortableTune.ts");
+  const { packTune } = await server.ssrLoadModule("/src/Tune/TuneFields.ts");
+  const { encodeTune, toBase64Url } = await server.ssrLoadModule("/src/Tune/Tune.codec.ts");
   const { noteRecording } = await server.ssrLoadModule("/tests/support/note-recording.ts");
   const rows = [];
   async function measure(name, tune) {

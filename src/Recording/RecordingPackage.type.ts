@@ -1,5 +1,5 @@
 import type { AudioRecording, RecordingOrigin } from "./Recording.type";
-import type { Frame } from "../notes";
+import type { Frame } from "../Melody/Notes";
 import type { ProcessingEvidence } from "./ProcessingEvidence.type";
 import type { EditSnapshot } from "./RecordingEdit.type";
 import type { ExportContext, WavMetadata } from "./WavMetadata.type";

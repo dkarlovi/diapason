@@ -1,4 +1,4 @@
-import { KNOB_DEFS, PRESETS, historicalControls } from "../melody/knobs";
+import { KNOB_DEFS, PRESETS, historicalControls } from "../Melody/Knobs";
 import type { InvestigationContext } from "./Inspection.type";
 import type { EvidenceView } from "./Views";
 import { pagedReport, type PageOptions } from "./Query";

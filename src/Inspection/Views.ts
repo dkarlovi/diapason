@@ -1,4 +1,4 @@
-import type { Frame } from "../notes";
+import type { Frame } from "../Melody/Notes";
 import type { ProcessingEvidence } from "../Recording/ProcessingEvidence.type";
 import type {
   ExecutionIdentity,

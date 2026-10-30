@@ -1,4 +1,4 @@
-import type { SourceRange } from "../note-edits";
+import type { SourceRange } from "../Editing/NoteEdits";
 import { makeReport } from "./Report";
 import type { EvidenceView } from "./Views";
 export interface SourceSelector {

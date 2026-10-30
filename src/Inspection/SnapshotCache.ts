@@ -1,15 +1,15 @@
 import type { AudioRecording } from "../Recording/Recording.type";
-import type { Frame } from "../notes";
+import type { Frame } from "../Melody/Notes";
 import type {
   CapturedRecordingPackage,
   RecordingPackageV2,
 } from "../Recording/RecordingPackage.type";
-import { captureRecordingPackage } from "../recording-package";
-import { validateRecordingPackage } from "../recording-package-validation";
-import { encodeTuneMidi } from "../tune-midi";
-import { resolveRecordingSettings } from "../recording-settings";
-import { resolveKnobs } from "../melody/knobs";
-import { protectedNoteBoundaries } from "../note-edits";
+import { captureRecordingPackage } from "../Recording/RecordingPackage";
+import { validateRecordingPackage } from "../Recording/RecordingPackage.validation";
+import { encodeTuneMidi } from "../Midi/TuneMidi";
+import { resolveRecordingSettings } from "../Recording/RecordingSettings";
+import { resolveKnobs } from "../Melody/Knobs";
+import { protectedNoteBoundaries } from "../Editing/NoteEdits";
 import type { InvestigationContext, StageProvenance } from "./Inspection.type";
 
 function restoredSnapshot(

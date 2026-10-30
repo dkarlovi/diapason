@@ -17,7 +17,7 @@
     "metrics": "fallow health --report-only",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "check": "npm run typecheck && npm run lint && npm run arch && npm run format:check && npm run dupes && npm run test:coverage && npm run audit && fallow health --complexity --file-scores --coverage coverage/coverage-final.json --report-only && npm run build",
+    "check": "npm run typecheck && npm run lint && npm run lint:names && npm run arch && npm run format:check && npm run dupes && npm run test:coverage && npm run audit && fallow health --complexity --file-scores --coverage coverage/coverage-final.json --report-only && npm run build",
     "test:coverage": "npm test -- --coverage",
     "metrics:coverage": "npm run test:coverage && fallow health --complexity --file-scores --coverage coverage/coverage-final.json --report-only",
     "debug:recording": "node bin/diapason",

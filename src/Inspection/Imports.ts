@@ -1,7 +1,7 @@
-import { restoreRecordingPackage } from "../recording-package";
-import { captureEditSnapshot } from "../edit-state";
-import { newRecordingMelody } from "../melody/settings";
-import { compareValues } from "../diagnostics-validation";
+import { restoreRecordingPackage } from "../Recording/RecordingPackage";
+import { captureEditSnapshot } from "../Editing/EditState";
+import { newRecordingMelody } from "../Melody/Settings";
+import { compareValues } from "../Diagnostics/Diagnostics.validation";
 import type { ReadRecordingPackage } from "../Recording/RecordingPackage.type";
 export async function verifyImportModes(input: ReadRecordingPackage) {
   const restoreRecord = await restoreRecordingPackage(input, "verification.wav", "restore");

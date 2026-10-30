@@ -1,5 +1,5 @@
 import type { NoteRecording } from "../../src/Recording/Recording.type";
-import { PRESETS } from "../../src/melody/knobs";
+import { PRESETS } from "../../src/Melody/Knobs";
 const knobs = PRESETS["as-played"].knobs;
 const fixed: NoteRecording = {
   id: "fixed",

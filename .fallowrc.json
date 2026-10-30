@@ -1,5 +1,5 @@
 {
-  "entry": ["src/recording-package-report.ts"],
+  "entry": ["src/Recording/RecordingPackageReport.ts"],
   "framework": [
     {
       "name": "diapason-development-cli",

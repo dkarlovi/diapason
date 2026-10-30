@@ -1,108 +1,99 @@
 // Layering for the layout described in .ls-lint.yml:
-//   src/App, src/Features/*, src/UI  — React
-//   every other src/* folder         — domain logic, framework-free
-//   tools/                           — CLI views over src/Inspection
-//   tests/                           — shared fixtures and support for *.test.* files
+//   src/App → src/Features/* → src/Studio → src/UI  — React, each layer importing only rightwards
+//   every other src/* folder                         — domain logic, framework-free
+//   tools/                                           — CLI views over src/Inspection
+//   tests/                                           — shared fixtures and support for *.test.* files
 
 const react = "node_modules/(react|react-dom|react-router|@radix-ui|lucide-react)/";
-// src/components and src/hooks count as React layers until their files move into src/Features.
-const reactLayer = "^src/(App|Features|UI|components|hooks)/";
-const domainLayer = "^src/(?!App/|Features/|UI/|components/|hooks/)[^/]+/";
+const reactLayer = "^src/(App|Features|Studio|UI)/";
+const domainLayer = "^src/(?!App/|Features/|Studio/|UI/)[^/]+/";
 const testFile = "\\.test\\.tsx?$";
+
+/** @returns {import('dependency-cruiser').IForbiddenRuleType} */
+const rule = (name, comment, from, to) => ({ name, comment, severity: "error", from, to });
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 export default {
   forbidden: [
-    {
-      name: "no-runtime-cycle",
-      comment:
-        "Modules that import each other at runtime load in an order that depends on the entry point.",
-      severity: "error",
-      from: {},
-      to: { circular: true, viaOnly: { dependencyTypesNot: ["type-only"] } },
-    },
-    {
-      name: "no-type-cycle",
-      comment:
-        "Type-level cycles couple modules even though they vanish at runtime; move the shared shapes into *.type.ts files. Cycles among *.type.ts files alone are recursive data shapes and allowed.",
-      severity: "error",
-      from: {},
-      to: { circular: true, via: { pathNot: "\\.type\\.ts$" } },
-    },
-    {
-      name: "not-to-unresolvable",
-      severity: "error",
-      from: {},
-      to: { couldNotResolve: true },
-    },
-    {
-      name: "domain-without-react",
-      comment: "Domain folders hold logic that runs without React: in tests, workers, and the CLI.",
-      severity: "error",
-      from: { path: domainLayer },
-      to: { path: [react, reactLayer] },
-    },
-    {
-      name: "model-is-pure",
-      comment: "*.model.ts files are pure calculations: no React, hooks, or storage.",
-      severity: "error",
-      from: { path: "\\.model\\.ts$" },
-      to: { path: [react, "(^|/)use[A-Z][^/]*$", "^src/Storage/", "\\.storage\\.ts$"] },
-    },
-    {
-      name: "type-is-type-only",
-      comment: "*.type.ts files declare shapes and depend on nothing at runtime.",
-      severity: "error",
-      from: { path: "\\.type\\.ts$" },
-      to: { dependencyTypesNot: ["type-only"] },
-    },
-    {
-      name: "storage-behind-storage-modules",
-      comment: "IndexedDB access goes through src/Storage, used only by *.storage.ts files.",
-      severity: "error",
-      from: { pathNot: ["^src/Storage/", "\\.storage\\.ts$", testFile] },
-      to: { path: "^src/Storage/" },
-    },
-    {
-      name: "ui-is-generic",
-      comment: "src/UI holds design-system parts that know nothing about screens or storage.",
-      severity: "error",
-      from: { path: "^src/UI/" },
-      to: { path: "^src/(App|Features|Storage)/" },
-    },
-    {
-      name: "features-are-isolated",
-      comment: "A feature never reaches into another; share through src/UI or a domain folder.",
-      severity: "error",
-      from: { path: "^src/Features/([^/]+)/" },
-      to: { path: "^src/Features/", pathNot: "^src/Features/$1/" },
-    },
-    {
-      name: "app-is-the-top",
-      severity: "error",
-      from: { path: "^src/", pathNot: ["^src/App/", "^src/main\\.tsx$"] },
-      to: { path: "^src/App/" },
-    },
-    {
-      name: "src-not-to-tools",
-      comment: "tools/ is a view over src/, never a dependency of it.",
-      severity: "error",
-      from: { path: "^src/" },
-      to: { path: "^tools/" },
-    },
-    {
-      name: "tools-through-inspection",
-      comment: "The CLI renders data; the logic and its public API live in src/Inspection.",
-      severity: "error",
-      from: { path: "^tools/" },
-      to: { path: "^src/", pathNot: "^src/Inspection/" },
-    },
-    {
-      name: "test-support-only-in-tests",
-      severity: "error",
-      from: { path: "^(src|tools)/", pathNot: testFile },
-      to: { path: ["^tests/", testFile] },
-    },
+    rule(
+      "no-runtime-cycle",
+      "Modules that import each other at runtime load in an order that depends on the entry point.",
+      {},
+      { circular: true, viaOnly: { dependencyTypesNot: ["type-only"] } },
+    ),
+    rule(
+      "no-type-cycle",
+      "Type-level cycles couple modules even though they vanish at runtime; move the shared shapes into *.type.ts files. Cycles among *.type.ts files alone are recursive data shapes and allowed.",
+      {},
+      { circular: true, via: { pathNot: "\\.type\\.ts$" } },
+    ),
+    rule("not-to-unresolvable", "", {}, { couldNotResolve: true }),
+    rule(
+      "domain-without-react",
+      "Domain folders hold logic that runs without React: in tests, workers, and the CLI.",
+      { path: domainLayer },
+      { path: [react, reactLayer] },
+    ),
+    rule(
+      "model-is-pure",
+      "*.model.ts files are pure calculations: no React, hooks, or storage.",
+      { path: "\\.model\\.ts$" },
+      { path: [react, "(^|/)use[A-Z][^/]*$", "^src/Storage/", "\\.storage\\.ts$"] },
+    ),
+    rule(
+      "type-is-type-only",
+      "*.type.ts files declare shapes and depend on nothing at runtime.",
+      { path: "\\.type\\.ts$" },
+      { dependencyTypesNot: ["type-only"] },
+    ),
+    rule(
+      "storage-behind-storage-modules",
+      "IndexedDB access goes through src/Storage, used only by *.storage.ts files.",
+      { pathNot: ["^src/Storage/", "\\.storage\\.ts$", testFile] },
+      { path: "^src/Storage/" },
+    ),
+    rule(
+      "ui-is-generic",
+      "src/UI holds design-system parts that know nothing about diapason, its screens, or storage.",
+      { path: "^src/UI/" },
+      { path: "^src/(App|Features|Studio|Storage)/" },
+    ),
+    rule(
+      "studio-below-features",
+      "src/Studio holds diapason behaviour shared by several screens; it never reaches up into them.",
+      { path: "^src/Studio/" },
+      { path: "^src/(App|Features)/" },
+    ),
+    rule(
+      "features-are-isolated",
+      "A feature never reaches into another; share through src/Studio, src/UI, or a domain folder.",
+      { path: "^src/Features/([^/]+)/" },
+      { path: "^src/Features/", pathNot: "^src/Features/$1/" },
+    ),
+    rule(
+      "app-is-the-top",
+      "Only the entry point composes the app; tests may render it too.",
+      { path: "^src/", pathNot: ["^src/App/", "^src/main\\.tsx$", testFile] },
+      { path: "^src/App/" },
+    ),
+    rule(
+      "src-not-to-tools",
+      "tools/ is a view over src/, never a dependency of it.",
+      { path: "^src/" },
+      { path: "^tools/" },
+    ),
+    rule(
+      "tools-through-inspection",
+      "The CLI renders data; the logic and its public API live in src/Inspection.",
+      { path: "^tools/" },
+      { path: "^src/", pathNot: "^src/Inspection/" },
+    ),
+    rule(
+      "test-support-only-in-tests",
+      "",
+      { path: "^(src|tools)/", pathNot: testFile },
+      { path: ["^tests/", testFile] },
+    ),
   ],
   options: {
     // TypeScript 7 has no JS API yet, so dependency-cruiser parses with swc.

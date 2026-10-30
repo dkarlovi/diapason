@@ -1,6 +1,6 @@
-import type { PlaySettings } from "../instruments";
-import type { Knobs } from "../melody/knobs";
-import type { MelodySetting } from "../melody/MelodySetting.type";
+import type { PlaySettings } from "../Playback/Instruments";
+import type { Knobs } from "../Melody/Knobs";
+import type { MelodySetting } from "../Melody/MelodySetting.type";
 import type { NoteSource } from "../Recording/NoteSource.type";
 
 export interface PortableTune {

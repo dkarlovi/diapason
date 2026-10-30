@@ -1,5 +1,5 @@
-import type { PitchRange } from "../pitch";
-import type { AnalyzeOptions } from "../recorder";
+import type { PitchRange } from "../Audio/Pitch";
+import type { AnalyzeOptions } from "../Audio/Recorder";
 
 export interface SoundProfile {
   id: string;

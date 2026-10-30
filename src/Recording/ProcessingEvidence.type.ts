@@ -1,10 +1,10 @@
-import type { PlaySettings } from "../instruments";
-import type { ChordSpan } from "../melody/harmony";
-import type { Interpretation } from "../melody/interpret";
-import type { MelodySetting } from "../melody/MelodySetting.type";
-import type { PitchEditCoverage } from "../note-edits";
-import type { NoteEvent } from "../notes";
-import type { QualityStats } from "../recorder";
+import type { PlaySettings } from "../Playback/Instruments";
+import type { ChordSpan } from "../Melody/Harmony";
+import type { Interpretation } from "../Melody/Interpret";
+import type { MelodySetting } from "../Melody/MelodySetting.type";
+import type { PitchEditCoverage } from "../Editing/NoteEdits";
+import type { NoteEvent } from "../Melody/Notes";
+import type { QualityStats } from "../Audio/Recorder";
 import type { NoteItem } from "./NoteItem.type";
 import type { AnalysisSettings } from "./SoundProfile.type";
 

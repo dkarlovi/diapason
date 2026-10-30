@@ -1,5 +1,5 @@
-import type { Segment } from "../melody/Decode.type";
-import type { Knobs, DETECTION_KNOBS } from "../melody/knobs";
+import type { Segment } from "../Melody/Decode.type";
+import type { Knobs, DETECTION_KNOBS } from "../Melody/Knobs";
 
 export interface NoteSource {
   version: 1;

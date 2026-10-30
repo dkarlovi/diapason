@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { compareValues } from "../diagnostics-validation";
+import { compareValues } from "../Diagnostics/Diagnostics.validation";
 import { investigationContext } from "../../tests/support/investigation";
 import { verifyPackage } from "./Verification";
 it("reports tolerated numeric drift and scans past the first difference", () => {
@@ -61,7 +61,7 @@ it("labels schema-1 missing baselines as incomplete instead of inventing a repla
 it("does not call portable millisecond projection damage when it crosses a MIDI tick boundary", async () => {
   const { investigationInput } = await import("../../tests/support/investigation");
   const { logicalPlaybackEvents } = await import("./Events");
-  const { readTuneMidiMusic } = await import("../tune-midi-reader");
+  const { readTuneMidiMusic } = await import("../Midi/TuneMidiReader");
   const { context } = await investigationContext();
   const { input } = await investigationInput("tick boundary", {
     bpm: 111,

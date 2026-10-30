@@ -1,5 +1,5 @@
-import { matchSourceItems, type SourceMatch } from "../recording-package-comparison";
-import { firstDifference } from "../diagnostics-validation";
+import { matchSourceItems, type SourceMatch } from "../Recording/RecordingPackageComparison";
+import { firstDifference } from "../Diagnostics/Diagnostics.validation";
 import type { EvidenceView } from "./Views";
 import {
   pagedReport,
