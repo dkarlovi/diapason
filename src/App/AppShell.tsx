@@ -1,6 +1,6 @@
 import { useStudioMode } from "../Studio/useStudioMode";
 import { useStudioFullscreen } from "./useStudioFullscreen";
-import { Button } from "../UI/Primitives";
+import { Button } from "../UI/Button";
 import { EditorSaveStatus } from "./EditorSaveStatus";
 import { useState, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router";

@@ -1,5 +1,5 @@
 import type { AnalysisState } from "../Analysis/AnalysisJobs";
-import { Button } from "../UI/Primitives";
+import { Button } from "../UI/Button";
 
 export function AnalysisProgress({ state, retry }: { state: AnalysisState; retry(): void }) {
   if (state.status === "error")

@@ -1,6 +1,6 @@
 import { useContext, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../UI/Popover";
 import { ResetControl } from "./ResetControl";
 import { AuditionMenuContext } from "./AuditionMenuContext";

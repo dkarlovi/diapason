@@ -1,6 +1,7 @@
 import { useEditorSaveStatus } from "./useEditorSaveStatus";
 import { retryEditorSaves } from "../Editing/EditorSaveQueue";
-import { Button } from "../UI/Primitives";
+import { Button } from "../UI/Button";
+
 export function EditorSaveStatus() {
   const statuses = useEditorSaveStatus();
   const failures = statuses.filter(

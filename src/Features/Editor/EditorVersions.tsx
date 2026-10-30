@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import type { EditorState } from "./useEditor";
 import type { SavedVersion } from "../../Editing/Edit.storage";
 type VersionState = Pick<EditorState, "versions" | "record" | "previewId" | "stopPlayback">;

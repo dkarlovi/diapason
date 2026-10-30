@@ -1,7 +1,8 @@
 import { useLocation } from "react-router";
 import { useAdHocTune } from "./useAdHocTune";
 import { Editor } from "./Editor";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
+
 export function AdHocTuneRoute() {
   const { hash } = useLocation();
   const { session, error, corrupt, retry, discardCorruptDraft } = useAdHocTune(hash);

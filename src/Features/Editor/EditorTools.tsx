@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlaybackSettings } from "./PlaybackSettings";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { MelodyPanel } from "./MelodyPanel";
 import type { EditorState } from "./useEditor";
 import type { EditorLayout } from "./useEditorLayout";

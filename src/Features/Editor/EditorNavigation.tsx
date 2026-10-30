@@ -1,4 +1,4 @@
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import type { EditorState } from "./useEditor";
 
 export function EditorNavigation({ state }: { state: EditorState }) {
