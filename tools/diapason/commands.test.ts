@@ -1,13 +1,13 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { runCli } from "./commands.mjs";
-async function invoke(argv) {
+import { runCli } from "./commands.ts";
+async function invoke(argv: string[]) {
   const output = { stdout: "", stderr: "" };
   const code = await runCli(argv, {
-    stdout: (text) => {
+    stdout: (text: string) => {
       output.stdout += text;
     },
-    stderr: (text) => {
+    stderr: (text: string) => {
       output.stderr += text;
     },
   });

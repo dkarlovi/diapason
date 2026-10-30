@@ -1,20 +1,56 @@
 import { constants } from "node:fs";
+import type { Stats } from "node:fs";
 import { open, lstat, mkdir, readdir, realpath, rename, unlink, chmod } from "node:fs/promises";
+import type { FileHandle } from "node:fs/promises";
 import { resolve, join, parse, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
-import { digest } from "./identity.mjs";
+import { digest } from "./identity.ts";
+import type { StageStore as InspectionStageStore } from "../../src/Inspection/Inspection.type.ts";
+
+export interface CacheStatus {
+  directory: string;
+  entries: number;
+  bytes: number;
+  enabled: boolean;
+  available?: false;
+}
+export interface StageStore extends InspectionStageStore {
+  status(): Promise<CacheStatus>;
+  clear(): Promise<void>;
+}
+export interface StageStoreOptions {
+  directory?: string | undefined;
+  enabled?: boolean;
+  maxBytes?: number;
+  maxIdleMs?: number;
+  scope?: string | undefined;
+  diagnostic?: ((message: string) => void) | undefined;
+}
+interface CacheEntry {
+  schemaVersion: 1;
+  key: string;
+  checksum: string;
+  value: unknown;
+}
+interface CachedFile {
+  path: string;
+  bytes: number;
+  touched: number;
+}
+const errorCode = (error: unknown) => (error as NodeJS.ErrnoException).code;
 const defaultCacheDirectory = () =>
   join(tmpdir(), `diapason-${process.getuid?.() ?? "user"}`, "cache/v1");
-const validKey = (key) => typeof key === "string" && /^[a-f0-9]{64}$/.test(key);
-async function ensureDirectory(directory) {
+const validKey = (key: unknown): key is string =>
+  typeof key === "string" && /^[a-f0-9]{64}$/.test(key);
+async function ensureDirectory(directory: string) {
   let parent = parse(directory).root;
   for (const part of directory.slice(parent.length).split(sep).filter(Boolean)) {
     parent = join(parent, part);
     try {
       await mkdir(parent, { mode: 0o700 });
     } catch (error) {
-      if (error.code !== "EEXIST") throw error;
+      if (errorCode(error) !== "EEXIST") throw error;
     }
     const component = await lstat(parent);
     if (!component.isDirectory() || component.isSymbolicLink())
@@ -22,11 +58,17 @@ async function ensureDirectory(directory) {
   }
   return lstat(directory);
 }
-const ownedFile = (stat) => stat.isFile() && (!process.getuid || stat.uid === process.getuid());
-async function readEntry(handle, key, maxBytes, maxIdleMs) {
+const ownedFile = (stat: Stats) =>
+  stat.isFile() && (!process.getuid || stat.uid === process.getuid());
+async function readEntry(
+  handle: FileHandle,
+  key: string,
+  maxBytes: number,
+  maxIdleMs: number,
+): Promise<CacheEntry | undefined> {
   const stat = await handle.stat();
   if (!stat.isFile() || stat.size > maxBytes || Date.now() - stat.mtimeMs > maxIdleMs) return;
-  const entry = JSON.parse(await handle.readFile("utf8"));
+  const entry = JSON.parse(await handle.readFile("utf8")) as CacheEntry;
   if (
     entry.schemaVersion !== 1 ||
     entry.key !== key ||
@@ -42,13 +84,13 @@ export function createStageStore({
   maxIdleMs = 604800000,
   scope,
   diagnostic = () => {},
-} = {}) {
+}: StageStoreOptions = {}): StageStore {
   const root = resolve(directory);
   if (scope !== undefined && !validKey(scope)) throw new Error("Invalid cache WAV scope.");
-  const reference = (key) => join(root, `${scope}.${key}.ref`);
-  async function mark(key) {
+  const reference = (key: string) => join(root, `${scope}.${key}.ref`);
+  async function mark(key: string) {
     if (!scope) return;
-    let handle;
+    let handle: FileHandle | undefined;
     try {
       handle = await open(
         reference(key),
@@ -56,13 +98,13 @@ export function createStageStore({
         0o600,
       );
     } catch (error) {
-      if (error.code !== "EEXIST") throw error;
+      if (errorCode(error) !== "EEXIST") throw error;
     } finally {
       await handle?.close();
     }
   }
-  const report = (error) =>
-    diagnostic(`Cache unavailable; recomputing when needed: ${error.message}`);
+  const report = (error: unknown) =>
+    diagnostic(`Cache unavailable; recomputing when needed: ${(error as Error).message}`);
   async function ready() {
     const stat = await ensureDirectory(root);
     if (
@@ -74,7 +116,7 @@ export function createStageStore({
       throw new Error("Cache root must be an owned directory without symlinks.");
     await chmod(root, 0o700);
   }
-  async function selected(path, name, scoped) {
+  async function selected(path: string, name: string, scoped: boolean) {
     const stat = await lstat(path);
     if (!ownedFile(stat)) return;
     if (scope && scoped) {
@@ -84,7 +126,7 @@ export function createStageStore({
     return { path, bytes: stat.size, touched: stat.mtimeMs };
   }
   async function entries(scoped = true) {
-    const result = [];
+    const result: CachedFile[] = [];
     for (const name of await readdir(root)) {
       if (!/^[a-f0-9]{64}\.json$/.test(name)) continue;
       try {
@@ -108,7 +150,7 @@ export function createStageStore({
   return {
     async read(key) {
       if (!enabled || !validKey(key)) return undefined;
-      let handle;
+      let handle: FileHandle | undefined;
       try {
         await ready();
         const path = join(root, `${key}.json`);
@@ -119,7 +161,7 @@ export function createStageStore({
         await mark(key);
         return entry.value;
       } catch (error) {
-        if (error.code !== "ENOENT") report(error);
+        if (errorCode(error) !== "ENOENT") report(error);
         return undefined;
       } finally {
         await handle?.close();
@@ -127,7 +169,7 @@ export function createStageStore({
     },
     async write(key, value) {
       if (!enabled || !validKey(key)) return;
-      let temporary;
+      let temporary: string | undefined;
       try {
         await ready();
         const serialized = JSON.stringify(value);
@@ -177,7 +219,7 @@ export function createStageStore({
         for (const entry of await entries()) {
           await unlink(entry.path).catch(() => {});
           if (scope)
-            await unlink(reference(entry.path.split("/").at(-1).slice(0, 64))).catch(() => {});
+            await unlink(reference(entry.path.split("/").at(-1)!.slice(0, 64))).catch(() => {});
         }
       } catch (error) {
         report(error);

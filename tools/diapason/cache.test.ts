@@ -3,8 +3,8 @@ import { afterEach, expect, it } from "vitest";
 import { mkdtemp, readFile, writeFile, mkdir, readdir, symlink, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createStageStore } from "./cache.mjs";
-const roots = [];
+import { createStageStore } from "./cache.ts";
+const roots: string[] = [];
 async function temporary() {
   const p = await mkdtemp(join(tmpdir(), "diapason-cache-test-"));
   roots.push(p);
@@ -23,7 +23,7 @@ it("publishes complete concurrent entries and rejects corrupt checksums", async 
     ),
   );
   expect(await store.read(key)).toEqual({ frames: [1.4830000000000003, null, 0.9, 0.001] });
-  const [entry] = await readdir(directory);
+  const [entry = ""] = await readdir(directory);
   const parsed = JSON.parse(await readFile(join(directory, entry), "utf8"));
   parsed.value = "corrupted";
   await writeFile(join(directory, entry), JSON.stringify(parsed));

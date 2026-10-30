@@ -35,7 +35,7 @@ Active quality rules live in:
 
 ## Build, Test, and Development Commands
 
-Use Node 22+ and install locked dependencies with `npm ci`.
+Use Node 22.18+ (it runs `tools/` TypeScript directly) and install locked dependencies with `npm ci`.
 
 - `npm run dev`: start Vite at `http://localhost:5173/diapason/`.
 - `npm run build`: typecheck, build `dist/`, and create the Pages fallback.

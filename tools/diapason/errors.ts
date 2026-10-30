@@ -1,4 +1,17 @@
-export const errorReport = (error) => ({
+import type { Report } from "../../src/Inspection/Inspection.type.ts";
+
+export interface CliError {
+  code?: string;
+  message: string;
+  path?: string;
+  check?: string;
+  context?: unknown;
+  trusted?: boolean;
+}
+export interface ErrorData {
+  error: Omit<CliError, "code"> & { code: string };
+}
+export const errorReport = (error: CliError): Report<ErrorData> => ({
   schemaVersion: 1,
   kind: "error",
   input: null,

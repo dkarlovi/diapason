@@ -57,8 +57,4 @@ ls:
     .wav: kebab-case
     .mid: kebab-case
 
-  tools/**:
-    <<: *lowercase-rules
-    # The CLI is still JavaScript; drop these once tools/ is converted to TypeScript.
-    .mjs: kebab-case
-    .test.mjs: kebab-case
+  tools/**: *lowercase-rules

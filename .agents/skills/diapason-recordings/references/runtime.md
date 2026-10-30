@@ -4,7 +4,7 @@ Load for a missing CLI/dependency, runtime error, cache concern, or a request fo
 fresh detector execution.
 
 Run from the diapason checkout containing `bin/diapason`. Use an absolute WAV path
-when changing directories. Node `22.12+` and locked development dependencies are
+when changing directories. Node `22.18+` and locked development dependencies are
 required; use the repository's `npm ci` setup when dependencies are absent. This
 CLI loads application TypeScript through Vite; no separate CLI build is required.
 Vite writes temporary loader files under `node_modules/.vite-temp`, so the checkout

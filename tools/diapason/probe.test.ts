@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { probeWav } from "./probe.mjs";
+import { probeWav } from "./probe.ts";
 it("reports an unavailable independent interoperability check as skipped", async () => {
   const result = await probeWav(
     "/tmp/test.wav",
@@ -15,8 +15,8 @@ it("reports an unavailable independent interoperability check as skipped", async
 });
 it("checks the external WAV format without evaluating a file path as shell syntax", async () => {
   const file = "/tmp/a $(false).wav";
-  const calls = [];
-  const exec = async (command, args) => {
+  const calls: { command: string; args: string[] }[] = [];
+  const exec = async (command: string, args: string[]) => {
     calls.push({ command, args });
     return {
       stdout: args.includes("-version")
@@ -31,10 +31,10 @@ it("checks the external WAV format without evaluating a file path as shell synta
   };
   const result = await probeWav(file, { sampleRate: 48000, sampleCount: 24000 }, { exec });
   expect(result.status).toBe("pass");
-  expect(calls[1].args.at(-1)).toBe(file);
+  expect(calls[1]?.args.at(-1)).toBe(file);
 });
 it("reports contradictory external format evidence as a failure", async () => {
-  const exec = async (_command, args) => ({
+  const exec = async (_command: string, args: string[]) => ({
     stdout: args.includes("-version")
       ? "ffprobe version test"
       : JSON.stringify({
