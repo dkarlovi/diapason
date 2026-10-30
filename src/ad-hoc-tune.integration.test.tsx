@@ -7,7 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { appRoutes } from "./app-router";
 import { allRecordings, deleteRecording } from "./db";
 import { createPortableTune } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { tuneUrl } from "./tune-url";
 import { flushEditorSaves } from "./editor-save-queue";
 vi.mock("./playback", () => ({

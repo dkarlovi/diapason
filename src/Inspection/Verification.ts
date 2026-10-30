@@ -9,12 +9,12 @@ import { encodeTuneMidi } from "../tune-midi";
 import { PROGRAMS } from "../midi-playback";
 import { wavBytes } from "../wav";
 import { decodeWav } from "../wav-reader";
-import { verifyImportModes } from "./imports";
-import { logicalPlaybackEvents, tunePlaybackEvents } from "./events";
-import { computeComparison } from "./computation";
-import type { StageProvenance } from "./types";
-import { makeReport } from "./report";
-import type { InvestigationContext, CheckStatus, Report, OverallResult } from "./types";
+import { verifyImportModes } from "./Imports";
+import { logicalPlaybackEvents, tunePlaybackEvents } from "./Events";
+import { computeComparison } from "./Computation";
+import type { StageProvenance } from "./Inspection.type";
+import { makeReport } from "./Report";
+import type { InvestigationContext, CheckStatus, Report, OverallResult } from "./Inspection.type";
 export interface VerificationCheck {
   id: string;
   status: CheckStatus;

@@ -4,7 +4,7 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { useEditHistory } from "./useEditHistory";
 import { getRecording, putRecording } from "../db";
-import { recording } from "../test-support/recording";
+import { recording } from "../../tests/support/recording";
 import type { Recording } from "../db";
 import { captureEditSnapshot } from "../edit-state";
 afterEach(cleanup);

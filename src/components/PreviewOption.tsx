@@ -1,5 +1,5 @@
 import { Play, Square } from "lucide-react";
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 import { useId } from "react";
 
 interface Props {

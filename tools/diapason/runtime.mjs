@@ -23,7 +23,7 @@ export async function openInvestigation(file, options = {}) {
       server: { middlewareMode: true, hmr: false, ws: false, watch: null },
       appType: "custom",
     });
-    const api = await server.ssrLoadModule("/src/investigation/api.ts");
+    const api = await server.ssrLoadModule("/src/Inspection/Api.ts");
     const input = await api.readRecordingPackage(
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
     );

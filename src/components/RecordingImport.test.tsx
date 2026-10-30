@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import { RecordingImport } from "./RecordingImport";
-import { Popover } from "./ui/popover";
-import { recording } from "../test-support/recording";
+import { Popover } from "../UI/Popover";
+import { recording } from "../../tests/support/recording";
 import type { ReadRecordingPackage } from "../recording-package-types";
 afterEach(cleanup);
 it("offers restoration or fresh audio independently of the collision-copy choice", async () => {

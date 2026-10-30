@@ -1,6 +1,6 @@
 import { keyName } from "../melody/key";
 import type { ReadRecordingPackage } from "../recording-package-types";
-import type { InputIdentity, Report, OverallResult } from "./types";
+import type { InputIdentity, Report, OverallResult } from "./Inspection.type";
 export function makeReport<T>(
   kind: string,
   input: InputIdentity | null,

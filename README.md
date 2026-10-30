@@ -405,30 +405,30 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 
 ## How it works
 
-| Stage                           | File                                            | Notes                                                           |
-| ------------------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
-| Mic capture (raw, DSP off)      | `src/audio.ts`                                  | `getUserMedia` + `AnalyserNode`                                 |
-| Pitch detection                 | `src/pitch.ts`                                  | McLeod / NSDF, band-limited to whistle range                    |
-| Melody interpretation           | `src/melody/`                                   | Viterbi note decisions, key/harmony priors, rhythm and presets  |
-| PCM recorder + offline analysis | `src/recorder.ts`                               | AudioWorklet capture, re-analyze buffers, quality stats         |
-| Pitch-trace visualization       | `src/trace.ts`                                  | Canvas 2D pitch-over-time renderer                              |
-| WAV encoder                     | `src/wav.ts`                                    | Mono 16-bit PCM WAV for offline inspection                      |
-| Processing evidence             | `src/diagnostics.ts`                            | Structured processing evidence for WAV packages and CLI replay  |
-| MIDI file writer                | `src/midi.ts`                                   | Standard MIDI File (Type 0), no deps                            |
-| Metronome                       | `src/metronome.ts`                              | Count-in + audible click, AudioContext-scheduled                |
-| Tempo quantization              | `src/quantize.ts`                               | Snap note start/length to a beat grid                           |
-| Audio and note playback         | `src/playback.ts`, `src/instruments.ts`         | Raw audio, or synth notes scheduled 2s ahead of the audio clock |
-| Web MIDI output                 | `src/midiout.ts`, `src/midi-playback.ts`        | Device selection and scheduled external note playback           |
-| Tempo estimation                | `src/tempo-model.ts`, `src/clap-detector.ts`    | Estimate BPM from taps or microphone claps                      |
-| Sound source profiles           | `src/recording-profiles.ts`                     | Whistle analysis settings and calibration checks                |
-| Storage codec                   | `src/codec.ts`                                  | Float32↔Int16, gzip via `CompressionStream`                     |
-| IndexedDB library               | `src/db.ts`                                     | Persisted recordings (no deps)                                  |
-| Per-recording melody settings   | `src/melody/settings.ts`                        | Preset, overrides, key choice and legacy migration              |
-| Path router                     | `src/main.tsx`, `src/router.ts`                 | React Router and route helpers                                  |
-| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`        | React rendering and browser effects                             |
-| Screen models                   | `src/capture-model.ts`, `src/editor-model.ts`   | Pure calculations shared by hooks and tests                     |
-| Editor playhead                 | `src/playhead-store.ts`                         | Zustand store; playback ticks redraw canvases outside React     |
-| Shared UI + entry               | `src/components/primitives.tsx`, `src/main.tsx` | controls and app root                                           |
+| Stage                           | File                                          | Notes                                                           |
+| ------------------------------- | --------------------------------------------- | --------------------------------------------------------------- |
+| Mic capture (raw, DSP off)      | `src/audio.ts`                                | `getUserMedia` + `AnalyserNode`                                 |
+| Pitch detection                 | `src/pitch.ts`                                | McLeod / NSDF, band-limited to whistle range                    |
+| Melody interpretation           | `src/melody/`                                 | Viterbi note decisions, key/harmony priors, rhythm and presets  |
+| PCM recorder + offline analysis | `src/recorder.ts`                             | AudioWorklet capture, re-analyze buffers, quality stats         |
+| Pitch-trace visualization       | `src/trace.ts`                                | Canvas 2D pitch-over-time renderer                              |
+| WAV encoder                     | `src/wav.ts`                                  | Mono 16-bit PCM WAV for offline inspection                      |
+| Processing evidence             | `src/diagnostics.ts`                          | Structured processing evidence for WAV packages and CLI replay  |
+| MIDI file writer                | `src/midi.ts`                                 | Standard MIDI File (Type 0), no deps                            |
+| Metronome                       | `src/metronome.ts`                            | Count-in + audible click, AudioContext-scheduled                |
+| Tempo quantization              | `src/quantize.ts`                             | Snap note start/length to a beat grid                           |
+| Audio and note playback         | `src/playback.ts`, `src/instruments.ts`       | Raw audio, or synth notes scheduled 2s ahead of the audio clock |
+| Web MIDI output                 | `src/midiout.ts`, `src/midi-playback.ts`      | Device selection and scheduled external note playback           |
+| Tempo estimation                | `src/tempo-model.ts`, `src/clap-detector.ts`  | Estimate BPM from taps or microphone claps                      |
+| Sound source profiles           | `src/recording-profiles.ts`                   | Whistle analysis settings and calibration checks                |
+| Storage codec                   | `src/codec.ts`                                | Float32↔Int16, gzip via `CompressionStream`                     |
+| IndexedDB library               | `src/db.ts`                                   | Persisted recordings (no deps)                                  |
+| Per-recording melody settings   | `src/melody/settings.ts`                      | Preset, overrides, key choice and legacy migration              |
+| Path router                     | `src/main.tsx`, `src/router.ts`               | React Router and route helpers                                  |
+| Screens and hooks               | `src/components/*.tsx`, `src/hooks/*.ts`      | React rendering and browser effects                             |
+| Screen models                   | `src/capture-model.ts`, `src/editor-model.ts` | Pure calculations shared by hooks and tests                     |
+| Editor playhead                 | `src/playhead-store.ts`                       | Zustand store; playback ticks redraw canvases outside React     |
+| Shared UI + entry               | `src/UI/Primitives.tsx`, `src/main.tsx`       | controls and app root                                           |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a recording is opened, so the editor always reflects the
@@ -658,7 +658,7 @@ each note name. Captured and exported WAV audio is never pitch-corrected. Musica
 context is a prior, not knowledge of the intended tune: a note whose pitch sits
 halfway between two in-key notes can still be named wrongly.
 
-The intro sample in `src/fixtures/whistle-intro/` is an exact regression: Clean
+The intro sample in `tests/fixtures/whistle-intro/` is an exact regression: Clean
 must export its approved `clean.mid` byte for byte.
 
 ## Embedding

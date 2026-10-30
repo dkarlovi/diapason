@@ -1,6 +1,6 @@
 import { CAPTURE_STEPS, compactStepSummary, stepSummary } from "../capture-presentation";
 import type { SetupState, SetupStep } from "../recording-setup";
-import { DiapasonMark } from "./DiapasonMark";
+import { DiapasonMark } from "../UI/DiapasonMark";
 
 export function CaptureSteps({
   setup,

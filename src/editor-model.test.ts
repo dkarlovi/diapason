@@ -1,4 +1,4 @@
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { describe, expect, it } from "vitest";
 import {
   knobValueLabel,

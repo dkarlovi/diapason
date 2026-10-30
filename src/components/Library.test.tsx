@@ -7,7 +7,7 @@ import { Library } from "./Library";
 import type { Recording } from "../db";
 import { decodeAudio } from "../codec";
 import { putRecording } from "../db";
-import { recording } from "../test-support/recording";
+import { recording } from "../../tests/support/recording";
 import { encodeWav } from "../wav";
 import { encodeTaggedWav } from "../wav-metadata";
 

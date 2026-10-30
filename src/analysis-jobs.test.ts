@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { getAnalysisState, requestAnalysis, subscribeAnalysis } from "./analysis-jobs";
 import { putRecording } from "./db";
 import { analysisKey, readAnalysis } from "./analysis-cache";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import * as recorder from "./recorder";
 
 vi.mock("./codec", () => ({ decodeAudio: async () => new Float32Array(4096) }));

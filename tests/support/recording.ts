@@ -1,4 +1,4 @@
-import type { AudioRecording } from "../db";
+import type { AudioRecording } from "../../src/db";
 export function recording(overrides: Partial<AudioRecording> = {}): AudioRecording {
   return {
     id: "regression",

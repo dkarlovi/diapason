@@ -1,11 +1,11 @@
 import { EditorVersions } from "./EditorVersions";
 import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../UI/Popover";
 import { createPortal } from "react-dom";
 import { Ellipsis } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
-import { Button } from "./primitives";
-import type { EditorState } from "./editor-view-types";
+import { Button } from "../UI/Primitives";
+import type { EditorState } from "../hooks/useEditor";
 
 export function EditorRecordingActions({ state }: { state: EditorState }) {
   const [open, setOpen] = useState(false);

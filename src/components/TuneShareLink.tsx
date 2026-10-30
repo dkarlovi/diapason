@@ -1,4 +1,4 @@
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 export function TuneShareLink({
   link,
   onClose,

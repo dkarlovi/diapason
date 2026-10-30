@@ -1,2 +1,2 @@
 # Preserve diagnostic fixture bytes so their provenance hashes remain verifiable.
-src/fixtures/*/original.json
+tests/fixtures/*/original.json

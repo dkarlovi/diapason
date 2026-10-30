@@ -1,7 +1,7 @@
 import type { TuneImportMode, ImportDisposition } from "../recording-package-types";
 import { Link } from "react-router";
-import { PopoverContent } from "./ui/popover";
-import { Button } from "./primitives";
+import { PopoverContent } from "../UI/Popover";
+import { Button } from "../UI/Primitives";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { importable, type ImportCandidate } from "../hooks/useRecordingImport";

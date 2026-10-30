@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { INSTRUMENTS } from "./instruments";
 import { createPortableTune, recordingFromPortableTune } from "./portable-tune";
 import { encodeTune, decodeTune } from "./tune-codec";
 import { processRecording } from "./recording";
-import { loadFixture } from "./test-support/fixtures";
+import { loadFixture } from "../tests/support/fixtures";
 import { resolveKnobs } from "./melody/knobs";
 
 it("shares a fractional Context correction value on Clean using v2", async () => {

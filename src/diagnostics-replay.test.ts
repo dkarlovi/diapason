@@ -6,7 +6,7 @@ import { replayDiagnostics } from "./diagnostics-replay";
 import { analyzeRecording } from "./recording-analysis";
 import { qualityStats } from "./recorder";
 import { makeReportInput } from "./editor-model";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { pcm16ToFloat, floatToPcm16 } from "./pcm";
 import { getSoundProfile } from "./recording-profiles";
 import { decodeWav } from "./wav-reader";
@@ -87,7 +87,10 @@ it("names the first changed processing stage and distinguishes a different build
 
 it("reports legacy evidence as incomplete and rejects malformed current schemas", async () => {
   const old = JSON.parse(
-    readFileSync(new URL("./fixtures/whistle-regression/original.json", import.meta.url), "utf8"),
+    readFileSync(
+      new URL("../tests/fixtures/whistle-regression/original.json", import.meta.url),
+      "utf8",
+    ),
   );
   expect((await replayDiagnostics(old, new ArrayBuffer(0))).status).toBe("incomplete");
   await expect(replayDiagnostics({ schemaVersion: 5 }, new ArrayBuffer(0))).rejects.toThrow(

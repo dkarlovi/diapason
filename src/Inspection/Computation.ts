@@ -2,9 +2,9 @@ import { isObject } from "../diagnostics-validation";
 import { analyzeRecording, resolveAnalysisOptions } from "../recording-analysis";
 import { restoreRecordingPackage } from "../recording-package";
 import { compareRecordingPackage } from "../recording-package-comparison";
-import { cachedSnapshot } from "./snapshot-cache";
+import { cachedSnapshot } from "./SnapshotCache";
 import { packFrames, unpackFrames } from "../frame-storage";
-import type { InvestigationContext, StageProvenance } from "./types";
+import type { InvestigationContext, StageProvenance } from "./Inspection.type";
 
 function validPackedNumber(n: unknown, index: number): boolean {
   if (index % 4 === 1 && n === null) return true;

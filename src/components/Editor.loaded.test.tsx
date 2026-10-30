@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
-import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
+import { resetEditorStorageDouble } from "../../tests/support/editor-storage-double";
 import userEvent from "@testing-library/user-event";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
@@ -32,7 +32,7 @@ const recording: Recording = {
 };
 vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
-  ...(await import("../test-support/editor-storage-double")).editorStorageDouble,
+  ...(await import("../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
 vi.mock("../db", () => ({
   getRecording: async () => recording,

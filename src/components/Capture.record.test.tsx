@@ -6,7 +6,7 @@ import {
   click,
   fixture,
   resetFixture,
-} from "../../tests/capture-fixture";
+} from "../../tests/support/capture";
 beforeEach(resetFixture);
 afterEach(() => {
   cleanup();

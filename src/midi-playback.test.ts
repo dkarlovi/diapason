@@ -120,7 +120,7 @@ it("ends short notes before the following note starts", () => {
 
 it("shifts source-edited pitches once without mutating saved or exported pitch", async () => {
   const { processRecording } = await import("./recording");
-  const { recording } = await import("./test-support/recording");
+  const { recording } = await import("../tests/support/recording");
   const rec = recording({
     noteEdits: { version: 1, pitch: [{ id: "manual", midi: 73, ranges: [{ start: 0, end: 1 }] }] },
   });

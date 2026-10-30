@@ -58,7 +58,7 @@ with interpreted notes. Processing and recordings remain local to the browser.
 
 The product name is lowercase **diapason**, referring to tonal compass and the
 historical tuning-fork pitch reference. The existing mark is implemented in
-`src/components/DiapasonMark.tsx`.
+`src/UI/DiapasonMark.tsx`.
 
 ## Evidence on Hand
 

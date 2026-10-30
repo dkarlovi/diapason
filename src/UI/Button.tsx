@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import { cn } from "./Cn";
 
 // shadcn/ui's open component pattern: semantic variants over a native button.
 const variants = cva(

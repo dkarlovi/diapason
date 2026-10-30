@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { useState } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { recording } from "../test-support/recording";
+import { recording } from "../../tests/support/recording";
 import { getRecording, putRecording, type Recording } from "../db";
 import { listVersions } from "../edit-storage";
 import { captureEditSnapshot } from "../edit-state";

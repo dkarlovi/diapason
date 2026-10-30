@@ -1,7 +1,7 @@
 import { KNOB_DEFS, PRESETS, historicalControls } from "../melody/knobs";
-import type { InvestigationContext } from "./types";
-import type { EvidenceView } from "./views";
-import { pagedReport, type PageOptions } from "./query";
+import type { InvestigationContext } from "./Inspection.type";
+import type { EvidenceView } from "./Views";
+import { pagedReport, type PageOptions } from "./Query";
 export function queryControls(
   context: InvestigationContext,
   view: EvidenceView,

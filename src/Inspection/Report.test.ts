@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationInput } from "../test-support/investigation";
-import { summarizePackage } from "./report";
+import { investigationInput } from "../../tests/support/investigation";
+import { summarizePackage } from "./Report";
 it("summarizes saved evidence without returning bulk package data", async () => {
   const { input } = await investigationInput();
   const report = summarizePackage(input, {

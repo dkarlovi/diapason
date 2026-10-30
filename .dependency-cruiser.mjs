@@ -5,8 +5,9 @@
 //   tests/                           — shared fixtures and support for *.test.* files
 
 const react = "node_modules/(react|react-dom|react-router|@radix-ui|lucide-react)/";
-const reactLayer = "^src/(App|Features|UI)/";
-const domainLayer = "^src/(?!App/|Features/|UI/)[^/]+/";
+// src/components and src/hooks count as React layers until their files move into src/Features.
+const reactLayer = "^src/(App|Features|UI|components|hooks)/";
+const domainLayer = "^src/(?!App/|Features/|UI/|components/|hooks/)[^/]+/";
 const testFile = "\\.test\\.tsx?$";
 
 /** @type {import('dependency-cruiser').IConfiguration} */

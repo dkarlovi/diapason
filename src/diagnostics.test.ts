@@ -2,7 +2,7 @@
 import { expect, it } from "vitest";
 import { buildReportData } from "./diagnostics";
 import { makeReportInput } from "./editor-model";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { PIPELINE_VERSION } from "./build-info";
 import { qualityStats } from "./recorder";
 import type { Frame } from "./notes";

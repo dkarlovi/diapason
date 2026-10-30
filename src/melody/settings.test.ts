@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { recording } from "../test-support/recording";
+import { recording } from "../../tests/support/recording";
 import { DEFAULT_PRESET } from "./knobs";
 import { melodySettingFor, newRecordingMelody } from "./settings";
 it("legacy tuning and grid carry over to the default preset", () => {

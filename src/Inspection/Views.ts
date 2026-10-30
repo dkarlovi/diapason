@@ -8,8 +8,8 @@ import type {
   ResolvedRecipe,
   StageProvenance,
   ViewName,
-} from "./types";
-import { computeComparison } from "./computation";
+} from "./Inspection.type";
+import { computeComparison } from "./Computation";
 export interface EvidenceView {
   name: ViewName;
   runKey: string | null;

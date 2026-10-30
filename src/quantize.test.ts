@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { quantizeNotes } from "./quantize";
-import reference from "./fixtures/whistle-regression/reference.json";
+import reference from "../tests/fixtures/whistle-regression/reference.json";
 import { midiToName, type NoteEvent } from "./notes";
 
 const note = (midi: number, start: number, duration: number): NoteEvent => ({

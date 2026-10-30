@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { afterEach, expect, it } from "vitest";
 import { allRecordings, deleteRecording, getRecording, putRecording } from "./db";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { insertImportedRecording } from "./recording-import-storage";
 afterEach(async () => {
   for (const r of await allRecordings()) await deleteRecording(r.id);

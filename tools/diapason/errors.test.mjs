@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { PackageError } from "../../src/package-error.ts";
+import { PackageError } from "../../src/Inspection/Api.ts";
 import { errorReport } from "./errors.mjs";
 it("preserves the reader's explicitly untrusted validation context", () => {
   const error = new PackageError("malformed", "audio.sha256", "pcm.identity", "PCM hash differs.", {

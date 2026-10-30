@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { createPortableTune } from "./portable-tune";
 import { encodeTuneMidi, decodeTuneMidi } from "./tune-midi";
 it("embeds the editable tune with playable octave-shifted MIDI and instrument", async () => {

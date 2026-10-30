@@ -7,8 +7,8 @@ import {
   selectorArgv,
   type SourceSelector,
   type PageOptions,
-} from "./query";
-import type { EvidenceView } from "./views";
+} from "./Query";
+import type { EvidenceView } from "./Views";
 export interface NoteQuery extends SourceSelector, PageOptions {
   corrected?: boolean;
   muted?: boolean;

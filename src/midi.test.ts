@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
 import { notesToMidi } from "./midi";
-import { readMidiEvents } from "./test-support/midi-files";
+import { readMidiEvents } from "../tests/support/midi-files";
 
 it("rejects sub-tick note collisions instead of inventing an overlap", () => {
   expect(() =>

@@ -6,7 +6,7 @@ import { afterEach, expect, it } from "vitest";
 import { EditorVersions } from "./EditorVersions";
 import { useEditHistory } from "../hooks/useEditHistory";
 import { useEditorVersions } from "../hooks/useEditorVersions";
-import { recording } from "../test-support/recording";
+import { recording } from "../../tests/support/recording";
 import { putRecording, type Recording } from "../db";
 afterEach(cleanup);
 it("saves and renames versions with usable errors and no Git terminology", async () => {

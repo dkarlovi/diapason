@@ -3,11 +3,13 @@ import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { analyzeBuffer } from "./recorder";
 import { analyzeRecording, resolveAnalysisOptions } from "./recording-analysis";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { recordingNotes } from "./recording";
 import { pcm16ToFloat } from "./pcm";
 
-const bytes = readFileSync(new URL("./fixtures/whistle-regression/original.wav", import.meta.url));
+const bytes = readFileSync(
+  new URL("../tests/fixtures/whistle-regression/original.wav", import.meta.url),
+);
 const pcm = pcm16ToFloat(
   new Int16Array(bytes.buffer.slice(bytes.byteOffset + 44, bytes.byteOffset + bytes.byteLength)),
 );

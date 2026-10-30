@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { useCapture } from "../hooks/useCapture";
 import type { SetupStep } from "../recording-setup";
 import { SOUND_PROFILES } from "../recording-profiles";
-import { Button, Field } from "./primitives";
+import { Button, Field } from "../UI/Primitives";
 import { CaptureActions } from "./CaptureActions";
 import { StatusChecklist } from "./StatusChecklist";
 import { TempoSetup } from "./TempoSetup";

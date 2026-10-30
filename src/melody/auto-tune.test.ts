@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { beforeAll, describe, expect, it } from "vitest";
-import moon from "../fixtures/whistle-moon/interpretation.json";
-import { loadFixture } from "../test-support/fixtures";
-import { noteRecording } from "../test-support/note-recording";
-import { recording } from "../test-support/recording";
+import moon from "../../tests/fixtures/whistle-moon/interpretation.json";
+import { loadFixture } from "../../tests/support/fixtures";
+import { noteRecording } from "../../tests/support/note-recording";
+import { recording } from "../../tests/support/recording";
 import { processRecording } from "../recording";
 import { noteSourceFromAnalysis } from "../note-source";
 import { PRESETS, resolveKnobs, type PresetId } from "./knobs";

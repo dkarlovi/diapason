@@ -6,7 +6,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useRecordingImport } from "./useRecordingImport";
 import { allRecordings, deleteRecording } from "../db";
 import { createPortableTune } from "../portable-tune";
-import { noteRecording } from "../test-support/note-recording";
+import { noteRecording } from "../../tests/support/note-recording";
 import { tuneUrl } from "../tune-url";
 vi.stubGlobal("Blob", NodeBlob);
 vi.stubGlobal("CompressionStream", CompressionStream);
@@ -86,7 +86,7 @@ it("offers tagged MIDI files through the same explicit import process", async ()
 it("restores a WAV tune by default or starts fresh without a separate tune file", async () => {
   const { webcrypto } = await import("node:crypto");
   vi.stubGlobal("crypto", webcrypto);
-  const { recording } = await import("../test-support/recording");
+  const { recording } = await import("../../tests/support/recording");
   const { captureRecordingPackage, encodeRecordingPackage } = await import("../recording-package");
   const blob = await encodeRecordingPackage(
     captureRecordingPackage(
@@ -121,7 +121,7 @@ it("restores a WAV tune by default or starts fresh without a separate tune file"
 it("offers a copy retry when an ID collision appears after inspection", async () => {
   const { webcrypto } = await import("node:crypto");
   vi.stubGlobal("crypto", webcrypto);
-  const { recording } = await import("../test-support/recording");
+  const { recording } = await import("../../tests/support/recording");
   const { putRecording } = await import("../db");
   const { encodeTaggedWav } = await import("../wav-metadata");
   const blob = encodeTaggedWav(recording(), new Float32Array(48000), {

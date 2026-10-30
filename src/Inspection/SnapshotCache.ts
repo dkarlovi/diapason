@@ -7,7 +7,7 @@ import { encodeTuneMidi } from "../tune-midi";
 import { resolveRecordingSettings } from "../recording-settings";
 import { resolveKnobs } from "../melody/knobs";
 import { protectedNoteBoundaries } from "../note-edits";
-import type { InvestigationContext, StageProvenance } from "./types";
+import type { InvestigationContext, StageProvenance } from "./Inspection.type";
 
 function restoredSnapshot(
   value: unknown,

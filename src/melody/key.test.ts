@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import reference from "../fixtures/whistle-regression/reference.json";
+import reference from "../../tests/fixtures/whistle-regression/reference.json";
 import { keyName, parallelKey, rankKeys, scalePitchClasses } from "./key";
 const note = (midi: number, duration = 1) => ({ midi, name: "", start: 0, duration });
 it("ranks E minor first for the take-1 reference melody", () => {

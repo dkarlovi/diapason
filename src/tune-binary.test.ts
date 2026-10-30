@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { TuneReader, TuneWriter } from "./tune-binary";
 import { packTune, unpackTune } from "./tune-fields";
 import { createPortableTune, validatePortableTune, TUNE_LIMITS } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 it("uses unsigned varints without 32-bit truncation and rejects overflow", () => {
   const writer = new TuneWriter();
   writer.uint(4_294_967_296);

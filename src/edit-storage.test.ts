@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { beforeAll, expect, it } from "vitest";
 import { deleteRecording, getRecording, putRecording, saveWaveform } from "./db";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { captureEditSnapshot } from "./edit-state";
 import type { EditCommit } from "./edit-history";
 import { openDatabase } from "./db-connection";

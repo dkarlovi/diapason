@@ -1,6 +1,6 @@
 import { Undo2, Redo2 } from "lucide-react";
-import { Button } from "./primitives";
-import type { EditorState } from "./editor-view-types";
+import { Button } from "../UI/Primitives";
+import type { EditorState } from "../hooks/useEditor";
 type HistoryState = Pick<
   EditorState,
   "canUndo" | "canRedo" | "undoLabel" | "redoLabel" | "undo" | "redo" | "editingDisabled"

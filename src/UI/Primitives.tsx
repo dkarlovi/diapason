@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
-import { Button as StyledButton } from "./ui/button";
+import { Button as StyledButton } from "./Button";
 
 export function Panel({ title, children }: PropsWithChildren<{ title: string }>) {
   return (

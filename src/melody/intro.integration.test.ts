@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { loadFixture } from "../test-support/fixtures";
+import { loadFixture } from "../../tests/support/fixtures";
 import { midiEvents, notesToMidi } from "../midi";
 import { midiToName } from "../notes";
 import { previewNotes } from "../recording";
@@ -38,7 +38,8 @@ it("Clean transcribes the intro exactly, on the eighth-note grid", () => {
   );
 });
 it("Clean exports the approved intro MIDI byte for byte", async () => {
-  const url = (file: string) => new URL(`../fixtures/whistle-intro/${file}`, import.meta.url);
+  const url = (file: string) =>
+    new URL(`../../tests/fixtures/whistle-intro/${file}`, import.meta.url);
   const approved = readFileSync(url("clean.mid"));
   const manifest = JSON.parse(readFileSync(url("manifest.json"), "utf8")) as {
     files: Record<string, string>;

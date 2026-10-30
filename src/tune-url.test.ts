@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { tuneFromFragment, tuneUrl } from "./tune-url";
 import { createPortableTune } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 it("uses an editor fragment and restores playback choices", async () => {
   const link = new URL(
     await tuneUrl(createPortableTune(noteRecording(), []), "https://example.com"),

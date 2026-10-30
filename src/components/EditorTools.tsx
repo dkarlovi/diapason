@@ -1,9 +1,9 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlaybackSettings } from "./PlaybackSettings";
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 import { MelodyPanel } from "./MelodyPanel";
-import type { EditorState } from "./editor-view-types";
+import type { EditorState } from "../hooks/useEditor";
 import type { EditorLayout } from "../hooks/useEditorLayout";
 import { AuditionMenuContext } from "./AuditionMenuContext";
 

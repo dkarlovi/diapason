@@ -82,7 +82,7 @@ it("lets a finished note release naturally and fades an interrupted preview", as
   expect(ramps.at(-1)?.[1]).toBeGreaterThan(audio.currentTime);
   expect(stops.at(-1)?.[0]).toBeGreaterThan(audio.currentTime);
   const { processRecording } = await import("./recording");
-  const { recording } = await import("./test-support/recording");
+  const { recording } = await import("../tests/support/recording");
   const rec = recording({
     noteEdits: { version: 1, pitch: [{ id: "manual", midi: 73, ranges: [{ start: 0, end: 1 }] }] },
   });

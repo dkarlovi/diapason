@@ -5,11 +5,11 @@ import { AnalysisProgress } from "./AnalysisProgress";
 import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
 import { PitchCanvas } from "./PitchCanvas";
-import type { EditorState } from "./editor-view-types";
+import type { EditorState } from "../hooks/useEditor";
 import type { EditorLayout } from "../hooks/useEditorLayout";
 import type { PlayheadStore } from "../playhead-store";
 
