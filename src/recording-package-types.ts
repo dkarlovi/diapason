@@ -1,4 +1,4 @@
-import type { AudioRecording, RecordingOrigin } from "./db";
+import type { AudioRecording, RecordingOrigin } from "./Recording/Recording.type";
 import type { buildReportData } from "./diagnostics";
 import type { EditSnapshot } from "./edit-state";
 import type { Frame } from "./notes";

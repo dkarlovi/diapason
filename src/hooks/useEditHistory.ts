@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { applyEditSnapshot, captureEditSnapshot, type EditSnapshot } from "../edit-state";
 import {
   canRedoEdit,

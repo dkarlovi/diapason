@@ -7,7 +7,9 @@ import { EditorVersions } from "./EditorVersions";
 import { useEditHistory } from "../hooks/useEditHistory";
 import { useEditorVersions } from "../hooks/useEditorVersions";
 import { recording } from "../../tests/support/recording";
-import { putRecording, type Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
+import { putRecording } from "../Recording/Recording.storage";
+
 afterEach(cleanup);
 it("saves and renames versions with usable errors and no Git terminology", async () => {
   const initial = recording({ id: "version-ui" });

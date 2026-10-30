@@ -4,8 +4,9 @@ import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
 import type { KnobDef, Knobs } from "../melody/knobs";
 import { knobValueLabel } from "../editor-model";
-import type { MelodyPanelProps } from "./MelodyPanel";
 import { ResetControl } from "./ResetControl";
+import type { MelodyPanelProps } from "./MelodyPanel.type";
+
 export function MelodyKnob({
   def,
   value,

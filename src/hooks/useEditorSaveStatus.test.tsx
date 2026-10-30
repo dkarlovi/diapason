@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { act, renderHook, cleanup } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { putRecording } from "../db";
+import { putRecording } from "../Recording/Recording.storage";
 import { recording } from "../../tests/support/recording";
 import { captureEditSnapshot } from "../edit-state";
 import { createEditorWriter } from "../editor-save-queue";

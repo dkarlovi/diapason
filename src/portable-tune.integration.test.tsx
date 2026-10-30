@@ -6,7 +6,7 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 import { appRoutes } from "./app-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Editor } from "./components/Editor";
-import { allRecordings, deleteRecording } from "./db";
+import { allRecordings, deleteRecording } from "./Recording/Recording.storage";
 import { createPortableTune } from "./portable-tune";
 import { noteRecording } from "../tests/support/note-recording";
 import { tuneUrl } from "./tune-url";
@@ -72,7 +72,7 @@ it("starts fresh history and supports resetting, undoing and unmuting imported e
   const { renderHook, act } = await import("@testing-library/react");
   const { MemoryRouter } = await import("react-router");
   const { useEditor } = await import("./hooks/useEditor");
-  const { putRecording, getRecording } = await import("./db");
+  const { putRecording, getRecording } = await import("./Recording/Recording.storage");
   const record = noteRecording();
   record.noteEdits = {
     version: 1,
@@ -123,7 +123,7 @@ it("starts fresh history and supports resetting, undoing and unmuting imported e
 });
 it("copies a tune link from the editor recording dropdown", async () => {
   const { MemoryRouter } = await import("react-router");
-  const { putRecording } = await import("./db");
+  const { putRecording } = await import("./Recording/Recording.storage");
   const { tuneFromFragment } = await import("./tune-url");
   let copied = "";
   vi.stubGlobal("navigator", {

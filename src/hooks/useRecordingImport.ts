@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRecording, type Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
+import { getRecording } from "../Recording/Recording.storage";
 import { recordingPath } from "../router";
 import { readRecordingPackage, restoreRecordingPackage } from "../recording-package";
 import { insertImportedRecording } from "../recording-import-storage";

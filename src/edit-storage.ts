@@ -1,5 +1,5 @@
 import { databaseTransaction } from "./db-connection";
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import { validateEditHistory } from "./edit-history-validation";
 import { currentEditCommit, type EditHistory } from "./edit-history";
 import { sameEditSnapshot } from "./edit-state";

@@ -1,4 +1,4 @@
-import type { Recording, MutedNote, QuantizeSetting } from "./db";
+import type { Recording, MutedNote, QuantizeSetting } from "./Recording/Recording.type";
 import type { EditSnapshot } from "./edit-state";
 import { EditStorageError } from "./edit-storage-error";
 import { isNoteEdits } from "./note-edits";

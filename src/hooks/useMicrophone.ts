@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { openMic, listInputDevices, type MicHandle } from "../audio";
 import { createPitchDetector } from "../pitch";
-import { getSoundProfile, type SoundProfile } from "../recording-profiles";
+import { getSoundProfile } from "../recording-profiles";
 import type { Frame } from "../notes";
 import { drawTrace, autoRange } from "../trace";
 import { dspStatus, levelHint, peakLevel } from "../capture-model";
+import type { SoundProfile } from "../Recording/SoundProfile.type";
 
 export interface Observation {
   t: number;

@@ -1,4 +1,5 @@
-import type { SetupCheck } from "../recording-setup";
+import type { SetupCheck } from "../Recording/RecordingSetup.type";
+
 const labels = {
   unchecked: "Not checked",
   checking: "Checking",

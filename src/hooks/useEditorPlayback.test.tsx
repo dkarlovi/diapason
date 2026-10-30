@@ -9,7 +9,7 @@ import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import type { Frame } from "../notes";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { useEditor } from "./useEditor";
 
 const state = vi.hoisted(() => ({
@@ -38,7 +38,7 @@ vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
   ...(await import("../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
-vi.mock("../db", () => ({
+vi.mock("../Recording/Recording.storage", () => ({
   getRecording: async (id: string): Promise<Recording> => ({
     id,
     name: id,

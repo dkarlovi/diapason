@@ -1,5 +1,5 @@
 import type { InvestigationContext } from "../../src/Inspection/Inspection.type";
-import type { AudioRecording } from "../../src/db";
+import type { AudioRecording } from "../../src/Recording/Recording.type";
 import { floatToPcm16, pcm16ToFloat } from "../../src/pcm";
 import { recording } from "./recording";
 import { analyzeRecording } from "../../src/recording-analysis";

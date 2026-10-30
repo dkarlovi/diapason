@@ -1,5 +1,6 @@
 // Existing editor fixtures mock recording I/O; keep their storage boundary consistent.
-import { getRecording, putRecording, type Recording } from "../../src/db";
+import type { Recording } from "../../src/Recording/Recording.type";
+import { getRecording, putRecording } from "../../src/Recording/Recording.storage";
 import { applyEditSnapshot } from "../../src/edit-state";
 import type { EditCommit, EditHistory } from "../../src/edit-history";
 import type { EditHead, SavedVersion } from "../../src/edit-storage";

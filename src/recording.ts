@@ -5,7 +5,7 @@ import {
   summarizePitchEdits,
   type SourceRange,
 } from "./note-edits";
-import type { MutedNote, Recording } from "./db";
+import type { MutedNote, Recording } from "./Recording/Recording.type";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "./notes";
 import { resolveRecordingSettings } from "./recording-settings";
 import { resolveKnobs } from "./melody/knobs";

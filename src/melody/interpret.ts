@@ -1,5 +1,5 @@
 import type { Frame, NoteEvent } from "../notes";
-import { nearestNotes, notesFromSegments, segmentMelody, type Segment } from "./decode";
+import { nearestNotes, notesFromSegments, segmentMelody } from "./decode";
 import { inferHarmony, type ChordSpan } from "./harmony";
 import {
   fitTuning,
@@ -11,6 +11,8 @@ import {
 } from "./key";
 import type { Knobs } from "./knobs";
 import { applyFeel, gridLag } from "./rhythm";
+import type { Segment } from "./Decode.type";
+
 export type KeyChoice = "auto" | Key;
 export interface Interpretation {
   segments: Segment[];

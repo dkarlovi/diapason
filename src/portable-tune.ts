@@ -1,5 +1,5 @@
 import { requireTune, finiteBetween, integerBetween } from "./tune-validation";
-import type { NoteRecording, Recording } from "./db";
+import type { NoteRecording, Recording } from "./Recording/Recording.type";
 import { DEFAULT_PLAY, INSTRUMENTS, type PlaySettings } from "./instruments";
 import {
   isKnobs,

@@ -1,19 +1,6 @@
-import type { Recording } from "./db";
-import type { AnalyzeOptions } from "./recorder";
-import type { PitchRange } from "./pitch";
+import type { Recording } from "./Recording/Recording.type";
 import { isPitchRange } from "./voice-range";
-
-export type AnalysisSettings = Required<
-  Pick<AnalyzeOptions, "windowSize" | "hop" | "minFreq" | "maxFreq" | "clarityThreshold">
-> & { preferredRange?: PitchRange };
-
-export interface SoundProfile {
-  id: string;
-  label: string;
-  instruction: string;
-  analysis: AnalysisSettings;
-  checks: { voicedRatio: number; clarity: number; noiseRatio: number };
-}
+import type { SoundProfile } from "./Recording/SoundProfile.type";
 export const SOUND_PROFILES: readonly SoundProfile[] = [
   {
     id: "whistle",

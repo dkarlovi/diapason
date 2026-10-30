@@ -1,4 +1,4 @@
-import type { PitchContext, Segment } from "./decode";
+import type { PitchContext, Segment } from "./Decode.type";
 
 const NATURAL_MINOR = new Set([0, 2, 3, 5, 7, 8, 10]);
 const MAJOR = new Set([0, 2, 4, 5, 7, 9, 11]);

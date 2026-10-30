@@ -1,7 +1,7 @@
 import type { Frame } from "./notes";
-import type { SoundProfile } from "./recording-profiles";
-import type { SetupCheck, RoomResult, MeasurementResult } from "./recording-setup";
 import { qualityStats } from "./recorder";
+import type { SetupCheck, RoomResult, MeasurementResult } from "./Recording/RecordingSetup.type";
+import type { SoundProfile } from "./Recording/SoundProfile.type";
 
 export interface DspCheck {
   name: string;

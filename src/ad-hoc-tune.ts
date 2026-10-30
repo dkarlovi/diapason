@@ -1,4 +1,4 @@
-import type { NoteRecording } from "./db";
+import type { NoteRecording } from "./Recording/Recording.type";
 import type { SavedVersion } from "./edit-storage";
 import { createEditHistory, displayEditSnapshot, type EditHistory } from "./edit-history";
 import { validateEditCommit, validateEditHistory } from "./edit-history-validation";

@@ -1,4 +1,5 @@
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
+
 const FIELDS = ["melody", "tuning", "quantize", "noteEdits", "muted", "play"] as const;
 export interface EditSnapshot {
   schemaVersion: 1;

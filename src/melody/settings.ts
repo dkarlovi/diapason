@@ -1,4 +1,4 @@
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import {
   PRESETS,
   KNOB_DEFS,

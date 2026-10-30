@@ -2,7 +2,7 @@ import { PreviewOption } from "./PreviewOption";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { keyName, type Key } from "../melody/key";
 import type { KeyChoice } from "../melody/interpret";
-import type { MelodyPanelProps } from "./MelodyPanel";
+import type { MelodyPanelProps } from "./MelodyPanel.type";
 
 type Props = Pick<
   MelodyPanelProps,

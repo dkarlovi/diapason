@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { decodeAudio } from "../codec";
-import { saveWaveform, type Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
+import { saveWaveform } from "../Recording/Recording.storage";
 import { summarizeWaveform } from "../waveform";
 
 export function useLibraryRecordings() {

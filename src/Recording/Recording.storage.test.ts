@@ -1,7 +1,9 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { storageEstimate } from "./db";
+import { storageEstimate } from "./Recording.storage";
 import "fake-indexeddb/auto";
-import { deleteRecording, getRecording, putRecording, saveWaveform, type Recording } from "./db";
+import type { Recording } from "./Recording.type";
+import { deleteRecording, getRecording, putRecording, saveWaveform } from "./Recording.storage";
+
 afterEach(() => vi.unstubAllGlobals());
 it("reports browser storage usage and tolerates unavailable estimates", async () => {
   vi.stubGlobal("navigator", { storage: { estimate: async () => ({ usage: 100, quota: 1000 }) } });

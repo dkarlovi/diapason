@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { decodeAudio } from "./codec";
-import type { AudioRecording as Recording } from "./db";
+import type { AudioRecording as Recording } from "./Recording/Recording.type";
 import { notesToMidi } from "./midi";
 import { analyzeRecording } from "./recording-analysis";
 import { recordingNotes } from "./recording";

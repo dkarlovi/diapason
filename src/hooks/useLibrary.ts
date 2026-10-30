@@ -2,17 +2,17 @@ import { prepareLibraryPlayback } from "../library-playback";
 import { useNotice, type Notice } from "./useNotice";
 import { flushEditorSaves, stopEditorSaves } from "../editor-save-queue";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Recording } from "../Recording/Recording.type";
 import {
   allRecordings,
   deleteRecording,
   getRecording,
   putRecording,
   storageEstimate,
-  type Recording,
-} from "../db";
-import type { Playback } from "../playback";
+} from "../Recording/Recording.storage";
 import { onOutputChange } from "../midiout";
 import { useLibraryRecordings } from "./useWaveformBackfill";
+import type { Playback } from "../Playback/Playback.type";
 
 const playbackLabels = { audio: "original audio", midi: "MIDI" };
 const clearPlaybackNotice = (notice: Notice | null) => (notice?.kind === "info" ? null : notice);

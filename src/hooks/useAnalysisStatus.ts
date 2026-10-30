@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { analysisKey } from "../analysis-cache";
 import { getAnalysisState, subscribeAnalysis } from "../analysis-jobs";
 

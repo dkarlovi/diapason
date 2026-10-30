@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { Editor } from "./Editor";
 import { AppShell } from "./AppShell";
 
@@ -34,7 +34,7 @@ vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
   ...(await import("../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
-vi.mock("../db", () => ({
+vi.mock("../Recording/Recording.storage", () => ({
   getRecording: async () => recording,
   putRecording: async (next: Recording) => {
     saved = next;

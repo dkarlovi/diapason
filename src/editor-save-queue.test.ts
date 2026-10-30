@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { afterEach, expect, it, vi } from "vitest";
-import { getRecording, putRecording } from "./db";
+import { getRecording, putRecording } from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 import { captureEditSnapshot } from "./edit-state";
 import * as storage from "./edit-storage";

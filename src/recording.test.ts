@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { processRecording, recordingNotes } from "./recording";
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import type { Frame } from "./notes";
 
 const recordingItems = (rec: Recording, frames: Frame[]) => processRecording(rec, frames).items;

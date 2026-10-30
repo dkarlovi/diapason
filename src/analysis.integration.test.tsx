@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Editor } from "./components/Editor";
 import { Library } from "./components/Library";
-import { putRecording } from "./db";
+import { putRecording } from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 import { requestAnalysis } from "./analysis-jobs";
 import type { AnalysisMessage } from "./analysis-runner";

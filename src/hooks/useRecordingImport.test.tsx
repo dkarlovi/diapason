@@ -4,7 +4,7 @@ import "fake-indexeddb/auto";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useRecordingImport } from "./useRecordingImport";
-import { allRecordings, deleteRecording } from "../db";
+import { allRecordings, deleteRecording } from "../Recording/Recording.storage";
 import { createPortableTune } from "../portable-tune";
 import { noteRecording } from "../../tests/support/note-recording";
 import { tuneUrl } from "../tune-url";
@@ -122,7 +122,7 @@ it("offers a copy retry when an ID collision appears after inspection", async ()
   const { webcrypto } = await import("node:crypto");
   vi.stubGlobal("crypto", webcrypto);
   const { recording } = await import("../../tests/support/recording");
-  const { putRecording } = await import("../db");
+  const { putRecording } = await import("../Recording/Recording.storage");
   const { encodeTaggedWav } = await import("../wav-metadata");
   const blob = encodeTaggedWav(recording(), new Float32Array(48000), {
     browser: "test",

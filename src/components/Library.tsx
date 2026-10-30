@@ -23,7 +23,7 @@ import {
 import { useLibrary, type Playing } from "../hooks/useLibrary";
 import { useRecordingImport } from "../hooks/useRecordingImport";
 import { useWavDrop } from "../hooks/useWavDrop";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
 import { Button, Panel } from "../UI/Primitives";

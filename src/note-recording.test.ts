@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import "fake-indexeddb/auto";
-import { getRecording, putRecording, isAudioRecording } from "./db";
+import { isAudioRecording } from "./Recording/Recording";
+import { getRecording, putRecording } from "./Recording/Recording.storage";
 import { processRecording } from "./recording";
 import { noteRecording } from "../tests/support/note-recording";
 const fixed = noteRecording();

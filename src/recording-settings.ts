@@ -1,4 +1,4 @@
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import { DEFAULT_PLAY } from "./instruments";
 import { analysisOptionsFor } from "./recording-profiles";
 import { melodySettingFor } from "./melody/settings";

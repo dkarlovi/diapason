@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import { processRecording } from "./recording";
 import { resetPitchEdit, setPitchEdit, summarizePitchEdits } from "./note-edits";
 const frames = Array.from({ length: 100 }, (_, i) => ({
