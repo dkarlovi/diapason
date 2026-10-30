@@ -3,9 +3,9 @@ import { StrictMode, useState, useLayoutEffect, type PropsWithChildren } from "r
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { useEditHistory } from "./useEditHistory";
-import { getRecording, putRecording } from "../db";
+import { getRecording, putRecording } from "../Recording/Recording.storage";
 import { recording } from "../../tests/support/recording";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { captureEditSnapshot } from "../edit-state";
 afterEach(cleanup);
 function harness(initial: Recording) {

@@ -14,7 +14,17 @@ const testFile = "\\.test\\.tsx?$";
 export default {
   forbidden: [
     {
-      name: "no-circular",
+      name: "no-runtime-cycle",
+      comment:
+        "Modules that import each other at runtime load in an order that depends on the entry point.",
+      severity: "error",
+      from: {},
+      to: { circular: true, viaOnly: { dependencyTypesNot: ["type-only"] } },
+    },
+    {
+      name: "no-type-cycle",
+      comment:
+        "Type-level cycles couple modules even though they vanish at runtime; move the shared shapes into a *.type.ts file both sides import.",
       severity: "error",
       from: {},
       to: { circular: true },

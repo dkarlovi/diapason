@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useEditorPlot } from "./useEditorPlot";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { createPlayheadStore } from "../playhead-store";
 
 const drawTrace = vi.hoisted(() => vi.fn());

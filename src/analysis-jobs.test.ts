@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { afterEach, expect, it, vi } from "vitest";
 import { getAnalysisState, requestAnalysis, subscribeAnalysis } from "./analysis-jobs";
-import { putRecording } from "./db";
+import { putRecording } from "./Recording/Recording.storage";
 import { analysisKey, readAnalysis } from "./analysis-cache";
 import { recording } from "../tests/support/recording";
 import * as recorder from "./recorder";

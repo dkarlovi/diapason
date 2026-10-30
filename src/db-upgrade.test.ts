@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
 import { recording } from "../tests/support/recording";
 import { openDatabase } from "./db-connection";
-import { getRecording } from "./db";
+import { getRecording } from "./Recording/Recording.storage";
 import { readAnalysis, writeAnalysis } from "./analysis-cache";
 
 it("upgrades an existing library without losing recordings or saved versions", async () => {

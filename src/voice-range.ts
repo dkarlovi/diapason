@@ -1,12 +1,8 @@
 import { evaluateSound, setupCheck } from "./capture-model";
 import { freqToMidi, midiToName, type Frame } from "./notes";
 import type { PitchRange } from "./pitch";
-import type { SoundProfile } from "./recording-profiles";
-import type { MeasurementResult } from "./recording-setup";
-
-export interface EndpointResult extends MeasurementResult {
-  frequency: number | null;
-}
+import type { EndpointResult } from "./Recording/RecordingSetup.type";
+import type { SoundProfile } from "./Recording/SoundProfile.type";
 
 /** Require a mostly held pitch; isolated octave glitches cannot define an endpoint. */
 export function measureVoiceEndpoint(

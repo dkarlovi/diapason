@@ -1,298 +1,13 @@
 [
   {
     "type": "cycle",
-    "from": "src/capture-model.ts",
-    "to": "src/recording-profiles.ts",
-    "unresolvedTo": "./recording-profiles",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/recording-profiles.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/voice-range.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/capture-model.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/capture-model.ts",
-    "to": "src/recording-setup.ts",
-    "unresolvedTo": "./recording-setup",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/recording-setup.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/capture-model.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/components/MelodyKeyControls.tsx",
-    "to": "src/components/MelodyPanel.tsx",
-    "unresolvedTo": "./MelodyPanel",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/components/MelodyPanel.tsx",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/components/MelodyKeyControls.tsx",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/components/MelodyKnob.tsx",
-    "to": "src/components/MelodyPanel.tsx",
-    "unresolvedTo": "./MelodyPanel",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/components/MelodyPanel.tsx",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/components/MelodyKnob.tsx",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/components/MelodyPanel.tsx",
-    "to": "src/components/MelodyPresets.tsx",
-    "unresolvedTo": "./MelodyPresets",
-    "dependencyTypes": ["local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/components/MelodyPresets.tsx",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/components/MelodyPanel.tsx",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/edit-history.ts",
-    "unresolvedTo": "./edit-history",
-    "dependencyTypes": ["local", "type-import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/edit-history.ts",
-        "dependencyTypes": ["local", "type-import"]
-      },
-      {
-        "name": "src/edit-state.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/edit-storage.ts",
-    "unresolvedTo": "./edit-storage",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/edit-storage.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/melody/settings.ts",
-    "unresolvedTo": "./melody/settings",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/melody/settings.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/note-source.ts",
-    "unresolvedTo": "./note-source",
-    "dependencyTypes": ["local", "type-import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/note-source.ts",
-        "dependencyTypes": ["local", "type-import"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/recording-package-types.ts",
-    "unresolvedTo": "./recording-package-types",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/recording-package-types.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/recording-profiles.ts",
-    "unresolvedTo": "./recording-profiles",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/recording-profiles.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/db.ts",
-    "to": "src/wav-metadata.ts",
-    "unresolvedTo": "./wav-metadata",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/wav-metadata.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/diagnostics.ts",
-    "to": "src/db.ts",
-    "unresolvedTo": "./db",
-    "dependencyTypes": ["local", "import", "type-only"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/recording-package-types.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/diagnostics.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
     "from": "src/diagnostics.ts",
     "to": "src/recording-analysis.ts",
     "unresolvedTo": "./recording-analysis",
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -300,7 +15,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/recording-profiles.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -321,7 +40,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -329,7 +48,36 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/diagnostics.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/diagnostics.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-type-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -350,7 +98,7 @@
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -362,7 +110,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -383,7 +131,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -391,7 +139,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/edit-state.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -406,26 +158,26 @@
   },
   {
     "type": "cycle",
-    "from": "src/edit-snapshot-validation.ts",
-    "to": "src/db.ts",
-    "unresolvedTo": "./db",
-    "dependencyTypes": ["local", "import", "type-only"],
+    "from": "src/edit-history.ts",
+    "to": "src/edit-state.ts",
+    "unresolvedTo": "./edit-state",
+    "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/db.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/edit-storage.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/edit-snapshot-validation.ts",
+        "name": "src/edit-state.ts",
         "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-history.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
@@ -437,7 +189,7 @@
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -445,7 +197,7 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -466,7 +218,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -474,7 +226,32 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/edit-snapshot-validation.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/edit-snapshot-validation.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-type-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -495,7 +272,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -507,7 +284,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -524,7 +301,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -532,7 +309,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -543,43 +320,43 @@
   },
   {
     "type": "cycle",
-    "from": "src/melody/context-correction.ts",
-    "to": "src/melody/decode.ts",
-    "unresolvedTo": "./decode",
+    "from": "src/edit-storage.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/melody/decode.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/melody/context-correction.ts",
-        "dependencyTypes": ["local", "import"]
+        "name": "src/edit-storage.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
   {
     "type": "cycle",
-    "from": "src/midi-playback.ts",
-    "to": "src/playback.ts",
-    "unresolvedTo": "./playback",
+    "from": "src/melody/settings.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "../Recording/Recording.type",
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/playback.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/midi-playback.ts",
-        "dependencyTypes": ["local", "import"]
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
@@ -591,7 +368,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -599,12 +376,12 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
         "name": "src/note-source.ts",
-        "dependencyTypes": ["local", "type-import"]
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
@@ -616,7 +393,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -624,36 +401,32 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
         "name": "src/note-source.ts",
-        "dependencyTypes": ["local", "type-import"]
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
   {
     "type": "cycle",
-    "from": "src/portable-tune.ts",
-    "to": "src/db.ts",
-    "unresolvedTo": "./db",
+    "from": "src/note-source.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/recording-package-types.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/portable-tune.ts",
+        "name": "src/note-source.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
@@ -666,7 +439,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -674,7 +447,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -695,7 +468,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -703,7 +476,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -724,7 +501,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -732,7 +509,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -747,21 +528,17 @@
   },
   {
     "type": "cycle",
-    "from": "src/recording-analysis.ts",
-    "to": "src/recording-profiles.ts",
-    "unresolvedTo": "./recording-profiles",
-    "dependencyTypes": ["local", "import"],
+    "from": "src/portable-tune.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
+    "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/recording-profiles.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -769,12 +546,8 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/diagnostics.ts",
+        "name": "src/portable-tune.ts",
         "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/recording-analysis.ts",
-        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -786,7 +559,7 @@
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -794,7 +567,28 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/recording-package-types.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/recording-package-types.ts",
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-type-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -811,7 +605,7 @@
     "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -819,32 +613,15 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/melody/settings.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
         "name": "src/recording-package-types.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/recording-profiles.ts",
-    "to": "src/voice-range.ts",
-    "unresolvedTo": "./voice-range",
-    "dependencyTypes": ["local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/voice-range.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/recording-profiles.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
@@ -857,7 +634,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -865,7 +642,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -894,7 +671,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -902,7 +679,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -931,7 +708,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -939,53 +716,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/voice-range.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/recording-setup.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/recording-setup.ts",
-    "to": "src/voice-range.ts",
-    "unresolvedTo": "./voice-range",
-    "dependencyTypes": ["local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/voice-range.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/recording-setup.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/recording.ts",
-    "to": "src/melody/settings.ts",
-    "unresolvedTo": "./melody/settings",
-    "dependencyTypes": ["local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/melody/settings.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -993,11 +724,11 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/diagnostics.ts",
+        "name": "src/wav-metadata.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/recording.ts",
+        "name": "src/recording-setup.ts",
         "dependencyTypes": ["local", "import"]
       }
     ]
@@ -1010,7 +741,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -1018,7 +749,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -1038,20 +769,16 @@
   {
     "type": "cycle",
     "from": "src/recording.ts",
-    "to": "src/recording-settings.ts",
-    "unresolvedTo": "./recording-settings",
-    "dependencyTypes": ["local", "import"],
+    "to": "src/Recording/Recording.type.ts",
+    "unresolvedTo": "./Recording/Recording.type",
+    "dependencyTypes": ["local", "import", "type-only"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
-        "name": "src/recording-settings.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -1059,12 +786,33 @@
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
-        "name": "src/diagnostics.ts",
+        "name": "src/portable-tune.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
         "name": "src/recording.ts",
         "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/Recording/Recording.type.ts",
+    "to": "src/wav-metadata.ts",
+    "unresolvedTo": "../wav-metadata",
+    "dependencyTypes": ["local", "import", "type-only"],
+    "rule": {
+      "severity": "error",
+      "name": "no-type-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/wav-metadata.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
+      },
+      {
+        "name": "src/Recording/Recording.type.ts",
+        "dependencyTypes": ["local", "import", "type-only"]
       }
     ]
   },
@@ -1076,7 +824,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -1084,7 +832,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -1101,7 +849,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -1109,7 +857,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {
@@ -1126,7 +874,7 @@
     "dependencyTypes": ["local", "import"],
     "rule": {
       "severity": "error",
-      "name": "no-circular"
+      "name": "no-type-cycle"
     },
     "cycle": [
       {
@@ -1134,15 +882,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/capture-model.ts",
+        "name": "src/recording-profiles.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/recording-profiles.ts",
-        "dependencyTypes": ["local", "import", "type-only"]
-      },
-      {
-        "name": "src/db.ts",
+        "name": "src/Recording/Recording.type.ts",
         "dependencyTypes": ["local", "import", "type-only"]
       },
       {

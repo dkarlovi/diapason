@@ -1,5 +1,5 @@
 import { adHocRecording, validateAdHocDraft, type AdHocTuneDraft } from "./ad-hoc-tune";
-import type { NoteRecording } from "./db";
+import type { NoteRecording } from "./Recording/Recording.type";
 import { databaseTransaction } from "./db-connection";
 import { currentEditCommit } from "./edit-history";
 import type { PortableTune } from "./portable-tune";

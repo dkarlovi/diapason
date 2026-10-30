@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import { Editor } from "./components/Editor";
 import { AppShell } from "./components/AppShell";
-import { allRecordings, getRecording, putRecording } from "./db";
+import { allRecordings, getRecording, putRecording } from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 import { flushEditorSaves, getEditorSaveStatuses, stopEditorSaves } from "./editor-save-queue";
 import { listVersions, saveEditCommit, saveVersion } from "./edit-storage";

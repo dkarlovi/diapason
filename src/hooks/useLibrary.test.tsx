@@ -1,11 +1,11 @@
 import "fake-indexeddb/auto";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import type { NoteEvent } from "../notes";
 import { useLibrary } from "./useLibrary";
 const state = vi.hoisted(() => ({ record: null as Recording | null, played: [] as NoteEvent[][] }));
-vi.mock("../db", () => ({
+vi.mock("../Recording/Recording.storage", () => ({
   allRecordings: async () => [state.record],
   storageEstimate: async () => null,
   deleteRecording: async () => {},

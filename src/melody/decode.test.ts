@@ -3,8 +3,10 @@ import { expect, it } from "vitest";
 import { freqToMidi, type Frame, type NoteEvent } from "../notes";
 import { loadFixture } from "../../tests/support/fixtures";
 import { PRESETS } from "./knobs";
-import { notesFromSegments, segmentMelody, type PitchContext } from "./decode";
+import { notesFromSegments, segmentMelody } from "./decode";
 import type { Knobs } from "./knobs";
+import type { PitchContext } from "./Decode.type";
+
 const take1 = loadFixture("whistle-regression");
 const take2 = loadFixture("whistle-take2");
 const context: PitchContext = {

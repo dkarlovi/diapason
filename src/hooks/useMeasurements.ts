@@ -1,10 +1,11 @@
 import type { MicHandle } from "../audio";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CALIBRATION, evaluateRoom, evaluateSound } from "../capture-model";
-import type { SoundProfile } from "../recording-profiles";
-import type { RoomResult } from "../recording-setup";
 import type { Observation } from "./useMicrophone";
-import { measureVoiceEndpoint, type EndpointResult } from "../voice-range";
+import { measureVoiceEndpoint } from "../voice-range";
+import type { RoomResult } from "../Recording/RecordingSetup.type";
+import type { EndpointResult } from "../Recording/RecordingSetup.type";
+import type { SoundProfile } from "../Recording/SoundProfile.type";
 
 /** Bounded tests own their subscriptions/timers; completed results belong to setup. */
 export function useMeasurements(

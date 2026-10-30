@@ -384,7 +384,7 @@ filenames name the thing, and lowercase dotted suffixes (`.model`, `.type`,
 `.storage`, …) name the role. `.ls-lint.yml` describes that layout and
 `.dependency-cruiser.mjs` its layering: React stays in `src/App`, `src/Features`
 and `src/UI`; other `src/` folders stay framework-free; `tools/` only renders data
-from `src/Inspection`; import cycles are forbidden. Existing dependency violations
+from `src/Inspection`; runtime import cycles are forbidden, and cycles that pass through type-only imports are held to a shrinking baseline. Existing dependency violations
 are recorded in `.dependency-cruiser-known-violations.json`; new ones fail
 `npm run arch`. Regenerate the baseline only after removing violations. `lint:names`
 joins `npm run check` once the files have moved. dependency-cruiser parses with swc

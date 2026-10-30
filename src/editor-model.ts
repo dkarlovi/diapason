@@ -1,4 +1,4 @@
-import type { MutedNote } from "./db";
+import type { MutedNote } from "./Recording/Recording.type";
 import { type Frame } from "./notes";
 import type { QualityStats } from "./recorder";
 import { analysisOptionsFor } from "./recording-profiles";
@@ -107,7 +107,7 @@ export function exportSlug(name: string, now: number): string {
 }
 
 export function makeReportInput(
-  record: import("./db").AudioRecording,
+  record: import("./Recording/Recording.type").AudioRecording,
   frames: Frame[],
   stats: QualityStats,
 ): ReportInput {

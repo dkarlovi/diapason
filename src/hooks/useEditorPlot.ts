@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useEditorGestures } from "./useEditorGestures";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import type { Frame, NoteEvent } from "../notes";
 import { drawTrace, type NoteOrigin, type TraceLayer, type TraceView } from "../trace";
 import {

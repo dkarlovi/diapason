@@ -1,6 +1,6 @@
 import { constrainMelodyChange, knobAvailability } from "../recording-capabilities";
 import { useCallback, type RefObject } from "react";
-import { type Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { melodySettingFor, sameMelodySetting, type MelodySetting } from "../melody/settings";
 import { isKnobs, type Knobs, type PresetId } from "../melody/knobs";
 import type { KeyChoice } from "../melody/interpret";

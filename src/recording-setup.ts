@@ -1,25 +1,16 @@
-import { getSoundProfile, type AnalysisSettings } from "./recording-profiles";
-import { voiceRange, type EndpointResult } from "./voice-range";
+import { getSoundProfile } from "./recording-profiles";
+import { voiceRange } from "./voice-range";
 import { setupCheck } from "./capture-model";
+import type {
+  EndpointResult,
+  MeasurementResult,
+  RoomResult,
+} from "./Recording/RecordingSetup.type";
+import type { AnalysisSettings } from "./Recording/SoundProfile.type";
 
 export type VoiceTarget = "low" | "high";
 export type SetupStep = "sound" | "microphone" | "room" | "sound-check" | "tempo" | "record";
-export type CheckStatus = "unchecked" | "checking" | "passed" | "attention";
-export interface SetupCheck {
-  id: string;
-  label: string;
-  status: CheckStatus;
-  detail: string;
-  blocking: boolean;
-}
-export interface MeasurementResult {
-  pass: boolean;
-  checks: SetupCheck[];
-}
-export interface RoomResult extends MeasurementResult {
-  floor: number;
-  gate: number;
-}
+
 export interface SetupState {
   profileId: string;
   soundConfirmed: boolean;

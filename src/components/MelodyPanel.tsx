@@ -1,29 +1,9 @@
 import { useState, type PropsWithChildren } from "react";
-import { KNOB_DEFS, resolveKnobs, type Knobs, type PresetId } from "../melody/knobs";
-import type { Interpretation, KeyChoice } from "../melody/interpret";
-import type { MelodySetting } from "../melody/settings";
+import { KNOB_DEFS, resolveKnobs, type Knobs } from "../melody/knobs";
 import { MelodyKnob } from "./MelodyKnob";
 import { MelodyKeyControls } from "./MelodyKeyControls";
 import { MelodyPresets } from "./MelodyPresets";
-export interface MelodyPanelProps {
-  melody: MelodySetting;
-  interpretation: Interpretation | null;
-  disabled: boolean;
-  knobAvailability?: (key: keyof Knobs) => { enabled: boolean; reason?: string };
-  fixedNotes?: boolean;
-  previewId: string | null;
-  applyPreset: (id: PresetId) => void;
-  drafting: boolean;
-  beginKnob(key: keyof Knobs): void;
-  draftKnob(key: keyof Knobs, value: number): void;
-  commitGesture(): void;
-  cancelGesture(): void;
-  changeKnob: (key: keyof Knobs, value: number | string) => void;
-  resetKnob: (key?: keyof Knobs) => void;
-  changeKey: (key: KeyChoice) => void;
-  previewMelody: (change: Partial<MelodySetting>, id: string) => void;
-}
-
+import type { MelodyPanelProps } from "./MelodyPanel.type";
 const groups = {
   Essentials: ["steadiness", "keyPull", "contextCorrection", "gridPull"],
   Pitch: ["keyPull", "contextCorrection", "mode", "leapPenalty", "maxMoveSemitones"],

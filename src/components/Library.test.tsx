@@ -4,9 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Library } from "./Library";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import { decodeAudio } from "../codec";
-import { putRecording } from "../db";
+import { putRecording } from "../Recording/Recording.storage";
 import { recording } from "../../tests/support/recording";
 import { encodeWav } from "../wav";
 import { encodeTaggedWav } from "../wav-metadata";
@@ -22,7 +22,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-vi.mock("../db", () => ({
+vi.mock("../Recording/Recording.storage", () => ({
   allRecordings: vi.fn(async () => recordings),
   storageEstimate: vi.fn(async () => null),
   getRecording: vi.fn(async (id: string) => recordings.find((recording) => recording.id === id)),

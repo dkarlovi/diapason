@@ -6,7 +6,8 @@ import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import { useEditor } from "./useEditor";
 import { recording } from "../../tests/support/recording";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
+
 let saved: Recording | undefined;
 const rec = recording({
   durationSec: 1,
@@ -16,7 +17,7 @@ vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
   ...(await import("../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
-vi.mock("../db", () => ({
+vi.mock("../Recording/Recording.storage", () => ({
   getRecording: async () => rec,
   putRecording: async (r: Recording) => {
     saved = r;

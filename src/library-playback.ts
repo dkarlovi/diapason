@@ -1,8 +1,10 @@
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import { decodeAudio } from "./codec";
 import { requestAnalysis } from "./analysis-jobs";
-import { playNotes, playPcm, type Playback } from "./playback";
+import { playNotes, playPcm } from "./playback";
 import { recordingNotes } from "./recording";
+import type { Playback } from "./Playback/Playback.type";
+
 /** Prepare without starting: the owning hook checks its navigation/request token first. */
 export async function prepareLibraryPlayback(
   record: Recording,

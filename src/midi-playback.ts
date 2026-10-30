@@ -1,6 +1,6 @@
 import type { NoteEvent } from "./notes";
-import type { Playback } from "./playback";
 import { DEFAULT_PLAY, type InstrumentId } from "./instruments";
+import type { Playback } from "./Playback/Playback.type";
 
 const CHANNEL = 0; // MIDI channel 1
 

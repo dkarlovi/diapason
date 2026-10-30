@@ -1,11 +1,12 @@
 import { useNotice } from "./useNotice";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { PlaySettings } from "../instruments";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import type { NoteEvent } from "../notes";
-import { playPcm, playNotes, type Playback } from "../playback";
+import { playPcm, playNotes } from "../playback";
 import { onOutputChange, activeOutput } from "../midiout";
 import { createPlayheadStore } from "../playhead-store";
+import type { Playback } from "../Playback/Playback.type";
 
 interface Options {
   recordingId: string;

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { vi } from "vitest";
-import type { Recording } from "../../src/db";
+import type { Recording } from "../../src/Recording/Recording.type";
 import type { MetronomeOptions } from "../../src/metronome";
 const fixture = vi.hoisted(() => ({
   time: 0,
@@ -93,7 +93,7 @@ vi.mock("../../src/codec", () => ({
     return new Blob(["audio"]);
   },
 }));
-vi.mock("../../src/db", () => ({
+vi.mock("../../src/Recording/Recording.storage", () => ({
   putRecording: async (record: Recording) => {
     fixture.saved = record;
   },

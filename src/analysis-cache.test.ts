@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
 import { analysisKey, readAnalysis, writeAnalysis } from "./analysis-cache";
-import { deleteRecording, putRecording } from "./db";
+import { deleteRecording, putRecording } from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 
 it("stores exact frames separately and deletes them with the recording", async () => {

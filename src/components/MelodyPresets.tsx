@@ -1,7 +1,7 @@
 import { DEFAULT_PRESET, PRESETS } from "../melody/knobs";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
-import type { MelodyPanelProps } from "./MelodyPanel";
+import type { MelodyPanelProps } from "./MelodyPanel.type";
 
 type Props = Pick<
   MelodyPanelProps,

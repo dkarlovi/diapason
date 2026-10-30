@@ -1,6 +1,11 @@
 import "fake-indexeddb/auto";
 import { afterEach, expect, it } from "vitest";
-import { allRecordings, deleteRecording, getRecording, putRecording } from "./db";
+import {
+  allRecordings,
+  deleteRecording,
+  getRecording,
+  putRecording,
+} from "./Recording/Recording.storage";
 import { recording } from "../tests/support/recording";
 import { insertImportedRecording } from "./recording-import-storage";
 afterEach(async () => {

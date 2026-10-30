@@ -1,4 +1,4 @@
-import type { AudioRecording } from "../db";
+import type { AudioRecording } from "../Recording/Recording.type";
 import type { Frame } from "../notes";
 import type { CapturedRecordingPackage, RecordingPackageV2 } from "../recording-package-types";
 import { captureRecordingPackage } from "../recording-package";

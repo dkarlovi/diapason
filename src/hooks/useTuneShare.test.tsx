@@ -3,7 +3,7 @@ import { Blob as NodeBlob } from "node:buffer";
 import { CompressionStream, DecompressionStream } from "node:stream/web";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { putRecording } from "../db";
+import { putRecording } from "../Recording/Recording.storage";
 import { noteRecording } from "../../tests/support/note-recording";
 import { tuneFromFragment } from "../tune-url";
 import { useTuneShare } from "./useTuneShare";

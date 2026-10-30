@@ -1,4 +1,4 @@
-import type { NoteRecording } from "../../src/db";
+import type { NoteRecording } from "../../src/Recording/Recording.type";
 import { PRESETS } from "../../src/melody/knobs";
 const knobs = PRESETS["as-played"].knobs;
 const fixed: NoteRecording = {

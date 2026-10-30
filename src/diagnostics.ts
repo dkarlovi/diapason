@@ -3,7 +3,7 @@ import { midiEvents } from "./midi";
 // Schema-4 fields also support legacy paired JSON/WAV regression fixtures.
 
 import { freqToMidi, type Frame } from "./notes";
-import type { AudioRecording as Recording } from "./db";
+import type { AudioRecording as Recording } from "./Recording/Recording.type";
 import { processRecording } from "./recording";
 import { resolveAnalysisOptions } from "./recording-analysis";
 import { BUILD_INFO } from "./build-info";

@@ -5,13 +5,7 @@ import type { NoteEvent } from "./notes";
 import { VOICES, DEFAULT_PLAY, type PlaySettings } from "./instruments";
 import { activeOutput } from "./midiout";
 import { playNotesMidi } from "./midi-playback";
-
-export interface Playback {
-  /** Seconds into the recording, or null once finished/stopped. */
-  position(): number | null;
-  stop(): void;
-}
-
+import type { Playback } from "./Playback/Playback.type";
 let ctx: AudioContext | null = null;
 
 function context(): AudioContext {

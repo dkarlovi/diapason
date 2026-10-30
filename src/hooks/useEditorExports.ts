@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 import type { Notice } from "./useNotice";
 import { activeOutput } from "../midiout";
-import type { Recording } from "../db";
+import type { Recording } from "../Recording/Recording.type";
 import type { Frame } from "../notes";
 import { encodeTuneMidi } from "../tune-midi";
 import { createPortableTune } from "../portable-tune";

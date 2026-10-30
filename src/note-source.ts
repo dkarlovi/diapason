@@ -1,6 +1,5 @@
 import { requireTune, finiteBetween } from "./tune-validation";
-import type { Recording } from "./db";
-import type { Segment } from "./melody/decode";
+import type { Recording } from "./Recording/Recording.type";
 import {
   isKnobs,
   resolveKnobs,
@@ -12,6 +11,7 @@ import { interpretMelody } from "./melody/interpret";
 import { protectedNoteBoundaries } from "./note-edits";
 import { freqToMidi, type Frame } from "./notes";
 import { analysisOptionsFor } from "./recording-profiles";
+import type { Segment } from "./melody/Decode.type";
 
 export const DETECTION_KNOBS = ["steadiness", "minNoteMs", "silenceGapMs", "levelGate"] as const;
 export interface NoteSource {

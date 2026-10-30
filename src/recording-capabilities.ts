@@ -1,4 +1,4 @@
-import type { Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
 import { DETECTION_KNOBS } from "./note-source";
 import { KNOB_DEFS, resolveKnobs, type Knobs } from "./melody/knobs";
 import type { MelodySetting } from "./melody/settings";

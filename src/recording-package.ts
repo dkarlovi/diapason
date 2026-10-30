@@ -1,7 +1,7 @@
 import { PackageError, packageError } from "./package-error";
 import { mergePackageExtensions } from "./recording-package-extensions";
 import { encodeTuneMidi } from "./tune-midi";
-import type { AudioRecording } from "./db";
+import type { AudioRecording } from "./Recording/Recording.type";
 import { BUILD_INFO } from "./build-info";
 import { encodeAudio } from "./codec";
 import { buildReportData } from "./diagnostics";

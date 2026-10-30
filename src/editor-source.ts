@@ -1,5 +1,6 @@
 import type { AdHocTuneSession } from "./ad-hoc-session";
-import { getRecording, type Recording } from "./db";
+import type { Recording } from "./Recording/Recording.type";
+import { getRecording } from "./Recording/Recording.storage";
 import { flushEditorSaves } from "./editor-save-queue";
 import { decodeAudio } from "./codec";
 import { validateNoteSource } from "./note-source";

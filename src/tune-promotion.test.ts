@@ -4,7 +4,7 @@ import { promoteAdHocTune } from "./tune-promotion";
 import { createAdHocDraft } from "./ad-hoc-tune";
 import { createPortableTune } from "./portable-tune";
 import { noteRecording } from "../tests/support/note-recording";
-import { getRecording } from "./db";
+import { getRecording } from "./Recording/Recording.storage";
 import { listVersions } from "./edit-storage";
 import { reduceEditHistory } from "./edit-history";
 it("saves the baseline, name, current history and versions atomically", async () => {

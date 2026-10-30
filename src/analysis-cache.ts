@@ -1,4 +1,4 @@
-import type { AudioRecording as Recording } from "./db";
+import type { AudioRecording as Recording } from "./Recording/Recording.type";
 import { databaseTransaction } from "./db-connection";
 import { packFrames, unpackFrames } from "./frame-storage";
 import type { Frame } from "./notes";

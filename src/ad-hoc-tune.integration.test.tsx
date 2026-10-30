@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { appRoutes } from "./app-router";
-import { allRecordings, deleteRecording } from "./db";
+import { allRecordings, deleteRecording } from "./Recording/Recording.storage";
 import { createPortableTune } from "./portable-tune";
 import { noteRecording } from "../tests/support/note-recording";
 import { tuneUrl } from "./tune-url";

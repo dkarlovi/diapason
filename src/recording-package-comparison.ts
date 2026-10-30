@@ -1,4 +1,4 @@
-import type { AudioRecording } from "./db";
+import type { AudioRecording } from "./Recording/Recording.type";
 import type { Frame } from "./notes";
 import { encodeTuneMidi } from "./tune-midi";
 import { BUILD_INFO } from "./build-info";
