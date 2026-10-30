@@ -1,7 +1,13 @@
 import { requireTune, finiteBetween, integerBetween } from "./tune-validation";
 import type { NoteRecording, Recording } from "./db";
 import { DEFAULT_PLAY, INSTRUMENTS, type PlaySettings } from "./instruments";
-import { isKnobs, resolveKnobs, type Knobs } from "./melody/knobs";
+import {
+  isKnobs,
+  resolveKnobs,
+  withControlDefaults,
+  interpretationVersionForControls,
+  type Knobs,
+} from "./melody/knobs";
 import { isMelodySetting, melodySettingFor, type MelodySetting } from "./melody/settings";
 import {
   DETECTION_KNOBS,
@@ -37,6 +43,10 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
   const melody = melodySettingFor(record);
   const original = structuredClone(
     record.noteSource ?? noteSourceFromAnalysis(record, frames, processed.interpretation.segments),
+  );
+  original.interpretationVersion = interpretationVersionForControls(
+    processed.interpretation.knobs,
+    melody.overrides,
   );
   const rounded = structuredClone(original);
   const ms = (t: number) => Math.round(t * 1000) / 1000;
@@ -92,14 +102,17 @@ function validateTuneInfo(t: PortableTune, historical: boolean) {
 function validateTuneMusic(t: PortableTune, historical: boolean) {
   requireTune(isMelodySetting(t.melody));
   requireTune(isKnobs(t.effectiveKnobs));
+  const savedKnobs = withControlDefaults(t.effectiveKnobs);
+  requireTune(
+    t.noteSource.interpretationVersion === 2 ||
+      interpretationVersionForControls(savedKnobs, t.melody.overrides) === 1,
+  );
   requireTune(t.play && INSTRUMENTS.some((i) => i.id === t.play.instrument));
   requireTune([1, 0, -1, -2, -3].includes(t.play.octave));
-  const effective = historical
-    ? t.effectiveKnobs
-    : resolveKnobs(t.melody.preset, t.melody.overrides);
+  const effective = historical ? savedKnobs : resolveKnobs(t.melody.preset, t.melody.overrides);
   requireTune(
     Object.keys(effective).every(
-      (k) => effective[k as keyof Knobs] === t.effectiveKnobs[k as keyof Knobs],
+      (k) => effective[k as keyof Knobs] === savedKnobs[k as keyof Knobs],
     ),
   );
   requireTune(

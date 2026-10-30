@@ -13,6 +13,27 @@ import {
 } from "./recording-package-comparison";
 import type { ReadRecordingPackage } from "./recording-package-types";
 let input: ReadRecordingPackage;
+it("replays historical packages with a missing Context correction control as zero without changing saved evidence", async () => {
+  const historical = structuredClone(input);
+  if (historical.metadata.schemaVersion !== 2) throw new Error("package");
+  const withoutContext = (knobs: typeof historical.metadata.evidence.stages.knobs) =>
+    Object.fromEntries(
+      Object.entries(knobs).filter(([key]) => key !== "contextCorrection"),
+    ) as typeof knobs;
+  historical.metadata.evidence.stages.knobs = withoutContext(
+    historical.metadata.evidence.stages.knobs,
+  );
+  historical.metadata.tune.effectiveKnobs = withoutContext(historical.metadata.tune.effectiveKnobs);
+  const { encodeWav } = await import("./wav");
+  const bytes = await encodeWav(historical.pcm, historical.sampleRate, [
+    { id: "dpsn", data: new TextEncoder().encode(JSON.stringify(historical.metadata)) },
+  ]).arrayBuffer();
+  const reloaded = await readRecordingPackage(bytes);
+  const before = JSON.stringify(reloaded.metadata);
+  const result = await compareRecordingPackage(reloaded);
+  expect(result.status, result.difference ?? "").toBe("match");
+  expect(JSON.stringify(reloaded.metadata)).toBe(before);
+}, 15000);
 beforeAll(async () => {
   const f = loadFixture("whistle-intro", 2);
   const { pcm, frames } = f;

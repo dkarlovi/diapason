@@ -6,6 +6,100 @@ import { createPortableTune, recordingFromPortableTune } from "./portable-tune";
 import { encodeTune, decodeTune } from "./tune-codec";
 import { processRecording } from "./recording";
 import { loadFixture } from "./test-support/fixtures";
+import { resolveKnobs } from "./melody/knobs";
+
+it("shares a fractional Context correction value on Clean using v2", async () => {
+  const record = noteRecording();
+  record.melody = {
+    preset: "clean",
+    key: "auto",
+    overrides: { ...record.noteSource.frozenDetection, contextCorrection: 0.37 },
+  };
+  const tune = createPortableTune(record, []);
+  const bytes = await encodeTune(tune);
+  expect(bytes[5]).toBe(2);
+  const decoded = await decodeTune(bytes);
+  expect(decoded.melody.overrides).toEqual(record.melody.overrides);
+  expect(decoded.effectiveKnobs.contextCorrection).toBe(0.37);
+  expect(processRecording(recordingFromPortableTune(decoded, "context", 0), []).notes).toEqual(
+    processRecording(record, []).notes,
+  );
+});
+
+it("versions identical effective controls consistently regardless of their base preset", () => {
+  const controls = { ...resolveKnobs("auto-tune", {}), contextCorrection: 1 };
+  for (const preset of ["clean", "auto-tune", "keep-odd"] as const) {
+    const record = noteRecording();
+    record.melody = {
+      preset,
+      key: "auto",
+      overrides: { ...controls, ...record.noteSource.frozenDetection },
+    };
+    expect(createPortableTune(record, []).noteSource.interpretationVersion).toBe(2);
+  }
+});
+
+it("retains an explicit zero control override even on Auto tune, without reactivating correction on import", async () => {
+  const record = noteRecording();
+  record.melody = {
+    preset: "auto-tune",
+    key: "auto",
+    overrides: { ...record.noteSource.frozenDetection, contextCorrection: 0 },
+  };
+  const decoded = await decodeTune(await encodeTune(createPortableTune(record, [])));
+  expect(decoded.effectiveKnobs.contextCorrection).toBe(0);
+  expect(decoded.melody.overrides).toEqual(record.melody.overrides);
+});
+it("round-trips Auto tune with interpretation v2, fixed notes, edits, mutes and sound", async () => {
+  const take = loadFixture("whistle-intro");
+  const record = {
+    ...take.record,
+    melody: { preset: "auto-tune" as const, key: "auto" as const, overrides: { grid: 2 as const } },
+    play: { instrument: "flute" as const, octave: -1 },
+  };
+  const original = processRecording(record, take.frames);
+  const edited = {
+    ...record,
+    noteEdits: {
+      version: 1 as const,
+      pitch: [{ id: "chosen", ranges: [original.items[0]!.source], midi: 86 }],
+    },
+    muted: [{ t: original.items[1]!.raw.start + 0.1, midi: original.items[1]!.raw.midi }],
+  };
+  const tune = createPortableTune(edited, take.frames);
+  expect(tune.noteSource.interpretationVersion).toBe(2);
+  const bytes = await encodeTune(tune);
+  expect(bytes[5]).toBe(2);
+  const decoded = await decodeTune(bytes);
+  expect(decoded.melody).toEqual(record.melody);
+  expect(decoded.play).toEqual(record.play);
+  const restored = processRecording(recordingFromPortableTune(decoded, "auto", 0), []);
+  expect(restored.notes).toEqual(processRecording(edited, take.frames).notes);
+  expect(restored.items[0]!.note.midi).toBe(86);
+  expect(restored.items[1]!.muted).toBe(true);
+  const { encodeTuneMidi, decodeTuneMidi } = await import("./tune-midi");
+  const fromMidi = await decodeTuneMidi(
+    new Uint8Array(await (await encodeTuneMidi(tune)).arrayBuffer()),
+  );
+  expect(processRecording(recordingFromPortableTune(fromMidi, "midi", 0), []).notes).toEqual(
+    restored.notes,
+  );
+  const wrongVersion = bytes.slice();
+  wrongVersion[5] = 1;
+  await expect(decodeTune(wrongVersion)).rejects.toThrow();
+}, 15000);
+
+it("keeps legacy preset interpretation v1 when sharing and rejects unknown interpretation versions", async () => {
+  const tune = createPortableTune(noteRecording(), []);
+  const bytes = await encodeTune(tune);
+  expect(bytes[5]).toBe(1);
+  const decoded = await decodeTune(bytes);
+  expect(decoded.noteSource.interpretationVersion).toBe(1);
+  expect(await encodeTune(decoded)).toEqual(bytes);
+  const future = bytes.slice();
+  future[5] = 255;
+  await expect(decodeTune(future)).rejects.toThrow(/Unsupported/);
+});
 it("carries edits, mutes, sound and visible settings without sender history", async () => {
   const record = noteRecording();
   record.noteEdits = {

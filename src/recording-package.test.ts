@@ -20,12 +20,12 @@ let fixture: ReturnType<typeof loadFixture>;
 beforeAll(() => {
   fixture = loadFixture("whistle-intro", 2);
 }, 15000);
-function snapshot() {
+function snapshot(preset: "clean" | "auto-tune" = "clean") {
   const { record, pcm, frames } = fixture;
   const first = processRecording(record, frames).items[0]!;
   const edited = {
     ...record,
-    melody: { preset: "clean" as const, key: "auto" as const, overrides: {} },
+    melody: { preset, key: "auto" as const, overrides: {} },
     play: { instrument: "flute" as const, octave: -1 as const },
     noteEdits: {
       version: 1 as const,
@@ -37,34 +37,38 @@ function snapshot() {
   };
   return captureRecordingPackage(edited, pcm, frames, context, 1234);
 }
-it("round trips full intent and unchanged audio while preserving exact downloadable MIDI", async () => {
-  const captured = snapshot();
-  const expected = await encodeTuneMidi(createPortableTune(captured.record, captured.frames));
-  const blob = await encodeRecordingPackage(captured);
-  const parsed = await readRecordingPackage(await blob.arrayBuffer());
-  expect(parsed.metadata.schemaVersion).toBe(2);
-  if (parsed.metadata.schemaVersion !== 2) throw new Error("expected package");
-  expect(parsed.metadata.intent.intent.noteEdits?.pitch.map((e) => e.id)).toEqual([
-    "visible",
-    "hidden",
-  ]);
-  expect(parsed.metadata.exported.at).toBe(1234);
-  expect(parsed.metadata.midiBytes).toEqual(
-    Array.from(new Uint8Array(await expected.arrayBuffer())),
-  );
-  expect(parsed.metadata.frames).toEqual(captured.frames);
-  const restored = await restoreRecordingPackage(parsed, "test.wav", "restore");
-  expect(restored.noteEdits).toEqual(captured.record.noteEdits);
-  expect(restored.play).toEqual({ instrument: "flute", octave: -1 });
-  expect(restored.noteSource).toBeUndefined();
-  expect(await decodeAudio(restored.audio)).toEqual(fixture.pcm);
-  expect(new Uint8Array(await (await encodeTuneMidi(parsed.metadata.tune)).arrayBuffer())).toEqual(
-    new Uint8Array(await expected.arrayBuffer()),
-  );
-  expect(processRecording(restored, captured.frames).notes).toEqual(
-    processRecording(captured.record, captured.frames).notes,
-  );
-}, 15000);
+it.each(["clean", "auto-tune"] as const)(
+  "round trips %s intent and unchanged audio while preserving exact downloadable MIDI",
+  async (preset) => {
+    const captured = snapshot(preset);
+    const expected = await encodeTuneMidi(createPortableTune(captured.record, captured.frames));
+    const blob = await encodeRecordingPackage(captured);
+    const parsed = await readRecordingPackage(await blob.arrayBuffer());
+    expect(parsed.metadata.schemaVersion).toBe(2);
+    if (parsed.metadata.schemaVersion !== 2) throw new Error("expected package");
+    expect(parsed.metadata.intent.intent.noteEdits?.pitch.map((e) => e.id)).toEqual([
+      "visible",
+      "hidden",
+    ]);
+    expect(parsed.metadata.exported.at).toBe(1234);
+    expect(parsed.metadata.midiBytes).toEqual(
+      Array.from(new Uint8Array(await expected.arrayBuffer())),
+    );
+    expect(parsed.metadata.frames).toEqual(captured.frames);
+    const restored = await restoreRecordingPackage(parsed, "test.wav", "restore");
+    expect(restored.noteEdits).toEqual(captured.record.noteEdits);
+    expect(restored.play).toEqual({ instrument: "flute", octave: -1 });
+    expect(restored.noteSource).toBeUndefined();
+    expect(await decodeAudio(restored.audio)).toEqual(fixture.pcm);
+    expect(
+      new Uint8Array(await (await encodeTuneMidi(parsed.metadata.tune)).arrayBuffer()),
+    ).toEqual(new Uint8Array(await expected.arrayBuffer()));
+    expect(processRecording(restored, captured.frames).notes).toEqual(
+      processRecording(captured.record, captured.frames).notes,
+    );
+  },
+  15000,
+);
 it("starts fresh from the same validated package without restoring tune intent", async () => {
   const parsed = await readRecordingPackage(
     await (await encodeRecordingPackage(snapshot())).arrayBuffer(),
@@ -179,6 +183,15 @@ it("rejects contradictory intent, source evidence, and invalid MIDI through the 
     },
     (p: any) => {
       p.evidence.analysis.hop = 17;
+    },
+    (p: any) => {
+      delete p.evidence.stages.knobs.keyPull;
+    },
+    (p: any) => {
+      delete p.tune.effectiveKnobs.keyPull;
+    },
+    (p: any) => {
+      p.evidence.stages.knobs.contextCorrection = 0.5;
     },
   ]) {
     const payload = structuredClone(good.metadata);

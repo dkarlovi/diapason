@@ -6,6 +6,7 @@ type NumericKnob =
   | "silenceGapMs"
   | "levelGate"
   | "keyPull"
+  | "contextCorrection"
   | "leapPenalty"
   | "maxMoveSemitones"
   | "gridPull"
@@ -40,6 +41,13 @@ const RANGE_GROUPS: Record<
   },
   key: {
     keyPull: ["Pull into key", "From exactly what I whistled to always in key.", 0, 1, 0.01],
+    contextCorrection: [
+      "Context correction",
+      "Use the key, implied harmony and melodic steps to correct pitches; may change deliberate odd notes.",
+      0,
+      1,
+      0.01,
+    ],
   },
   shape: {
     leapPenalty: ["Smooth leaps", "Prefer smaller melodic steps.", 0, 1, 0.01],
@@ -75,7 +83,7 @@ export const KNOB_DEFS: readonly KnobDef[] = [
       max,
       step,
       kind: "range",
-      basic: ["steadiness", "keyPull"].includes(key),
+      basic: ["steadiness", "keyPull", "contextCorrection"].includes(key),
     })),
   ),
   {
@@ -109,7 +117,7 @@ export const KNOB_DEFS: readonly KnobDef[] = [
     ],
   },
 ];
-export type IntentPresetId = "as-played" | "gentle" | "clean" | "keep-odd";
+export type IntentPresetId = "as-played" | "gentle" | "clean" | "keep-odd" | "auto-tune";
 export type MoodPresetId = "happy" | "sad" | "dreamy" | "syncopated";
 export type PresetId = IntentPresetId | MoodPresetId;
 // Provisional starting point; listening refinement continues in the editor.
@@ -127,6 +135,7 @@ const BASE: Knobs = {
   silenceGapMs: 90,
   levelGate: 0.003,
   keyPull: 0.6,
+  contextCorrection: 0,
   mode: "auto",
   leapPenalty: 0.1,
   maxMoveSemitones: 0,
@@ -160,6 +169,18 @@ export const PRESETS: Record<PresetId, Preset> = {
     keyPull: 1,
     grid: 2,
   }),
+  "auto-tune": preset(
+    "auto-tune",
+    "Auto tune",
+    "intent",
+    "Correct pitches using the key and melodic context; may change deliberate odd notes.",
+    {
+      steadiness: 1,
+      keyPull: 1,
+      contextCorrection: 1,
+      grid: 2,
+    },
+  ),
   "keep-odd": preset(
     "keep-odd",
     "Keep my odd notes",
@@ -211,4 +232,14 @@ export function isKnobs(value: unknown): value is Partial<Knobs> {
     const def = KNOB_DEFS.find((candidate) => candidate.key === key);
     return def !== undefined && validValue(def, entry);
   });
+}
+
+/** Historical snapshots predate the explicit Context correction control. */
+export function withControlDefaults(knobs: Knobs): Knobs {
+  return { ...knobs, contextCorrection: knobs.contextCorrection ?? 0 };
+}
+
+/** V1 cannot encode the new control, including an explicit zero override. */
+export function interpretationVersionForControls(knobs: Knobs, overrides: Partial<Knobs>): 1 | 2 {
+  return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined ? 2 : 1;
 }

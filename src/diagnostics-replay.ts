@@ -8,6 +8,7 @@ import { notesToMidi } from "./midi";
 import { decodeWav } from "./wav-reader";
 import { isObject, validateDiagnostics, firstDifference } from "./diagnostics-validation";
 import { BUILD_INFO } from "./build-info";
+import { withControlDefaults } from "./melody/knobs";
 
 function compareBuild(build: DiagnosticSnapshot["report"]["build"]) {
   if (build.revision === "unknown" || BUILD_INFO.revision === "unknown") return "unknown";
@@ -28,8 +29,12 @@ function compareStages(
     "quality",
     "config",
   ] as const;
+  const normalized = {
+    ...expected,
+    stages: { ...expected.stages, knobs: withControlDefaults(expected.stages.knobs) },
+  };
   return (
-    fields.map((field) => firstDifference(expected[field], actual[field], field)).find(Boolean) ??
+    fields.map((field) => firstDifference(normalized[field], actual[field], field)).find(Boolean) ??
     (expected.build.pipeline !== BUILD_INFO.pipeline ? "build.pipeline" : null)
   );
 }

@@ -24,6 +24,7 @@ describe("melody knobs", () => {
         "silenceGapMs",
         "steadiness",
         "keyPull",
+        "contextCorrection",
         "mode",
         "maxMoveSemitones",
         "leapPenalty",
@@ -51,10 +52,10 @@ describe("melody knobs", () => {
     expect(knobs.steadiness).toBe(0.1);
     expect(knobs).not.toHaveProperty("bogus");
   });
-  it("intent presets add no feel, and only Clean snaps to a grid", () => {
+  it("intent presets add no feel, and Clean and Auto tune snap to an eighth grid", () => {
     for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "intent"))
       expect(preset.knobs).toMatchObject({
-        grid: preset.id === "clean" ? 2 : 0,
+        grid: ["clean", "auto-tune"].includes(preset.id) ? 2 : 0,
         swing: 0,
         syncopation: 0,
       });

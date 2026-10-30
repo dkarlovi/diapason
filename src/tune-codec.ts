@@ -5,7 +5,7 @@ import { processRecording } from "./recording";
 import { requireTune } from "./tune-validation";
 import { TUNE_LIMITS, type PortableTune } from "./portable-tune";
 import { packTune, unpackTune } from "./tune-fields";
-const MAGIC = [68, 80, 83, 78, 1, 1]; // DPSN, schema, interpretation version
+const MAGIC = [68, 80, 83, 78, 1]; // DPSN, schema; interpretation version follows.
 async function transform(bytes: Uint8Array, compressed: boolean): Promise<Uint8Array> {
   const stream = new Response(new Uint8Array(bytes).buffer).body!.pipeThrough(
     compressed ? new CompressionStream("gzip") : new DecompressionStream("gzip"),
@@ -57,19 +57,28 @@ function samePackedNote(
 }
 export async function encodeTune(tune: PortableTune): Promise<Uint8Array> {
   const raw = packTune(tune);
-  verifyPackedMelody(tune, unpackTune(raw));
+  verifyPackedMelody(tune, unpackTune(raw, tune.noteSource.interpretationVersion));
   const gzip = await transform(raw, true),
     useGzip = gzip.length < raw.length;
-  return Uint8Array.from([...MAGIC, useGzip ? 1 : 0, ...(useGzip ? gzip : raw)]);
+  return Uint8Array.from([
+    ...MAGIC,
+    tune.noteSource.interpretationVersion,
+    useGzip ? 1 : 0,
+    ...(useGzip ? gzip : raw),
+  ]);
 }
 export async function decodeTune(bytes: Uint8Array): Promise<PortableTune> {
   if (
     bytes.length > TUNE_LIMITS.encoded ||
     MAGIC.some((n, i) => bytes[i] !== n) ||
+    (bytes[5] !== 1 && bytes[5] !== 2) ||
     (bytes[6] !== 0 && bytes[6] !== 1)
   )
     throw new Error("Unsupported or damaged Diapason tune. Update Diapason if this link is newer.");
-  const tune = unpackTune(bytes[6] === 1 ? await transform(bytes.slice(7), false) : bytes.slice(7));
+  const tune = unpackTune(
+    bytes[6] === 1 ? await transform(bytes.slice(7), false) : bytes.slice(7),
+    bytes[5],
+  );
   processRecording(recordingFromPortableTune(tune, "import-check", 0), []);
   return tune;
 }

@@ -1,6 +1,6 @@
 import { INSTRUMENTS } from "./instruments";
 import { KNOB_DEFS, PRESETS, resolveKnobs, type Knobs, type PresetId } from "./melody/knobs";
-import { DETECTION_KNOBS } from "./note-source";
+import { DETECTION_KNOBS, type NoteSource } from "./note-source";
 import { TUNE_LIMITS, validatePortableTune, type PortableTune } from "./portable-tune";
 import { TuneReader, TuneWriter } from "./tune-binary";
 
@@ -15,6 +15,7 @@ const presets: PresetId[] = [
   "sad",
   "dreamy",
   "syncopated",
+  "auto-tune",
 ];
 const keys: (keyof Knobs)[] = [
   "steadiness",
@@ -30,7 +31,10 @@ const keys: (keyof Knobs)[] = [
   "articulation",
   "grid",
   "mode",
+  "contextCorrection",
 ];
+const controlKeys = (version: NoteSource["interpretationVersion"]) =>
+  version === 1 ? keys.slice(0, -1) : keys;
 function writeKnob(w: TuneWriter, key: keyof Knobs, value: Knobs[keyof Knobs]) {
   const def = KNOB_DEFS.find((d) => d.key === key)!;
   if (def.kind === "select") {
@@ -75,11 +79,12 @@ export function packTune(tune: PortableTune): Uint8Array {
   w.float(tune.noteSource.range.minMidi);
   w.float(tune.noteSource.range.maxMidi);
   let mask = 0;
-  keys.forEach((k, i) => {
+  const controls = controlKeys(tune.noteSource.interpretationVersion);
+  controls.forEach((k, i) => {
     if (tune.melody.overrides[k] !== undefined) mask += 2 ** i;
   });
   w.uint(mask);
-  keys.forEach((k, i) => {
+  controls.forEach((k, i) => {
     if (Math.floor(mask / 2 ** i) % 2) writeKnob(w, k, tune.melody.overrides[k]!);
   });
   const edits = new Map(tune.pitchEdits.map((e) => [e.noteIndex, e.midi]));
@@ -112,11 +117,15 @@ export function packTune(tune: PortableTune): Uint8Array {
   });
   return w.finish();
 }
-function readOverrides(r: TuneReader): Partial<Knobs> {
+function readOverrides(
+  r: TuneReader,
+  version: NoteSource["interpretationVersion"],
+): Partial<Knobs> {
   const overrides: Partial<Knobs> = {},
     mask = r.uint();
-  if (mask >= 2 ** keys.length) throw new Error("Unknown controls");
-  keys.forEach((k, i) => {
+  const controls = controlKeys(version);
+  if (mask >= 2 ** controls.length) throw new Error("Unknown controls");
+  controls.forEach((k, i) => {
     if (Math.floor(mask / 2 ** i) % 2) Object.assign(overrides, { [k]: readKnob(r, k) });
   });
   return overrides;
@@ -148,7 +157,10 @@ function readNotes(r: TuneReader) {
   }
   return { segments, pitchEdits, mutedIndices };
 }
-export function unpackTune(bytes: Uint8Array): PortableTune {
+export function unpackTune(
+  bytes: Uint8Array,
+  interpretationVersion: NoteSource["interpretationVersion"] = 1,
+): PortableTune {
   const r = new TuneReader(bytes);
   const name = r.text(TUNE_LIMITS.nameBytes),
     durationMs = r.uint(),
@@ -164,7 +176,7 @@ export function unpackTune(bytes: Uint8Array): PortableTune {
   if (!instrument || !INSTRUMENTS.some((i) => i.id === instrument))
     throw new Error("Unknown sound");
   const range = { minMidi: r.float(), maxMidi: r.float() };
-  const overrides = readOverrides(r);
+  const overrides = readOverrides(r, interpretationVersion);
   const effectiveKnobs = resolveKnobs(preset, overrides);
   const { segments, pitchEdits, mutedIndices } = readNotes(r);
   r.end();
@@ -186,7 +198,7 @@ export function unpackTune(bytes: Uint8Array): PortableTune {
     play: { instrument, octave },
     noteSource: {
       version: 1,
-      interpretationVersion: 1,
+      interpretationVersion,
       range,
       segments,
       frozenDetection: Object.fromEntries(DETECTION_KNOBS.map((k) => [k, effectiveKnobs[k]])),

@@ -8,7 +8,7 @@ sender-local recording ID.
 ## Envelope and URL
 
 Bytes 0–3 are ASCII `DPSN`; byte 4 is schema version 1; byte 5 is interpretation
-version 1; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
+version 1 or 2; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
 fields below, with no trailing data. Choose gzip only when it is smaller than the
 raw representation. URLs use unpadded canonical base64url after
 `/diapason/#tune=`. The Library offers import before any candidate writes.
@@ -20,6 +20,14 @@ semantics require a new interpretation version; a build must reject a version it
 cannot faithfully interpret. Do not silently reinterpret older files with changed
 defaults.
 
+Interpretation v1 retains the original control encoding and treats absent Context
+correction as zero. V2 appends the Context correction control. An active value or
+an explicit override (including zero) requires v2, regardless of the base preset.
+Presets only supply control values; no interpretation algorithm branches on their
+identity. Legacy recipes with no new control override continue to export as v1,
+preserving their original envelope and wire codes. Earlier readers reject v2
+rather than silently changing the melody.
+
 ## Field order
 
 Unsigned integers are canonical arithmetic base-128 varints (low seven bits first,
@@ -28,7 +36,7 @@ UTF-8 strings have a byte-length varint and are decoded strictly.
 
 1. Name string; duration in integer milliseconds; Float64 BPM; beats per bar.
 2. Preset code: As played, Gentle, Clean, Keep odd, Happy, Sad, Dreamy,
-   Syncopated (0–7).
+   Syncopated (0–7); Auto tune is appended as code 8.
 3. Key byte: 0 is automatic, 1–12 major tonic C–B, 13–24 minor tonic C–B.
 4. Sound byte: instrument code in the upper five bits, octave code in the lower
    three. Instruments 0–6 are beep, electric piano, pluck, flute, trumpet,
@@ -40,6 +48,10 @@ UTF-8 strings have a byte-length varint and are decoded strictly.
    maximum move, grid pull, swing, syncopation, articulation, grid, mode.
    Select values use option-index varints. Numeric values have a byte indicating
    either a step-count varint (0) or an exact Float64 escape (1).
+   Interpretation v2 appends Context correction as bit 13, a 0–1 range in 0.01
+   steps (with the same Float64 escape). V1 rejects this bit. A preset's default
+   Context correction value and any explicit override are resolved like other
+   controls, not as a separate engine mode.
 7. Note count, then each note in chronological order:
    - Flags: fractional pitch (bit 0), muted (bit 1), manual pitch override (bit 2),
      exact interpretation timing refinement (bit 3). Other bits are invalid.

@@ -22,6 +22,12 @@ Fallow checks require `origin/main` and `HEAD^`. Avoid growing the committed dup
 
 Use strict TypeScript, two-space indentation, double quotes, and semicolons; let oxfmt enforce formatting. Use PascalCase component filenames (`Capture.tsx`), `use`-prefixed hooks (`useCapture.ts`), and descriptive lowercase or kebab-case module names (`editor-model.ts`). Prefer explicit type-only imports. Keep browser effects in hooks and reusable calculations in pure modules.
 
+## Presets and Controls Invariant
+
+Presets only provide values for explicit user-facing controls. All detection and musical interpretation behavior must depend on the effective control values, never on the preset's identity. Do not introduce branches such as `if (preset === "auto-tune")` to enable a different algorithm or hidden scoring behavior.
+
+If new behavior needs another parameter or mode, expose it as a slider, toggle, selector, or other appropriate control; the preset supplies its value. Given the same input, interpretation version, and effective control values, results must be identical regardless of which preset supplied those values. Preserve this invariant in previews, saved recordings, diagnostics, sharing, and MIDI export.
+
 ## Testing Guidelines
 
 Use Vitest and React Testing Library. Name tests `*.test.ts` or `*.test.tsx`; use `*.integration.test.tsx` for integration scenarios. Cover observable behavior and regressions, mocking browser audio or MIDI APIs where needed. Run a focused test with `npm test -- src/take.test.ts`. Coverage includes all production TypeScript; no percentage threshold is currently enforced.

@@ -1,5 +1,5 @@
 /** Bump when analysis, segmentation, quantization or MIDI output changes for the same input. */
-export const PIPELINE_VERSION = 4;
+export const PIPELINE_VERSION = 5;
 
 /** A revision identifies the source; pipeline changes identify replay compatibility. */
 export const BUILD_INFO =

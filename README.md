@@ -172,8 +172,9 @@ uses a compact summary saved with each new take, and survives reloads and
 duplication. Older recordings gain previews gradually in the background when
 you visit the Library; unavailable previews do not block playback.
 
-New recordings start with **Clean** and **Auto** key selection. Clean snaps to an
-eighth-note grid; the other intent presets keep performed timing. A single
+New recordings start with **Clean** and **Auto** key selection. Clean and the
+opt-in **Auto tune** preset snap to an eighth-note grid; the other intent presets
+keep performed timing. A single
 timing-grid control offers quarter notes, eighth notes, sixteenth notes, and
 triplets. Before snapping, a constant lag behind the click (monitoring latency or
 a late start) is measured from the onsets and removed, so notes land on the beat
@@ -464,12 +465,13 @@ playback, previews, diagnostics, and MIDI export. **Play** auditions a preset or
 suggested key without saving it; **Use** applies it. Press Play again to stop a
 preview. Starting another preview replaces it.
 
-- **Intent:** As played, Gentle fix, Clean, and Keep my odd notes.
+- **Intent:** As played, Gentle fix, Clean, Auto tune, and Keep my odd notes.
+
 - **Mood:** Happy, Sad, Dreamy, and Syncopated.
 - **Key:** One dropdown contains Auto, three suggested alternatives, and all 24
   explicit keys, each with Preview and Use actions.
-- **Controls:** Essentials groups Steadiness, Pull into key, and Pull onto grid.
-  Pitch includes key pull, Mode, Smooth leaps, and Max pitch move. Rhythm holds
+- **Controls:** Essentials groups Steadiness, Pull into key, Context correction,
+  and Pull onto grid. Pitch includes key pull, Context correction, Mode, Smooth leaps, and Max pitch move. Rhythm holds
   Timing grid, grid pull, Swing, Syncopation, and Note length. Detection holds
   Steadiness, Level gate, Minimum note length, and Silence gap. Changing a control
   shows **Custom (from …)** and saves it. Each control has an explicit Reset
@@ -478,6 +480,23 @@ preview. Starting another preview replaces it.
   **Reset** asks for confirmation before restoring the current preset's controls
   and retaining the key. Reset actions can be undone, including resetting all note edits.
   Compact control rows retain their values and resets; explanations appear in tooltips.
+
+Presets only supply control values; they never select hidden processing behavior.
+The **Context correction** slider is available on every preset: 0% preserves
+the original scoring, and 100% applies the reviewed contextual correction.
+**Auto tune** sets that slider to 100%; the other presets start at 0%.
+Context correction favors the natural
+scale while allowing a minor key's raised seventh over the inferred major
+dominant chord, and discourages large melodic jumps. **Pull into key** adjusts
+the scale preference; **Smooth leaps** adjusts the melodic preference. It uses
+the same note detection as Clean and does not add glide handling or alter the
+recorded audio. Preview it before applying: it can change deliberate chromatic
+notes, and it does not guarantee a correct transcription. As played and Keep my
+odd notes remain available for performances where those exceptions matter.
+Existing presets retain their interpretation at their default control values.
+Sharing and MIDI use interpretation version 2 when Context correction is active
+or explicitly overridden, regardless of the base preset. Version 1 tunes remain
+readable with Context correction at 0%.
 
 ### Undo, redo, and saved versions
 

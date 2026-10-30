@@ -1,7 +1,12 @@
 import { requireTune, finiteBetween } from "./tune-validation";
 import type { Recording } from "./db";
 import type { Segment } from "./melody/decode";
-import { isKnobs, resolveKnobs, type Knobs } from "./melody/knobs";
+import {
+  isKnobs,
+  resolveKnobs,
+  interpretationVersionForControls,
+  type Knobs,
+} from "./melody/knobs";
 import { melodySettingFor } from "./melody/settings";
 import { interpretMelody } from "./melody/interpret";
 import { protectedNoteBoundaries } from "./note-edits";
@@ -11,7 +16,7 @@ import { analysisOptionsFor } from "./recording-profiles";
 export const DETECTION_KNOBS = ["steadiness", "minNoteMs", "silenceGapMs", "levelGate"] as const;
 export interface NoteSource {
   version: 1;
-  interpretationVersion: 1;
+  interpretationVersion: 1 | 2;
   segments: Segment[];
   range: { minMidi: number; maxMidi: number };
   frozenDetection: Pick<Knobs, (typeof DETECTION_KNOBS)[number]>;
@@ -27,7 +32,7 @@ export function noteSourceFromAnalysis(
   const range = { minMidi: freqToMidi(minFreq), maxMidi: freqToMidi(maxFreq) };
   return {
     version: 1,
-    interpretationVersion: 1,
+    interpretationVersion: interpretationVersionForControls(knobs, overrides),
     range,
     segments:
       segments ??
@@ -52,7 +57,7 @@ function validateSourceContext(source: NoteSource, historical: boolean) {
   requireTune(
     historical
       ? Number.isSafeInteger(source.interpretationVersion) && source.interpretationVersion > 0
-      : source.interpretationVersion === 1,
+      : source.interpretationVersion === 1 || source.interpretationVersion === 2,
   );
   requireTune(Array.isArray(source.segments));
   requireTune(

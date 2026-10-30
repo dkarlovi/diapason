@@ -25,8 +25,8 @@ export interface MelodyPanelProps {
 }
 
 const groups = {
-  Essentials: ["steadiness", "keyPull", "gridPull"],
-  Pitch: ["keyPull", "mode", "leapPenalty", "maxMoveSemitones"],
+  Essentials: ["steadiness", "keyPull", "contextCorrection", "gridPull"],
+  Pitch: ["keyPull", "contextCorrection", "mode", "leapPenalty", "maxMoveSemitones"],
   Rhythm: ["grid", "gridPull", "swing", "syncopation", "articulation"],
   Detection: ["steadiness", "levelGate", "minNoteMs", "silenceGapMs"],
 } satisfies Record<string, (keyof Knobs)[]>;
