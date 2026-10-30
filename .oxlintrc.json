@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react"],
+  "jsPlugins": ["./tools/oxlint/local-plugin.ts"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/refs": "error",
+    "react/set-state-in-effect": "error",
+    "react/immutability": "error",
+    "local/no-narrative-comments": "error"
+  }
+}
