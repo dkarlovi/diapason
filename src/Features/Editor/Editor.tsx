@@ -10,8 +10,7 @@ import { useStudioTitle } from "../../Studio/useStudioTitle";
 import { EditorCanvas } from "./EditorCanvas";
 import { MelodyTools } from "./EditorTools";
 import { EditorRecordingActions } from "./EditorRecordingActions";
-import { Button } from "../../UI/Primitives";
-
+import { Button } from "../../UI/Button";
 import { EditorSessionNavigation } from "./AdHocNavigation";
 import type { AdHocTuneSession } from "./useAdHocTune";
 function ImportAnalysisNotice({ mismatch }: { mismatch: boolean }) {

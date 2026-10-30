@@ -117,8 +117,8 @@ at the bottom; dense steps scroll internally, with edge shadows indicating more
 content. Reduced motion preferences disable the folding animation.
 
 All three screens share one seed-generated theme, compact header, readable
-type, and shared controls built with Tailwind, the shadcn/ui component pattern,
-semantic theme tokens, and Lucide icons. The Editor uses a shared timeline with
+type, and shared controls built with Tailwind, semantic theme tokens, Radix
+popovers, and Lucide icons. The Editor uses a shared timeline with
 original audio above an edge-to-edge MIDI roll. A divider handle hides or restores
 original audio; mobile starts with it hidden. Tune slides/fades and original audio
 folds with brief transitions using the recording screen's easing after user
@@ -429,7 +429,7 @@ The build copies `index.html` to `404.html` so direct links to capture and edito
 | Screens and hooks               | `src/Features/<Screen>/`, `src/App/`, `src/Studio/`                | React rendering and browser effects, per screen; app shell; behaviour shared by screens |
 | Screen models                   | `src/Recording/Capture.model.ts`, `src/Editing/Editor.model.ts`    | Pure calculations shared by hooks and tests                                             |
 | Editor playhead                 | `src/Playback/Playhead.store.ts`                                   | Zustand store; playback ticks redraw canvases outside React                             |
-| Shared UI + entry               | `src/UI/Primitives.tsx`, `src/main.tsx`                            | controls and app root                                                                   |
+| Shared UI + entry               | `src/UI/Button.tsx`, `src/UI/Primitives.tsx`, `src/main.tsx`       | controls and app root                                                                   |
 
 The recorder captures contiguous raw PCM via an AudioWorklet; detection re-runs
 deterministically when a recording is opened, so the editor always reflects the

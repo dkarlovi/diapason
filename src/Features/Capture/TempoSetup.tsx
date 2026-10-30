@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import type { useTempo } from "./useTempo";
 import { adjustTempo } from "./Tempo.model";
-import { Button, Field } from "../../UI/Primitives";
+import { Field } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { CaptureActions } from "./CaptureActions";
 export function TempoSetup({
   tempo,

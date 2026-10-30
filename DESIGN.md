@@ -189,8 +189,8 @@ Dividers, small handles, and consistent Lucide strokes supply structure.
 
 ### Shared controls
 
-Use `src/UI/Primitives.tsx` for screen buttons and label/control fields;
-its Button delegates to the variant-based primitive in `src/UI/Button.tsx`.
+Use `src/UI/Button.tsx` for screen buttons and `src/UI/Primitives.tsx` for
+label/control fields and panels.
 Default, primary, and danger variants preserve focus-visible and disabled states.
 In the editor, Download is the primary action and retains its visible label.
 Play/Stop is secondary preview; its label is hidden on small screens while its

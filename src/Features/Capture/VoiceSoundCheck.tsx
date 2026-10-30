@@ -1,6 +1,7 @@
 import type { useCapture } from "./useCapture";
 import { pitchLabel } from "../../Audio/VoiceRange";
-import { Button, Field } from "../../UI/Primitives";
+import { Field } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { CaptureActions } from "./CaptureActions";
 import { StatusChecklist } from "./StatusChecklist";
 

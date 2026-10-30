@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CircleAlert, CircleCheck, Play, X } from "lucide-react";
 import { Link } from "react-router";
 import type { Notice } from "./useNotice";
-import { Button } from "./Primitives";
+import { Button } from "./Button";
 
 const icons = { success: CircleCheck, error: CircleAlert, info: Play };
 

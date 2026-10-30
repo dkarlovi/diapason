@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Minus, Play, Plus, RotateCcw, Square, Volume2, VolumeX } from "lucide-react";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { Popover, PopoverAnchor, PopoverContent } from "../../UI/Popover";
 import { traceHorizontalPadding } from "../../Audio/Trace";
 import type { EditorState } from "./useEditor";

@@ -1,5 +1,4 @@
-import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
-import { Button as StyledButton } from "./Button";
+import type { PropsWithChildren } from "react";
 
 export function Panel({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
@@ -7,20 +6,6 @@ export function Panel({ title, children }: PropsWithChildren<{ title: string }>)
       <h2>{title}</h2>
       {children}
     </section>
-  );
-}
-
-export function Button({
-  variant,
-  className = "",
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "danger" | undefined }) {
-  return (
-    <StyledButton
-      variant={variant ?? "default"}
-      className={`${variant ?? ""} ${className}`.trim()}
-      {...props}
-    />
   );
 }
 

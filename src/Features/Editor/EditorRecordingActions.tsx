@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../UI/Popover";
 import { createPortal } from "react-dom";
 import { Ellipsis } from "lucide-react";
 import { MidiOutputPicker } from "../../Studio/MidiOutputPicker";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import type { EditorState } from "./useEditor";
 
 export function EditorRecordingActions({ state }: { state: EditorState }) {

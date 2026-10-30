@@ -26,7 +26,8 @@ import { useWavDrop } from "./useWavDrop";
 import type { Recording } from "../../Recording/Recording.type";
 import { fmtDate } from "../../UI/Format";
 import { recordingPath } from "../../Routing/Routes";
-import { Button, Panel } from "../../UI/Primitives";
+import { Panel } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { WaveformThumbnail } from "./WaveformThumbnail";
 
 function RecordingCard({

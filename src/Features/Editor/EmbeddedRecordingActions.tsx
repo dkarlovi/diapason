@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Ellipsis } from "lucide-react";
 import type { EditorState } from "./useEditor";
 import { MidiOutputPicker } from "../../Studio/MidiOutputPicker";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../UI/Popover";
 
 export function EmbeddedRecordingActions({ state }: { state: EditorState }) {

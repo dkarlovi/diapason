@@ -5,7 +5,7 @@ import { AnalysisProgress } from "../../Studio/AnalysisProgress";
 import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Download, Play, Square } from "lucide-react";
-import { Button } from "../../UI/Primitives";
+import { Button } from "../../UI/Button";
 import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
 import { PitchCanvas } from "../../Studio/PitchCanvas";
