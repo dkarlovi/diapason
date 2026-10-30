@@ -1,6 +1,6 @@
 import { matchSourceItems, type SourceMatch } from "../recording-package-comparison";
 import { firstDifference } from "../diagnostics-validation";
-import type { EvidenceView } from "./views";
+import type { EvidenceView } from "./Views";
 import {
   pagedReport,
   selectorRange,
@@ -8,7 +8,7 @@ import {
   selectorArgv,
   type SourceSelector,
   type PageOptions,
-} from "./query";
+} from "./Query";
 function stageValues(view: EvidenceView, index: number) {
   const stages = view.evidence.stages;
   const item = stages.items[index]!;

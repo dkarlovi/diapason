@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { noteRecording } from "./test-support/note-recording";
-import { recording } from "./test-support/recording";
+import { noteRecording } from "../tests/support/note-recording";
+import { recording } from "../tests/support/recording";
 import {
   constrainMelodyChange,
   knobAvailability,

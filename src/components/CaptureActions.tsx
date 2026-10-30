@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { ArrowLeft } from "lucide-react";
-import { DiapasonMark } from "./DiapasonMark";
-import { Button } from "./primitives";
+import { DiapasonMark } from "../UI/DiapasonMark";
+import { Button } from "../UI/Primitives";
 
 export function CaptureActions({
   back,

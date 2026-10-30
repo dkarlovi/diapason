@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import {
   captureRecordingPackage,
   encodeRecordingPackage,

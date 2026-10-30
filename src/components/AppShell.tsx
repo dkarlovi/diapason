@@ -1,13 +1,13 @@
 import { useStudioMode } from "../hooks/useStudioMode";
 import { useStudioFullscreen } from "../hooks/useStudioFullscreen";
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 import { EditorSaveStatus } from "./EditorSaveStatus";
 import { useState, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router";
 import { Maximize, Minimize, ChevronRight } from "lucide-react";
 import { MidiOutputPicker } from "./MidiOutputPicker";
 import { StudioTitleContext } from "../hooks/useStudioTitle";
-import { DiapasonMark } from "./DiapasonMark";
+import { DiapasonMark } from "../UI/DiapasonMark";
 import { useStudioTheme } from "../hooks/useStudioTheme";
 
 function FullscreenButton({ state }: { state: ReturnType<typeof useStudioFullscreen> }) {

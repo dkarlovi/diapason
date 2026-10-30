@@ -6,7 +6,7 @@ import { useAnalysisStatus } from "../hooks/useAnalysisStatus";
 import { requestAnalysis } from "../analysis-jobs";
 import { Toast } from "./Toast";
 import { useEffect, useState } from "react";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "../UI/Popover";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
   Ban,
@@ -26,7 +26,7 @@ import { useWavDrop } from "../hooks/useWavDrop";
 import type { Recording } from "../db";
 import { fmtDate } from "../ui";
 import { recordingPath } from "../router";
-import { Button, Panel } from "./primitives";
+import { Button, Panel } from "../UI/Primitives";
 import { WaveformThumbnail } from "./WaveformThumbnail";
 
 function RecordingCard({

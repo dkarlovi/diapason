@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import "fake-indexeddb/auto";
 import { getRecording, putRecording, isAudioRecording } from "./db";
 import { processRecording } from "./recording";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 const fixed = noteRecording();
 it("reloads a durable tune with edited notes and no audio or analysis cache", async () => {
   const record = {

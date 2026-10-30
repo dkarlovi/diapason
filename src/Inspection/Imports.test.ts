@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationContext } from "../test-support/investigation";
-import { verifyImportModes } from "./imports";
+import { investigationContext } from "../../tests/support/investigation";
+import { verifyImportModes } from "./Imports";
 it("checks restore and intentional fresh defaults without accessing a browser database", async () => {
   const { context } = await investigationContext();
   const result = await verifyImportModes(context.input);

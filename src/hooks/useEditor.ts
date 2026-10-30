@@ -638,3 +638,5 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     importAnalysisMismatch,
   };
 }
+
+export type EditorState = ReturnType<typeof useEditor>;

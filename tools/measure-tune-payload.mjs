@@ -5,11 +5,11 @@ const server = await createServer({
   appType: "custom",
 });
 try {
-  const { loadFixture } = await server.ssrLoadModule("/src/test-support/fixtures.ts");
+  const { loadFixture } = await server.ssrLoadModule("/tests/support/fixtures.ts");
   const { createPortableTune } = await server.ssrLoadModule("/src/portable-tune.ts");
   const { packTune } = await server.ssrLoadModule("/src/tune-fields.ts");
   const { encodeTune, toBase64Url } = await server.ssrLoadModule("/src/tune-codec.ts");
-  const { noteRecording } = await server.ssrLoadModule("/src/test-support/note-recording.ts");
+  const { noteRecording } = await server.ssrLoadModule("/tests/support/note-recording.ts");
   const rows = [];
   async function measure(name, tune) {
     const raw = packTune(tune),

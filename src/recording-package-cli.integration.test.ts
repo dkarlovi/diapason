@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { captureRecordingPackage, encodeRecordingPackage } from "./recording-package";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { analyzeRecording } from "./recording-analysis";
 async function exec(file: string, args: string[], options: { cwd: string }) {
   const result = spawnSync(file, args, { ...options, encoding: "utf8" });
@@ -218,7 +218,7 @@ it("keeps cold, warm and disabled cache verification equivalent and exposes cach
 }, 20000);
 
 it("browses full-context notes, controls and source stages with complete paginated reports", async () => {
-  const { investigationInput } = await import("./test-support/investigation");
+  const { investigationInput } = await import("../tests/support/investigation");
   const { bytes } = await investigationInput();
   const file = join(dir, "queries.wav");
   await writeFile(file, new Uint8Array(bytes));

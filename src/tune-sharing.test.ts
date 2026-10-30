@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
 import { putRecording } from "./db";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { loadShareTune } from "./tune-sharing";
 import { createEditorWriter } from "./editor-save-queue";
 import { captureEditSnapshot } from "./edit-state";

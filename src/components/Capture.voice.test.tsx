@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { advance, click, fixture, renderCapture, resetFixture } from "../../tests/capture-fixture";
+import { advance, click, fixture, renderCapture, resetFixture } from "../../tests/support/capture";
 
 beforeEach(resetFixture);
 afterEach(() => {

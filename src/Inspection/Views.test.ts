@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationContext } from "../test-support/investigation";
-import { getView } from "./views";
+import { investigationContext } from "../../tests/support/investigation";
+import { getView } from "./Views";
 it("keeps saved observations separate from current replay and automatic inference", async () => {
   const { context } = await investigationContext();
   const saved = await getView(context, "saved");

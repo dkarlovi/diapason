@@ -18,10 +18,7 @@ try {
 const sourceHash = createHash("sha256");
 for (const file of readdirSync("src", { recursive: true })
   .map(String)
-  .filter(
-    (file) =>
-      /\.(ts|tsx)$/.test(file) && !file.includes(".test.") && !file.startsWith("test-support/"),
-  )
+  .filter((file) => /\.(ts|tsx)$/.test(file) && !file.includes(".test."))
   .sort()) {
   sourceHash.update(file).update(readFileSync(`src/${file}`));
 }
@@ -58,7 +55,7 @@ export default defineConfig(({ command, mode }) => ({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/test-support/**"],
+      exclude: ["src/**/*.test.{ts,tsx}"],
       reportsDirectory: "coverage",
       reporter: ["text", "json", "json-summary", "html"],
     },

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationContext } from "../test-support/investigation";
-import { tunePlaybackEvents } from "./events";
+import { investigationContext } from "../../tests/support/investigation";
+import { tunePlaybackEvents } from "./Events";
 import { readTuneMidiMusic } from "../tune-midi-reader";
 import { encodeTuneMidi } from "../tune-midi";
 it("uses exported instrument/octave and independently reads actual MIDI events", async () => {

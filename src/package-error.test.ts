@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
 import { historicalControls, PRESETS } from "./melody/knobs";
-import { investigationInput } from "./test-support/investigation";
+import { investigationInput } from "../tests/support/investigation";
 import { readRecordingPackage } from "./recording-package";
 import { validateRecordingPackage } from "./recording-package-validation";
 import { encodeWav } from "./wav";

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "./primitives";
-import type { EditorState } from "./editor-view-types";
+import { Button } from "../UI/Primitives";
+import type { EditorState } from "../hooks/useEditor";
 import type { SavedVersion } from "../edit-storage";
 type VersionState = Pick<EditorState, "versions" | "record" | "previewId" | "stopPlayback">;
 function VersionRow({ version, state }: { version: SavedVersion; state: VersionState }) {

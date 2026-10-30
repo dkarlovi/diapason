@@ -1,8 +1,8 @@
 // Existing editor fixtures mock recording I/O; keep their storage boundary consistent.
-import { getRecording, putRecording, type Recording } from "../db";
-import { applyEditSnapshot } from "../edit-state";
-import type { EditCommit, EditHistory } from "../edit-history";
-import type { EditHead, SavedVersion } from "../edit-storage";
+import { getRecording, putRecording, type Recording } from "../../src/db";
+import { applyEditSnapshot } from "../../src/edit-state";
+import type { EditCommit, EditHistory } from "../../src/edit-history";
+import type { EditHead, SavedVersion } from "../../src/edit-storage";
 const records = new Map<string, Recording>();
 export const resetEditorStorageDouble = () => records.clear();
 async function writeFixtureCommit(

@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { openDatabase } from "./db-connection";
 import { getRecording } from "./db";
 import { readAnalysis, writeAnalysis } from "./analysis-cache";

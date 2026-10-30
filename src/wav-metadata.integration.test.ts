@@ -6,10 +6,10 @@ import type { AudioRecording as Recording } from "./db";
 import { notesToMidi } from "./midi";
 import { analyzeRecording } from "./recording-analysis";
 import { recordingNotes } from "./recording";
-import { loadFixture } from "./test-support/fixtures";
+import { loadFixture } from "../tests/support/fixtures";
 import { encodeTaggedWav, recordingFromTaggedWav } from "./wav-metadata";
 
-const url = (file: string) => new URL(`./fixtures/whistle-intro/${file}`, import.meta.url);
+const url = (file: string) => new URL(`../tests/fixtures/whistle-intro/${file}`, import.meta.url);
 const intro = loadFixture("whistle-intro");
 
 it("whistle-intro exports and re-imports to the approved Clean MIDI", async () => {

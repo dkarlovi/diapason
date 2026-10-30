@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { loadFixture } from "./test-support/fixtures";
+import { loadFixture } from "../tests/support/fixtures";
 import { PRESETS } from "./melody/knobs";
 import { interpretMelody, interpretSegments } from "./melody/interpret";
 import { noteSourceFromAnalysis, validateNoteSource } from "./note-source";

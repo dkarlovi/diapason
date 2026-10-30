@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { applyEditSnapshot, captureEditSnapshot, sameEditSnapshot } from "./edit-state";
 it("restores absent legacy fields without reverting metadata or copying audio", () => {
   const original = recording({ tuning: { rmsGate: 0.02 }, quantize: { on: true, subdivision: 4 } });

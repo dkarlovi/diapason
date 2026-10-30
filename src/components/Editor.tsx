@@ -10,7 +10,7 @@ import { useStudioTitle } from "../hooks/useStudioTitle";
 import { EditorCanvas } from "./EditorCanvas";
 import { MelodyTools } from "./EditorTools";
 import { EditorRecordingActions } from "./EditorRecordingActions";
-import { Button } from "./primitives";
+import { Button } from "../UI/Primitives";
 
 import { EditorSessionNavigation } from "./AdHocNavigation";
 import type { AdHocTuneSession } from "../hooks/useAdHocTune";

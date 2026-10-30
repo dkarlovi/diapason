@@ -4,7 +4,7 @@ import { BUILD_INFO } from "./build-info";
 import { decodeAudio } from "./codec";
 import type { AudioRecording as Recording } from "./db";
 import { newRecordingMelody } from "./melody/settings";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { encodeWav } from "./wav";
 import {
   encodeTaggedWav,

@@ -1,4 +1,4 @@
-import { DiapasonMark } from "./DiapasonMark";
+import { DiapasonMark } from "../UI/DiapasonMark";
 
 /** Shared overlay position keeps branding steady between capture and editing. */
 export function EmbeddedBrand() {

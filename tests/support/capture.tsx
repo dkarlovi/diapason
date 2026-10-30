@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { vi } from "vitest";
-import type { Recording } from "../src/db";
-import type { MetronomeOptions } from "../src/metronome";
+import type { Recording } from "../../src/db";
+import type { MetronomeOptions } from "../../src/metronome";
 const fixture = vi.hoisted(() => ({
   time: 0,
   tone: false,
@@ -22,7 +22,7 @@ const fixture = vi.hoisted(() => ({
   recorderFailure: false,
   pcm: new Float32Array(48000).fill(0.1),
   resumePending: null as Promise<void> | null,
-  recorderPending: null as Promise<import("../src/recorder").Recorder> | null,
+  recorderPending: null as Promise<import("../../src/recorder").Recorder> | null,
   metro: null as MetronomeOptions | null,
   start: vi.fn(),
   dispose: vi.fn(),
@@ -30,7 +30,7 @@ const fixture = vi.hoisted(() => ({
   closeMic: vi.fn(),
   ended: null as (() => void) | null,
 }));
-vi.mock("../src/audio", () => ({
+vi.mock("../../src/audio", () => ({
   listInputDevices: async () => [{ deviceId: "mic-1", label: "Studio mic", kind: "audioinput" }],
   openMic: async (options: { fftSize?: number }) => {
     fixture.openRequests.push(options);
@@ -61,44 +61,44 @@ vi.mock("../src/audio", () => ({
     };
   },
 }));
-vi.mock("../src/pitch", () => ({
+vi.mock("../../src/pitch", () => ({
   createPitchDetector: () => () => ({
     freq: fixture.tone ? fixture.frequency : null,
     clarity: fixture.tone ? 0.99 : 0,
     rms: fixture.tone ? 0.03 : 0.001,
   }),
 }));
-vi.mock("../src/trace", async (original) => ({
-  ...(await original<typeof import("../src/trace")>()),
+vi.mock("../../src/trace", async (original) => ({
+  ...(await original<typeof import("../../src/trace")>()),
   drawTrace: () => {},
 }));
-vi.mock("../src/recorder", async (original) => ({
-  ...(await original<typeof import("../src/recorder")>()),
+vi.mock("../../src/recorder", async (original) => ({
+  ...(await original<typeof import("../../src/recorder")>()),
   createRecorder: async () => {
     if (fixture.recorderFailure) throw new Error("worklet unavailable");
     if (fixture.recorderPending) return fixture.recorderPending;
     return { start: fixture.start, stop: () => fixture.pcm, dispose: fixture.dispose };
   },
 }));
-vi.mock("../src/metronome", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../src/metronome")>()),
+vi.mock("../../src/metronome", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/metronome")>()),
   startMetronome: (_ctx: unknown, options: MetronomeOptions) => {
     fixture.metro = options;
     return { downbeatTime: fixture.time + 0.2, stop: fixture.stopMetro };
   },
 }));
-vi.mock("../src/codec", () => ({
+vi.mock("../../src/codec", () => ({
   encodeAudio: async () => {
     if (fixture.encodeFailure) throw new Error("storage failed");
     return new Blob(["audio"]);
   },
 }));
-vi.mock("../src/db", () => ({
+vi.mock("../../src/db", () => ({
   putRecording: async (record: Recording) => {
     fixture.saved = record;
   },
 }));
-import { Capture } from "../src/components/Capture";
+import { Capture } from "../../src/components/Capture";
 export function resetFixture() {
   vi.useFakeTimers();
   fixture.time = 0;

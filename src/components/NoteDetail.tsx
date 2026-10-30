@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Minus, Play, Plus, RotateCcw, Square, Volume2, VolumeX } from "lucide-react";
-import { Button } from "./primitives";
-import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
+import { Button } from "../UI/Primitives";
+import { Popover, PopoverAnchor, PopoverContent } from "../UI/Popover";
 import { traceHorizontalPadding } from "../trace";
-import type { EditorState } from "./editor-view-types";
+import type { EditorState } from "../hooks/useEditor";
 import type { EditorLayout } from "../hooks/useEditorLayout";
 
 export function NoteDetail({ state, layout }: { state: EditorState; layout: EditorLayout }) {

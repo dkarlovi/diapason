@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationContext } from "../test-support/investigation";
-import { getView } from "./views";
-import { queryNotes } from "./notes";
+import { investigationContext } from "../../tests/support/investigation";
+import { getView } from "./Views";
+import { queryNotes } from "./Notes";
 it("joins continuous pitch and explicit intent without approving untouched notes", async () => {
   const { context } = await investigationContext();
   const view = await getView(context, "saved");
@@ -46,7 +46,7 @@ it("paginates the complete selection with explicit source-time selectors", async
 });
 
 it("retains explicit pitch intent and mute state when automatic inference removes them", async () => {
-  const { investigationInput } = await import("../test-support/investigation");
+  const { investigationInput } = await import("../../tests/support/investigation");
   const { context } = await investigationContext();
   const { input } = await investigationInput("corrected", {
     noteEdits: {

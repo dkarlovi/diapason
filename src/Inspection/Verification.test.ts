@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
 import { compareValues } from "../diagnostics-validation";
-import { investigationContext } from "../test-support/investigation";
-import { verifyPackage } from "./verification";
+import { investigationContext } from "../../tests/support/investigation";
+import { verifyPackage } from "./Verification";
 it("reports tolerated numeric drift and scans past the first difference", () => {
   const small = compareValues({ a: 0, b: 10 }, { a: 3.552713678800501e-15, b: 10 }, "replay");
   expect(small.firstDifference).toBeNull();
@@ -59,8 +59,8 @@ it("labels schema-1 missing baselines as incomplete instead of inventing a repla
 });
 
 it("does not call portable millisecond projection damage when it crosses a MIDI tick boundary", async () => {
-  const { investigationInput } = await import("../test-support/investigation");
-  const { logicalPlaybackEvents } = await import("./events");
+  const { investigationInput } = await import("../../tests/support/investigation");
+  const { logicalPlaybackEvents } = await import("./Events");
   const { readTuneMidiMusic } = await import("../tune-midi-reader");
   const { context } = await investigationContext();
   const { input } = await investigationInput("tick boundary", {

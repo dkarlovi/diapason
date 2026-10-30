@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { createPortableTune } from "./portable-tune";
 import { createAdHocDraft, isAdHocDirty, validateAdHocDraft, adHocRecording } from "./ad-hoc-tune";
 import { reduceEditHistory } from "./edit-history";

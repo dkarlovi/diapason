@@ -3,7 +3,7 @@ import { expect, it, vi } from "vitest";
 import { promoteAdHocTune } from "./tune-promotion";
 import { createAdHocDraft } from "./ad-hoc-tune";
 import { createPortableTune } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { getRecording } from "./db";
 import { listVersions } from "./edit-storage";
 import { reduceEditHistory } from "./edit-history";

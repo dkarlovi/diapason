@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { useAdHocTune } from "./useAdHocTune";
 import { tuneUrl } from "../tune-url";
 import { createPortableTune } from "../portable-tune";
-import { noteRecording } from "../test-support/note-recording";
+import { noteRecording } from "../../tests/support/note-recording";
 beforeEach(() => {
   sessionStorage.clear();
   vi.stubGlobal("Blob", NodeBlob);

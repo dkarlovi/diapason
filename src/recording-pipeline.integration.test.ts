@@ -9,10 +9,12 @@ import { diagnosticSnapshot } from "./diagnostic-snapshot";
 import { makeReportInput } from "./editor-model";
 import { qualityStats } from "./recorder";
 import { replayDiagnostics } from "./diagnostics-replay";
-import { readMidiEvents } from "./test-support/midi-files";
-import { recording } from "./test-support/recording";
+import { readMidiEvents } from "../tests/support/midi-files";
+import { recording } from "../tests/support/recording";
 
-const file = readFileSync(new URL("./fixtures/whistle-regression/original.wav", import.meta.url));
+const file = readFileSync(
+  new URL("../tests/fixtures/whistle-regression/original.wav", import.meta.url),
+);
 const wav = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
 const { pcm, sampleRate } = decodeWav(wav);
 const rec = recording({

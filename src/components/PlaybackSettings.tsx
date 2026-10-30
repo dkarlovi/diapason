@@ -1,7 +1,7 @@
 import { INSTRUMENTS, DEFAULT_PLAY } from "../instruments";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
-import type { EditorState } from "./editor-view-types";
+import type { EditorState } from "../hooks/useEditor";
 
 export function PlaybackSettings({
   state,

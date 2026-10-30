@@ -1,7 +1,7 @@
 import { CompressionStream, DecompressionStream } from "node:stream/web";
 import "fake-indexeddb/auto";
 import { flushEditorSaves } from "../editor-save-queue";
-import { resetEditorStorageDouble } from "../test-support/editor-storage-double";
+import { resetEditorStorageDouble } from "../../tests/support/editor-storage-double";
 import { wavChunks } from "../wav-reader";
 import { webcrypto } from "node:crypto";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
@@ -36,7 +36,7 @@ vi.mock("../midi", async (original) => {
 });
 vi.mock("../edit-storage", async (original) => ({
   ...(await original<typeof import("../edit-storage")>()),
-  ...(await import("../test-support/editor-storage-double")).editorStorageDouble,
+  ...(await import("../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
 vi.mock("../db", () => ({
   getRecording: async (id: string): Promise<Recording> => ({

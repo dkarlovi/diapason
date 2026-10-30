@@ -1,6 +1,6 @@
 import type { SourceRange } from "../note-edits";
-import { makeReport } from "./report";
-import type { EvidenceView } from "./views";
+import { makeReport } from "./Report";
+import type { EvidenceView } from "./Views";
 export interface SourceSelector {
   note?: number;
   time?: SourceRange;

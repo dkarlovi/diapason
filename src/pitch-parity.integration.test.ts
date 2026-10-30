@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
-import { loadFixture } from "./test-support/fixtures";
+import { loadFixture } from "../tests/support/fixtures";
 
 // Captured from the original detector before prefix-sum normalization. These
 // protect exact pitch, clarity, voicing, RMS and timing, beyond the MIDI fixtures.

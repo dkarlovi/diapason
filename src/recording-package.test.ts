@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeAll, expect, it } from "vitest";
-import { loadFixture } from "./test-support/fixtures";
+import { loadFixture } from "../tests/support/fixtures";
 import { processRecording } from "./recording";
 import {
   captureRecordingPackage,

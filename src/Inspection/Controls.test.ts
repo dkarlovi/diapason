@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { investigationContext } from "../test-support/investigation";
-import { getView } from "./views";
-import { queryControls } from "./controls";
+import { investigationContext } from "../../tests/support/investigation";
+import { getView } from "./Views";
+import { queryControls } from "./Controls";
 it("distinguishes explicit zero overrides from preset values and historical defaults", async () => {
   const { context } = await investigationContext();
   const p = context.input.metadata;

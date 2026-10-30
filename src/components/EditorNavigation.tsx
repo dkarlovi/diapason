@@ -1,5 +1,5 @@
-import { Button } from "./primitives";
-import type { EditorState } from "./editor-view-types";
+import { Button } from "../UI/Primitives";
+import type { EditorState } from "../hooks/useEditor";
 
 export function EditorNavigation({ state }: { state: EditorState }) {
   const v = state.viewport;

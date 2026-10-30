@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
 import { freqToMidi, type Frame, type NoteEvent } from "../notes";
-import { loadFixture } from "../test-support/fixtures";
+import { loadFixture } from "../../tests/support/fixtures";
 import { PRESETS } from "./knobs";
 import { notesFromSegments, segmentMelody, type PitchContext } from "./decode";
 import type { Knobs } from "./knobs";

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { recording } from "./test-support/recording";
+import { recording } from "../tests/support/recording";
 import { captureEditSnapshot } from "./edit-state";
 import {
   canRedoEdit,

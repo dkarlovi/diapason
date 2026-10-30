@@ -8,7 +8,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Editor } from "./components/Editor";
 import { allRecordings, deleteRecording } from "./db";
 import { createPortableTune } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 import { tuneUrl } from "./tune-url";
 import { playNotes } from "./playback";
 import { flushEditorSaves } from "./editor-save-queue";

@@ -2,7 +2,7 @@ import { beforeEach, expect, it } from "vitest";
 import { readAdHocDraft, writeAdHocDraft, clearAdHocDraft } from "./ad-hoc-storage";
 import { createAdHocDraft } from "./ad-hoc-tune";
 import { createPortableTune } from "./portable-tune";
-import { noteRecording } from "./test-support/note-recording";
+import { noteRecording } from "../tests/support/note-recording";
 beforeEach(() => sessionStorage.clear());
 it("keeps drafts separate and clears them definitively", () => {
   const draft = createAdHocDraft(createPortableTune(noteRecording(), []), "#tune=a", "a", 1);
