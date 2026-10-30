@@ -1,11 +1,14 @@
 // @vitest-environment node
-import { expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import moon from "../fixtures/whistle-moon/interpretation.json";
 import { loadFixture } from "../test-support/fixtures";
 import { noteRecording } from "../test-support/note-recording";
+import { recording } from "../test-support/recording";
 import { processRecording } from "../recording";
 import { noteSourceFromAnalysis } from "../note-source";
 import { PRESETS, resolveKnobs, type PresetId } from "./knobs";
+
+const fixtureNames = ["whistle-intro", "whistle-regression", "whistle-take2"] as const;
 
 it.each(Object.keys(PRESETS) as PresetId[])(
   "identical controls produce the same correction under %s",
@@ -93,10 +96,14 @@ it("uses existing sliders to turn off added scale and melodic correction", () =>
   expect(tuned.notes).toEqual(plain.notes);
 });
 
-it.each(["whistle-intro", "whistle-regression", "whistle-take2"] as const)(
-  "preserves the listened-to %s candidate pitches with live audio and fixed sources",
-  (name) => {
-    const fixture = loadFixture(name);
+describe.each(fixtureNames)("%s real-audio interpretation", (name) => {
+  let fixture: ReturnType<typeof loadFixture>;
+  beforeAll(() => {
+    // Full WAV pitch analysis is setup, separate from the assertion budget.
+    // Coverage on CI makes this work substantially slower.
+    fixture = loadFixture(name);
+  }, 60000);
+  it("preserves the listened-to candidate pitches with live audio and fixed sources", () => {
     const record = {
       ...fixture.record,
       melody: { preset: "auto-tune" as PresetId, key: "auto" as const, overrides: {} },
@@ -120,7 +127,7 @@ it.each(["whistle-intro", "whistle-regression", "whistle-take2"] as const)(
       bpm: record.bpm,
       beatsPerBar: record.beatsPerBar,
       melody: record.melody,
-      noteSource: noteSourceFromAnalysis(record, fixture.frames),
+      noteSource: noteSourceFromAnalysis(record, fixture.frames, result.interpretation.segments),
     };
     expect(processRecording(fixed, []).notes).toEqual(result.notes);
     const clean = processRecording(
@@ -130,9 +137,8 @@ it.each(["whistle-intro", "whistle-regression", "whistle-take2"] as const)(
     expect(result.notes.map((n) => [n.start, n.duration])).toEqual(
       clean.notes.map((n) => [n.start, n.duration]),
     );
-  },
-  15000,
-);
+  }, 15000);
+});
 
 it("can reduce scale and melodic correction independently", () => {
   const record = moonRecord();
@@ -152,7 +158,7 @@ it("can reduce scale and melodic correction independently", () => {
 
 it("has no notes or invented key for silence", () => {
   const record = {
-    ...loadFixture("whistle-intro").record,
+    ...recording(),
     melody: { preset: "auto-tune" as const, key: "auto" as const, overrides: {} },
   };
   const result = processRecording(record, []);

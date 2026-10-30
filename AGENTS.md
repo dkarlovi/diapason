@@ -38,6 +38,8 @@ Review and update `README.md` on every feature branch so it reflects the resulti
 
 History uses short descriptive subjects such as `React UI` and `Fallow health`; no mandatory prefix convention is evident. Keep commits focused. Describe the problem, resulting behavior, and validation in pull requests; link relevant issues and include screenshots for visible changes. Run `npm run check` before submission. GitHub Actions checks pull requests targeting `main`; pushes to `main` deploy to GitHub Pages.
 
+Screenshots belong in the relevant GitHub pull request or issue as GitHub user attachments, embedded in its body or comments. Do not add or commit screenshots to the repository to satisfy this requirement. Keep captures in a temporary location and upload them directly, for example with `gh pr create --attach`, `gh pr edit --attach`, or the corresponding issue commands.
+
 ## Browser Configuration
 
 Microphone access requires localhost or HTTPS. Preserve the `/diapason/` base path and remember recordings persist locally in IndexedDB.
