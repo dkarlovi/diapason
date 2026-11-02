@@ -72,7 +72,8 @@ Shared notifications appear in the center of all three screens with a translucen
 surface, status icon, and Dismiss button. Saved takes and single-recording imports
 include **Open**. Playback, deletion, duplication, and export errors use the same
 feedback. Notifications dismiss after 6 seconds (8 with an action, 10 for errors)
-and pause while hovered or focused. Editor save failures retain their persistent
+and pause while hovered or focused. Hiding a notification clears its pause state,
+so the next notification starts its own dismissal timer. Editor save failures retain their persistent
 Retry/Reload controls. Tune's Reset sits beside its heading so the scrollable
 controls have more room on small screens. Tuning category dropdowns align with
 the sliders and their reset buttons; slider values align on the right so percentage

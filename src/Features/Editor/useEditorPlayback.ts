@@ -15,11 +15,22 @@ interface Options {
   notes: NoteEvent[];
 }
 
+function usePlaybackStatus(recordingId: string) {
+  const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [activeRecordingId, setActiveRecordingId] = useState(recordingId);
+  if (activeRecordingId !== recordingId) {
+    setActiveRecordingId(recordingId);
+    setPlaying(null);
+    setPreviewId(null);
+  }
+  return { playing, setPlaying, previewId, setPreviewId };
+}
+
 export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Options) {
   const [notice, setNotice] = useNotice();
   const dismissNotice = useCallback(() => setNotice(null), [setNotice]);
-  const [playing, setPlaying] = useState<"audio" | "midi" | null>(null);
-  const [previewId, setPreviewId] = useState<string | null>(null);
+  const { playing, setPlaying, previewId, setPreviewId } = usePlaybackStatus(recordingId);
   const [playhead] = useState(createPlayheadStore);
   const [externalOutput, setExternalOutput] = useState(() => !!activeOutput());
   const playback = useRef<Playback | null>(null);
@@ -42,13 +53,11 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       setPreviewId(null);
       setNotice((current) => (current?.kind === "info" ? null : current));
     }
-  }, [playhead, setNotice]);
+  }, [playhead, setNotice, setPlaying, setPreviewId]);
 
   useEffect(() => {
     transport.current.mounted = true;
-    setPlaying(null);
     playhead.getState().set(null);
-    setPreviewId(null);
     return () => {
       transport.current.mounted = false;
       stopPlayback();
@@ -81,7 +90,7 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       };
       transport.current.raf = requestAnimationFrame(tick);
     },
-    [playhead, stopPlayback],
+    [playhead, stopPlayback, setPlaying],
   );
   const previewNote = useCallback(
     (note: NoteEvent) => {
@@ -130,7 +139,7 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
       transport.current.previewId = id;
       setPreviewId(id);
     },
-    [recordRef, start, stopPlayback],
+    [recordRef, start, stopPlayback, setPreviewId],
   );
 
   return {

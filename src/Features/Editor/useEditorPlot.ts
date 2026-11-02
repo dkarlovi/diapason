@@ -72,6 +72,22 @@ function usePlotRedraw(
   }, [traceRef, rollRef]);
 }
 
+function useViewportAxes(currentRecordingId: string | undefined) {
+  const [zoom, setZoom] = useState(1),
+    [pan, setPan] = useState(0);
+  const [pitchZoom, setPitchZoom] = useState(1);
+  const [pitchPan, setPitchPan] = useState(0);
+  const [recordingId, setRecordingId] = useState(currentRecordingId);
+  if (recordingId !== currentRecordingId) {
+    setRecordingId(currentRecordingId);
+    setZoom(1);
+    setPan(0);
+    setPitchZoom(1);
+    setPitchPan(0);
+  }
+  return { zoom, setZoom, pan, setPan, pitchZoom, setPitchZoom, pitchPan, setPitchPan };
+}
+
 export function useEditorPlot({
   record,
   frames,
@@ -85,11 +101,9 @@ export function useEditorPlot({
   rollRef,
   claimsPointer,
 }: Options) {
-  const [zoom, setZoom] = useState(1),
-    [pan, setPan] = useState(0);
-  const [pitchZoom, setPitchZoom] = useState(1),
-    [visible, setVisible] = useState(1);
-  const [pitchPan, setPitchPan] = useState(0);
+  const { zoom, setZoom, pan, setPan, pitchZoom, setPitchZoom, pitchPan, setPitchPan } =
+    useViewportAxes(record?.id);
+  const [visible, setVisible] = useState(1);
   const [traceOverlay, setTraceOverlay] = useState(false);
   const duration = record?.durationSec ?? 1;
   const range = useMemo(() => fittedPitch([...notes, ...muted]), [notes, muted]);
@@ -109,12 +123,6 @@ export function useEditorPlot({
       midiMax: center + span / 2,
     };
   }, [duration, zoom, pan, visible, range, pitchZoom, pitchPan]);
-  useEffect(() => {
-    setZoom(1);
-    setPan(0);
-    setPitchZoom(1);
-    setPitchPan(0);
-  }, [record?.id]);
   const follow = (position: number) => {
     const next = followPan(duration, zoom, pan, position, visible);
     if (next !== pan) setPan(next);

@@ -6,32 +6,29 @@ import { Button } from "./Button";
 
 const icons = { success: CircleCheck, error: CircleAlert, info: Play };
 
-export function Toast({
+export function Toast(props: { notice: Notice | null; onDismiss(): void; label?: string }) {
+  return props.notice ? <VisibleToast {...props} notice={props.notice} /> : null;
+}
+
+function VisibleToast({
   notice,
   onDismiss,
   label,
 }: {
-  notice: Notice | null;
+  notice: Notice;
   onDismiss(): void;
   label?: string;
 }) {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   useEffect(() => {
-    if (!notice) {
-      setHovered(false);
-      setFocused(false);
-    }
-  }, [notice]);
-  useEffect(() => {
-    if (!notice || hovered || focused) return;
+    if (hovered || focused) return;
     const timer = window.setTimeout(
       onDismiss,
       notice.kind === "error" ? 10000 : notice.action ? 8000 : 6000,
     );
     return () => window.clearTimeout(timer);
   }, [notice, hovered, focused, onDismiss]);
-  if (!notice) return null;
   const Icon = icons[notice.kind];
   return (
     <div
