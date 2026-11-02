@@ -35,7 +35,7 @@ export function useMelodySettings(
       )
         update((setting) => ({ ...setting, overrides: { ...setting.overrides, [key]: value } }));
     },
-    [update],
+    [update, recordRef],
   );
   const resetKnob = useCallback(
     (key?: keyof Knobs) =>

@@ -59,7 +59,7 @@ export function useLibrary() {
         ? `${records.length} recording(s) · ~${(estimate.usage / 1e6).toFixed(1)} MB used`
         : `${records.length} recording(s)`,
     );
-  }, [stopPlayback]);
+  }, [stopPlayback, setRecordings]);
 
   useEffect(() => {
     transport.current.mounted = true;

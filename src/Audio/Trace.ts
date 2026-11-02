@@ -415,18 +415,15 @@ function drawPitchFrames(
   let prev: { x: number; y: number } | null = null;
   ctx.lineWidth = faint ? 1 : 2;
   for (const f of frames) {
-    if (f.t < tMin || f.t > tMax) {
-      prev = null;
-      continue;
-    }
-    if (f.freq === null) {
+    if (f.t < tMin || f.t > tMax || f.freq === null) {
       prev = null;
       continue;
     }
     const x = xOf(f.t);
     const y = yOf(freqToMidi(f.freq));
+    const strokeColor = faint || f.clarity <= 0.95 ? colors.faint : colors.line;
     if (prev) {
-      ctx.strokeStyle = faint || f.clarity <= 0.95 ? colors.faint : colors.line;
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.moveTo(prev.x, prev.y);
       ctx.lineTo(x, y);

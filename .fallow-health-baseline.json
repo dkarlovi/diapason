@@ -6,11 +6,6 @@
         "count": 1
       }
     },
-    "src/Audio/Trace.ts": {
-      "complexity_moderate": {
-        "count": 1
-      }
-    },
     "src/Features/Capture/useCapture.ts": {
       "complexity_moderate": {
         "count": 1

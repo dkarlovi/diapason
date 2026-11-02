@@ -9,9 +9,6 @@
     "react(immutability)": 4,
     "react-hooks(exhaustive-deps)": 3
   },
-  "src/Features/Capture/useTempoEstimate.ts": {
-    "react-hooks(exhaustive-deps)": 1
-  },
   "src/Features/Editor/Editor.tsx": {
     "react(refs)": 3
   },
@@ -28,8 +25,7 @@
     "react(set-state-in-effect)": 1
   },
   "src/Features/Editor/useEditHistory.test.tsx": {
-    "react-hooks(exhaustive-deps)": 1,
-    "react-hooks(rules-of-hooks)": 2
+    "react-hooks(exhaustive-deps)": 1
   },
   "src/Features/Editor/useEditHistory.ts": {
     "react(refs)": 3
@@ -60,9 +56,6 @@
     "react(set-state-in-effect)": 1,
     "react-hooks(exhaustive-deps)": 2
   },
-  "src/Features/Editor/useMelodySettings.ts": {
-    "react-hooks(exhaustive-deps)": 1
-  },
   "src/Features/Editor/useNoteDrag.ts": {
     "react(refs)": 1
   },
@@ -73,7 +66,7 @@
     "react(refs)": 1
   },
   "src/Features/Library/useLibrary.ts": {
-    "react-hooks(exhaustive-deps)": 3
+    "react-hooks(exhaustive-deps)": 2
   },
   "src/Features/Library/useWavDrop.ts": {
     "react(refs)": 1

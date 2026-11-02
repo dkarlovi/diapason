@@ -373,18 +373,18 @@ npm run format:check # verify formatting
 npm run check     # typecheck + lint + names + arch + structure + format check + Fallow + tests + build
 ```
 
-The duplication check normalizes renamed variables and changed literals. Its baseline
-is empty; new matches fail the check. Fallow's separate model-backed `similar-code` command can
+The duplication check normalizes renamed variables and changed literals. It allows
+zero matches and needs no baseline. Fallow's separate model-backed `similar-code` command can
 suggest functions with different structures for manual review, but is not a CI gate.
 The development CLI is a support entry in Fallow's graph, keeping its Node-only
 libraries in `devDependencies` while browser runtime imports remain checked.
 The audit also blocks new dead code and complexity findings in changed files, and
 `npm run health` blocks them across the whole project. The health baseline records the
-existing hotspots in `useEditor`, `useCapture`, `Pitch` and `Trace` for later
-refactoring; CSS findings are advisory while styling work is pending. Both baseline
-gates also fail when an entry matches no current finding, so a moved file or a fixed
+existing hotspots in `useEditor`, `useCapture` and `Pitch` for later
+refactoring; CSS findings are advisory while styling work is pending. The health and
+oxlint baseline gates also fail when an entry matches no current finding, so a moved file or a fixed
 hotspot forces the baseline to be updated instead of silently going stale. The
-advisory metrics report stays available as `npm run metrics:coverage`. Fallow compares
+advisory metrics report stays available as `npm run metrics:coverage`. Fallow audit compares
 baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
 GitHub's pull request merge commit and the previous `main` commit after merge.
 Run checks from a Git checkout with both refs available.

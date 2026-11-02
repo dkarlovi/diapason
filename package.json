@@ -14,7 +14,7 @@
     "arch": "depcruise src tools tests bin --output-type err",
     "structure": "node tools/structure.ts",
     "lint:names": "ls-lint",
-    "dupes": "fallow dupes --baseline .fallow-dupes-baseline.json --fail-on-stale-baseline --fail-on-issues --fail-on-baseline-growth --baseline-base origin/main",
+    "dupes": "fallow dupes --fail-on-issues",
     "audit": "fallow audit --base HEAD^ --fail-on-baseline-growth --baseline-base origin/main",
     "health": "fallow health --complexity --coverage coverage/coverage-final.json --baseline .fallow-health-baseline.json --fail-on-stale-baseline",
     "metrics": "fallow health --report-only",
