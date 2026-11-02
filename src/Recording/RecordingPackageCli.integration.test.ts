@@ -117,7 +117,7 @@ it("prints focused summaries in JSON and Markdown without exporting files", asyn
   expect(JSON.parse(json.stdout)).toMatchObject({
     schemaVersion: 1,
     kind: "inspect",
-    execution: { interpretationVersion: 1 },
+    execution: { interpretationVersion: 2 },
     data: { name: "Whistle" },
   });
   const markdown = await exec(process.execPath, [cli, "inspect", file, "--format", "markdown"], {

@@ -92,10 +92,10 @@ it("loads a recording and applies a melody preset through React controls", async
     fireEvent.click(screen.getByLabelText("Choose preset"));
   });
   await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Use Gentle fix" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use As played" }));
   });
   await waitFor(() =>
-    expect(saved?.melody).toEqual({ preset: "gentle", overrides: {}, key: "auto" }),
+    expect(saved?.melody).toEqual({ preset: "as-played", overrides: {}, key: "auto" }),
   );
 });
 
@@ -131,7 +131,7 @@ it("groups MIDI sound separately from the preset, key, and the controls they sha
   });
   await userEvent.click(preset);
   await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Use Clean" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use Auto timing" }));
   });
   expect((within(correction).getByLabelText("Steadiness") as HTMLInputElement).value).toBe("1");
   expect(saved?.play?.instrument).toBe("flute");
@@ -491,17 +491,17 @@ it("exposes the phone roll while auditioning and restores the candidate menu on 
     fireEvent.click(screen.getByRole("button", { name: "Choose preset" }));
   });
   await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Play Gentle fix" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play As played" }));
   });
   expect(screen.queryByRole("region", { name: "Tune melody" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Use Gentle fix" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use As played" })).toBeNull();
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole("img", { name: "MIDI piano roll" })),
   );
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Toggle Tune" }));
   });
-  expect(screen.getByRole("button", { name: "Use Gentle fix" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Use As played" })).toBeTruthy();
 });
 
 it("offers an explicit scoped reset and can restore the replaced tuning", async () => {

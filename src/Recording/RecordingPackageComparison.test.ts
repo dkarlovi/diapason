@@ -38,7 +38,7 @@ beforeAll(async () => {
   const f = loadFixture("whistle-intro", 2);
   const { pcm, frames } = f;
   const capture = captureRecordingPackage(
-    f.record,
+    { ...f.record, melody: { preset: "clean", overrides: {}, key: "auto" } },
     pcm,
     frames,
     { browser: "test", audioOutput: "unknown", midiOutput: "Browser synth" },

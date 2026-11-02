@@ -23,7 +23,7 @@ Before suggesting "the agent should check X" or "by convention we do Y", ask: _c
 Active quality rules live in:
 
 - `tsconfig.json`: strict compiler options.
-- `.oxlintrc.json` + `.oxlint-baseline.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` rule in `tools/oxlint/`. oxlint has no baseline of its own, so `npm run lint` (`tools/lint-baseline.ts`) holds its findings to the committed counts per file and rule: a count that grows fails with the new findings, and a count that shrinks fails until `npm run lint:baseline` lowers it. Never re-save the baseline to absorb a new finding.
+- `.oxlintrc.json` + `.oxlint-baseline.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` and `no-preset-special-casing` rules in `tools/oxlint/`. oxlint has no baseline of its own, so `npm run lint` (`tools/lint-baseline.ts`) holds its findings to the committed counts per file and rule: a count that grows fails with the new findings, and a count that shrinks fails until `npm run lint:baseline` lowers it. Never re-save the baseline to absorb a new finding.
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `tools/structure.ts` + `.structurerc.json`: fails on a small module with one importer and no test of its own (inline it), an export name declared by more than one module (rename one), and any re-export (import from the module that declares the name). `.structurerc.json` holds the deliberate exceptions, each with a reason; an entry that matches nothing fails too.
 - `.ls-lint.yml`: folder and filename rules.
@@ -59,6 +59,10 @@ Use strict TypeScript, two-space indentation, double quotes, and semicolons; let
 ## Presets and Controls Invariant
 
 Presets only provide values for explicit user-facing controls. All detection and musical interpretation behavior must depend on the effective control values, never on the preset's identity. Do not introduce branches such as `if (preset === "auto-tune")` to enable a different algorithm or hidden scoring behavior.
+
+`local/no-preset-special-casing` enforces this in production code: preset id literals may appear only in the registries named in `.oxlintrc.json` (the preset definitions and the frozen wire table), and comparing, switching on, set-testing, or table-looking-up a preset id fails lint. Comparing two runtime preset ids, such as marking the selected preset, is allowed. A test keeps the rule's id list in step with `PRESETS`.
+
+Saved tunes store a preset id plus overrides, so a published preset's values are frozen: `tests/fixtures/presets/recipes.json` pins them. To change what a preset does, add a new id and give the old one `kind: "retired"`, which keeps it resolvable but hides it from the picker. `src/Melody/Presets.integration.test.ts` fails when two offered presets produce the same notes on every fixture; a preset that adds nothing should be retired, not kept.
 
 If new behavior needs another parameter or mode, expose it as a slider, toggle, selector, or other appropriate control; the preset supplies its value. Given the same input, interpretation version, and effective control values, results must be identical regardless of which preset supplied those values. Preserve this invariant in previews, saved recordings, diagnostics, sharing, and MIDI export.
 

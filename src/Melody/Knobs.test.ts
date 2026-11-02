@@ -1,5 +1,8 @@
+// @vitest-environment node
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { KNOB_DEFS, PRESETS, resolveKnobs, isKnobs } from "./Knobs";
+import { KNOB_DEFS, PRESETS, resolveKnobs, isKnobs, type PresetId } from "./Knobs";
+import recipes from "../../tests/fixtures/presets/recipes.json";
 
 describe("melody knobs", () => {
   it("defines every knob exactly once with a family and a valid default in range", () => {
@@ -52,13 +55,28 @@ describe("melody knobs", () => {
     expect(knobs.steadiness).toBe(0.1);
     expect(knobs).not.toHaveProperty("bogus");
   });
-  it("intent presets add no feel, and Clean and Auto tune snap to an eighth grid", () => {
+  it("intent presets add no feel, and each changes only what its name says", () => {
+    const asPlayed = PRESETS["as-played"].knobs;
+    const pitch = { keyPull: 1, contextCorrection: 1 };
+    const unchangedPitch = { keyPull: 0, contextCorrection: 0, mode: "auto" };
     for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "intent"))
-      expect(preset.knobs).toMatchObject({
-        grid: ["clean", "auto-tune"].includes(preset.id) ? 2 : 0,
-        swing: 0,
-        syncopation: 0,
-      });
+      expect(preset.knobs).toMatchObject({ swing: 0, syncopation: 0, articulation: 1 });
+    expect(asPlayed).toMatchObject({ ...unchangedPitch, grid: 0 });
+    expect(PRESETS["auto-pitch"].knobs).toMatchObject({ ...pitch, grid: 0 });
+    expect(PRESETS["auto-timing"].knobs).toMatchObject({ ...unchangedPitch, grid: 2, gridPull: 1 });
+    expect(PRESETS["auto-tune"].knobs).toMatchObject({ ...pitch, grid: 2, gridPull: 1 });
+  });
+  it("mood presets are Auto tune with one change", () => {
+    const autoTune = PRESETS["auto-tune"].knobs;
+    const changed = (id: PresetId) =>
+      KNOB_DEFS.map((def) => def.key).filter((key) => PRESETS[id].knobs[key] !== autoTune[key]);
+    for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "mood"))
+      expect(changed(preset.id)).toHaveLength(1);
+  });
+  it("keeps every published recipe frozen, so saved tunes resolve to the same values", () => {
+    expect(
+      Object.fromEntries(Object.values(PRESETS).map((preset) => [preset.id, preset.knobs])),
+    ).toEqual(recipes);
   });
   it("isKnobs rejects out-of-range and wrong-typed values", () => {
     for (const value of [
@@ -75,5 +93,12 @@ describe("melody knobs", () => {
       expect(isKnobs(value)).toBe(false);
     expect(isKnobs({ keyPull: 0.3 })).toBe(true);
     expect(isKnobs({})).toBe(true);
+  });
+  it("lists every preset id for the preset special-casing lint rule", () => {
+    const config = JSON.parse(
+      readFileSync(new URL("../../.oxlintrc.json", import.meta.url), "utf8"),
+    ) as { rules: Record<string, [string, { presetIds: string[] }]> };
+    const [, options] = config.rules["local/no-preset-special-casing"]!;
+    expect([...options.presetIds].sort()).toEqual(Object.keys(PRESETS).sort());
   });
 });
