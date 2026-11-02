@@ -17,7 +17,13 @@ export async function investigationInput(
     (_, i) => 0.2 * Math.sin((2 * Math.PI * 1000 * i) / 48000),
   );
   const canonicalPcm = pcm16ToFloat(floatToPcm16(pcm));
-  const record = recording({ name, sampleRate: 48000, durationSec: 0.5, ...overrides });
+  const record = recording({
+    name,
+    sampleRate: 48000,
+    durationSec: 0.5,
+    melody: { preset: "clean", overrides: {}, key: "auto" },
+    ...overrides,
+  });
   const frames = analyzeRecording(canonicalPcm, 48000, record);
   const blob = await encodeRecordingPackage(
     captureRecordingPackage(

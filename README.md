@@ -176,14 +176,15 @@ uses a compact summary saved with each new take, and survives reloads and
 duplication. Older recordings gain previews gradually in the background when
 you visit the Library; unavailable previews do not block playback.
 
-New recordings start with **Clean** and **Auto** key selection. Clean and the
-opt-in **Auto tune** preset snap to an eighth-note grid; the other intent presets
-keep performed timing. A single
+New recordings start with **Auto tune** and **Auto** key selection. Auto tune
+and **Auto timing** snap to an eighth-note grid; As played and Auto pitch keep
+performed timing. A single
 timing-grid control offers quarter notes, eighth notes, sixteenth notes, and
 triplets. Before snapping, a constant lag behind the click (monitoring latency or
 a late start) is measured from the onsets and removed, so notes land on the beat
 rather than on the next subdivision. Grid pull blends performed and snapped timing
-while preserving note order. Mood presets can add swing, syncopation, and legato.
+while preserving note order. Swing and syncopation displace notes on the grid; where
+a displaced note would land on its neighbour, only that pair keeps its grid timing.
 Recording also compensates for the output and input latency the browser reports.
 Older recordings open with the same default preset and carry over their saved
 level/clarity gates, minimum note length, silence gap, and explicit grid setting.
@@ -572,9 +573,12 @@ playback, previews, diagnostics, and MIDI export. **Play** auditions a preset or
 suggested key without saving it; **Use** applies it. Press Play again to stop a
 preview. Starting another preview replaces it.
 
-- **Intent:** As played, Gentle fix, Clean, Auto tune, and Keep my odd notes.
-
-- **Mood:** Happy, Sad, Dreamy, and Syncopated.
+- **Intent:** each changes only what its name says. **As played** keeps your
+  pitches and timing, **Auto pitch** corrects pitches and keeps your timing,
+  **Auto timing** snaps to the eighth-note grid and keeps your pitches, and
+  **Auto tune** does both.
+- **Mood:** Auto tune with one change. **Major** and **Minor** recast the tune in
+  that mode, and **Syncopated** pushes alternate beats an eighth early.
 - **Key:** One dropdown contains Auto, three suggested alternatives, and all 24
   explicit keys, each with Preview and Use actions.
 - **Controls:** Essentials groups Steadiness, Pull into key, Context correction,
@@ -591,16 +595,23 @@ preview. Starting another preview replaces it.
 Presets only supply control values; they never select hidden processing behavior.
 The **Context correction** slider is available on every preset: 0% preserves
 the original scoring, and 100% applies the reviewed contextual correction.
-**Auto tune** sets that slider to 100%; the other presets start at 0%.
+**Auto pitch**, **Auto tune** and the mood presets set that slider to 100%;
+As played and Auto timing start at 0%.
 Context correction favors the natural
 scale while allowing a minor key's raised seventh over the inferred major
 dominant chord, and discourages large melodic jumps. **Pull into key** adjusts
 the scale preference; **Smooth leaps** adjusts the melodic preference. It uses
-the same note detection as Clean and does not add glide handling or alter the
+the same note detection as Auto timing and does not add glide handling or alter the
 recorded audio. Preview it before applying: it can change deliberate chromatic
-notes, and it does not guarantee a correct transcription. As played and Keep my
-odd notes remain available for performances where those exceptions matter.
-Existing presets retain their interpretation at their default control values.
+notes, and it does not guarantee a correct transcription. As played and Auto
+timing remain available for performances where those exceptions matter.
+
+A published preset's values never change, because saved tunes store the preset
+with only their overrides. Gentle fix, Clean, Keep my odd notes, Happy, Sad,
+Dreamy and the original Syncopated are retired: recordings and shared tunes that
+use them still open with the same values and show the preset as retired, but
+they are no longer offered. Each offered preset is checked to sound different
+from every other one.
 Sharing and MIDI use interpretation version 2 when Context correction is active
 or explicitly overridden, regardless of the base preset. Version 1 tunes remain
 readable with Context correction at 0%.
@@ -687,8 +698,9 @@ each note name. Captured and exported WAV audio is never pitch-corrected. Musica
 context is a prior, not knowledge of the intended tune: a note whose pitch sits
 halfway between two in-key notes can still be named wrongly.
 
-The intro sample in `tests/fixtures/whistle-intro/` is an exact regression: Clean
-must export its approved `clean.mid` byte for byte.
+The intro sample in `tests/fixtures/whistle-intro/` is an exact regression: the
+retired Clean preset must export its approved `clean.mid` byte for byte, and Auto
+tune produces the same notes.
 
 ## Embedding
 

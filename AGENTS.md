@@ -62,6 +62,8 @@ Presets only provide values for explicit user-facing controls. All detection and
 
 `local/no-preset-special-casing` enforces this in production code: preset id literals may appear only in the registries named in `.oxlintrc.json` (the preset definitions and the frozen wire table), and comparing, switching on, set-testing, or table-looking-up a preset id fails lint. Comparing two runtime preset ids, such as marking the selected preset, is allowed. A test keeps the rule's id list in step with `PRESETS`.
 
+Saved tunes store a preset id plus overrides, so a published preset's values are frozen: `tests/fixtures/presets/recipes.json` pins them. To change what a preset does, add a new id and give the old one `kind: "retired"`, which keeps it resolvable but hides it from the picker. `src/Melody/Presets.integration.test.ts` fails when two offered presets produce the same notes on every fixture; a preset that adds nothing should be retired, not kept.
+
 If new behavior needs another parameter or mode, expose it as a slider, toggle, selector, or other appropriate control; the preset supplies its value. Given the same input, interpretation version, and effective control values, results must be identical regardless of which preset supplied those values. Preserve this invariant in previews, saved recordings, diagnostics, sharing, and MIDI export.
 
 ## Testing Guidelines

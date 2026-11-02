@@ -254,7 +254,7 @@ it("reports MIDI encoding failures instead of throwing from export handlers", as
 it("requires applying or stopping an unapplied audition before downloading", async () => {
   const { result } = await editor();
   await act(async () =>
-    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(result.current.canExport).toBe(false);
   await act(async () => {
@@ -404,22 +404,25 @@ it("previews presets without saving and stops on repeat, replacement and unmount
   const hook = await editor();
   const before = JSON.stringify(hook.result.current.record);
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(state.notes[0]?.[0]).toMatchObject([{ midi: 69 }]);
   expect(state.saves).toEqual([]);
   expect(JSON.stringify(hook.result.current.record)).toBe(before);
-  expect(hook.result.current.previewId).toBe("preset-gentle");
+  expect(hook.result.current.previewId).toBe("preset-as-played");
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(state.handles[0]?.stop).toHaveBeenCalledOnce();
   expect(hook.result.current.previewId).toBeNull();
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "clean", overrides: {} }, "preset-clean"),
+    hook.result.current.previewMelody(
+      { preset: "auto-timing", overrides: {} },
+      "preset-auto-timing",
+    ),
   );
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
   hook.unmount();
@@ -428,21 +431,21 @@ it("previews presets without saving and stops on repeat, replacement and unmount
 it("applying a preset clears custom controls and saves the chosen preset", async () => {
   const { result } = await editor();
   await act(async () => result.current.changeKnob("keyPull", 0.2));
-  await act(async () => result.current.applyPreset("gentle"));
-  expect(state.saves.at(-1)?.melody).toEqual({ preset: "gentle", key: "auto", overrides: {} });
+  await act(async () => result.current.applyPreset("as-played"));
+  expect(state.saves.at(-1)?.melody).toEqual({ preset: "as-played", key: "auto", overrides: {} });
 });
 
 it("identifies applied recipes separately from unapplied and playback-setting auditions", async () => {
   const { result } = await editor();
-  await act(async () => result.current.applyPreset("gentle"));
+  await act(async () => result.current.applyPreset("as-played"));
   await act(async () =>
-    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(result.current.previewApplied).toBe(true);
   await act(async () => result.current.stopPlayback());
   await act(async () => result.current.changeKnob("steadiness", 0.9));
   await act(async () =>
-    result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(result.current.previewApplied).toBe(false);
   await act(async () =>
@@ -468,24 +471,24 @@ it("identifies applied recipes separately from unapplied and playback-setting au
 it("undoes note edits then tuning while preserving a later name", async () => {
   const { result } = await editor();
   await act(async () => result.current.changeKnob("steadiness", 0.9));
-  await act(async () => result.current.applyPreset("clean"));
+  await act(async () => result.current.applyPreset("auto-timing"));
   await act(async () => result.current.setDraftName("Keep this name"));
   await act(async () => result.current.commitName());
   await act(async () => result.current.selectNote(result.current.items[0]!));
   await act(async () => result.current.shiftSelectedPitch(1));
   await act(async () => result.current.undo());
   expect(result.current.record?.noteEdits).toBeUndefined();
-  expect(result.current.melody.preset).toBe("clean");
+  expect(result.current.melody.preset).toBe("auto-timing");
   await act(async () => result.current.undo());
   expect(result.current.melody.overrides.steadiness).toBe(0.9);
   expect(result.current.record?.name).toBe("Keep this name");
   await act(async () => result.current.redo());
-  expect(result.current.melody.preset).toBe("clean");
+  expect(result.current.melody.preset).toBe("auto-timing");
 });
 
 it("recognizes the currently selected effective grid when its default is not an override", async () => {
   const { result } = await editor();
-  await act(async () => result.current.applyPreset("clean"));
+  await act(async () => result.current.applyPreset("auto-timing"));
   expect(result.current.melody.overrides.grid).toBeUndefined();
   await act(async () => result.current.previewMelody({ overrides: { grid: 2 } }, "knob-grid-2"));
   expect(result.current.previewApplied).toBe(true);
@@ -493,7 +496,7 @@ it("recognizes the currently selected effective grid when its default is not an 
 
 it("does not carry tuning undo into another recording", async () => {
   const hook = await editor();
-  await act(async () => hook.result.current.applyPreset("gentle"));
+  await act(async () => hook.result.current.applyPreset("as-played"));
   expect(hook.result.current.canUndo).toBe(true);
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
@@ -504,14 +507,14 @@ it("stops a note preview before scheduling a new sequence", async () => {
   const hook = await editor();
   await act(async () => hook.result.current.selectNote(hook.result.current.items[0]!));
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(state.events).toEqual(["start", "stop", "start"]);
 });
 it("clears the pressed preview state when changing recordings", async () => {
   const hook = await editor();
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
@@ -545,11 +548,11 @@ it("draws the exact auditioned notes and restores applied notes through regular 
   const hook = await editor();
   const applied = hook.result.current.displayNotes;
   await act(async () =>
-    hook.result.current.previewMelody({ preset: "gentle", overrides: {} }, "preset-gentle"),
+    hook.result.current.previewMelody({ preset: "as-played", overrides: {} }, "preset-as-played"),
   );
   expect(hook.result.current.displayNotes).toEqual(state.notes.at(-1)?.[0]);
-  expect(hook.result.current.previewLabel).toBe("Gentle fix");
-  expect(hook.result.current.notesLabel).toContain("Gentle fix · performed timing");
+  expect(hook.result.current.previewLabel).toBe("As played");
+  expect(hook.result.current.notesLabel).toContain("As played · performed timing");
   expect(state.saves).toHaveLength(0);
   await act(async () => hook.result.current.togglePlayback("midi"));
   expect(hook.result.current.playing).toBeNull();

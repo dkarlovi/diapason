@@ -28,7 +28,7 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
     waveform: { version: 1, rms: expect.any(Float32Array) },
     source: { profileId: "whistle", analysis: { minFreq: 250, maxFreq: 3000 } },
     capture: { gain: 1, noiseFloor: 0.001, rmsGate: 0.003, dspOff: true },
-    melody: { preset: "clean", key: "auto", overrides: { levelGate: 0.003 } },
+    melody: { preset: "auto-tune", key: "auto", overrides: { levelGate: 0.003 } },
   });
   expect(fixture.saved?.name).toMatch(/^Recording /);
   expect(screen.getByRole("link", { name: "Open" }).getAttribute("href")).toBe(

@@ -29,7 +29,12 @@
           "happy",
           "sad",
           "dreamy",
-          "syncopated"
+          "syncopated",
+          "auto-pitch",
+          "auto-timing",
+          "auto-major",
+          "auto-minor",
+          "auto-syncopated"
         ],
         "registries": ["src/Melody/Knobs.ts", "src/Tune/TuneFields.ts"],
         "tables": ["PRESETS"]

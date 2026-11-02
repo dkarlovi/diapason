@@ -24,6 +24,11 @@ const presets: PresetId[] = [
   "dreamy",
   "syncopated",
   "auto-tune",
+  "auto-pitch",
+  "auto-timing",
+  "auto-major",
+  "auto-minor",
+  "auto-syncopated",
 ];
 const keys: (keyof Knobs)[] = [
   "steadiness",

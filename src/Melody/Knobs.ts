@@ -118,15 +118,16 @@ export const KNOB_DEFS: readonly KnobDef[] = [
     ],
   },
 ];
-export type IntentPresetId = "as-played" | "gentle" | "clean" | "keep-odd" | "auto-tune";
-export type MoodPresetId = "happy" | "sad" | "dreamy" | "syncopated";
-export type PresetId = IntentPresetId | MoodPresetId;
-// Provisional starting point; listening refinement continues in the editor.
-export const DEFAULT_PRESET: PresetId = "clean";
+type IntentPresetId = "as-played" | "auto-pitch" | "auto-timing" | "auto-tune";
+type MoodPresetId = "auto-major" | "auto-minor" | "auto-syncopated";
+type RetiredPresetId = "gentle" | "clean" | "keep-odd" | "happy" | "sad" | "dreamy" | "syncopated";
+export type PresetId = IntentPresetId | MoodPresetId | RetiredPresetId;
+export const DEFAULT_PRESET: PresetId = "auto-tune";
+/** Retired presets stay resolvable so saved tunes keep their values, but are not offered. */
 export interface Preset {
   id: PresetId;
   label: string;
-  kind: "intent" | "mood";
+  kind: "intent" | "mood" | "retired";
   blurb: string;
   knobs: Knobs;
 }
@@ -155,64 +156,82 @@ function preset(
 ): Preset {
   return { id, label, kind, blurb, knobs: { ...BASE, ...overrides } };
 }
-// Portable interpretation v1 references these defaults and knob steps.
-// Bump its interpretation version before changing their musical semantics.
+const AS_PLAYED: Partial<Knobs> = { steadiness: 0.5, keyPull: 0, leapPenalty: 0 };
+const AUTO_PITCH: Partial<Knobs> = { steadiness: 1, keyPull: 1, contextCorrection: 1 };
+const AUTO_TUNE: Partial<Knobs> = { ...AUTO_PITCH, grid: 2 };
+// Saved tunes store a preset id with overrides, so a published recipe is frozen: portable
+// interpretation v1 references these defaults and knob steps. Change behaviour with a new id
+// and retire the old one, or bump the interpretation version.
 export const PRESETS: Record<PresetId, Preset> = {
-  "as-played": preset("as-played", "As played", "intent", "Keep my pitches and timing.", {
-    steadiness: 0.5,
-    keyPull: 0,
-    leapPenalty: 0,
-    maxMoveSemitones: 0,
-  }),
-  gentle: preset("gentle", "Gentle fix", "intent", "Steady held notes and soften slips.", {}),
-  clean: preset("clean", "Clean", "intent", "Use stronger musical guidance.", {
-    steadiness: 1,
-    keyPull: 1,
-    grid: 2,
-  }),
+  "as-played": preset("as-played", "As played", "intent", "Keep my pitches and timing.", AS_PLAYED),
+  "auto-pitch": preset(
+    "auto-pitch",
+    "Auto pitch",
+    "intent",
+    "Correct pitches using the key and melodic context; keep my timing.",
+    AUTO_PITCH,
+  ),
+  "auto-timing": preset(
+    "auto-timing",
+    "Auto timing",
+    "intent",
+    "Snap timing to the eighth-note grid; keep my pitches.",
+    { ...AS_PLAYED, steadiness: 1, grid: 2 },
+  ),
   "auto-tune": preset(
     "auto-tune",
     "Auto tune",
     "intent",
-    "Correct pitches using the key and melodic context; may change deliberate odd notes.",
-    {
-      steadiness: 1,
-      keyPull: 1,
-      contextCorrection: 1,
-      grid: 2,
-    },
+    "Correct pitches and snap timing to the eighth-note grid; may change deliberate odd notes.",
+    AUTO_TUNE,
   ),
-  "keep-odd": preset(
-    "keep-odd",
-    "Keep my odd notes",
-    "intent",
-    "Clean slips while keeping deliberate surprises.",
-    { keyPull: 0.3 },
+  "auto-major": preset("auto-major", "Major", "mood", "Auto tune, recast in a major key.", {
+    ...AUTO_TUNE,
+    mode: "major",
+  }),
+  "auto-minor": preset("auto-minor", "Minor", "mood", "Auto tune, recast in a minor key.", {
+    ...AUTO_TUNE,
+    mode: "minor",
+  }),
+  "auto-syncopated": preset(
+    "auto-syncopated",
+    "Syncopated",
+    "mood",
+    "Auto tune with alternate beats pushed an eighth early.",
+    { ...AUTO_TUNE, syncopation: 1 },
   ),
-  happy: preset("happy", "Happy", "mood", "A brighter version of the tune.", {
+  gentle: preset("gentle", "Gentle fix (retired)", "retired", "Steady held notes.", {}),
+  clean: preset("clean", "Clean (retired)", "retired", "Pull into key on the grid.", {
+    steadiness: 1,
+    keyPull: 1,
+    grid: 2,
+  }),
+  "keep-odd": preset("keep-odd", "Keep my odd notes (retired)", "retired", "Light key pull.", {
+    keyPull: 0.3,
+  }),
+  happy: preset("happy", "Happy (retired)", "retired", "Major, performed timing.", {
     steadiness: 1,
     keyPull: 1,
     mode: "major",
   }),
-  sad: preset("sad", "Sad", "mood", "A darker version of the tune.", {
+  sad: preset("sad", "Sad (retired)", "retired", "Minor, performed timing.", {
     steadiness: 1,
     keyPull: 1,
     mode: "minor",
   }),
-  dreamy: preset("dreamy", "Dreamy", "mood", "Smooth movement and flowing notes.", {
+  dreamy: preset("dreamy", "Dreamy (retired)", "retired", "Legato, performed timing.", {
     steadiness: 1,
     keyPull: 1,
     leapPenalty: 1,
     articulation: 1.2,
     gridPull: 0.1,
   }),
-  syncopated: preset(
-    "syncopated",
-    "Syncopated",
-    "mood",
-    "Anticipated beats with a rhythmic lift.",
-    { steadiness: 1, keyPull: 1, grid: 2, syncopation: 1 },
-  ),
+  syncopated: preset("syncopated", "Syncopated (retired)", "retired", "Clean with a push.", {
+    steadiness: 1,
+    keyPull: 1,
+    grid: 2,
+    syncopation: 1,
+  }),
 };
 function validValue(def: KnobDef, value: unknown): boolean {
   return def.kind === "range"

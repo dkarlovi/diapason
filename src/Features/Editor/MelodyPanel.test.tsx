@@ -26,7 +26,7 @@ it("previews Auto tune without applying it, then applies it with existing contro
   fireEvent.click(screen.getByLabelText("Choose preset"));
   fireEvent.click(screen.getByRole("button", { name: "Play Auto tune" }));
   expect(preview).toHaveBeenCalledWith({ preset: "auto-tune", overrides: {} }, "preset-auto-tune");
-  expect(screen.getByText("Custom (from Gentle fix)")).toBeTruthy();
+  expect(screen.getByText("Custom (from As played)")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Use Auto tune" }));
   expect(screen.getByText("Auto tune")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Pull into key"), { target: { value: "0.3" } });
@@ -35,7 +35,7 @@ it("previews Auto tune without applying it, then applies it with existing contro
 const preview = vi.fn();
 function Harness() {
   const [melody, set] = useState<MelodySetting>({
-    preset: "gentle",
+    preset: "as-played",
     overrides: { steadiness: 0.2 },
     key: "auto",
   });
@@ -73,32 +73,35 @@ function Harness() {
 it("previewing a preset leaves the current selection unchanged", () => {
   preview.mockClear();
   render(<Harness />);
-  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
-  fireEvent.click(screen.getByRole("button", { name: "Play Clean" }));
-  expect(preview).toHaveBeenCalledWith({ preset: "clean", overrides: {} }, "preset-clean");
-  expect(screen.getByText("Custom (from Gentle fix)")).toBeTruthy();
+  fireEvent.click(screen.getByText("Custom (from As played)"));
+  fireEvent.click(screen.getByRole("button", { name: "Play Auto timing" }));
+  expect(preview).toHaveBeenCalledWith(
+    { preset: "auto-timing", overrides: {} },
+    "preset-auto-timing",
+  );
+  expect(screen.getByText("Custom (from As played)")).toBeTruthy();
 });
 it("using a preset clears overrides and editing a knob shows Custom", () => {
   render(<Harness />);
-  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
-  fireEvent.click(screen.getByRole("button", { name: "Use Clean" }));
-  expect(screen.getByText("Clean")).toBeTruthy();
+  fireEvent.click(screen.getByText("Custom (from As played)"));
+  fireEvent.click(screen.getByRole("button", { name: "Use Auto timing" }));
+  expect(screen.getByText("Auto timing")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Pull into key"), { target: { value: ".3" } });
-  expect(screen.getByText("Custom (from Clean)")).toBeTruthy();
+  expect(screen.getByText("Custom (from Auto timing)")).toBeTruthy();
 });
 
 it("identifies a custom recipe's base without marking the plain preset applied", () => {
   render(<Harness />);
   fireEvent.click(screen.getByLabelText("Choose preset"));
   const row = screen
-    .getByRole("button", { name: "Use Gentle fix" })
+    .getByRole("button", { name: "Use As played" })
     .closest(".editor-preset-option");
   expect(row?.getAttribute("data-selected")).toBe("false");
   expect(row?.textContent).toContain("Base preset");
-  fireEvent.click(screen.getByRole("button", { name: "Use Gentle fix" }));
+  fireEvent.click(screen.getByRole("button", { name: "Use As played" }));
   fireEvent.click(screen.getByLabelText("Choose preset"));
   expect(
-    screen.getByRole("button", { name: "Use Gentle fix" }).closest(".editor-preset-option")
+    screen.getByRole("button", { name: "Use As played" }).closest(".editor-preset-option")
       ?.textContent,
   ).toContain("Applied");
 });
@@ -135,26 +138,29 @@ it("keeps control explanations in tooltips without a separate help line", () => 
 });
 it("reveals presets and tuning groups only when requested", () => {
   render(<Harness />);
-  expect(screen.queryByRole("button", { name: "Use Clean" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use Auto timing" })).toBeNull();
   expect(screen.queryByLabelText("Minimum note length")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Detection" }));
   expect(screen.getByLabelText("Minimum note length")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Rhythm" }));
   expect(screen.getByLabelText("Choose timing grid")).toBeTruthy();
-  fireEvent.click(screen.getByText("Custom (from Gentle fix)"));
-  for (const preset of Object.values(PRESETS))
-    expect(screen.getByRole("button", { name: `Use ${preset.label}` })).toBeTruthy();
+  fireEvent.click(screen.getByText("Custom (from As played)"));
+  for (const preset of Object.values(PRESETS)) {
+    const option = screen.queryByRole("button", { name: `Use ${preset.label}` });
+    if (preset.kind === "retired") expect(option).toBeNull();
+    else expect(option).toBeTruthy();
+  }
 });
 
 it("keeps preset previews open for comparing alternatives, and dismisses outside", async () => {
   const user = userEvent.setup();
   render(<Harness />);
   fireEvent.click(screen.getByLabelText("Choose preset"));
-  fireEvent.click(screen.getByRole("button", { name: "Play Clean" }));
-  expect(screen.getByRole("button", { name: "Use Clean" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Play Dreamy" }));
+  fireEvent.click(screen.getByRole("button", { name: "Play Auto timing" }));
+  expect(screen.getByRole("button", { name: "Use Auto timing" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Play Major" }));
   await user.click(document.body);
-  expect(screen.queryByRole("button", { name: "Use Clean" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Use Auto timing" })).toBeNull();
 });
 it("previews discrete tuning options before applying them", () => {
   preview.mockClear();

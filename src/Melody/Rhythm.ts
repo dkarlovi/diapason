@@ -32,6 +32,20 @@ export function gridLag(notes: NoteEvent[], timing: { bpm: number }, subdivision
   phase -= Math.round(phase);
   return phase * beat;
 }
+/**
+ * A displaced onset that lands on or before its predecessor returns both notes to their ordered
+ * base timing, so a dense passage loses its feel locally instead of the whole take losing it.
+ */
+function withoutCollisions(displaced: number[], base: number[]): number[] {
+  const starts = displaced.slice();
+  for (let i = 1; i < starts.length; i++)
+    if (starts[i]! <= starts[i - 1]! && (starts[i] !== base[i] || starts[i - 1] !== base[i - 1])) {
+      starts[i] = base[i]!;
+      starts[i - 1] = base[i - 1]!;
+      i = Math.max(0, i - 2);
+    }
+  return starts;
+}
 export function applyFeel(notes: NoteEvent[], knobs: Knobs, timing: { bpm: number }): NoteEvent[] {
   const candidate = knobs.grid ? 60 / timing.bpm / knobs.grid : 0;
   const step = candidate > 0 && Number.isFinite(candidate) ? candidate : 0;
@@ -43,7 +57,7 @@ export function applyFeel(notes: NoteEvent[], knobs: Knobs, timing: { bpm: numbe
   const base = aligned.map(
     (note, i) => note.start + (gridded[i]!.start - note.start) * knobs.gridPull,
   );
-  let starts = base.map((start, i) => {
+  const displaced = base.map((start, i) => {
     if (!step) return start;
     const position = gridded[i]!.start / step;
     // Collision fallbacks are intentionally off-grid and retain performed timing.
@@ -61,9 +75,7 @@ export function applyFeel(notes: NoteEvent[], knobs: Knobs, timing: { bpm: numbe
         (anticipate ? knobs.syncopation * Math.min(step, (knobs.grid * step) / 2) : 0),
     );
   });
-  // Dense passages may not have room for displacement. Preserve their ordered
-  // base timing rather than deleting notes or changing their sequence.
-  if (starts.some((start, i) => i > 0 && start <= starts[i - 1]!)) starts = base;
+  const starts = withoutCollisions(displaced, base);
   return notes.map((note, i) => {
     const start = starts[i]!;
     const duration =

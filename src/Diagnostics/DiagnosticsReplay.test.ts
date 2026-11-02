@@ -17,7 +17,11 @@ async function sample() {
       Float32Array.from({ length: 8000 }, (_, i) => 0.1 * Math.sin((2 * Math.PI * 700 * i) / 8000)),
     ),
   );
-  const rec = recording({ sampleRate: 8000, quantize: { on: false, subdivision: 2 } });
+  const rec = recording({
+    sampleRate: 8000,
+    quantize: { on: false, subdivision: 2 },
+    melody: { preset: "clean", overrides: {}, key: "auto" },
+  });
   const frames = analyzeRecording(pcm, rec.sampleRate, rec);
   return diagnosticSnapshot(makeReportInput(rec, frames, qualityStats(frames, pcm)), pcm);
 }

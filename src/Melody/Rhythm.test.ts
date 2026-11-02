@@ -42,6 +42,23 @@ it("syncopation anticipates some on-beat onsets by one subdivision", () => {
   ).toBeGreaterThanOrEqual(2);
   expect(notes).toHaveLength(8);
 });
+it("a colliding anticipation keeps its own base timing without cancelling the others", () => {
+  const notes = applyFeel(
+    [note(0, 0.2), note(0.25, 0.2), note(0.5, 0.2), note(1, 0.2), note(1.5, 0.2)],
+    { ...neutral, grid: 2, gridPull: 1, syncopation: 1 },
+    timing,
+  );
+  expect(notes.map((n) => n.start)).toEqual([0, 0.25, 0.5, 1, 1.25]);
+});
+it("a colliding swing keeps its own base timing without cancelling the others", () => {
+  const notes = applyFeel(
+    [note(0.125, 0.02), note(0.15, 0.1), note(0.375, 0.1)],
+    { ...neutral, grid: 4, gridPull: 0, swing: 0.5 },
+    timing,
+  );
+  expect(notes[0]!.start).toBe(0.125);
+  expect(notes[2]!.start).toBeCloseTo(0.4375);
+});
 it("articulation shortens or extends without overlapping the next onset", () => {
   expect(applyFeel([note(0)], { ...neutral, articulation: 0.5 }, timing)[0]!.duration).toBe(0.2);
   const notes = applyFeel([note(0, 0.5), note(0.55)], { ...neutral, articulation: 1.2 }, timing);
