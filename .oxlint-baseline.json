@@ -15,6 +15,9 @@
   "src/Features/Editor/EditorCanvas.tsx": {
     "react(refs)": 3
   },
+  "src/Features/Editor/EditorTools.tsx": {
+    "react(jsx-no-constructed-context-values)": 1
+  },
   "src/Features/Editor/NoteDetail.tsx": {
     "react(refs)": 1
   },
@@ -71,5 +74,8 @@
   },
   "src/Features/Library/useWaveformBackfill.ts": {
     "react-hooks(exhaustive-deps)": 1
+  },
+  "src/Studio/useStudioMode.tsx": {
+    "react(jsx-no-constructed-context-values)": 2
   }
 }

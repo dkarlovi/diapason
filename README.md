@@ -374,6 +374,19 @@ npm run format:check # verify formatting
 npm run check     # typecheck + lint + names + arch + structure + format check + Fallow + tests + build
 ```
 
+React linting checks hooks, render purity, refs, immutable state, component identity,
+DOM properties, controlled checkboxes, stable prop defaults, and context values.
+Existing findings are recorded in `.oxlint-baseline.json`; new findings fail
+`npm run lint`, and fixes require lowering the baseline.
+
+React Compiler runs on application components and hooks in development, production
+builds, and Vitest. The shared Vite configuration applies the same Babel compiler
+options to browser and test transforms. Tests and framework-free audio/MIDI code
+are excluded from compilation. `npm test` exercises compiled application code and
+includes a pipeline check that verifies compiler output for both environments.
+Existing Rules of React violations can cause individual components or hooks to be
+skipped; lowering the lint baseline increases the code eligible for optimization.
+
 The duplication check normalizes renamed variables and changed literals. It allows
 zero matches and needs no baseline. Fallow's separate model-backed `similar-code` command can
 suggest functions with different structures for manual review, but is not a CI gate.

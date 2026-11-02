@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { PIPELINE_VERSION } from "./src/Diagnostics/BuildInfo.ts";
 
@@ -39,6 +40,12 @@ export default defineConfig(({ command, mode }) => ({
   },
   plugins: [
     react(),
+    // Tests use Vite's server transforms, so compilation must apply to both environments.
+    babel({
+      include: /[/\\]src[/\\](App|Features|Studio|UI)[/\\].*\.[jt]sx?$/,
+      exclude: /\.test\./,
+      plugins: [["babel-plugin-react-compiler", { target: "19" }]],
+    }),
     tailwindcss(),
     {
       name: "embed-playground",
@@ -51,7 +58,9 @@ export default defineConfig(({ command, mode }) => ({
       },
     },
   ],
+  optimizeDeps: { include: ["react/compiler-runtime"] },
   test: {
+    exclude: [...configDefaults.exclude, ".claude/worktrees/**"],
     server: {
       deps: {
         // Material Color Utilities 0.4.0 ships extensionless ESM imports that Node cannot resolve.

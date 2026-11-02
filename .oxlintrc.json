@@ -8,6 +8,14 @@
     "react/refs": "error",
     "react/set-state-in-effect": "error",
     "react/immutability": "error",
+    "react/no-unknown-property": "error",
+    "react/checked-requires-onchange-or-readonly": "error",
+    "react/no-unstable-nested-components": "error",
+    "react/no-object-type-as-default-prop": "error",
+    "react/style-prop-object": "error",
+    "react/capitalized-calls": "error",
+    "react/unsupported-syntax": "error",
+    "react/jsx-no-constructed-context-values": "error",
     "local/no-narrative-comments": "error"
   }
 }
