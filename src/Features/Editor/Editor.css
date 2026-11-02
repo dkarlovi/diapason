@@ -401,15 +401,23 @@
   flex-direction: column;
   gap: 8px;
 }
-.melody-controls .ctl {
+.melody-controls .ctl,
+.melody-controls .editor-preset-field {
   display: grid;
   grid-template-columns: minmax(72px, 1fr) minmax(40px, 1fr) 2.75rem 28px;
   gap: 6px;
   align-items: center;
 }
+.melody-controls .editor-preset-field {
+  margin-bottom: 0;
+}
+.melody-controls .editor-select-trigger {
+  grid-column: 2 / 4;
+}
 .melody-controls .val {
   grid-column: 3;
   grid-row: 1;
+  text-align: right;
   font-size: 0.75rem;
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;

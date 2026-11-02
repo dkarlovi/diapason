@@ -74,7 +74,9 @@ include **Open**. Playback, deletion, duplication, and export errors use the sam
 feedback. Notifications dismiss after 6 seconds (8 with an action, 10 for errors)
 and pause while hovered or focused. Editor save failures retain their persistent
 Retry/Reload controls. Tune's Reset sits beside its heading so the scrollable
-controls have more room on small screens. On short phone landscape screens, Tune
+controls have more room on small screens. Tuning category dropdowns align with
+the sliders and their reset buttons; slider values align on the right so percentage
+signs line up across rows. On short phone landscape screens, Tune
 can extend over the zoom toolbar to make more room.
 
 The **Recording workstation** uses a seed-generated theme (blue & slate by default) that follows your system's

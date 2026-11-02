@@ -450,6 +450,11 @@
         "name": "The Canvas Space Rule",
         "body": "Controls must not push the signal or melody out of the viewport. Dense toolboxes scroll internally; work surfaces retain their space.",
         "section": "layout"
+      },
+      {
+        "name": "The Control Alignment Rule",
+        "body": "Design widgets for likely neighbors and stacks, including responsive reflow and conditional content. Align by role: labels and widget starts on the left, comparable numeric readouts and common units on the right, icons centered in stable action slots. Use tabular numerals; align decimal points when varying precision needs comparison. Within each group, share columns and row gaps across input types. Dropdowns may span widget and value columns while preserving widget-start and action alignment. Reserve action slots and wrap long content without shifting columns. Preserve meaningful alignment in each responsive stack.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -457,13 +462,15 @@
       "**Do** reuse semantic theme tokens, shared controls, and the pitch canvas.",
       "**Do** keep original audio and MIDI aligned in time.",
       "**Do** retain keyboard focus, accessible names, and reduced-motion behavior.",
-      "**Do** preserve Record/Stop size and position through the folding transition."
+      "**Do** preserve Record/Stop size and position through the folding transition.",
+      "**Do** verify mixed control alignment in a browser at default/minimum panel widths and phone portrait/landscape; follow DESIGN.md control layout review."
     ],
     "donts": [
       "**Don't** duplicate the workstation name as a second heading.",
       "**Don't** introduce a separate visual system for recording and editing.",
       "**Don't** replace textual state feedback with color alone.",
-      "**Don't** couple live capture's rendering loop to the editor's playback lifecycle."
+      "**Don't** couple live capture's rendering loop to the editor's playback lifecycle.",
+      "**Don't** approve layout polish with column drift, ragged numeric/unit edges, inconsistent row gaps, overlap, or displaced Reset/actions; report these as blocking design-review findings with browser evidence."
     ]
   }
 }
