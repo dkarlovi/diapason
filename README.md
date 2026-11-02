@@ -340,6 +340,10 @@ or HTTPS. Audio and recordings remain local in IndexedDB.
 
 Requires Node 22.18+.
 
+Dependencies use stable npm releases, with exact resolved versions committed in
+`package-lock.json`. Node.js type definitions track the latest stable release;
+runtime scripts must remain compatible with Node 22.18+ and CI runs on Node 22.
+
 ```bash
 npm ci
 npm run dev      # opens http://localhost:5173/diapason/
@@ -406,6 +410,9 @@ workflow run) also deploy `dist/` to <https://dkarlovi.github.io/diapason/>.
 GitHub Pages must use **GitHub Actions** as its publishing source in the
 repository's **Settings → Pages**. The workflow uses Node 22 and `npm ci` with
 the committed lockfile; no deployment secrets are needed.
+Production builds split npm dependencies into a content-hashed vendor bundle,
+separate from application code, so browsers can reuse cached dependencies across
+application updates. The analysis worker remains a separate bundle.
 To block merges until checks pass, require the `build` job in the `main` branch protection rule.
 
 Vite's base path is `/diapason/` so built assets load from the project URL.

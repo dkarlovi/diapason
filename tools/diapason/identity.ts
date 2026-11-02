@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
-import type { BinaryLike } from "node:crypto";
 import { join } from "node:path";
 import type { InputIdentity } from "../../src/Inspection/Inspection.type.ts";
-export const digest = (value: BinaryLike) => createHash("sha256").update(value).digest("hex");
+export const digest = (value: string | NodeJS.ArrayBufferView) =>
+  createHash("sha256").update(value).digest("hex");
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") {
