@@ -22,22 +22,42 @@ function setup(onRender = () => {}, height = 500) {
   const rollRef = { current: canvas };
   const traceRef = { current: null };
   const playhead = createPlayheadStore();
-  const result = renderHook(() => {
-    onRender();
-    return useEditorPlot({
-      record: { id: "one", durationSec: 20 } as Recording,
-      frames: [],
-      notes: [],
-      muted: [],
-      grid: 0,
-      playhead,
-      rollRef,
-      traceRef,
-      claimsPointer: () => false,
-    });
-  });
+  const result = renderHook(
+    ({ id }) => {
+      onRender();
+      return useEditorPlot({
+        record: { id, durationSec: 20 } as Recording,
+        frames: [],
+        notes: [],
+        muted: [],
+        grid: 0,
+        playhead,
+        rollRef,
+        traceRef,
+        claimsPointer: () => false,
+      });
+    },
+    { initialProps: { id: "one" } },
+  );
   return { canvas, playhead, ...result };
 }
+it("preserves the viewport for recording edits and resets both axes for another recording", () => {
+  const { result, rerender } = setup();
+  const fitted = result.current.view;
+  act(() => {
+    result.current.zoomTime(4);
+    result.current.setPan(5);
+    result.current.zoomPitch(2);
+    result.current.revealPitch(100, 0);
+  });
+  const changed = result.current.view;
+  expect(changed.tMin).toBeGreaterThan(fitted.tMin);
+  expect(changed.midiMax - changed.midiMin).toBeLessThan(fitted.midiMax - fitted.midiMin);
+  rerender({ id: "one" });
+  expect(result.current.view).toEqual(changed);
+  rerender({ id: "two" });
+  expect(result.current.view).toEqual(fitted);
+});
 it("zooms each canvas axis with its wheel modifier and prevents browser zoom", () => {
   const { canvas, result } = setup();
   const wheel = new WheelEvent("wheel", { ctrlKey: true, deltaY: -100, cancelable: true });

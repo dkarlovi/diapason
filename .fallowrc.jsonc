@@ -1,8 +1,8 @@
 // The npm scripts still pass flags this format cannot express:
-//   dupes/health  --baseline <file>        baseline files for whole-project runs
-//   dupes/health  --fail-on-stale-baseline fail when a baseline entry matches no finding
+//   health        --baseline <file>        baseline file for whole-project runs
+//   health        --fail-on-stale-baseline fail when a baseline entry matches no finding
 //   dupes         --fail-on-issues
-//   dupes/audit   --fail-on-baseline-growth --baseline-base origin/main
+//   audit         --fail-on-baseline-growth --baseline-base origin/main
 //   audit         --base HEAD^
 {
   // The local oxlint plugin is loaded from .oxlintrc.json, not imported.

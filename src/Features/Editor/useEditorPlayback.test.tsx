@@ -198,6 +198,8 @@ it("stops on output changes, recording changes and unmount and unsubscribes", as
   hook.rerender({ id: "two" });
   await waitFor(() => expect(hook.result.current.record?.id).toBe("two"));
   expect(state.handles[1]?.stop).toHaveBeenCalledOnce();
+  expect(hook.result.current.playing).toBeNull();
+  expect(hook.result.current.playhead.getState().position).toBeNull();
   await act(async () => hook.result.current.togglePlayback("audio"));
   hook.unmount();
   expect(state.handles[2]?.stop).toHaveBeenCalledOnce();

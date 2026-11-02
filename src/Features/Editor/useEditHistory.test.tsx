@@ -8,7 +8,7 @@ import { recording } from "../../../tests/support/recording";
 import type { Recording } from "../../Recording/Recording.type";
 import { captureEditSnapshot } from "../../Editing/EditState";
 afterEach(cleanup);
-function harness(initial: Recording) {
+function useHarness(initial: Recording) {
   const [record, replaceRecord] = useState(initial);
   const history = useEditHistory({ record, replaceRecord, beforeChange: () => {} });
   return { record, ...history };
@@ -22,7 +22,7 @@ it("walks edits and reset without reverting later metadata", async () => {
     },
   });
   await putRecording(initial);
-  const { result } = renderHook(() => harness(initial));
+  const { result } = renderHook(() => useHarness(initial));
   act(() =>
     result.current.change("Reset all note edits", (r) => ({
       ...r,
@@ -49,7 +49,7 @@ it("walks edits and reset without reverting later metadata", async () => {
 it("discards drafts first and handles batched edits using current refs", async () => {
   const initial = recording({ id: "batch-hook", play: { instrument: "beep", octave: 0 } });
   await putRecording(initial);
-  const { result } = renderHook(() => harness(initial));
+  const { result } = renderHook(() => useHarness(initial));
   act(() => {
     result.current.change("Octave", (r) => ({
       ...r,
@@ -77,7 +77,7 @@ it("does not manufacture a commit under StrictMode", async () => {
   const initial = recording({ id: "strict-hook" });
   await putRecording(initial);
   const wrapper = ({ children }: PropsWithChildren) => <StrictMode>{children}</StrictMode>;
-  const { result } = renderHook(() => harness(initial), { wrapper });
+  const { result } = renderHook(() => useHarness(initial), { wrapper });
   await waitFor(() => expect(result.current.current).not.toBeNull());
   expect(result.current.canUndo).toBe(false);
   expect((await getRecording(initial.id))?.editHead).toBeUndefined();
@@ -87,7 +87,7 @@ it("accepts the first edit as soon as the loaded controls reach the layout phase
   const initial = recording({ id: "first-visible-edit" });
   await putRecording(initial);
   const { result } = renderHook(() => {
-    const value = harness(initial);
+    const value = useHarness(initial);
     useLayoutEffect(() => {
       value.change("Change octave", (r) => ({ ...r, play: { instrument: "flute", octave: -1 } }));
     }, []);

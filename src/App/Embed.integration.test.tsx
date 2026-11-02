@@ -16,12 +16,25 @@ function CaptureRoute() {
     </>
   );
 }
+function TuneRoute() {
+  const location = useLocation();
+  return (
+    <>
+      <p>
+        Tune {location.search}
+        {location.hash}
+      </p>
+      <Link to="/">Library attempt</Link>
+    </>
+  );
+}
 function renderStudio(entry: string) {
   return render(
     <MemoryRouter initialEntries={[entry]}>
       <StudioBoundary>
         <Routes>
           <Route path="/new" element={<CaptureRoute />} />
+          <Route path="/tune" element={<TuneRoute />} />
           <Route
             path="/recording/:id"
             element={
@@ -57,6 +70,21 @@ it("retains the standalone Library", () => {
   renderStudio("/");
   expect(screen.getByText("Library")).toBeTruthy();
 });
+
+it.each([
+  ["/tune?embed=1#tune=example", "Tune ?embed=1&tuneEmbed=1#tune=example"],
+  ["/recording/take?embed=1&tuneEmbed=1", "Editor"],
+])(
+  "keeps a locked embed at its entry after attempting Library navigation from %s",
+  async (entry, expected) => {
+    renderStudio(entry);
+    expect(screen.getByText(expected)).toBeTruthy();
+    await userEvent.click(screen.getByRole("link", { name: "Library attempt" }));
+    expect(screen.getByText(expected)).toBeTruthy();
+    expect(screen.queryByText("Library")).toBeNull();
+    expect(screen.queryByText(/^Capture/)).toBeNull();
+  },
+);
 
 it("retains canonical theme seeds and a forced scheme through query-less navigation", async () => {
   const theme = "AQGqu8w";

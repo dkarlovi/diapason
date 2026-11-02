@@ -72,7 +72,8 @@ Shared notifications appear in the center of all three screens with a translucen
 surface, status icon, and Dismiss button. Saved takes and single-recording imports
 include **Open**. Playback, deletion, duplication, and export errors use the same
 feedback. Notifications dismiss after 6 seconds (8 with an action, 10 for errors)
-and pause while hovered or focused. Editor save failures retain their persistent
+and pause while hovered or focused. Hiding a notification clears its pause state,
+so the next notification starts its own dismissal timer. Editor save failures retain their persistent
 Retry/Reload controls. Tune's Reset sits beside its heading so the scrollable
 controls have more room on small screens. Tuning category dropdowns align with
 the sliders and their reset buttons; slider values align on the right so percentage
@@ -373,18 +374,31 @@ npm run format:check # verify formatting
 npm run check     # typecheck + lint + names + arch + structure + format check + Fallow + tests + build
 ```
 
-The duplication check normalizes renamed variables and changed literals. Its baseline
-is empty; new matches fail the check. Fallow's separate model-backed `similar-code` command can
+React linting checks hooks, render purity, refs, immutable state, component identity,
+DOM properties, controlled checkboxes, stable prop defaults, and context values.
+Existing findings are recorded in `.oxlint-baseline.json`; new findings fail
+`npm run lint`, and fixes require lowering the baseline.
+
+React Compiler runs on application components and hooks in development, production
+builds, and Vitest. The shared Vite configuration applies the same Babel compiler
+options to browser and test transforms. Tests and framework-free audio/MIDI code
+are excluded from compilation. `npm test` exercises compiled application code and
+includes a pipeline check that verifies compiler output for both environments.
+Existing Rules of React violations can cause individual components or hooks to be
+skipped; lowering the lint baseline increases the code eligible for optimization.
+
+The duplication check normalizes renamed variables and changed literals. It allows
+zero matches and needs no baseline. Fallow's separate model-backed `similar-code` command can
 suggest functions with different structures for manual review, but is not a CI gate.
 The development CLI is a support entry in Fallow's graph, keeping its Node-only
 libraries in `devDependencies` while browser runtime imports remain checked.
 The audit also blocks new dead code and complexity findings in changed files, and
 `npm run health` blocks them across the whole project. The health baseline records the
-existing hotspots in `useEditor`, `useCapture`, `Pitch` and `Trace` for later
-refactoring; CSS findings are advisory while styling work is pending. Both baseline
-gates also fail when an entry matches no current finding, so a moved file or a fixed
+existing hotspots in `useEditor`, `useCapture` and `Pitch` for later
+refactoring; CSS findings are advisory while styling work is pending. The health and
+oxlint baseline gates also fail when an entry matches no current finding, so a moved file or a fixed
 hotspot forces the baseline to be updated instead of silently going stale. The
-advisory metrics report stays available as `npm run metrics:coverage`. Fallow compares
+advisory metrics report stays available as `npm run metrics:coverage`. Fallow audit compares
 baseline growth with `origin/main`; audit compares with `HEAD^`, the base of
 GitHub's pull request merge commit and the previous `main` commit after merge.
 Run checks from a Git checkout with both refs available.
