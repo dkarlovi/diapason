@@ -46,6 +46,13 @@ at bottom right; metadata and note details are overlays, never dedicated rows.
 
 ## Controls are a toolbox
 
+Design widgets for the stacks they may appear in, including responsive and
+conditional layouts. Align by role: labels and widget starts on the left,
+comparable numeric values and common units on the right, and actions in stable
+slots. Preserve these relationships when rows wrap or controls change state.
+The [Control Alignment Rule](../DESIGN.md#shared-controls) defines the shared
+layout and browser review requirements.
+
 The recording wizard and editor controls share a visual language: panel framing,
 headings, fields, spacing, status, and action hierarchy. Controls support the
 canvas and must not push it out of the viewport as their content grows. Input

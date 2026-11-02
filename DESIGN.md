@@ -203,6 +203,44 @@ control with quiet resting chrome; labels are noninteractive. The confirmed full
 retain 44px touch targets. Undo and Redo remain on the MIDI canvas, preserving
 space for the scrollable tuning controls.
 
+**The Control Alignment Rule.** Design widgets for the groups and stacks they can
+appear in, including stacks formed by responsive reflow or conditional content.
+Choose alignment by the role of each element: left-align labels and text inputs,
+align widget starts, right-align comparable numeric readouts, and give trailing
+Reset/actions a consistent column. Use tabular numerals for changing measurements;
+keep common units such as percentage signs on the same right edge. Where decimal
+precision varies and comparison matters, align decimal points and keep units in a
+stable slot. Center icons within their action slots.
+
+Within a control group, these roles follow shared columns across sliders,
+dropdowns, and other input types. A dropdown may span the widget and value columns;
+its left edge and Reset column still align with neighboring sliders. Use one row
+spacing rhythm. Reserve action slots when a control is disabled or an action is
+hidden, and let long labels or selected values wrap without shifting the columns.
+Distinct groups may use different grids when their content calls for it.
+Responsive layouts may change the grid, but preserve meaningful alignment within
+each resulting stack. Assess widgets beside their likely neighbors, rather than
+only as isolated components.
+
+### Control layout review
+
+Treat visible column drift, inconsistent row gaps, overlapping controls, and
+ragged numeric/unit edges, and Reset/actions displaced by input type as
+**blocking design-review findings**,
+including when every control still works. Report the affected group, viewport or
+panel width, and control/state; include a screenshot or measured browser bounds.
+Do not approve layout polish while these findings remain unresolved.
+
+Inspect mixed control types together in a rendered browser, including each affected
+tuning category. For Tune, cover its default 360px and minimum 286px desktop widths,
+phone portrait, and short phone landscape. Check long selected values and disabled
+controls as applicable, including stacks created by responsive reflow. Compare
+label and widget starts, numeric/unit edges, and action columns, allowing
+subpixel rounding; equal widget widths are not required when a dropdown spans the
+value column. Static CSS checks and jsdom tests do not establish rendered alignment.
+Use browser geometry assertions for repeatable cases when browser test infrastructure
+is available; otherwise record the browser review evidence explicitly.
+
 ### Pitch canvas
 
 `src/Studio/PitchCanvas.tsx` is the common native canvas for live recording,

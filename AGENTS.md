@@ -66,6 +66,20 @@ If new behavior needs another parameter or mode, expose it as a slider, toggle, 
 
 Use Vitest and React Testing Library. Name tests `*.test.ts` or `*.test.tsx`; use `*.integration.test.tsx` for integration scenarios. Cover observable behavior and regressions, mocking browser audio or MIDI APIs where needed. Run a focused test with `npm test -- src/Melody/Key.test.ts`. Coverage includes all production TypeScript; no percentage threshold is currently enforced.
 
+## UI Review
+
+For changes to controls or layout, apply the Control Alignment Rule and control
+layout review in [DESIGN.md](DESIGN.md#control-layout-review). Inspect mixed input
+types together, including affected tuning categories, at default and minimum panel
+widths and phone portrait/landscape, including stacks created by responsive reflow
+or conditional content. Check alignment by role: labels and widget starts,
+right-aligned comparable numbers and units, and stable action slots. Treat column
+drift, ragged numeric/unit edges, inconsistent row spacing, overlap, and displaced
+Reset/actions as blocking design-review findings even when
+functionality passes. Include the affected state and browser screenshot or geometry
+evidence. If browser verification is unavailable, report that gap; do not claim
+visual verification from static CSS or jsdom checks.
+
 ## Commit & Pull Request Guidelines
 
 Review and update `README.md` on every feature branch so it reflects the resulting app behavior, available features, setup instructions, and known limitations. Remove or revise roadmap ideas as they are implemented.
