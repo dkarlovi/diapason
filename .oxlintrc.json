@@ -16,6 +16,30 @@
     "react/capitalized-calls": "error",
     "react/unsupported-syntax": "error",
     "react/jsx-no-constructed-context-values": "error",
-    "local/no-narrative-comments": "error"
-  }
+    "local/no-narrative-comments": "error",
+    "local/no-preset-special-casing": [
+      "error",
+      {
+        "presetIds": [
+          "as-played",
+          "gentle",
+          "clean",
+          "keep-odd",
+          "auto-tune",
+          "happy",
+          "sad",
+          "dreamy",
+          "syncopated"
+        ],
+        "registries": ["src/Melody/Knobs.ts", "src/Tune/TuneFields.ts"],
+        "tables": ["PRESETS"]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "tests/**"],
+      "rules": { "local/no-preset-special-casing": "off" }
+    }
+  ]
 }

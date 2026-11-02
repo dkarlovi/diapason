@@ -1,3 +1,5 @@
+// @vitest-environment node
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { KNOB_DEFS, PRESETS, resolveKnobs, isKnobs } from "./Knobs";
 
@@ -75,5 +77,12 @@ describe("melody knobs", () => {
       expect(isKnobs(value)).toBe(false);
     expect(isKnobs({ keyPull: 0.3 })).toBe(true);
     expect(isKnobs({})).toBe(true);
+  });
+  it("lists every preset id for the preset special-casing lint rule", () => {
+    const config = JSON.parse(
+      readFileSync(new URL("../../.oxlintrc.json", import.meta.url), "utf8"),
+    ) as { rules: Record<string, [string, { presetIds: string[] }]> };
+    const [, options] = config.rules["local/no-preset-special-casing"]!;
+    expect([...options.presetIds].sort()).toEqual(Object.keys(PRESETS).sort());
   });
 });
