@@ -52,6 +52,12 @@ export default defineConfig(({ command, mode }) => ({
     },
   ],
   test: {
+    server: {
+      deps: {
+        // Material Color Utilities 0.4.0 ships extensionless ESM imports that Node cannot resolve.
+        inline: ["@material/material-color-utilities"],
+      },
+    },
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
@@ -61,6 +67,15 @@ export default defineConfig(({ command, mode }) => ({
     },
   },
   base: "/diapason/",
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: "vendor", test: /[\\/]node_modules[\\/]/ }],
+        },
+      },
+    },
+  },
   server: {
     // getUserMedia requires a secure context; localhost qualifies, so plain http is fine.
     host: "localhost",
