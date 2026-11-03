@@ -49,8 +49,11 @@ it("pans pitch only when a note would sit under a bottom overlay", () => {
   expect((view.midiMax + shift - 62) / 20).toBeCloseTo(0.3);
   expect(revealPitchShift(view, 80, 0)).toBeGreaterThan(0);
 });
-it("eases a transposition from one pitch to the other", () => {
-  expect(transposeFrame(0, -12, 0)).toEqual({ shift: 0, done: false });
-  expect(transposeFrame(0, -12, TRANSPOSE_MS / 2).shift).toBeCloseTo(-6);
-  expect(transposeFrame(0, -12, TRANSPOSE_MS)).toEqual({ shift: -12, done: true });
+it("eases a transposition out while the notes briefly lead toward the target", () => {
+  expect(transposeFrame(0, -12, 0, 0.5)).toEqual({ shift: 0, lead: -0, done: false });
+  const third = transposeFrame(0, -12, TRANSPOSE_MS / 3, 0.5);
+  expect(third.shift).toBeLessThan(-6);
+  expect(third.lead).toBeCloseTo(-0.5);
+  expect(transposeFrame(0, 12, TRANSPOSE_MS / 3, 0.5).lead).toBeCloseTo(0.5);
+  expect(transposeFrame(0, -12, TRANSPOSE_MS, 0.5)).toEqual({ shift: -12, lead: -0, done: true });
 });

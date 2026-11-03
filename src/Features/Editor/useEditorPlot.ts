@@ -89,7 +89,7 @@ function useTransposeMotion(redraw: RefObject<(tick?: boolean) => void>) {
   useEffect(() => () => cancelAnimationFrame(motion.current.frame), []);
   return useCallback(
     /** A new `key` (another recording) jumps straight to `target`. */
-    (target: number, key: string) => {
+    (target: number, key: string, lead: number) => {
       const state = motion.current;
       const now = performance.now();
       if (key !== state.key) Object.assign(state, { key, from: target, to: target, start: 0 });
@@ -108,7 +108,7 @@ function useTransposeMotion(redraw: RefObject<(tick?: boolean) => void>) {
         };
         state.frame = requestAnimationFrame(step);
       }
-      return transposeFrame(state.from, state.to, now - state.start);
+      return transposeFrame(state.from, state.to, now - state.start, lead);
     },
     [redraw],
   );
@@ -233,7 +233,8 @@ export function useEditorPlot({
       const { position } = playhead.getState();
       const beats = { bpm: record.bpm, beatsPerBar: record.beatsPerBar, subdivision: grid || 1 };
       const shared = { ...view, beats, ...(position === null ? {} : { playheadTime: position }) };
-      const shift = transposition(transpose, record.id);
+      // Half a note bar ahead of the scrolling axis while the notes travel.
+      const shift = transposition(transpose, record.id, (view.noteHeight ?? 1) / 2);
       drawVisible(
         traceRef.current,
         frames,
@@ -251,7 +252,7 @@ export function useEditorPlot({
           ...shiftView(shared, shift.shift),
           ...transposedLayer(
             { notes, muted, edited: edited ?? [], origins: origins ?? [] },
-            shift.shift,
+            shift.shift + shift.lead,
           ),
         },
         roll,

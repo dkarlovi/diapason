@@ -210,7 +210,7 @@ function transposedSetup() {
       .at(-1)?.[2] as TraceView | undefined;
   return { ...result, last };
 }
-it("scrolls the pitch axis past transposed notes", () => {
+it("scrolls the pitch axis past transposed notes as they lead toward the target", () => {
   vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
   try {
     const { result, rerender, last } = transposedSetup();
@@ -221,12 +221,14 @@ it("scrolls the pitch axis past transposed notes", () => {
     act(() => vi.advanceTimersByTime(200));
     const moving = last("roll")!;
     const onScreen = (view: TraceView) => view.notes![0]!.midi - view.midiMin;
-    expect(onScreen(moving)).toBeCloseTo(onScreen(before));
+    expect(onScreen(moving)).toBeLessThan(onScreen(before));
+    expect(onScreen(moving)).toBeGreaterThan(onScreen(before) - 0.68 / 2 - 0.01);
     expect(moving.midiMin).toBeLessThan(before.midiMin);
     expect(moving.midiMin).toBeGreaterThan(before.midiMin - 12);
     act(() => vi.advanceTimersByTime(400));
     const settled = last("roll")!;
     expect(settled.notes![0]).toMatchObject({ midi: 72, name: "C5" });
+    expect(onScreen(settled)).toBeCloseTo(onScreen(before));
     expect(settled.midiMin).toBeCloseTo(before.midiMin - 12);
     expect(last("trace")!.midiMin).toBeCloseTo(logical.midiMin);
   } finally {
