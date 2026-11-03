@@ -71,6 +71,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     id: string;
     label: string;
     applied: boolean;
+    play?: PlaySettings;
   } | null>(null);
   const recordRef = useRef<Recording | null>(null);
   const pcm = useRef(new Float32Array(0));
@@ -246,8 +247,9 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       const result = processRecording(target, frames);
       const previewId = `version-${version.id}`;
       setAudition(result);
-      setCandidate({ id: previewId, label: version.name, applied: false });
-      previewSequence(result.notes, previewId, undefined, 0, target.play ?? DEFAULT_PLAY);
+      const targetPlay = target.play ?? DEFAULT_PLAY;
+      setCandidate({ id: previewId, label: version.name, applied: false, play: targetPlay });
+      previewSequence(result.notes, previewId, undefined, 0, targetPlay);
     },
   });
   const showingPreview = /^(preset|key|knob|version)-/.test(previewId ?? "");
@@ -271,6 +273,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   const activeCandidate = candidate?.id === previewId ? candidate : null;
   const previewLabel = activeCandidate?.label ?? null;
   const previewApplied = activeCandidate?.applied ?? false;
+  const displayTranspose = 12 * (activeCandidate?.play ?? play).octave;
   const canExport =
     analysisReady && (previewLabel === null || previewApplied) && !versions.busy && !savingTune;
   useEffect(() => {
@@ -348,6 +351,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     edited,
     origins,
     grid: displayGrid,
+    transpose: displayTranspose,
     playhead,
     traceRef,
     rollRef,
@@ -575,6 +579,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     inactivePitchEditCount:
       processed?.editCoverage.filter((edit) => edit.status !== "active").length ?? 0,
     displayNotes,
+    displayTranspose,
     previewLabel,
     previewApplied,
     canUndo: history.canUndo,
@@ -603,6 +608,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
         id,
         label,
         applied: settings.instrument === play.instrument && settings.octave === play.octave,
+        play: settings,
       });
       previewSequence(notes, id, undefined, 0, settings);
     },

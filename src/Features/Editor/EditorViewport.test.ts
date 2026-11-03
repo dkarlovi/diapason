@@ -5,6 +5,8 @@ import {
   revealPitchShift,
   sidebarWidth,
   timeWindow,
+  transposeFrame,
+  TRANSPOSE_MS,
 } from "./EditorViewport";
 
 it("shares a finite window and pans far enough to uncover the end beneath Tune", () => {
@@ -46,4 +48,9 @@ it("pans pitch only when a note would sit under a bottom overlay", () => {
   // The note lands in the middle of the uncovered top 60%.
   expect((view.midiMax + shift - 62) / 20).toBeCloseTo(0.3);
   expect(revealPitchShift(view, 80, 0)).toBeGreaterThan(0);
+});
+it("eases a transposition from one pitch to the other", () => {
+  expect(transposeFrame(0, -12, 0)).toEqual({ shift: 0, done: false });
+  expect(transposeFrame(0, -12, TRANSPOSE_MS / 2).shift).toBeCloseTo(-6);
+  expect(transposeFrame(0, -12, TRANSPOSE_MS)).toEqual({ shift: -12, done: true });
 });

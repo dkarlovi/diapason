@@ -1,9 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { useEditorGestures } from "./useEditorGestures";
 import type { Recording } from "../../Recording/Recording.type";
-import type { Frame, NoteEvent } from "../../Melody/Notes";
+import { midiToName, type Frame, type NoteEvent } from "../../Melody/Notes";
 import { drawTrace, type NoteOrigin, type TraceLayer, type TraceView } from "../../Audio/Trace";
-import { fittedPitch, followPan, revealPitchShift, timeWindow, zoomedTime } from "./EditorViewport";
+import {
+  fittedPitch,
+  followPan,
+  revealPitchShift,
+  timeWindow,
+  transposeFrame,
+  zoomedTime,
+} from "./EditorViewport";
 import type { PlayheadStore } from "../../Playback/Playhead.store";
 
 interface Options {
@@ -14,6 +29,8 @@ interface Options {
   edited?: NoteEvent[];
   origins?: NoteOrigin[];
   grid: number;
+  /** Semitones between the logical notes and the pitch they sound at, drawn on the roll. */
+  transpose?: number;
   playhead: PlayheadStore;
   traceRef: RefObject<HTMLCanvasElement | null>;
   rollRef: RefObject<HTMLCanvasElement | null>;
@@ -21,6 +38,81 @@ interface Options {
 }
 
 const NO_FRAMES: Frame[] = [];
+
+function shiftView(view: TraceView, semitones: number): TraceView {
+  return { ...view, midiMin: view.midiMin + semitones, midiMax: view.midiMax + semitones };
+}
+
+function transposedLayer(
+  layer: Required<Pick<Options, "notes" | "muted" | "edited" | "origins">>,
+  semitones: number,
+) {
+  if (!semitones) return layer;
+  // Trace matches edited notes by identity, so each note maps to exactly one shifted copy.
+  const shifted = new Map<NoteEvent, NoteEvent>();
+  const at = (note: NoteEvent) => {
+    let copy = shifted.get(note);
+    if (!copy) {
+      const midi = note.midi + semitones;
+      copy = { ...note, midi, name: midiToName(midi) };
+      shifted.set(note, copy);
+    }
+    return copy;
+  };
+  return {
+    notes: layer.notes.map(at),
+    muted: layer.muted.map(at),
+    edited: layer.edited.map(at),
+    origins: layer.origins.map((origin) => ({
+      ...origin,
+      from: at(origin.from),
+      to: at(origin.to),
+    })),
+  };
+}
+
+function transposedFrames(frames: Frame[], semitones: number) {
+  if (!semitones) return frames;
+  const ratio = 2 ** (semitones / 12);
+  return frames.map((frame) =>
+    frame.freq === null ? frame : { ...frame, freq: frame.freq * ratio },
+  );
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
+/** Animates the roll from the previously drawn transposition to the current one. */
+function useTransposeMotion(redraw: RefObject<(tick?: boolean) => void>) {
+  const motion = useRef({ key: "", from: 0, to: 0, start: 0, frame: 0 });
+  useEffect(() => () => cancelAnimationFrame(motion.current.frame), []);
+  return useCallback(
+    /** A new `key` (another recording) jumps straight to `target`. */
+    (target: number, key: string) => {
+      const state = motion.current;
+      const now = performance.now();
+      if (key !== state.key) Object.assign(state, { key, from: target, to: target, start: 0 });
+      if (target !== state.to) {
+        const current = transposeFrame(state.from, state.to, now - state.start);
+        cancelAnimationFrame(state.frame);
+        Object.assign(state, {
+          from: prefersReducedMotion() ? target : current.shift,
+          to: target,
+          start: now,
+        });
+        const step = () => {
+          redraw.current(true);
+          if (!transposeFrame(state.from, state.to, performance.now() - state.start).done)
+            state.frame = requestAnimationFrame(step);
+        };
+        state.frame = requestAnimationFrame(step);
+      }
+      return transposeFrame(state.from, state.to, now - state.start);
+    },
+    [redraw],
+  );
+}
 
 function drawVisible(
   canvas: HTMLCanvasElement | null,
@@ -33,11 +125,10 @@ function drawVisible(
 
 function usePlotRedraw(
   draw: (tick?: boolean) => void,
+  redraw: RefObject<(tick?: boolean) => void>,
   follow: (position: number) => void,
   { playhead, traceRef, rollRef }: Pick<Options, "playhead" | "traceRef" | "rollRef">,
 ) {
-  const redraw = useRef(draw);
-  redraw.current = draw;
   const follower = useRef(follow);
   follower.current = follow;
   useEffect(() => draw(), [draw]);
@@ -49,7 +140,7 @@ function usePlotRedraw(
         if (position !== null) follower.current(position);
         redraw.current(true);
       }),
-    [playhead],
+    [playhead, redraw],
   );
   useEffect(() => {
     const update = () => redraw.current();
@@ -69,7 +160,7 @@ function usePlotRedraw(
       theme?.removeEventListener("change", update);
       forced?.removeEventListener("change", update);
     };
-  }, [traceRef, rollRef]);
+  }, [traceRef, rollRef, redraw]);
 }
 
 function useViewportAxes(currentRecordingId: string | undefined) {
@@ -96,6 +187,7 @@ export function useEditorPlot({
   edited,
   origins,
   grid,
+  transpose = 0,
   playhead,
   traceRef,
   rollRef,
@@ -109,10 +201,12 @@ export function useEditorPlot({
   const range = useMemo(() => fittedPitch([...notes, ...muted]), [notes, muted]);
   const view: TraceView = useMemo(() => {
     const span = Math.min(127, Math.max(4, (range.midiMax - range.midiMin) / pitchZoom));
-    const center = Math.max(
+    // The roll is framed at sounding pitch, so the MIDI range limits apply after transposing.
+    const sounding = Math.max(
       span / 2,
-      Math.min(127 - span / 2, (range.midiMin + range.midiMax) / 2 + pitchPan),
+      Math.min(127 - span / 2, (range.midiMin + range.midiMax) / 2 + transpose + pitchPan),
     );
+    const center = sounding - transpose;
     return {
       inset: true,
       pitchLabels: "all",
@@ -122,12 +216,14 @@ export function useEditorPlot({
       midiMin: center - span / 2,
       midiMax: center + span / 2,
     };
-  }, [duration, zoom, pan, visible, range, pitchZoom, pitchPan]);
+  }, [duration, zoom, pan, visible, range, pitchZoom, pitchPan, transpose]);
   const follow = (position: number) => {
     const next = followPan(duration, zoom, pan, position, visible);
     if (next !== pan) setPan(next);
   };
   const layers = useRef({ trace: {} as TraceLayer, roll: {} as TraceLayer });
+  const redraw = useRef<(tick?: boolean) => void>(() => {});
+  const transposition = useTransposeMotion(redraw);
   /** Ticks reuse the resolved palette; any other redraw (theme, resize, edits) re-reads it. */
   const draw = useCallback(
     (tick = false) => {
@@ -137,6 +233,7 @@ export function useEditorPlot({
       const { position } = playhead.getState();
       const beats = { bpm: record.bpm, beatsPerBar: record.beatsPerBar, subdivision: grid || 1 };
       const shared = { ...view, beats, ...(position === null ? {} : { playheadTime: position }) };
+      const shift = transposition(transpose, record.id);
       drawVisible(
         traceRef.current,
         frames,
@@ -149,13 +246,13 @@ export function useEditorPlot({
       );
       drawVisible(
         rollRef.current,
-        traceOverlay ? frames : NO_FRAMES,
+        traceOverlay ? transposedFrames(frames, shift.shift) : NO_FRAMES,
         {
-          ...shared,
-          notes,
-          muted,
-          ...(edited ? { edited } : {}),
-          ...(origins ? { origins } : {}),
+          ...shiftView(shared, shift.shift),
+          ...transposedLayer(
+            { notes, muted, edited: edited ?? [], origins: origins ?? [] },
+            shift.shift,
+          ),
         },
         roll,
       );
@@ -173,9 +270,14 @@ export function useEditorPlot({
       traceOverlay,
       traceRef,
       rollRef,
+      transpose,
+      transposition,
     ],
   );
-  usePlotRedraw(draw, follow, { playhead, traceRef, rollRef });
+  useLayoutEffect(() => {
+    redraw.current = draw;
+  }, [draw]);
+  usePlotRedraw(draw, redraw, follow, { playhead, traceRef, rollRef });
   const zoomTime = (factor: number, anchor = 0) => {
     const next = zoomedTime({ duration, zoom, pan, visible }, factor, anchor);
     setZoom(next.zoom);

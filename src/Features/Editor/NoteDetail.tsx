@@ -3,6 +3,7 @@ import { Minus, Play, Plus, RotateCcw, Square, Volume2, VolumeX } from "lucide-r
 import { Button } from "../../UI/Button";
 import { Popover, PopoverAnchor, PopoverContent } from "../../UI/Popover";
 import { traceHorizontalPadding } from "../../Audio/Trace";
+import { midiToName } from "../../Melody/Notes";
 import type { EditorState } from "./useEditor";
 import type { EditorLayout } from "./useEditorLayout";
 
@@ -41,7 +42,7 @@ export function NoteDetail({ state, layout }: { state: EditorState; layout: Edit
       aria-hidden="true"
     />
   );
-  const label = `Note #${state.selectedNoteId} ${note.name}`;
+  const label = `Note #${state.selectedNoteId} ${midiToName(note.midi + state.displayTranspose)}`;
   if (layout.mobile)
     return (
       <>
@@ -156,7 +157,7 @@ function NoteInspector({ state }: { state: EditorState }) {
       <div className="editor-note-properties">
         <NoteProperty
           label="Pitch"
-          value={note.name}
+          value={midiToName(note.midi + state.displayTranspose)}
           edited={state.selectedPitchEdited}
           decrease={{
             label: "Down one semitone",

@@ -976,7 +976,9 @@ settings to recover it; Recording actions shows an inactive pitch-edit count and
 Tune reset preserves manual edits. Pitch controls are disabled during tuning
 previews; Stop restores applied notes and selection. Playback octave shifts edited
 notes once, for browser playback, external MIDI playback, and MIDI downloads,
-without changing the roll or stored pitch. Original audio stays untouched. Timing and velocity
+without changing stored pitch. The roll and note details show the sounding pitch,
+including while an octave or version is previewed; on a change the pitch axis scrolls
+by the shift (instantly with reduced motion) while the original-audio trace stays put. Original audio stays untouched. Timing and velocity
 editing remain deferred.
 
 ## Runtime test coverage

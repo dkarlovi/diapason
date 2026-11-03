@@ -73,3 +73,11 @@ export function revealPitchShift(
   // Centre the note within the uncovered area: shift the view's top so it lands at clear / 2.
   return midi + (clear / 2) * span - view.midiMax;
 }
+
+export const TRANSPOSE_MS = 400;
+const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+/** One step of an animated transposition: notes and framing move together, so the axis scrolls. */
+export function transposeFrame(from: number, to: number, elapsed: number) {
+  const progress = Math.min(1, Math.max(0, elapsed / TRANSPOSE_MS));
+  return { shift: from + (to - from) * ease(progress), done: progress >= 1 };
+}
