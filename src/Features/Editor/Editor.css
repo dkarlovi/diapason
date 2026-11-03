@@ -351,9 +351,25 @@
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
-.preview-option-state {
-  color: var(--color-muted-foreground);
-  font-size: 0.75rem;
+/* Alternatives share one cell, so the slot is as wide as the widest and never resizes. */
+.preview-option-stack {
+  display: grid;
+  flex-shrink: 0;
+}
+.preview-option-stack > * {
+  grid-area: 1 / 1;
+}
+.preview-option-stack > [data-active="false"] {
+  visibility: hidden;
+}
+.preview-option-applied {
+  display: grid;
+  place-items: center;
+  color: var(--color-primary);
+}
+.preview-option-applied svg {
+  width: 16px;
+  height: 16px;
 }
 .editor-preset-option > [data-slot="button"] {
   flex-shrink: 0;
@@ -833,16 +849,10 @@
 .editor-preset-option[data-selected="true"] {
   background: var(--color-primary-muted);
 }
-.editor-preset-option[data-selected="true"] .preview-option-state {
-  color: var(--color-primary);
-}
 .editor-preset-option[data-previewing="true"] {
   background: var(--color-playback-muted);
   outline: 1px solid var(--color-playback);
   outline-offset: -1px;
-}
-.editor-preset-option[data-previewing="true"] .preview-option-state {
-  color: var(--color-playback);
 }
 .editor-workspace::after {
   content: "";

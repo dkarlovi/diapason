@@ -100,10 +100,7 @@ it("identifies a custom recipe's base without marking the plain preset applied",
   expect(row?.textContent).toContain("Base preset");
   fireEvent.click(screen.getByRole("button", { name: "Use As played" }));
   fireEvent.click(screen.getByLabelText("Choose preset"));
-  expect(
-    screen.getByRole("button", { name: "Use As played" }).closest(".editor-preset-option")
-      ?.textContent,
-  ).toContain("Applied");
+  expect(screen.getByRole("img", { name: "As played applied" }).dataset.active).toBe("true");
 });
 it("keeps automatic, suggested and all explicit key actions inside the key dropdown", () => {
   render(<Harness />);
