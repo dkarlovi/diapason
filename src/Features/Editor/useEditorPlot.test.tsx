@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useEditorPlot } from "./useEditorPlot";
 import type { Recording } from "../../Recording/Recording.type";
 import { createPlayheadStore } from "../../Playback/Playhead.store";
+import type { TraceView } from "../../Audio/Trace";
 
 const drawTrace = vi.hoisted(() => vi.fn());
 vi.mock("../../Audio/Trace", async (original) => ({
@@ -173,4 +174,78 @@ it("does not draw a track collapsed to zero height during panel transitions", ()
   act(() => playhead.getState().set(1));
   act(() => window.dispatchEvent(new Event("studio-theme-change")));
   expect(drawTrace).not.toHaveBeenCalled();
+});
+function transposedSetup() {
+  const canvas = (label: string) => {
+    const element = document.createElement("canvas");
+    element.dataset.label = label;
+    Object.defineProperties(element, {
+      clientWidth: { value: 1000 },
+      clientHeight: { value: 500 },
+    });
+    return element;
+  };
+  const traceRef = { current: canvas("trace") };
+  const rollRef = { current: canvas("roll") };
+  const note = { midi: 84, name: "C6", start: 1, duration: 1 };
+  const result = renderHook(
+    ({ transpose }) =>
+      useEditorPlot({
+        record: { id: "one", durationSec: 20, bpm: 120, beatsPerBar: 4 } as Recording,
+        frames: [],
+        notes: [note],
+        muted: [],
+        grid: 0,
+        transpose,
+        playhead: createPlayheadStore(),
+        rollRef,
+        traceRef,
+        claimsPointer: () => false,
+      }),
+    { initialProps: { transpose: 0 } },
+  );
+  const last = (label: string) =>
+    drawTrace.mock.calls
+      .filter(([target]) => (target as HTMLCanvasElement).dataset.label === label)
+      .at(-1)?.[2] as TraceView | undefined;
+  return { ...result, last };
+}
+it("scrolls the pitch axis past transposed notes as they lead toward the target", () => {
+  vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
+  try {
+    const { result, rerender, last } = transposedSetup();
+    const before = last("roll")!;
+    const logical = result.current.view;
+    rerender({ transpose: -12 });
+    expect(result.current.view.midiMin).toBeCloseTo(logical.midiMin);
+    act(() => vi.advanceTimersByTime(200));
+    const moving = last("roll")!;
+    const onScreen = (view: TraceView) => view.notes![0]!.midi - view.midiMin;
+    expect(onScreen(moving)).toBeLessThan(onScreen(before));
+    expect(onScreen(moving)).toBeGreaterThan(onScreen(before) - 0.68 / 2 - 0.01);
+    expect(moving.midiMin).toBeLessThan(before.midiMin);
+    expect(moving.midiMin).toBeGreaterThan(before.midiMin - 12);
+    act(() => vi.advanceTimersByTime(400));
+    const settled = last("roll")!;
+    expect(settled.notes![0]).toMatchObject({ midi: 72, name: "C5" });
+    expect(onScreen(settled)).toBeCloseTo(onScreen(before));
+    expect(settled.midiMin).toBeCloseTo(before.midiMin - 12);
+    expect(last("trace")!.midiMin).toBeCloseTo(logical.midiMin);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+it("jumps straight to the transposed pitch when motion is reduced", () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("reduced-motion"),
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  try {
+    const { rerender, last } = transposedSetup();
+    rerender({ transpose: -12 });
+    expect(last("roll")!.notes![0]).toMatchObject({ midi: 72, name: "C5" });
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

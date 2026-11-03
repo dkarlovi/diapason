@@ -4,7 +4,7 @@ import { EmbeddedRecordingActions } from "./EmbeddedRecordingActions";
 import { AnalysisProgress } from "../../Studio/AnalysisProgress";
 import { EditorHistoryActions } from "./EditorHistoryActions";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
-import { Download, Play, Square } from "lucide-react";
+import { CircleAlert, Download, Play, Square } from "lucide-react";
 import { Button } from "../../UI/Button";
 import { NoteDetail } from "./NoteDetail";
 import { EditorNavigation } from "./EditorNavigation";
@@ -126,6 +126,22 @@ function TrackDownload({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
     </Button>
   );
 }
+const ANALYSIS_DRIFT =
+  "This WAV's saved melody came from a different analysis. You hear the current result, and downloads include it.";
+/** Floats beside Play so it never moves the track actions. */
+function AnalysisDriftHint() {
+  return (
+    <span
+      className="editor-analysis-drift"
+      role="img"
+      tabIndex={0}
+      aria-label={ANALYSIS_DRIFT}
+      title={ANALYSIS_DRIFT}
+    >
+      <CircleAlert aria-hidden="true" />
+    </span>
+  );
+}
 function TrackActions({ kind, state, layout }: CanvasProps) {
   const { embedded } = useStudioMode();
   const playing = state.playing === kind;
@@ -151,6 +167,7 @@ function TrackActions({ kind, state, layout }: CanvasProps) {
           </Button>
         </>
       )}
+      {kind === "audio" && state.importAnalysisMismatch && <AnalysisDriftHint />}
       <Button
         className="editor-play playback-control"
         disabled={

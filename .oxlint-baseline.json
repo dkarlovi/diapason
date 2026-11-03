@@ -51,7 +51,7 @@
     "react-hooks(exhaustive-deps)": 1
   },
   "src/Features/Editor/useEditorPlot.ts": {
-    "react(refs)": 2
+    "react(refs)": 1
   },
   "src/Features/Editor/useEditorVersions.ts": {
     "react(set-state-in-effect)": 1,

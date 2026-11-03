@@ -1,4 +1,4 @@
-import { Play, Square } from "lucide-react";
+import { Check, Play, Square } from "lucide-react";
 import { Button } from "../../UI/Button";
 import { useId } from "react";
 
@@ -14,14 +14,10 @@ interface Props {
   onUse(): void;
   title?: string | undefined;
 }
+const BASE_HINT = "Base preset: Use replaces your adjustments";
 export function PreviewOption(props: Props) {
-  const stateId = useId();
-  const state = [
-    props.selected ? "Applied" : props.base ? "Base preset — Use replaces adjustments" : "",
-    props.previewing ? "Previewing" : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const hintId = useId();
+  const base = props.base && !props.selected;
   const action = props.previewing
     ? `Stop ${props.previewLabel.replace(/^(Play|Preview) /, "")}`
     : props.previewLabel;
@@ -33,10 +29,10 @@ export function PreviewOption(props: Props) {
     >
       <span className="preview-option-label" title={props.title}>
         {props.label}
-        {state && (
-          <small className="preview-option-state" id={stateId}>
-            {state}
-          </small>
+        {base && (
+          <span className="sr-only" id={hintId}>
+            {BASE_HINT}
+          </span>
         )}
       </span>
       <Button
@@ -47,16 +43,31 @@ export function PreviewOption(props: Props) {
         onClick={props.onPreview}
       >
         {props.previewing ? <Square aria-hidden="true" /> : <Play aria-hidden="true" />}
-        <span>{props.previewing ? "Stop" : "Preview"}</span>
+        <span className="preview-option-stack">
+          <span data-active={!props.previewing}>Preview</span>
+          <span data-active={props.previewing}>Stop</span>
+        </span>
       </Button>
-      <Button
-        disabled={props.disabled}
-        aria-label={props.useLabel}
-        aria-describedby={state ? stateId : undefined}
-        onClick={props.onUse}
-      >
-        Use
-      </Button>
+      <span className="preview-option-stack">
+        <Button
+          data-active={!props.selected}
+          disabled={props.disabled || props.selected}
+          aria-label={props.useLabel}
+          aria-describedby={base ? hintId : undefined}
+          title={base ? BASE_HINT : undefined}
+          onClick={props.onUse}
+        >
+          Use
+        </Button>
+        <span
+          className="preview-option-applied"
+          data-active={props.selected}
+          role="img"
+          aria-label={`${props.useLabel.replace(/^Use /, "")} applied`}
+        >
+          <Check aria-hidden="true" />
+        </span>
+      </span>
     </div>
   );
 }

@@ -274,8 +274,9 @@ or **Start fresh from audio**. No separate tune or MIDI import is needed. Fresh
 imports use capture defaults while keeping the received package as a reference.
 For an existing recording, open the local copy or explicitly **Import as copy**;
 imports never overwrite local work. With matching processing code, restoring the
-tune reproduces the edited melody and MIDI. If current analysis differs, the
-editor shows a notice and retains the original evidence for CLI inspection.
+tune reproduces the edited melody and MIDI. If current analysis differs, a warning
+icon beside the original recording's Play explains it on hover; the imported file keeps
+the original evidence for CLI inspection, and new downloads carry the current result.
 
 Capture provenance survives subsequent exports; current tune, evidence, and export
 provenance are refreshed. PCM samples remain unchanged, but the complete file may
@@ -976,7 +977,9 @@ settings to recover it; Recording actions shows an inactive pitch-edit count and
 Tune reset preserves manual edits. Pitch controls are disabled during tuning
 previews; Stop restores applied notes and selection. Playback octave shifts edited
 notes once, for browser playback, external MIDI playback, and MIDI downloads,
-without changing the roll or stored pitch. Original audio stays untouched. Timing and velocity
+without changing stored pitch. The roll and note details show the sounding pitch,
+including while an octave or version is previewed; on a change the pitch axis scrolls
+by the shift (instantly with reduced motion) while the original-audio trace stays put. Original audio stays untouched. Timing and velocity
 editing remain deferred.
 
 ## Runtime test coverage
