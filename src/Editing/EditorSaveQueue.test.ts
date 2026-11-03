@@ -4,12 +4,7 @@ import { getRecording, putRecording } from "../Recording/Recording.storage";
 import { recording } from "../../tests/support/recording";
 import { captureEditSnapshot } from "./EditState";
 import * as storage from "./Edit.storage";
-import {
-  createEditorWriter,
-  flushEditorSaves,
-  getEditorSaveStatuses,
-  retryEditorSaves,
-} from "./EditorSaveQueue";
+import { createEditorWriter, getEditorSaveStatuses, retryEditorSaves } from "./EditorSaveQueue";
 const commit = (id: string, octave = 0) => ({
   id,
   label: "Octave",
@@ -41,17 +36,21 @@ it("keeps a failed target retryable after editor release", async () => {
   expect((await getRecording("retry"))?.editHead?.commitId).toBe("c");
   expect(getEditorSaveStatuses().find((s) => s.recordingId === "retry")).toBeUndefined();
 });
-it("does not retry a stale writer against someone else's revision", async () => {
-  await putRecording(recording({ id: "conflict" }));
-  const first = createEditorWriter("conflict", null),
-    stale = createEditorWriter("conflict", null);
-  first.enqueue(commit("a"));
+it("lets the last writer win and reports idle only once its saves land", async () => {
+  await putRecording(recording({ id: "last-writer" }));
+  const first = createEditorWriter("last-writer", null),
+    second = createEditorWriter("last-writer", null);
+  first.enqueue(commit("a", -1));
+  expect(first.isIdle()).toBe(false);
   await first.flush();
+  expect(first.isIdle()).toBe(true);
+  second.enqueue(commit("b", -2));
+  await second.flush();
+  const stored = await getRecording("last-writer");
+  expect(stored?.editHead).toEqual({ commitId: "b", revision: 2 });
+  expect(stored?.play?.octave).toBe(-2);
+  first.adopt(stored!.editHead!);
+  expect(first.getHead()).toEqual({ commitId: "b", revision: 2 });
   first.release();
-  stale.enqueue(commit("b"));
-  await expect(stale.flush()).rejects.toMatchObject({ code: "conflict" });
-  await expect(stale.retry()).rejects.toMatchObject({ code: "conflict" });
-  expect((await getRecording("conflict"))?.editHead?.commitId).toBe("a");
-  await stale.stop();
-  await flushEditorSaves();
+  second.release();
 });

@@ -61,6 +61,7 @@ export default defineConfig(({ command, mode }) => ({
   optimizeDeps: { include: ["react/compiler-runtime"] },
   test: {
     exclude: [...configDefaults.exclude, ".claude/worktrees/**"],
+    setupFiles: ["tests/support/broadcast-channel.ts"],
     server: {
       deps: {
         // Material Color Utilities 0.4.0 ships extensionless ESM imports that Node cannot resolve.

@@ -1,11 +1,10 @@
 import { saveEditCommit } from "./Edit.storage";
 import type { EditHead } from "../Recording/RecordingEdit.type";
 import type { EditCommit, EditHistory } from "../Recording/RecordingEdit.type";
-import { EditStorageError } from "./EditStorageError";
 
 export interface EditorSaveState {
   recordingId: string;
-  state: "saved" | "saving" | "unsaved" | "conflict";
+  state: "saved" | "saving" | "unsaved";
   error: string | null;
 }
 export interface EditorWriter {
@@ -13,6 +12,9 @@ export interface EditorWriter {
   flush(): Promise<void>;
   retry(): Promise<void>;
   getHead(): EditHead | null;
+  /** Whether every local commit is stored, so stored state may replace the editor's. */
+  isIdle(): boolean;
+  adopt(head: EditHead | null): void;
   release(): void;
   stop(): Promise<void>;
 }
@@ -66,13 +68,10 @@ export function createEditorWriter(
       while (pending.length && !stopped) {
         const { commit, history } = pending.shift()!;
         try {
-          head = await saveEditCommit(recordingId, commit, head, history);
+          head = await saveEditCommit(recordingId, commit, history);
         } catch (error) {
           failure = error;
-          report(
-            error instanceof EditStorageError && error.code === "conflict" ? "conflict" : "unsaved",
-            error,
-          );
+          report("unsaved", error);
           return;
         }
       }
@@ -95,13 +94,16 @@ export function createEditorWriter(
       if (failure) throw failure;
     },
     async retry() {
-      if (failure instanceof EditStorageError && failure.code === "conflict") throw failure;
       if (running) await running;
       failure = undefined;
       pending = latest ? [latest] : [];
       await writer.flush();
     },
     getHead: () => head,
+    isIdle: () => !running && !pending.length && !failure,
+    adopt(next) {
+      head = next;
+    },
     release() {
       closed = true;
       if (!running && !failure && !pending.length) {

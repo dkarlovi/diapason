@@ -1,5 +1,6 @@
 // IndexedDB storage for the recordings library.
 import { databaseTransaction, openDatabase } from "../Storage/Database";
+import { publishStoredChange, subscribeStoredChanges } from "../Storage/StoredChanges";
 import type { AudioRecording, Recording } from "./Recording.type";
 import type { WaveformSummary } from "../Audio/Waveform";
 
@@ -29,12 +30,21 @@ export function getRecording(id: string): Promise<Recording | undefined> {
   );
 }
 
-export function putRecording(r: Recording): Promise<unknown> {
-  return tx("readwrite", (s) => s.put(r));
+/** Calls back whenever any tab, frame, or this document stores a change to the recording. */
+export function subscribeRecording(id: string, listener: () => void): () => void {
+  return subscribeStoredChanges((change) => {
+    if (change.kind === "recording" && change.id === id) listener();
+  });
 }
 
-export function deleteRecording(id: string): Promise<unknown> {
-  return databaseTransaction([STORE, "versions", "analysis"], "readwrite", (t, result) => {
+export async function putRecording(r: Recording): Promise<unknown> {
+  const key = await tx("readwrite", (s) => s.put(r));
+  publishStoredChange({ kind: "recording", id: r.id });
+  return key;
+}
+
+export async function deleteRecording(id: string): Promise<void> {
+  await databaseTransaction([STORE, "versions", "analysis"], "readwrite", (t, result) => {
     t.objectStore(STORE).delete(id);
     t.objectStore("analysis").delete(id);
     const cursor = t.objectStore("versions").index("recordingId").openCursor(IDBKeyRange.only(id));
@@ -47,6 +57,7 @@ export function deleteRecording(id: string): Promise<unknown> {
     };
     result(undefined);
   });
+  publishStoredChange({ kind: "recording", id });
 }
 
 /** Merge in one transaction so backfill cannot overwrite edits or resurrect deletions. */

@@ -11,12 +11,11 @@ export const resetEditorStorageDouble = () => records.clear();
 async function writeFixtureCommit(
   id: string,
   commit: EditCommit,
-  expected: EditHead | null,
   history?: EditHistory,
 ): Promise<EditHead> {
   const base = records.get(id) ?? (await getRecording(id));
   if (!base) throw new Error("Missing fixture recording");
-  const head = { commitId: commit.id, revision: (expected?.revision ?? 0) + 1 };
+  const head = { commitId: commit.id, revision: (base.editHead?.revision ?? 0) + 1 };
   const next = {
     ...applyEditSnapshot(base, commit.snapshot),
     editHead: head,

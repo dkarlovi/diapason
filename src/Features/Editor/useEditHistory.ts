@@ -42,6 +42,41 @@ function historyView(history: EditHistory | null) {
     drafting: !!history.draft,
   };
 }
+function storedHistory(record: Recording): EditHistory {
+  return record.editHistory
+    ? validateEditHistory(record.editHistory, record.durationSec)
+    : createEditHistory({
+        id: record.editHead?.commitId ?? crypto.randomUUID(),
+        label: "Initial state",
+        createdAt: Date.now(),
+        snapshot: captureEditSnapshot(record),
+      });
+}
+interface EditorState {
+  history: EditHistory | null;
+  record: Recording | null;
+  writer: EditorWriter | null;
+}
+const isIdle = ({ history, writer }: EditorState): boolean =>
+  !!history && !history.draft && (writer?.isIdle() ?? true);
+/** Moves the editor to stored state; false when it is this editor's own save echoed back. */
+function adoptStored(
+  state: EditorState,
+  stored: Recording,
+  session: AdHocTuneSession | undefined,
+): boolean {
+  if (!state.history || !state.record) return false;
+  const head = state.writer?.getHead();
+  const echo =
+    !session &&
+    stored.editHead?.commitId === head?.commitId &&
+    stored.editHead?.revision === head?.revision;
+  if (echo && stored.name === state.record.name) return false;
+  if (!echo) state.history = session?.getDraft().history ?? storedHistory(stored);
+  state.record = stored;
+  state.writer?.adopt(stored.editHead ?? null);
+  return true;
+}
 export function useEditHistory(options: Options) {
   const latest = useRef(options);
   latest.current = options;
@@ -77,16 +112,7 @@ export function useEditHistory(options: Options) {
   useLayoutEffect(() => {
     const initial = record.current;
     if (!initial) return;
-    const session =
-      latest.current.session?.getDraft().history ??
-      (initial.editHistory
-        ? validateEditHistory(initial.editHistory, initial.durationSec)
-        : createEditHistory({
-            id: initial.editHead?.commitId ?? crypto.randomUUID(),
-            label: "Initial state",
-            createdAt: Date.now(),
-            snapshot: captureEditSnapshot(initial),
-          }));
+    const session = latest.current.session?.getDraft().history ?? storedHistory(initial);
     const saves = latest.current.session
       ? null
       : createEditorWriter(initial.id, initial.editHead ?? null);
@@ -135,6 +161,20 @@ export function useEditHistory(options: Options) {
     latest.current.beforeChange();
     send({ type: "redo" });
   }, [send]);
+  const state = (): EditorState => ({
+    history: history.current,
+    record: record.current,
+    writer: writer.current,
+  });
+  /** Show stored state written elsewhere; the store, not this editor, is authoritative. */
+  const adopt = (stored: Recording) => {
+    const next = state();
+    if (!adoptStored(next, stored, latest.current.session)) return;
+    history.current = next.history;
+    record.current = next.record;
+    latest.current.replaceRecord(stored);
+    render((n) => n + 1);
+  };
   const flush = useCallback(async () => {
     finish();
     await writer.current?.flush();
@@ -158,7 +198,8 @@ export function useEditHistory(options: Options) {
     redo,
     finish,
     flush,
-    getHead: () => writer.current?.getHead() ?? null,
+    isIdle: () => isIdle(state()),
+    adopt,
     stopSaving: async () => {
       await writer.current?.stop();
     },
