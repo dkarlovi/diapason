@@ -274,8 +274,9 @@ or **Start fresh from audio**. No separate tune or MIDI import is needed. Fresh
 imports use capture defaults while keeping the received package as a reference.
 For an existing recording, open the local copy or explicitly **Import as copy**;
 imports never overwrite local work. With matching processing code, restoring the
-tune reproduces the edited melody and MIDI. If current analysis differs, the
-editor shows a notice and retains the original evidence for CLI inspection.
+tune reproduces the edited melody and MIDI. If current analysis differs, a warning
+icon beside the original recording's Play explains it on hover; the imported file keeps
+the original evidence for CLI inspection, and new downloads carry the current result.
 
 Capture provenance survives subsequent exports; current tune, evidence, and export
 provenance are refreshed. PCM samples remain unchanged, but the complete file may

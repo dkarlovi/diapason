@@ -87,7 +87,8 @@
   border-radius: 2px;
 }
 .editor-audio .editor-track-label {
-  max-width: calc(100% - 250px);
+  /* Includes the slot for the analysis-drift hint, so it never overlaps the label. */
+  max-width: calc(100% - 282px);
 }
 .editor-track-label h2 {
   margin: 0;
@@ -125,6 +126,21 @@
 }
 .studio-shell .editor-track-actions .editor-play {
   width: 84px;
+}
+.editor-analysis-drift {
+  position: absolute;
+  right: calc(100% + 4px);
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 36px;
+  color: var(--color-warning);
+  cursor: help;
+}
+.editor-analysis-drift svg {
+  width: 18px;
+  height: 18px;
 }
 .studio-shell .editor-track-actions .editor-download {
   width: 116px;

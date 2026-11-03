@@ -222,6 +222,27 @@ Responsive layouts may change the grid, but preserve meaningful alignment within
 each resulting stack. Assess widgets beside their likely neighbors, rather than
 only as isolated components.
 
+**The Stable Geometry Rule.** Only a deliberate user action changes layout
+geometry: opening or resizing a panel, zooming, or expanding a section. A state
+change alone must never move, resize, or reflow anything else. Concretely:
+
+- Buttons and menu items that change copy with state (Preview/Stop, Play/Stop,
+  Use/Applied) are sized for their widest possible copy, so a state change does not
+  alter their width or push neighbors. Prefer copy pairs of similar length, and keep
+  copy stable rather than adding words for a state.
+- State badges, such as Applied or Previewing in a menu row, take a reserved slot
+  that is present in every state. A menu's width and its rows' heights stay the same
+  whatever item is applied or previewing.
+- Status that appears after something happens (analysis notes, import warnings,
+  save results) goes in a toast, an existing reserved status slot, or a tooltip.
+  It never goes in a new in-flow row that pushes the editor or a panel down.
+  Information that rarely matters to someone making music does not earn permanent
+  space; `bin/diapason` and the recording metadata carry the diagnostic detail.
+
+Treat a state-driven geometry shift as a blocking design-review finding, as with the
+alignment findings below. Verify it by measuring the bounds of the affected element
+and its neighbors in each state in a rendered browser.
+
 ### Control layout review
 
 Treat visible column drift, inconsistent row gaps, overlapping controls, and
@@ -260,6 +281,35 @@ For reuse, render `<PitchCanvas ref={traceRef} aria-label="Live pitch trace" />`
 inside a positioned container. Pass screen classes, event handlers, focusability,
 and instruction references as native props. Call the existing renderer from the
 owning hook; the primitive does not schedule rendering or own audio data.
+
+#### Sounding pitch and transposition motion
+
+The MIDI roll and note inspector show sounding pitch: logical notes plus the
+playback octave, including while an octave or version is previewed. Stored pitch,
+edits, hit-testing, and the original-audio canvas stay at recorded pitch; the audio
+canvas keeps framing the same melody so the two tracks stay aligned.
+
+When the octave changes, the view keeps its framing around the notes, so the notes
+end where they started on screen and only the pitch axis differs. The motion
+therefore sells the change through the grid, not by relocating the notes:
+
+- Notes and framing shift together over 400ms with an ease-out curve, so the grid
+  and pitch labels scroll past by the octave, starting quickly and settling gently.
+- The note bars also lead toward the target by up to half a bar's height. The lead
+  rises fast to its peak a third of the way in, then eases back to zero by the end.
+  This asymmetric dislocation reads as travel rather than a bounce.
+- Reduced motion jumps straight to the final state with no lead.
+
+The values live in `transposeFrame` (`src/Features/Editor/EditorViewport.ts`) and
+the lead amount in `useEditorPlot`. Alternatives rejected in review:
+
+- **Slide, then re-frame.** Sliding notes 12 rows against a still axis, then easing
+  the view to re-centre, carries them straight back up on screen. It reads as a
+  single dribble: down, then back.
+- **Ghost at the old pitch.** A fading copy scrolling away with the grid was
+  redundant; the scrolling axis alone shows the change.
+- **Axis scroll alone.** Clear, but the notes feel inert; the brief lead is what
+  makes them appear to move.
 
 ### Floating tools and menus
 
@@ -347,6 +397,8 @@ a compact header toggle supports direct arrivals and exit where the API is avail
 - **Don't** introduce a separate visual system for recording and editing.
 - **Don't** replace textual state feedback with color alone.
 - **Don't** couple live capture's rendering loop to the editor's playback lifecycle.
+- **Don't** let state changes move or resize layout: no labels that widen buttons,
+  badges that reflow menus, or status rows that push the editor down.
 
 ## Seed themes and verification
 
