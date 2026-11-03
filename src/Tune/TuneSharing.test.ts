@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import * as editStorage from "../Editing/Edit.storage";
 import { putRecording } from "../Recording/Recording.storage";
 import { noteRecording } from "../../tests/support/note-recording";
 import { loadShareTune } from "./TuneSharing";
@@ -24,15 +25,16 @@ it("refuses a deleted recording", async () => {
 });
 it("refuses to share when the latest edits cannot be saved", async () => {
   const record = noteRecording();
-  record.id = "conflict";
+  record.id = "unsaved";
   await putRecording(record);
-  const writer = createEditorWriter(record.id, { commitId: "stale", revision: 7 });
+  vi.spyOn(editStorage, "saveEditCommit").mockRejectedValueOnce(new Error("Storage full"));
+  const writer = createEditorWriter(record.id, null);
   writer.enqueue({
     id: "unsaved",
     label: "Instrument",
     createdAt: 2,
     snapshot: captureEditSnapshot({ ...record, play: { instrument: "trumpet", octave: -1 } }),
   });
-  await expect(loadShareTune(record.id)).rejects.toThrow(/changed|conflict/i);
+  await expect(loadShareTune(record.id)).rejects.toThrow(/Storage full/);
   await writer.stop();
 });

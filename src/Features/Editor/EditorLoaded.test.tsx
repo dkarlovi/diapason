@@ -35,6 +35,7 @@ vi.mock("../../Editing/Edit.storage", async (original) => ({
   ...(await import("../../../tests/support/editor-storage-double")).editorStorageDouble,
 }));
 vi.mock("../../Recording/Recording.storage", () => ({
+  subscribeRecording: () => () => {},
   getRecording: async () => recording,
   putRecording: async (next: Recording) => {
     saved = next;

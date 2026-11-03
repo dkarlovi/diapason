@@ -5,6 +5,7 @@ import { currentEditCommit } from "./EditHistory";
 import { sameEditSnapshot } from "./EditState";
 import { applyEditSnapshot } from "./EditState";
 import { EditStorageError } from "./EditStorageError";
+import { publishStoredChange } from "../Storage/StoredChanges";
 import { validateEditSnapshot } from "./EditSnapshot.validation";
 import type { EditHead, EditHistory } from "../Recording/RecordingEdit.type";
 import type { EditCommit } from "../Recording/RecordingEdit.type";
@@ -20,14 +21,6 @@ export interface SavedVersion {
 const invalid = () =>
   new EditStorageError("invalid-version", "This version contains unsupported editing data.");
 
-function checkHead(record: Recording, expected: EditHead | null) {
-  const head = record.editHead ?? null;
-  if (head?.commitId !== expected?.commitId || head?.revision !== expected?.revision)
-    throw new EditStorageError(
-      "conflict",
-      "This recording changed in another tab. Reload before saving more edits.",
-    );
-}
 function recordingTransaction<T>(
   id: string,
   stores: string[],
@@ -45,21 +38,25 @@ function recordingTransaction<T>(
         tx.abort();
       }
     };
-  }).catch((error: unknown) => {
-    if (failure) throw failure;
-    if (error instanceof DOMException && error.name === "ConstraintError")
-      throw new EditStorageError("duplicate-name", "A version with this name already exists.");
-    throw error;
-  });
+  }).then(
+    (value) => {
+      publishStoredChange({ kind: "recording", id });
+      return value;
+    },
+    (error: unknown) => {
+      if (failure) throw failure;
+      if (error instanceof DOMException && error.name === "ConstraintError")
+        throw new EditStorageError("duplicate-name", "A version with this name already exists.");
+      throw error;
+    },
+  );
 }
 export function saveEditCommit(
   id: string,
   commit: EditCommit,
-  expectedHead: EditHead | null,
   history?: EditHistory,
 ): Promise<EditHead> {
   return recordingTransaction(id, [], (record, tx, result) => {
-    checkHead(record, expectedHead);
     validateEditSnapshot(commit.snapshot, record.durationSec);
     if (history) {
       validateEditHistory(history, record.durationSec);
@@ -71,7 +68,7 @@ export function saveEditCommit(
       )
         throw invalid();
     }
-    const head = { commitId: commit.id, revision: (expectedHead?.revision ?? 0) + 1 };
+    const head = { commitId: commit.id, revision: (record.editHead?.revision ?? 0) + 1 };
     tx.objectStore("recordings").put({
       ...applyEditSnapshot(record, commit.snapshot),
       editHead: head,
@@ -99,11 +96,8 @@ function normalizedName(name: string) {
   if (!value) throw new EditStorageError("invalid-version", "Enter a version name.");
   return { name: value, nameKey: value.toLowerCase() };
 }
-export function saveVersion(version: SavedVersion, expectedHead: EditHead | null): Promise<void> {
+export function saveVersion(version: SavedVersion): Promise<void> {
   return recordingTransaction(version.recordingId, ["versions"], (record, tx, result) => {
-    checkHead(record, expectedHead);
-    if (expectedHead?.commitId !== version.commit.id)
-      throw new EditStorageError("conflict", "Save the current edits before saving a version.");
     validateEditSnapshot(version.commit.snapshot, record.durationSec);
     tx.objectStore("versions").add({ ...version, ...normalizedName(version.name) });
     result(undefined);

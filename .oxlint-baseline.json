@@ -55,7 +55,7 @@
   },
   "src/Features/Editor/useEditorVersions.ts": {
     "react(set-state-in-effect)": 1,
-    "react-hooks(exhaustive-deps)": 2
+    "react-hooks(exhaustive-deps)": 1
   },
   "src/Features/Editor/useNoteDrag.ts": {
     "react(refs)": 1

@@ -228,6 +228,9 @@ removes the draft. Refresh and closing the page use the browser's native warning
 Opening the link without a matching session draft starts from the original tune.
 If storage is blocked, editing works in memory and a warning explains that refresh
 may lose the work. Browser-duplicated tabs may initially copy a session draft.
+Every open instance of the same tune link, in any tab or embed, shows the draft the
+last of them committed; one in the middle of a gesture keeps it and announces the
+result when it finishes. Embeds of different tunes stay independent.
 
 Picking or dropping a Diapason MIDI file still offers **Import** or **Cancel** in
 the Library. Inspection saves nothing; **Import** creates a new local copy, which
@@ -649,9 +652,11 @@ including subsequent edits and the redo cursor, across reopening. Versions share
 the original audio when present and store musical editing intent.
 
 A save failure keeps the pending state in memory and shows **Retry save**, including
-after navigation. An editor saves only over the state it expects: if another tab
-has saved first, the stale save fails and shows **Reload**. Reload discards that
-tab's unsaved edits, so resolve a conflict before continuing work. Closing the page
+after navigation. The stored recording is the authoritative state and every open editor
+shows it: whichever tab or embed saves last wins, and the others switch to that state,
+name, undo history and versions without a reload. An editor that still has an edit in
+progress or a save waiting keeps its own state; that save lands next and reaches every
+other editor the same way. A recording deleted elsewhere closes its open editors. Closing the page
 can lose unsaved changes or an unfinished gesture; only completed database writes
 are durable. Duplicates start with the current intent and no saved versions or undo history.
 Deleting a recording also deletes its versions.

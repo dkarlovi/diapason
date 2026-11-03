@@ -31,6 +31,7 @@ import { melodySettingFor, sameMelodySetting } from "../../Melody/Settings";
 import { DEFAULT_PRESET, PRESETS, resolveKnobs } from "../../Melody/Knobs";
 import { useMelodySettings } from "./useMelodySettings";
 import { useEditHistory } from "./useEditHistory";
+import { useStoredRecording } from "./useStoredRecording";
 import { saveRecordingName } from "../../Editing/Edit.storage";
 import {
   getEditorSaveStatuses,
@@ -234,6 +235,22 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     },
     [frames, previewSequence, melody],
   );
+  useStoredRecording({
+    id,
+    session,
+    current: () => recordRef.current,
+    isIdle: history.isIdle,
+    adopt(stored) {
+      const shown = recordRef.current;
+      history.adopt(stored);
+      if (stored.name !== shown?.name) setDraftName(stored.name);
+    },
+    deleted(shown) {
+      void history.stopSaving();
+      if (tuneLocked) setLoadError("This recording was deleted.");
+      else navigate("/", { state: { deletedRecording: shown.name } });
+    },
+  });
   const versions = useEditorVersions({
     recordingId: id,
     session,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createAdHocDraft, validateAdHocDraft } from "./AdHocTune";
-import { clearAdHocDraft, readAdHocDraft } from "./AdHoc.storage";
+import { clearAdHocDraft, readAdHocDraft, subscribeAdHocDrafts } from "./AdHoc.storage";
 import { AdHocTuneSession, RECOVERY_WARNING } from "./AdHocSession";
 import { tuneFromFragment } from "../../Tune/TuneUrl";
 
@@ -15,6 +15,7 @@ export function useAdHocTune(fragment: string) {
     setSession(null);
     setError(null);
     setCorrupt(false);
+    let unsubscribe = () => {};
     void (async () => {
       try {
         const tune = await tuneFromFragment(fragment);
@@ -54,6 +55,9 @@ export function useAdHocTune(fragment: string) {
           stored !== null,
         );
         controller.warning = warning;
+        unsubscribe = subscribeAdHocDrafts(fragment, (value, savedAt, source) =>
+          controller.receive(value, savedAt, source),
+        );
         setSession(controller);
       } catch (cause) {
         if (!cancelled) setError(cause instanceof Error ? cause.message : String(cause));
@@ -61,6 +65,7 @@ export function useAdHocTune(fragment: string) {
     })();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [fragment, attempt]);
   return {

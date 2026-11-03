@@ -11,6 +11,7 @@ import type { useEditHistory } from "./useEditHistory";
 import { updateAdHocVersion } from "./AdHocVersions";
 import { validateEditSnapshot } from "../../Editing/EditSnapshot.validation";
 import type { AdHocTuneSession } from "./AdHocSession";
+import { subscribeRecording } from "../../Recording/Recording.storage";
 
 interface Options {
   session?: AdHocTuneSession | undefined;
@@ -37,17 +38,21 @@ export function useEditorVersions({
     setError(null);
     setBusy(false);
     running.current = false;
-    void (session ? Promise.resolve(session.getDraft().versions) : listVersions(recordingId))
-      .then((rows) => {
-        if (generation.current === token) setVersions(rows);
-      })
-      .catch((error) => {
-        if (generation.current === token) setError(String(error));
-      });
+    const load = () =>
+      void (session ? Promise.resolve(session.getDraft().versions) : listVersions(recordingId))
+        .then((rows) => {
+          if (generation.current === token) setVersions(rows);
+        })
+        .catch((error) => {
+          if (generation.current === token) setError(String(error));
+        });
+    load();
+    const unsubscribe = session ? session.subscribe(load) : subscribeRecording(recordingId, load);
     return () => {
+      unsubscribe();
       generation.current++;
     };
-  }, [recordingId]);
+  }, [recordingId, session]);
   const run = async (operation: (isCurrent: () => boolean) => Promise<void>) => {
     if (running.current) return;
     const token = generation.current;
@@ -94,7 +99,7 @@ export function useEditorVersions({
           commit: savedCommit,
         };
         if (session) updateAdHocVersion(session, version.id, version);
-        else await saveVersion(version, history.getHead());
+        else await saveVersion(version);
       }),
     previewVersion(id: string) {
       if (running.current) return;

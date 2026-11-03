@@ -4,7 +4,10 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { Editor } from "./Editor";
 import { BASE } from "../../Routing/Routes";
 
-vi.mock("../../Recording/Recording.storage", () => ({ getRecording: async () => undefined }));
+vi.mock("../../Recording/Recording.storage", () => ({
+  getRecording: async () => undefined,
+  subscribeRecording: () => () => {},
+}));
 beforeEach(() => history.replaceState(null, "", "/diapason/recording/missing"));
 
 it("returns to the library when a recording in the URL no longer exists", async () => {

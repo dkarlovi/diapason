@@ -2,18 +2,29 @@ import * as editStorage from "../../Editing/Edit.storage";
 import "fake-indexeddb/auto";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import { Editor } from "./Editor";
 import { AppShell } from "../../App/AppShell";
-import { allRecordings, getRecording, putRecording } from "../../Recording/Recording.storage";
+import {
+  allRecordings,
+  deleteRecording,
+  getRecording,
+  putRecording,
+} from "../../Recording/Recording.storage";
 import { recording } from "../../../tests/support/recording";
 import {
   flushEditorSaves,
   getEditorSaveStatuses,
   stopEditorSaves,
 } from "../../Editing/EditorSaveQueue";
-import { listVersions, saveEditCommit, saveVersion } from "../../Editing/Edit.storage";
+import {
+  listVersions,
+  saveEditCommit,
+  saveRecordingName,
+  saveVersion,
+} from "../../Editing/Edit.storage";
+import { DEFAULT_PRESET } from "../../Melody/Knobs";
 import { captureEditSnapshot } from "../../Editing/EditState";
 const played = vi.hoisted(() => ({ sound: null as unknown, position: 0 as number | null }));
 vi.mock("../../Audio/Codec", () => ({ decodeAudio: async () => new Float32Array(48000) }));
@@ -107,18 +118,15 @@ it("duplicates current intent without inheriting working identity or versions", 
     createdAt: 1,
     snapshot: captureEditSnapshot(rec),
   };
-  const head = await saveEditCommit(rec.id, c, null);
-  await saveVersion(
-    {
-      id: "original-version",
-      recordingId: rec.id,
-      name: "Keep",
-      nameKey: "keep",
-      createdAt: 1,
-      commit: c,
-    },
-    head,
-  );
+  await saveEditCommit(rec.id, c);
+  await saveVersion({
+    id: "original-version",
+    recordingId: rec.id,
+    name: "Keep",
+    nameKey: "keep",
+    createdAt: 1,
+    commit: c,
+  });
   mount(rec.id);
   await screen.findByDisplayValue("Copy source");
   const user = userEvent.setup();
@@ -144,27 +152,20 @@ it("previews a version with its own instrument while leaving applied intent unto
     createdAt: 1,
     snapshot: captureEditSnapshot(rec),
   };
-  const head = await saveEditCommit(rec.id, c, null);
-  await saveVersion(
-    {
-      id: "flute-saved",
-      recordingId: rec.id,
-      name: "Flute",
-      nameKey: "flute",
-      createdAt: 1,
-      commit: c,
-    },
-    head,
-  );
-  await saveEditCommit(
-    rec.id,
-    {
-      ...c,
-      id: "pad-now",
-      snapshot: captureEditSnapshot({ ...rec, play: { instrument: "pad", octave: 0 } }),
-    },
-    head,
-  );
+  await saveEditCommit(rec.id, c);
+  await saveVersion({
+    id: "flute-saved",
+    recordingId: rec.id,
+    name: "Flute",
+    nameKey: "flute",
+    createdAt: 1,
+    commit: c,
+  });
+  await saveEditCommit(rec.id, {
+    ...c,
+    id: "pad-now",
+    snapshot: captureEditSnapshot({ ...rec, play: { instrument: "pad", octave: 0 } }),
+  });
   mount(rec.id);
   await screen.findByDisplayValue("Preview version");
   const user = userEvent.setup();
@@ -218,27 +219,47 @@ it("keeps a failed save recoverable from the shell after navigation", async () =
   );
   expect(screen.queryByRole("button", { name: "Retry save" })).toBeNull();
 });
-it("rejects an editor save when another tab has replaced its expected state", async () => {
-  const rec = recording({ id: "stale-editor", name: "Stale editor" });
+it("shows another tab's save and lets its own later save win", async () => {
+  const rec = recording({ id: "shared-editor", name: "Shared editor" });
   await putRecording(rec);
   mount(rec.id);
-  await screen.findByDisplayValue("Stale editor");
-  await saveEditCommit(
-    rec.id,
-    {
-      id: "other-tab",
-      label: "Other tab",
-      createdAt: 1,
-      snapshot: captureEditSnapshot({ ...rec, play: { instrument: "flute", octave: -1 } }),
-    },
-    null,
-  );
+  await screen.findByDisplayValue("Shared editor");
+  const melody = { preset: DEFAULT_PRESET, overrides: { steadiness: 0.3 }, key: "auto" as const };
+  await saveEditCommit(rec.id, {
+    id: "other-tab",
+    label: "Other tab",
+    createdAt: 1,
+    snapshot: captureEditSnapshot({ ...rec, melody }),
+  });
+  await saveRecordingName(rec.id, "Renamed elsewhere");
+  await screen.findByDisplayValue("Renamed elsewhere");
+  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.3");
   await act(async () => {
     fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.6" } });
   });
-  await screen.findByRole("button", { name: "Reload" });
-  expect((await getRecording(rec.id))?.editHead?.commitId).toBe("other-tab");
-  expect((await getRecording(rec.id))?.melody).toBeUndefined();
+  await waitFor(async () =>
+    expect((await getRecording(rec.id))?.melody?.overrides.steadiness).toBe(0.6),
+  );
+  expect(screen.queryByRole("alert")).toBeNull();
+  await userEvent.click(screen.getByRole("button", { name: /^Undo/ }));
+  await waitFor(async () =>
+    expect((await getRecording(rec.id))?.melody?.overrides.steadiness).toBe(0.3),
+  );
+});
+it("leaves an editor whose recording another tab deleted", async () => {
+  const rec = recording({ id: "deleted-elsewhere", name: "Deleted elsewhere" });
+  await putRecording(rec);
+  render(
+    <MemoryRouter initialEntries={["/edit"]}>
+      <Routes>
+        <Route path="/edit" element={<Editor id={rec.id} />} />
+        <Route path="/" element={<p>Library view</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  await screen.findByDisplayValue("Deleted elsewhere");
+  await deleteRecording(rec.id);
+  await screen.findByText("Library view");
 });
 it("resumes a blocked editor load after a pending save is recovered", async () => {
   const rec = recording({ id: "recover-reopened", name: "Recovered editor" });
