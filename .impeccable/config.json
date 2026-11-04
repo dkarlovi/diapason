@@ -1,4 +1,17 @@
 {
   "buildPath": "code",
-  "prototypeWorkflow": "Explore visual mockups as quick, runnable code prototypes before production implementation, following this project's existing editor layout studies. Code is the mockup medium; prototype review still precedes production implementation."
+  "prototypeWorkflow": "Explore visual mockups as quick, runnable code prototypes before production implementation, following this project's existing editor layout studies. Code is the mockup medium; prototype review still precedes production implementation.",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": ["dev/studio.html"],
+        "createdAt": "2026-11-04T20:50:08.381Z",
+        "reason": "Agent verified Chromium computed sizes: h1 32px, h2 24px, body 16px. Both hierarchy steps exceed 1.25x; this development integration example intentionally uses native HTML heading sizes."
+      }
+    ]
+  }
 }
