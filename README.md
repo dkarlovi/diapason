@@ -710,13 +710,77 @@ tune produces the same notes.
 
 ## Embedding
 
+Load `diapason.js` once, then use the native `<diapason-studio>` element:
+
+```html
+<script type="module" src="https://dkarlovi.github.io/diapason/diapason.js"></script>
+
+<diapason-studio
+  after-recording="edit"
+  title="Whistle-to-MIDI studio"
+  loading="lazy"
+></diapason-studio>
+
+<!-- For an editor, set tune to the payload after #tune= in a shared URL. -->
+<diapason-studio tune="RFBTTgEC…" title="My tune"></diapason-studio>
+```
+
+Map the host's existing CSS tokens to the element. No theme encoder or host
+JavaScript is needed:
+
+```css
+:root {
+  color-scheme: light dark;
+}
+
+diapason-studio {
+  --diapason-primary: var(--accent);
+  --diapason-neutral: var(--paper);
+  --diapason-secondary: var(--accent-2); /* Optional. */
+  max-width: 50rem;
+  min-height: 26rem;
+}
+
+/* A studio in a dark hero can inherit this from its surroundings. */
+.hero {
+  color-scheme: dark;
+}
+```
+
+`--diapason-primary` enables a custom palette; neutral and secondary are optional.
+Colors accept CSS color syntax, including named colors, `rgb()`, `oklch()`, and
+`light-dark()`. Seeds are converted to sRGB; alpha is discarded. Missing or invalid
+primary colors use the studio's default palette. The element inherits `color-scheme`;
+`light` or `dark` forces that mode, while `light dark` or `normal` follows the
+visitor's preference. The example inherits the page's choice, including a dark hero.
+
+Ancestor palette changes, stylesheet changes, and media queries update the studio
+live, without navigating the iframe or interrupting recording or edits. Computed
+styles are checked every 250 ms while the page is visible; preference changes also
+apply immediately. CSS dimensions size the element and its iframe together; the
+default is full width with a 12:7 aspect ratio. `title` and `loading` are forwarded
+to the iframe (`loading` defaults to `eager`). Changing `tune` or `after-recording`
+loads the requested workflow and discards unsaved work in that frame.
+
+The element delegates MIDI permission automatically and microphone permission for
+recording studios. The HTTPS, browser permission, host policy, and storage notes
+below still apply. Existing iframe integrations continue to work.
+
+For a direct iframe integration with its own host script, the embedded studio
+announces `{ type: "diapason:ready" }` to its parent after installing the theme
+listener. Send `{ type: "diapason:theme", theme, scheme }` to that iframe's window,
+using the studio origin as `postMessage`'s target origin. `theme` is the existing
+packed `theme=` string, or `null` to restore the default palette; `scheme` is
+`"light"`, `"dark"`, or `"auto"`. The studio accepts valid messages only from its
+parent. The element handles this exchange automatically.
+
 Embed the recording studio in a lesson or songwriting page:
 
 ```html
 <iframe
   src="https://dkarlovi.github.io/diapason/new?embed=1&amp;afterRecording=edit"
   title="Whistle-to-MIDI studio"
-  allow="microphone"
+  allow="microphone; midi"
   width="720"
   height="420"
 ></iframe>
@@ -736,6 +800,7 @@ To embed a specific tune, use its shared URL with `embed=1` before the fragment:
 <iframe
   src="https://dkarlovi.github.io/diapason/tune?embed=1#tune=RFBTTgEBABJGbHkgbWUgdG8gdGhlIG1vb27AhAEAAAAAAMBbQAQCABs5rzGxRptNQCDLRqfjjllACAACIAEA4AN5L3lXoclWQAGLBMAC4LT7L3X1VkABwALqATQonEConlZAAeoBqwLdXOG4WxxWQAWWA7UDGve7bqS7VUBWAdUDqwPz50GBZyNVQAWABMADdaztr3vAVUBWAesD4ANMaMpvkiFWQAWVBKAEJfRq0nMZV0BbAaAEgAFis2uz1YZWQAWAAdUGajAqKq_AVkBaAfUHwAFn0YytHiFWQAXgAaACCIAqXRO6VUBWAesCdeibVJdKYVVAAXXrASWyqCgoIlVAAeAClgVASAJabr9UQAHgEusDJxv_AqwBVkABiwTAAugJaxAaCFZAAcAC9QHye8038ZFVQAH1AZYBSkA3qU4vVUABlgGqAe89jrQqIVVAAdUBlQN5hjcrLNZUQAHrA7UDBr22rQVAVEAB4AOqA6hrfoWFBVVAAaAEwAPqXjJQEUpVQAGVBNUFYvEfDmcjVkAB4AarA6D7lgitx1VAAZUEqwLsHlA-mr5VQAHLAusB6Px-C0ApVUAB6wGqAlSh_AxT1FRAAYAD6gLjTIrM3GpUQAHABVVuYkHihuRTQA"
   title="Fly me to the moon tune editor"
+  allow="midi"
   width="720"
   height="420"
 ></iframe>
@@ -757,8 +822,9 @@ iframe. WAV import and standalone recording management menus are unavailable in 
 mode.
 
 The host and studio must use HTTPS (localhost is allowed for development).
-Recording embeds must delegate microphone access with `allow="microphone"`. If it sends a
-`Permissions-Policy` header, that policy must allow the studio origin too; the
+Direct iframe embeds must delegate MIDI with `allow="midi"`; recording embeds need
+`allow="microphone; midi"`. If the host sends a `Permissions-Policy` header, its
+`microphone` and `midi` policies must allow the studio origin too; the
 iframe attribute cannot override a restrictive header. Visitors must still grant
 browser microphone permission. Playback starts from a visitor action. Downloads
 also require a visitor action and may be restricted by browser or host policy.
@@ -771,6 +837,7 @@ partition or block third-party storage; embed mode does not transfer recordings
 or MIDI to the parent page. Download files to keep a portable copy.
 
 For local testing, run `npm run dev` and open
+[the CSS element example](http://localhost:5173/diapason/dev/studio.html) or
 [the dev-only embed playground](http://localhost:5173/diapason/dev/embed).
 It opens with the “Fly me to the moon” editor embed and offers a recording/editor
 mode selector, resizable iframe, width/height fields, automatic Editor and
@@ -813,7 +880,7 @@ const url = new URL("https://dkarlovi.github.io/diapason/new");
 url.searchParams.set("embed", "1");
 url.searchParams.set("scheme", "dark");
 url.searchParams.set("theme", "AQEAcrE"); // Blue primary; derive both modes.
-// Set your iframe's src to url.href. Recording embeds also need allow="microphone".
+// Set your iframe's src to url.href. Delegate "midi", or "microphone; midi" for recording.
 ```
 
 ### Packing a theme yourself

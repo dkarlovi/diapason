@@ -58,7 +58,7 @@ function StudioHeader({
 
 export function AppShell({ children }: PropsWithChildren) {
   const { embedded, theme, scheme } = useStudioMode();
-  useStudioTheme(theme, scheme);
+  useStudioTheme(theme, scheme, embedded);
   const fullscreen = useStudioFullscreen();
   const pathname = useLocation().pathname.replace(/\/$/, "");
   const capture = pathname === "/new";

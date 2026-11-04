@@ -282,8 +282,8 @@
     belong to the iframe origin and may be restricted by browser privacy settings.
   </p>
   <script type="module">
-    import { encodeTheme } from "/diapason/src/theme-config.ts";
-    import { generateTheme } from "/diapason/src/theme-palette.ts";
+    import { encodeTheme } from "/diapason/src/Theme/ThemeConfig.ts";
+    import { generateTheme } from "/diapason/src/Theme/ThemePalette.ts";
     const palettes = {
       blue: ["#0072b1", "#64748b", "#a16a12"],
       forest: ["#28714b", "#657367", "#a15e35"],
@@ -334,11 +334,15 @@
       viewport.style.height = `${settings.get("height")}px`;
       const frame = document.createElement("iframe");
       frame.title = editor ? "Fly me to the moon tune editor" : "Whistle-to-MIDI studio";
-      if (!editor) frame.allow = settings.has("microphone") ? "microphone" : "microphone 'none'";
+      frame.allow = editor
+        ? "midi"
+        : settings.has("microphone")
+          ? "microphone; midi"
+          : "microphone 'none'; midi";
       frame.src = url.href;
       viewport.replaceChildren(frame);
       document.querySelector("#snippet").textContent =
-        `<iframe src="${url.href.replaceAll("&", "&amp;")}" title="${frame.title}"${editor ? "" : ` allow="${frame.allow}"`} width="${settings.get("width")}" height="${settings.get("height")}"></iframe>`;
+        `<iframe src="${url.href.replaceAll("&", "&amp;")}" title="${frame.title}" allow="${frame.allow}" width="${settings.get("width")}" height="${settings.get("height")}"></iframe>`;
     }
     new ResizeObserver(() => {
       document.querySelector("#size").textContent =

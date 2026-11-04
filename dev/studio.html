@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>diapason CSS integration example</title>
+    <script type="module" src="../src/Studio/Diapason.ts"></script>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --accent: light-dark(#4a557e, #bbc4f3);
+        --paper: light-dark(#f1f3fe, #191b26);
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+        background: light-dark(#fafafa, #161616);
+        color: light-dark(#222, #eee);
+        font-family: system-ui;
+      }
+      main {
+        max-width: 60rem;
+        margin: auto;
+      }
+      diapason-studio {
+        --diapason-primary: var(--accent);
+        --diapason-neutral: var(--paper);
+        min-height: 26rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>diapason from HTML and CSS</h1>
+      <p>The editor and recording studio follow the page's colors and light/dark preference.</p>
+      <section class="hero">
+        <diapason-studio
+          tune="RFBTTgEBABJGbHkgbWUgdG8gdGhlIG1vb27AhAEAAAAAAMBbQAQCABs5rzGxRptNQCDLRqfjjllACAACIAEA4AN5L3lXoclWQAGLBMAC4LT7L3X1VkABwALqATQonEConlZAAeoBqwLdXOG4WxxWQAWWA7UDGve7bqS7VUBWAdUDqwPz50GBZyNVQAWABMADdaztr3vAVUBWAesD4ANMaMpvkiFWQAWVBKAEJfRq0nMZV0BbAaAEgAFis2uz1YZWQAWAAdUGajAqKq_AVkBaAfUHwAFn0YytHiFWQAXgAaACCIAqXRO6VUBWAesCdeibVJdKYVVAAXXrASWyqCgoIlVAAeAClgVASAJabr9UQAHgEusDJxv_AqwBVkABiwTAAugJaxAaCFZAAcAC9QHye8038ZFVQAH1AZYBSkA3qU4vVUABlgGqAe89jrQqIVVAAdUBlQN5hjcrLNZUQAHrA7UDBr22rQVAVEAB4AOqA6hrfoWFBVVAAaAEwAPqXjJQEUpVQAGVBNUFYvEfDmcjVkAB4AarA6D7lgitx1VAAZUEqwLsHlA-mr5VQAHLAusB6Px-C0ApVUAB6wGqAlSh_AxT1FRAAYAD6gLjTIrM3GpUQAHABVVuYkHihuRTQA"
+          title="Fly me to the moon editor"
+        ></diapason-studio>
+      </section>
+      <h2>Record a melody</h2>
+      <diapason-studio
+        after-recording="edit"
+        title="Whistle-to-MIDI studio"
+        loading="lazy"
+      ></diapason-studio>
+    </main>
+  </body>
+</html>
