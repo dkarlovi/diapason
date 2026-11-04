@@ -406,7 +406,7 @@
       "name": "Pitch canvas",
       "kind": "custom",
       "refersTo": "pitch-canvas",
-      "description": "The shared native drawing surface; this static catalog sample does not run its rendering hook.",
+      "description": "The shared native drawing surface. MIDI key guides shade out-of-key rows with --trace-outOfKey and mark bars with a warning-colored circled exclamation, including edited and muted notes. Badges scale with note height and extend left on short bars; out-of-key axis labels share the shaded background and use a disabled text tone. Auditions use their effective key; forced colors omits shading. Sounding warnings briefly wobble unless reduced motion is enabled. Selected pitch tooltips and accessible names expose membership without changing geometry. This static catalog sample does not run its rendering hook.",
       "html": "<div class=\"ds-canvas-container\"><canvas class=\"ds-canvas\" role=\"img\" aria-label=\"Pitch trace\">Pitch trace</canvas></div>",
       "css": ".ds-canvas-container{position:relative;height:160px}.ds-canvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border:0;border-radius:0;background:var(--color-muted)}"
     },

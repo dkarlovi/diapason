@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import type { TraceView } from "../../Audio/Trace";
+import type { TraceView } from "../../Audio/Trace.type";
 import { traceHorizontalPadding } from "../../Audio/Trace";
 import { listenForDrag } from "./PointerDrag";
 

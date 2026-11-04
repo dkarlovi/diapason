@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { draggedPitch, hitsSelectedNote, type RollPoint } from "../../Editing/Editor.model";
 import type { EditGesture } from "./useSliderCommit";
 import { listenForDrag } from "./PointerDrag";
-import type { TraceView } from "../../Audio/Trace";
+import type { TraceView } from "../../Audio/Trace.type";
 import type { NoteItem } from "../../Recording/NoteItem.type";
 
 interface Options {

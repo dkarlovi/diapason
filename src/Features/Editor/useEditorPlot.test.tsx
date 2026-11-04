@@ -3,7 +3,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useEditorPlot } from "./useEditorPlot";
 import type { Recording } from "../../Recording/Recording.type";
 import { createPlayheadStore } from "../../Playback/Playhead.store";
-import type { TraceView } from "../../Audio/Trace";
+import type { TraceView } from "../../Audio/Trace.type";
+import type { Key } from "../../Melody/Key";
 
 const drawTrace = vi.hoisted(() => vi.fn());
 vi.mock("../../Audio/Trace", async (original) => ({
@@ -189,7 +190,7 @@ function transposedSetup() {
   const rollRef = { current: canvas("roll") };
   const note = { midi: 84, name: "C6", start: 1, duration: 1 };
   const result = renderHook(
-    ({ transpose }) =>
+    ({ transpose, key = { tonic: 0, mode: "major" } }: { transpose: number; key?: Key | null }) =>
       useEditorPlot({
         record: { id: "one", durationSec: 20, bpm: 120, beatsPerBar: 4 } as Recording,
         frames: [],
@@ -197,12 +198,13 @@ function transposedSetup() {
         muted: [],
         grid: 0,
         transpose,
+        key,
         playhead: createPlayheadStore(),
         rollRef,
         traceRef,
         claimsPointer: () => false,
       }),
-    { initialProps: { transpose: 0 } },
+    { initialProps: { transpose: 0 } as { transpose: number; key?: Key | null } },
   );
   const last = (label: string) =>
     drawTrace.mock.calls
@@ -220,11 +222,13 @@ it("scrolls the pitch axis past transposed notes as they lead toward the target"
     expect(result.current.view.midiMin).toBeCloseTo(logical.midiMin);
     act(() => vi.advanceTimersByTime(200));
     const moving = last("roll")!;
+    expect(moving.animateKeyWarnings).toBe(true);
     const onScreen = (view: TraceView) => view.notes![0]!.midi - view.midiMin;
     expect(onScreen(moving)).toBeLessThan(onScreen(before));
     expect(onScreen(moving)).toBeGreaterThan(onScreen(before) - 0.68 / 2 - 0.01);
     expect(moving.midiMin).toBeLessThan(before.midiMin);
     expect(moving.midiMin).toBeGreaterThan(before.midiMin - 12);
+    expect(moving.notePitchOffset).toBeCloseTo(moving.notes![0]!.midi - 84);
     act(() => vi.advanceTimersByTime(400));
     const settled = last("roll")!;
     expect(settled.notes![0]).toMatchObject({ midi: 72, name: "C5" });
@@ -234,6 +238,16 @@ it("scrolls the pitch axis past transposed notes as they lead toward the target"
   } finally {
     vi.useRealTimers();
   }
+});
+
+it("updates scale highlighting only on the MIDI roll when the displayed key changes", () => {
+  const { rerender, last } = transposedSetup();
+  expect(last("roll")?.scale).toEqual(new Set([0, 2, 4, 5, 7, 9, 11]));
+  expect(last("trace")?.scale).toBeUndefined();
+  rerender({ transpose: 0, key: { tonic: 9, mode: "minor" } });
+  expect(last("roll")?.scale).toEqual(new Set([9, 11, 0, 2, 4, 5, 7, 8]));
+  rerender({ transpose: 0, key: null });
+  expect(last("roll")?.scale).toBeUndefined();
 });
 it("jumps straight to the transposed pitch when motion is reduced", () => {
   vi.stubGlobal("matchMedia", (query: string) => ({
@@ -245,6 +259,7 @@ it("jumps straight to the transposed pitch when motion is reduced", () => {
     const { rerender, last } = transposedSetup();
     rerender({ transpose: -12 });
     expect(last("roll")!.notes![0]).toMatchObject({ midi: 72, name: "C5" });
+    expect(last("roll")!.animateKeyWarnings).toBe(false);
   } finally {
     vi.unstubAllGlobals();
   }

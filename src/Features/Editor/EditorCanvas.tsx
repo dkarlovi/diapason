@@ -54,6 +54,7 @@ function CanvasPlot({ kind, state }: Pick<CanvasProps, "kind" | "state">) {
       className="editor-plot"
       ref={state.rollRef}
       aria-label="MIDI piano roll"
+      aria-description={state.rollKeyDescription}
       tabIndex={state.analysisReady ? 0 : -1}
       aria-hidden={!state.analysisReady}
       aria-describedby="roll-instructions"

@@ -10,7 +10,9 @@ import {
 import { useEditorGestures } from "./useEditorGestures";
 import type { Recording } from "../../Recording/Recording.type";
 import { midiToName, type Frame, type NoteEvent } from "../../Melody/Notes";
-import { drawTrace, type NoteOrigin, type TraceLayer, type TraceView } from "../../Audio/Trace";
+import { drawTrace } from "../../Audio/Trace";
+import type { NoteOrigin, TraceLayer, TraceView } from "../../Audio/Trace.type";
+import { scalePitchClasses, type Key } from "../../Melody/Key";
 import {
   fittedPitch,
   followPan,
@@ -29,6 +31,7 @@ interface Options {
   edited?: NoteEvent[];
   origins?: NoteOrigin[];
   grid: number;
+  key?: Key | null;
   /** Semitones between the logical notes and the pitch they sound at, drawn on the roll. */
   transpose?: number;
   playhead: PlayheadStore;
@@ -187,6 +190,7 @@ export function useEditorPlot({
   edited,
   origins,
   grid,
+  key,
   transpose = 0,
   playhead,
   traceRef,
@@ -198,6 +202,7 @@ export function useEditorPlot({
   const [visible, setVisible] = useState(1);
   const [traceOverlay, setTraceOverlay] = useState(false);
   const duration = record?.durationSec ?? 1;
+  const scale = useMemo(() => (key ? scalePitchClasses(key) : undefined), [key]);
   const range = useMemo(() => fittedPitch([...notes, ...muted]), [notes, muted]);
   const view: TraceView = useMemo(() => {
     const span = Math.min(127, Math.max(4, (range.midiMax - range.midiMin) / pitchZoom));
@@ -250,6 +255,9 @@ export function useEditorPlot({
         traceOverlay ? transposedFrames(frames, shift.shift) : NO_FRAMES,
         {
           ...shiftView(shared, shift.shift),
+          ...(scale ? { scale } : {}),
+          notePitchOffset: shift.shift + shift.lead,
+          animateKeyWarnings: !prefersReducedMotion(),
           ...transposedLayer(
             { notes, muted, edited: edited ?? [], origins: origins ?? [] },
             shift.shift + shift.lead,
@@ -261,6 +269,7 @@ export function useEditorPlot({
     [
       record,
       view,
+      scale,
       grid,
       playhead,
       frames,

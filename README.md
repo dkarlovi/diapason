@@ -665,6 +665,20 @@ Versions stay in this browser. WAV export/import continues to carry the captured
 take without editor state or versions. Versions preserve settings rather than a
 frozen processing engine, so later app updates can change how an old version sounds.
 
+The piano roll subtly shades rows outside the effective key and marks out-of-key
+notes with a warning-colored exclamation badge at their trailing edge. Badges also appear on muted
+and edited notes, independently of their dashed outlines or stripes. Badges scale
+with note height and extend to the left of short bars. Out-of-key pitch labels
+share their shaded row background and use a disabled text tone. Key, Mode,
+and preset previews use the preview's effective key; stopping restores the applied
+key. Minor includes both the natural and raised seventh. With no detected key,
+there are no key highlights. Forced colors retains badges and omits row shading.
+A sounding out-of-key note gives its badge a brief, small wobble; reduced motion
+keeps it static. The pitch value's tooltip and accessible name identify whether a selected note is
+in key. These visual guides do not change notes or MIDI output. The effective key
+can differ from the selected key when Mode overrides it; that existing key-setting
+behavior is tracked separately in #75.
+
 Click a piano-roll note to hear it and open a note inspector beside it. Its darker
 heading shows the note number and name, start time and duration, with context
 Play/Stop and **Mute note** (a pressed toggle while muted). Below it, the **Pitch** row

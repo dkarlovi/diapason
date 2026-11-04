@@ -282,6 +282,31 @@ inside a positioned container. Pass screen classes, event handlers, focusability
 and instruction references as native props. Call the existing renderer from the
 owning hook; the primitive does not schedule rendering or own audio data.
 
+#### Key guides
+
+The MIDI roll shades out-of-key semitone bands with `--trace-outOfKey`, a restrained
+mix of the existing border and muted surface. A filled warning-colored circle with
+an exclamation mark at the trailing edge marks each out-of-key note, including
+muted and edited notes. `--trace-keyWarning` uses the existing warning role, with
+`--trace-keyWarningText` using the background role. A contrasting surface ring
+separates the badge from edit stripes, mute dashes, and sounding fill. Reserve
+label space for the badge, whose diameter is 80% of the note height. When the bar
+is too short, the badge extends left while its right edge stays inside the bar;
+paint warnings above bars and axes so an overhang stays visible. Out-of-key pitch
+labels share the row shade and use `--trace-disabledLabel`, a dimmed label tone
+(or GrayText in forced colors). Forced colors maps the row shade to
+Canvas and retains the warning badge in system colors.
+
+Only a sounding note's badge tilts, with a small decaying wobble over its first
+400ms; the bar and label stay still. Reuse playhead ticks, and keep badges static
+under reduced motion. This connects the audible out-of-key note to its warning.
+
+Both layers use the displayed interpretation's effective key, including auditions,
+with natural minor plus its raised seventh. No key means no guide. Classify bars
+at logical pitch during octave motion. Keep the capture and original-audio traces
+unshaded. The selected pitch's tooltip and accessible name expose key membership
+without adding a status row or changing inspector geometry.
+
 #### Sounding pitch and transposition motion
 
 The MIDI roll and note inspector show sounding pitch: logical notes plus the

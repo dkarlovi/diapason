@@ -2,48 +2,19 @@
 // calibration view and for inspecting recorded samples. Dependency-free 2D canvas.
 
 import { midiToName, freqToMidi, type Frame, type NoteEvent } from "../Melody/Notes";
+import { isOutOfKey } from "../Melody/Key";
+import type { TraceColors, TraceLayer, TraceView } from "./Trace.type";
 import type { PitchRange } from "./Pitch";
-
-export interface TraceView {
-  preferredRange?: PitchRange;
-  inset?: boolean;
-  pitchLabels?: "all" | "none";
-  timeLabelY?: number;
-  noteHeight?: number;
-  /** Time window shown, in seconds. */
-  tMin: number;
-  tMax: number;
-  /** MIDI note range shown on the y-axis. */
-  midiMin: number;
-  midiMax: number;
-  /** Tempo grid: vertical lines at each beat (bars emphasized), optional subdivisions. Beat 0 is t=0. */
-  beatOrigin?: number;
-  playheadTime?: number;
-  /** Hide time/bar numbers for a live preview with no recording start. */
-  showTimeLabels?: boolean;
-  beats?: { bpm: number; beatsPerBar: number; subdivision?: number };
-  /** Note events drawn as piano-roll bars; the pitch trace is then drawn faintly behind them. */
-  notes?: NoteEvent[];
-  /** Notes switched off by the user: drawn as dashed outlines. */
-  muted?: NoteEvent[];
-  /** Notes carrying a saved edit, including equal-valued and muted notes: drawn striped. */
-  edited?: NoteEvent[];
-  /** Automatic positions of edited notes, outlined and linked to the edited note. */
-  origins?: NoteOrigin[];
-}
-
-export interface NoteOrigin {
-  from: NoteEvent;
-  to: NoteEvent;
-  /** Full strength for the selected note; others are drawn faintly. */
-  emphasis?: boolean;
-}
 
 const DEFAULT_COLORS = {
   bg: "#0a0d11",
+  outOfKey: "#161c24",
+  keyWarning: "#ebc078",
+  keyWarningText: "#111418",
   grid: "#222a34",
   gridOctave: "#2f3a47",
   label: "#8a94a3",
+  disabledLabel: "#59616b",
   line: "#5ad1a8",
   faint: "#355f52",
   sub: "#161c24",
@@ -55,7 +26,6 @@ const DEFAULT_COLORS = {
   playhead: "#b6f2dd",
 };
 
-type TraceColors = typeof DEFAULT_COLORS;
 const palettes = new WeakMap<HTMLCanvasElement, { key: string; colors: TraceColors }>();
 
 function traceColors(canvas: HTMLCanvasElement): TraceColors {
@@ -111,18 +81,6 @@ export function traceHorizontalPadding(width: number, inset = false) {
 }
 
 /**
- * Static background of a trace (grid, beats and pitch frames), kept between draws so a
- * moving playhead repaints only the notes, playhead and labels above it.
- */
-export interface TraceLayer {
-  canvas?: HTMLCanvasElement;
-  /** Resolved palette; clear it to pick up a theme change. */
-  colors?: TraceColors | undefined;
-  frames?: Frame[];
-  key?: string;
-}
-
-/**
  * Sizes the canvas in whole device pixels. Assigning a fractional size (e.g. at 125% zoom)
  * truncates, so comparing against the unrounded size would reallocate the canvas every draw.
  */
@@ -175,6 +133,7 @@ export function drawTrace(
   }
   drawPitchLabels(ctx, geometry, view);
   drawRangeLabels(ctx, geometry, view);
+  drawKeyWarnings(ctx, geometry, view);
 }
 
 function setLabelFont(ctx: CanvasRenderingContext2D, view: TraceView) {
@@ -193,6 +152,7 @@ function drawBackground(
   ctx.fillStyle = geometry.colors.bg;
   ctx.fillRect(0, 0, geometry.width, geometry.height);
   setLabelFont(ctx, view);
+  drawScaleRows(ctx, geometry, view);
   drawPitchGrid(ctx, geometry, view);
   drawBeatGrid(ctx, geometry, view);
   drawRangeBand(ctx, geometry, view);
@@ -224,6 +184,7 @@ function cachedBackground(
     view.inset,
     view.pitchLabels,
     view.preferredRange,
+    view.scale ? [...view.scale].sort((a, b) => a - b) : null,
     !!view.notes,
     Object.values(colors),
   ]);
@@ -301,6 +262,15 @@ function drawRangeLabels(ctx: CanvasRenderingContext2D, geometry: TraceGeometry,
   ctx.textAlign = "left";
 }
 
+function drawScaleRows(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  if (!view.scale) return;
+  const { yOf, width, semitoneHeight, colors } = geometry;
+  ctx.fillStyle = colors.outOfKey;
+  for (let midi = Math.ceil(view.midiMin - 0.5); midi < view.midiMax + 0.5; midi++) {
+    if (isOutOfKey(midi, view.scale)) ctx.fillRect(0, yOf(midi + 0.5), width, semitoneHeight);
+  }
+}
+
 function drawPitchGrid(
   ctx: CanvasRenderingContext2D,
   geometry: TraceGeometry,
@@ -337,6 +307,7 @@ function drawPitchLabels(
   ctx.fillStyle = fade;
   ctx.fillRect(edge, 0, 16, h);
   ctx.globalAlpha = 1;
+  drawScaleRows(ctx, { ...geometry, width: edge + 16 }, view);
   ctx.textBaseline = "middle";
   ctx.font =
     view.inset || view.pitchLabels ? "12px system-ui, sans-serif" : "10px system-ui, sans-serif";
@@ -346,7 +317,7 @@ function drawPitchLabels(
     const isC = m % 12 === 0;
     const y = yOf(m);
     if ((isC || view.pitchLabels === "all") && (!view.timeLabelY || y > view.timeLabelY + 10)) {
-      ctx.fillStyle = colors.label;
+      ctx.fillStyle = isOutOfKey(m, view.scale) ? colors.disabledLabel : colors.label;
       ctx.fillText(midiToName(m), labelX, y - 6);
     }
   }
@@ -471,6 +442,29 @@ function drawNoteBars(
   }
 }
 
+/** Warning badges sit above every bar so a left overhang stays visible on short notes. */
+function drawKeyWarnings(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  const { xOf, yOf, semitoneHeight, colors } = geometry;
+  for (const [notes, height, animate] of [
+    [view.muted, semitoneHeight, false],
+    [view.notes, semitoneHeight * (view.noteHeight ?? 1), true],
+  ] as const) {
+    for (const note of notes ?? []) {
+      if (!noteOutsideKey(note, view)) continue;
+      const x = xOf(note.start);
+      paintKeyMark(
+        ctx,
+        x,
+        yOf(note.midi) - height / 2,
+        Math.max(2, xOf(note.start + note.duration) - x),
+        height,
+        colors,
+        animate ? warningWobble(note, view) : 0,
+      );
+    }
+  }
+}
+
 /** Where an edited note was detected, linked to where it is now. */
 function drawOrigins(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
   const { xOf, yOf, colors, semitoneHeight } = geometry;
@@ -496,6 +490,51 @@ function drawOrigins(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, vie
 
 function isSounding(playhead: number | undefined, note: NoteEvent) {
   return playhead !== undefined && playhead >= note.start && playhead < note.start + note.duration;
+}
+
+function noteOutsideKey(note: NoteEvent, view: TraceView) {
+  return isOutOfKey(Math.round(note.midi - (view.notePitchOffset ?? 0)), view.scale);
+}
+
+function warningWobble(note: NoteEvent, view: TraceView) {
+  if (!view.animateKeyWarnings || !isSounding(view.playheadTime, note)) return 0;
+  const elapsed = view.playheadTime! - note.start;
+  return Math.sin(elapsed * 42) * 0.2 * Math.max(0, 1 - elapsed / 0.4);
+}
+
+/** A warning badge and contrasting ring stay legible over edits and sounding notes. */
+function paintKeyMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  colors: TraceColors,
+  angle = 0,
+) {
+  const radius = height * 0.4;
+  ctx.save();
+  ctx.translate(x + width - radius - 2, y + height / 2);
+  ctx.rotate(angle);
+  ctx.fillStyle = colors.keyWarning;
+  ctx.strokeStyle = colors.bg;
+  ctx.lineWidth = Math.min(2, radius * 0.25);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = colors.keyWarningText;
+  ctx.fillStyle = colors.keyWarningText;
+  ctx.lineWidth = radius * 0.23;
+  ctx.beginPath();
+  ctx.moveTo(0, -radius * 0.5);
+  ctx.lineTo(0, radius * 0.05);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, radius * 0.5, radius * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.restore();
 }
 
 function paintLabel(
@@ -569,8 +608,10 @@ function paintNote(
   if (striped) paintStripes(ctx, x, y, width, height, colors.noteText, 0.6);
   ctx.strokeStyle = colors.noteEdge;
   ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
-  if (width > 22 && height >= 9)
-    paintLabel(ctx, colors.noteText, note.name, x, y, width, height, striped ? fill : null);
+  const outOfKey = noteOutsideKey(note, view);
+  const labelWidth = width - (outOfKey ? height * 0.8 + 6 : 0);
+  if (labelWidth >= Math.max(23, ctx.measureText(note.name).width + 6) && height >= 9)
+    paintLabel(ctx, colors.noteText, note.name, x, y, labelWidth, height, striped ? fill : null);
 }
 
 function drawBeatLine(

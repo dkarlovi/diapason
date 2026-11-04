@@ -1,4 +1,5 @@
 import { compareSavedMelody } from "../../Recording/RecordingPackageComparison";
+import { keyName } from "../../Melody/Key";
 import { createPortableTune } from "../../Tune/PortableTune";
 import { useSaveTune } from "./useSaveTune";
 import { useLocation } from "react-router";
@@ -271,6 +272,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   });
   const showingPreview = /^(preset|key|knob|version)-/.test(previewId ?? "");
   const displayed = showingPreview ? audition : processed;
+  const displayKey = displayed?.interpretation.key.chosen ?? null;
   const baseItems = displayed?.items ?? appliedItems;
   const items = baseItems;
   const displayNotes = useMemo(
@@ -368,6 +370,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     edited,
     origins,
     grid: displayGrid,
+    key: displayKey,
     transpose: displayTranspose,
     playhead,
     traceRef,
@@ -545,6 +548,10 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   );
 
   return {
+    displayKey,
+    rollKeyDescription: displayKey
+      ? `Key: ${keyName(displayKey)}. Shaded rows and exclamation badges mark pitches outside this key.`
+      : undefined,
     adHoc: !!session,
     tuneLocked,
     savingTune,
