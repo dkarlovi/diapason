@@ -23,9 +23,13 @@
 
 .studio-shell {
   --trace-bg: var(--color-muted);
+  --trace-outOfKey: color-mix(in oklab, var(--color-border) 22%, var(--color-muted));
+  --trace-keyWarning: var(--color-warning);
+  --trace-keyWarningText: var(--color-background);
   --trace-grid: color-mix(in oklab, var(--color-border) 45%, var(--color-muted));
   --trace-gridOctave: var(--color-border);
   --trace-label: var(--color-muted-foreground);
+  --trace-disabledLabel: color-mix(in oklab, var(--color-muted-foreground) 50%, var(--color-muted));
   --trace-line: var(--color-primary);
   --trace-faint: color-mix(in oklab, var(--color-primary) 50%, var(--color-muted));
   --trace-sub: var(--color-muted);
@@ -47,6 +51,10 @@
   color: var(--color-primary-foreground);
 }
 @media (forced-colors: active) {
+  .studio-shell {
+    --trace-outOfKey: Canvas;
+    --trace-disabledLabel: GrayText;
+  }
   :root {
     --color-background: Canvas !important;
     --color-card: Canvas !important;

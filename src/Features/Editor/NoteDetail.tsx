@@ -4,6 +4,7 @@ import { Button } from "../../UI/Button";
 import { Popover, PopoverAnchor, PopoverContent } from "../../UI/Popover";
 import { traceHorizontalPadding } from "../../Audio/Trace";
 import { midiToName } from "../../Melody/Notes";
+import { isOutOfKey, keyName, scalePitchClasses } from "../../Melody/Key";
 import type { EditorState } from "./useEditor";
 import type { EditorLayout } from "./useEditorLayout";
 
@@ -123,6 +124,9 @@ function NoteSheet({
 
 function NoteInspector({ state }: { state: EditorState }) {
   const note = state.selectedNote!;
+  const membership = state.displayKey
+    ? `${isOutOfKey(note.midi, scalePitchClasses(state.displayKey)) ? "Out of key" : "In key"} (${keyName(state.displayKey)})`
+    : undefined;
   const contextPlaying = state.previewId === `note-${note.start}`;
   const contextLabel = contextPlaying ? "Stop context playback" : "Hear in context";
   return (
@@ -158,6 +162,7 @@ function NoteInspector({ state }: { state: EditorState }) {
         <NoteProperty
           label="Pitch"
           value={midiToName(note.midi + state.displayTranspose)}
+          description={membership}
           edited={state.selectedPitchEdited}
           decrease={{
             label: "Down one semitone",
@@ -190,6 +195,7 @@ interface PropertyAction {
 function NoteProperty({
   label,
   value,
+  description,
   edited,
   decrease,
   increase,
@@ -197,6 +203,7 @@ function NoteProperty({
 }: {
   label: string;
   value: string;
+  description?: string | undefined;
   edited: boolean;
   decrease: PropertyAction;
   increase: PropertyAction;
@@ -218,7 +225,13 @@ function NoteProperty({
       >
         <Minus aria-hidden="true" />
       </Button>
-      <output className="editor-note-value">{value}</output>
+      <output
+        className="editor-note-value"
+        title={description}
+        aria-label={description ? `${value}, ${description}` : undefined}
+      >
+        {value}
+      </output>
       <Button
         className="editor-note-step"
         aria-label={increase.label}

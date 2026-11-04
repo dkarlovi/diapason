@@ -43,6 +43,9 @@ export function scalePitchClasses(key: Key): ReadonlySet<number> {
   const intervals = key.mode === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10, 11];
   return new Set(intervals.map((interval) => (key.tonic + interval) % 12));
 }
+export function isOutOfKey(midi: number, scale: ReadonlySet<number> | null | undefined): boolean {
+  return scale ? !scale.has(((midi % 12) + 12) % 12) : false;
+}
 export function parallelKey(key: Key, mode: Key["mode"]): Key {
   return { ...key, mode };
 }

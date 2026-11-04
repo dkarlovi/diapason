@@ -100,6 +100,24 @@ it("loads a recording and applies a melody preset through React controls", async
   );
 });
 
+it("describes the preview's effective key on the roll and restores the applied key on stop", async () => {
+  playPosition = 0;
+  render(
+    <MemoryRouter>
+      <Editor id="one" />
+    </MemoryRouter>,
+  );
+  await readyEditor();
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
+  const applied = roll.getAttribute("aria-description");
+  expect(applied).toMatch(/Key: .+\. Shaded rows/);
+  await act(async () => fireEvent.click(screen.getByLabelText("Choose key")));
+  await act(async () => fireEvent.click(screen.getByRole("button", { name: "Play key C minor" })));
+  expect(roll.getAttribute("aria-description")).toContain("Key: C minor.");
+  await act(async () => fireEvent.click(screen.getByRole("button", { name: "Stop MIDI" })));
+  expect(roll.getAttribute("aria-description")).toBe(applied);
+});
+
 it("groups MIDI sound separately from the preset, key, and the controls they shape", async () => {
   render(
     <MemoryRouter>

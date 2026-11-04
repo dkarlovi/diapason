@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import reference from "../../tests/fixtures/whistle-regression/reference.json";
-import { keyName, parallelKey, rankKeys, scalePitchClasses } from "./Key";
+import { isOutOfKey, keyName, parallelKey, rankKeys, scalePitchClasses } from "./Key";
 const note = (midi: number, duration = 1) => ({ midi, name: "", start: 0, duration });
 it("ranks E minor first for the take-1 reference melody", () => {
   expect(keyName(rankKeys(reference.map((n) => ({ ...n, name: "" })))[0]!.key)).toBe("E minor");
@@ -28,4 +28,20 @@ it("ranks a uniform histogram deterministically without NaN", () => {
   const ranks = rankKeys(Array.from({ length: 12 }, (_, midi) => note(60 + midi)));
   expect(ranks.every((r) => r.score === 0)).toBe(true);
   expect(ranks.slice(0, 3).map((r) => keyName(r.key))).toEqual(["C major", "C minor", "C# major"]);
+});
+
+it("classifies octave-independent pitches against major, minor, and unknown keys", () => {
+  const major = scalePitchClasses({ tonic: 0, mode: "major" });
+  expect([60, 61, 71, 72, -1, -11].map((midi) => isOutOfKey(midi, major))).toEqual([
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+  ]);
+  const minor = scalePitchClasses({ tonic: 9, mode: "minor" });
+  expect([67, 68, 70].map((midi) => isOutOfKey(midi, minor))).toEqual([false, false, true]);
+  expect(isOutOfKey(61, null)).toBe(false);
+  expect(isOutOfKey(61, undefined)).toBe(false);
 });

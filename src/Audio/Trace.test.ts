@@ -1,6 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { autoRange, drawTrace, type TraceLayer, type TraceView } from "./Trace";
+import { autoRange, drawTrace } from "./Trace";
+import type { TraceLayer, TraceView } from "./Trace.type";
 import type { Frame } from "../Melody/Notes";
+import { scalePitchClasses } from "../Melody/Key";
 
 type Operation = {
   method: string;
@@ -39,6 +41,8 @@ function surface(width = 100) {
     "fill",
     "strokeRect",
     "save",
+    "translate",
+    "rotate",
     "restore",
     "rect",
     "clip",
@@ -366,4 +370,169 @@ it("keeps the canvas allocation stable at fractional device pixel ratios", () =>
   drawTrace(canvas, [], view);
   expect(canvas.width).toBe(126);
   expect(resizes).toBe(1);
+});
+
+it("shades only out-of-key row bands, including partial rows at the viewport edges", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    midiMin: 60.2,
+    midiMax: 63.2,
+    scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+  });
+  const bands = operations.filter(
+    (op) => op.method === "fillRect" && op.fill === "#161c24" && op.args[2] === 100,
+  );
+  expect(bands).toHaveLength(2);
+  expect(bands[0]?.args[1]).toBeCloseTo(56.6667, 3);
+  expect(bands[0]?.args[3]).toBeCloseTo(33.3333, 3);
+  expect(bands[1]?.args[1]).toBeCloseTo(-10, 3);
+  expect(operations.indexOf(bands[1]!)).toBeLessThan(
+    operations.findIndex((op) => op.method === "stroke"),
+  );
+});
+
+it.each([false, true])(
+  "marks out-of-key bars independently of edits and playback (muted=%s)",
+  (muted) => {
+    const { canvas, operations } = surface();
+    const notes = [69, 70, 71].map((midi, index) => ({
+      midi,
+      name: "",
+      start: index / 3,
+      duration: 0.2,
+    }));
+    drawTrace(canvas, [], {
+      ...view,
+      scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+      notes: muted ? [] : notes,
+      muted: muted ? notes : [],
+      edited: notes,
+      playheadTime: 0.4,
+    });
+    expect(operations.filter((op) => op.method === "fill" && op.fill === "#ebc078")).toHaveLength(
+      1,
+    );
+    expect(operations.some((op) => op.method === "strokeRect")).toBe(true);
+  },
+);
+
+it("classifies logical pitches during fractional transposition and includes minor's raised seventh", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    scale: scalePitchClasses({ tonic: 9, mode: "minor" }),
+    notePitchOffset: 0.37,
+    notes: [67, 68, 70].map((midi, index) => ({
+      midi: midi + 0.37,
+      name: "",
+      start: index / 3,
+      duration: 0.2,
+    })),
+  });
+  expect(operations.filter((op) => op.method === "fill" && op.fill === "#ebc078")).toHaveLength(1);
+});
+
+it("leaves unknown keys unmarked and unshaded", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], { ...view, notes: [{ midi: 70, name: "A#4", start: 0, duration: 1 }] });
+  expect(operations.filter((op) => op.method === "fill" && op.fill === "#ebc078")).toEqual([]);
+  expect(operations.filter((op) => op.method === "fillRect" && op.fill === "#161c24")).toEqual([]);
+});
+
+it("keeps a short note's label clear of its key marker", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    midiMin: 0,
+    midiMax: 4,
+    scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+    notes: [{ midi: 1, name: "C#-1", start: 0, duration: 0.37 }],
+  });
+  expect(operations.filter((op) => op.method === "fill" && op.fill === "#ebc078")).toHaveLength(1);
+  expect(operations.filter((op) => op.method === "fillText" && op.args[0] === "C#-1")).toEqual([]);
+});
+
+it("briefly wobbles only the sounding warning badge without moving its note bar", () => {
+  const { canvas, operations } = surface();
+  const roll = {
+    ...view,
+    scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+    animateKeyWarnings: true,
+    notes: [{ midi: 70, name: "A#4", start: 0, duration: 1 }],
+  };
+  for (const playheadTime of [0.04, 0.12, 0.8]) drawTrace(canvas, [], { ...roll, playheadTime });
+  const angles = operations.filter((op) => op.method === "rotate").map((op) => Number(op.args[0]));
+  expect(Math.abs(angles[0]!)).toBeGreaterThan(0);
+  expect(angles[1]).not.toBe(angles[0]);
+  expect(angles[2]).toBe(0);
+  const bars = operations.filter((op) => op.method === "fillRect" && op.alpha === 0.85);
+  expect(bars.map((op) => op.args)).toEqual([bars[0]!.args, bars[0]!.args, bars[0]!.args]);
+  drawTrace(canvas, [], { ...roll, playheadTime: 0.04, animateKeyWarnings: false });
+  expect(operations.filter((op) => op.method === "rotate").at(-1)?.args).toEqual([0]);
+});
+
+it.each([
+  { duration: 0.02, midiMax: 14 },
+  { duration: 0.5, midiMax: 100 },
+])(
+  "sizes warnings to note height and extends narrow badges left ($duration seconds, $midiMax rows)",
+  ({ duration, midiMax }) => {
+    const { canvas, operations } = surface();
+    drawTrace(canvas, [], {
+      ...view,
+      midiMin: 0,
+      midiMax,
+      noteHeight: 0.68,
+      scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+      notes: [{ midi: 10, name: "A#-1", start: 0.1, duration }],
+    });
+    const bar = operations.find((op) => op.method === "fillRect" && op.alpha === 0.85)!;
+    const circle = operations.find((op) => op.method === "arc")!;
+    const center = operations.find((op) => op.method === "translate")!;
+    const radius = Number(circle?.args[2]);
+    expect(radius).toBeCloseTo(Number(bar.args[3]) * 0.4);
+    expect(Number(center?.args[0]) + radius).toBeLessThanOrEqual(
+      Number(bar.args[0]) + Number(bar.args[2]),
+    );
+    if (duration === 0.02)
+      expect(Number(center.args[0]) - radius).toBeLessThan(Number(bar.args[0]));
+  },
+);
+
+it("continues disabled row backgrounds through the pitch labels and dims only out-of-key labels", () => {
+  const { canvas, operations } = surface();
+  drawTrace(canvas, [], {
+    ...view,
+    inset: true,
+    pitchLabels: "all",
+    scale: scalePitchClasses({ tonic: 0, mode: "major" }),
+  });
+  const label = (name: string) =>
+    operations.find((op) => op.method === "fillText" && op.args[0] === name);
+  expect(label("A#4")?.fill).toBe("#59616b");
+  expect(label("A4")?.fill).toBe("#8a94a3");
+  expect(label("B4")?.fill).toBe("#8a94a3");
+  expect(operations).toContainEqual(
+    expect.objectContaining({ method: "fillRect", fill: "#161c24", args: [0, 12.5, 26, 25] }),
+  );
+});
+
+it("invalidates the background for scale changes and reuses equivalent scales", () => {
+  const screen = surface();
+  const background = surface();
+  const layer: TraceLayer = { canvas: background.canvas };
+  const frames: Frame[] = [];
+  const major = { ...view, scale: scalePitchClasses({ tonic: 0, mode: "major" }) };
+  drawTrace(screen.canvas, frames, major, layer);
+  const painted = background.operations.length;
+  drawTrace(screen.canvas, frames, { ...major, scale: new Set([11, 9, 7, 5, 4, 2, 0]) }, layer);
+  expect(background.operations).toHaveLength(painted);
+  drawTrace(
+    screen.canvas,
+    frames,
+    { ...major, scale: scalePitchClasses({ tonic: 1, mode: "major" }) },
+    layer,
+  );
+  expect(background.operations.length).toBeGreaterThan(painted);
 });
