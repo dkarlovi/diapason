@@ -51,17 +51,18 @@ Existing findings are recorded in `.oxlint-baseline.json`; new findings fail
 `npm run lint`, and fixes require lowering the baseline.
 
 React Compiler runs on application components and hooks in development, production
-builds, and Vitest. The shared Vite configuration applies the same Babel compiler
-options to browser and test transforms. Tests and framework-free audio/MIDI code
-are excluded from compilation. `npm test` exercises compiled application code and
-includes a pipeline check that verifies compiler output for both environments.
+builds, and Vitest through `oxc-transform-react`, the experimental Rust compiler
+integration. The browser uses `@vitejs/plugin-react`'s native compiler option.
+Vite's native integration skips server compilation, so a small server-transform
+adapter applies Oxc to the client components executed by Vitest. Both paths target
+React 19 and share source filters; test files and framework-free audio/MIDI code
+are excluded. `npm test` exercises compiled application code and includes a
+pipeline check that verifies compiler output for both environments.
 Existing Rules of React violations can cause individual components or hooks to be
 skipped; lowering the lint baseline increases the code eligible for optimization.
 
-Babel stays on 7.x because React Compiler 1.0 skips components with destructured
-default props under Babel 8. Dependabot excludes Babel major updates until the
-compiler supports them. `tools/react-compiler.test.ts` verifies compiled output
-for both browser and test transforms.
+The build does not use Babel. Keep `oxc-transform-react` within the peer dependency
+range supported by `@vitejs/plugin-react` when updating the toolchain.
 
 ## Fallow and baselines
 

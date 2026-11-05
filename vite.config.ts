@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import babel from "@rolldown/plugin-babel";
+import { transform } from "oxc-transform-react";
 import tailwindcss from "@tailwindcss/vite";
 import { PIPELINE_VERSION } from "./src/Diagnostics/BuildInfo.ts";
 
@@ -25,6 +25,8 @@ for (const file of readdirSync("src", { recursive: true })
 }
 const source = sourceHash.digest("hex");
 const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+const reactSources = /[/\\]src[/\\](App|Features|Studio|UI)[/\\].*\.[jt]sx?$/;
+const excludedReactSources = [/[/\\]node_modules[/\\]/, /\.test\./];
 
 // A dev server keeps serving edited sources, so a startup snapshot would misidentify exports.
 const identity = (live: boolean) =>
@@ -39,12 +41,28 @@ export default defineConfig(({ command, mode }) => ({
     }),
   },
   plugins: [
-    react(),
-    // Tests use Vite's server transforms, so compilation must apply to both environments.
-    babel({
-      include: /[/\\]src[/\\](App|Features|Studio|UI)[/\\].*\.[jt]sx?$/,
-      exclude: /\.test\./,
-      plugins: [["babel-plugin-react-compiler", { target: "19" }]],
+    {
+      name: "react-compiler-server",
+      enforce: "pre",
+      transform: {
+        filter: { id: { include: reactSources, exclude: excludedReactSources } },
+        async handler(code, id) {
+          // Vitest uses server transforms to execute client components with memoization.
+          if (this.environment.config.consumer !== "server") return;
+          const result = await transform(id.replace(/\?.*$/, ""), code, {
+            reactCompiler: { target: "19" },
+            jsx: { development: mode !== "production" },
+            sourcemap: true,
+          });
+          if (result.fatal) this.error(result.errors.map((error) => error.message).join("\n"));
+          return { code: result.code, map: result.map ?? null };
+        },
+      },
+    },
+    react({
+      include: reactSources,
+      exclude: excludedReactSources,
+      compiler: { target: "19" },
     }),
     tailwindcss(),
     {
