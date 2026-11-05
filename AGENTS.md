@@ -1,5 +1,31 @@
 # Repository Guidelines
 
+## Task Context and Documentation
+
+The README is the public overview and entry point. Load detailed context for the
+task from these maintained references:
+
+| Task                                                               | Context                                                                                            |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Product scope and supported behavior                               | [PRODUCT.md](PRODUCT.md), [studio guide](docs/studio-guide.md), [limitations](docs/limitations.md) |
+| UI implementation or review                                        | [DESIGN.md](DESIGN.md), `.impeccable/design.json`, `.impeccable/config.json`                       |
+| Processing or module ownership                                     | [Architecture](docs/architecture.md)                                                               |
+| Toolchain, baselines, coverage, or deployment                      | [Development](docs/development.md)                                                                 |
+| Sharing or import/export                                           | [Sharing](docs/sharing.md), [portable tune format](docs/portable-tune-format.md)                   |
+| Embedding or theme integration                                     | [Embedding](docs/embedding.md), [theme format](docs/themes.md)                                     |
+| Supplied WAV, wrong notes, replay differences, or package failures | [diapason-recordings skill](.agents/skills/diapason-recordings/SKILL.md)                           |
+
+The recording skill contains the investigation workflow and routes to focused
+references; [recording inspection](docs/recording-inspection.md) is the human CLI
+reference. Historical designs and implementation plans under `docs/superpowers/`
+record rationale; current source, CLI help, and maintained guides describe shipped
+capabilities.
+
+For design exploration, build quick, runnable visual mockups in code before
+production implementation, as with the existing editor layout studies. Recording,
+original audio, and MIDI share `PitchCanvas`, theme tokens, and the trace renderer;
+screen-specific recording and editing controls remain with their screens.
+
 ## Project Structure & Module Organization
 
 diapason is a fully client-side whistle-to-MIDI studio built with React, TypeScript, and Vite. `src/main.tsx` mounts the app from `src/App/` (router, shell, global styles); `src/Routing/Routes.ts` defines route helpers. Each screen lives in `src/Features/<Screen>/` with its components, hooks, and screen-only logic; diapason behaviour shared by several screens (sharing, analysis status, MIDI output, the pitch canvas, studio mode) lives in `src/Studio/`, and the generic design system in `src/UI/`. Framework-free domain code lives in the other `src/` folders (`Audio`, `Melody`, `Recording`, `Editing`, `Midi`, `Playback`, `Tune`, `Analysis`, `Diagnostics`, `Encoding`, `Storage`, `Theme`, `Routing`), and the recording inspection logic behind `bin/diapason` lives in `src/Inspection/`. Tests sit beside their source files; shared fixtures live in `tests/fixtures/` and test helpers in `tests/support/`. Shared styles live in `src/App/Styles.css`; `index.html` is the HTML entry point. Plans live in `plans/` and `docs/superpowers/plans/`. Generated output goes to `dist/` and `coverage/`.
@@ -86,7 +112,11 @@ visual verification from static CSS or jsdom checks.
 
 ## Commit & Pull Request Guidelines
 
-Review and update `README.md` on every feature branch so it reflects the resulting app behavior, available features, setup instructions, and known limitations. Remove or revise roadmap ideas as they are implemented.
+Review `README.md` on every feature branch and update it when the public overview,
+quick start, or documentation links change. Update the relevant guide in `docs/`
+for detailed behavior, setup, formats, and limitations. Agent procedures belong in
+the applicable skill and repository instructions belong here. Planned work lives
+in GitHub issues; revise it as features ship.
 
 History uses short descriptive subjects such as `React UI` and `Fallow health`; no mandatory prefix convention is evident. Keep commits focused. Describe the problem, resulting behavior, and validation in pull requests; link relevant issues and include screenshots for visible changes. Run `npm run check` before submission. GitHub Actions checks pull requests targeting `main`; pushes to `main` deploy to GitHub Pages.
 
