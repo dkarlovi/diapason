@@ -18,6 +18,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # React Compiler 1.0 rejects destructured default props with Babel 8's AST checks.
+      - dependency-name: "@babel/core"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     commit-message:
       prefix: deps
