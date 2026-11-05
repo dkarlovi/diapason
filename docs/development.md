@@ -58,6 +58,11 @@ includes a pipeline check that verifies compiler output for both environments.
 Existing Rules of React violations can cause individual components or hooks to be
 skipped; lowering the lint baseline increases the code eligible for optimization.
 
+Babel stays on 7.x because React Compiler 1.0 skips components with destructured
+default props under Babel 8. Dependabot excludes Babel major updates until the
+compiler supports them. `tools/react-compiler.test.ts` verifies compiled output
+for both browser and test transforms.
+
 ## Fallow and baselines
 
 The duplication check normalizes renamed variables and changed literals. It allows
