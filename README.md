@@ -350,6 +350,10 @@ Dependencies use stable npm releases, with exact resolved versions committed in
 `package-lock.json`. Node.js type definitions track the latest stable release;
 runtime scripts must remain compatible with Node 22.18+ and CI runs on Node 22.
 
+Dependabot checks npm dependencies and GitHub Actions weekly, grouping updates
+into one pull request per ecosystem. Its configuration lives in
+[`.github/dependabot.yml`](.github/dependabot.yml).
+
 ```bash
 npm ci
 npm run dev      # opens http://localhost:5173/diapason/
