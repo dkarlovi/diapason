@@ -24,7 +24,7 @@ export function MelodyKnob({
   reason?: string | undefined;
   onChange: MelodyPanelProps["changeKnob"];
   onReset: MelodyPanelProps["resetKnob"];
-  onPreview(value: number | string): void;
+  onPreview: (value: number | string) => void;
   previewId: string | null;
   gesture: EditGesture;
 }) {

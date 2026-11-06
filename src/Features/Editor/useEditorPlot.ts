@@ -37,7 +37,7 @@ interface Options {
   playhead: PlayheadStore;
   traceRef: RefObject<HTMLCanvasElement | null>;
   rollRef: RefObject<HTMLCanvasElement | null>;
-  claimsPointer(event: PointerEvent): boolean;
+  claimsPointer: (event: PointerEvent) => boolean;
 }
 
 const NO_FRAMES: Frame[] = [];

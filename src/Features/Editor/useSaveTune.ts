@@ -8,8 +8,8 @@ import type { AdHocTuneSession } from "./AdHocSession";
 interface Options {
   session: AdHocTuneSession | undefined;
   ready: boolean;
-  finish(): void;
-  notify(notice: Notice): void;
+  finish: () => void;
+  notify: (notice: Notice) => void;
   saving: RefObject<boolean>;
 }
 function clearSavedDraft(session: AdHocTuneSession): string | null {

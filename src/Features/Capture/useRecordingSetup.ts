@@ -20,10 +20,10 @@ export function useRecordingSetup({
   transport,
   setStatus,
 }: {
-  isBusy(): boolean;
-  onBeforeClose(): void;
+  isBusy: () => boolean;
+  onBeforeClose: () => void;
   transport: TransportState | null;
-  setStatus(message: string): void;
+  setStatus: (message: string) => void;
 }) {
   const [setup, setSetup] = useState(initialSetup);
   const setupRef = useRef(setup);

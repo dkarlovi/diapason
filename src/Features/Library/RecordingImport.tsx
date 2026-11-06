@@ -27,7 +27,7 @@ function WavImportOptions({
   onOptions,
 }: {
   candidate: ImportCandidate;
-  onOptions(options: CandidateOptions): void;
+  onOptions: (options: CandidateOptions) => void;
 }) {
   return (
     <>
@@ -52,7 +52,7 @@ function ImportItem({
   onOptions,
 }: {
   candidate: ImportCandidate;
-  onOptions(options: CandidateOptions): void;
+  onOptions: (options: CandidateOptions) => void;
 }) {
   const { record, existing, error, tune } = candidate;
   return (
@@ -88,9 +88,9 @@ export function RecordingImport({
   onCandidateOptions,
 }: {
   candidates: ImportCandidate[] | null;
-  onConfirm(): void;
-  onCancel(): void;
-  onCandidateOptions(index: number, options: CandidateOptions): void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  onCandidateOptions: (index: number, options: CandidateOptions) => void;
 }) {
   const count = importable(candidates ?? []).length;
   return (

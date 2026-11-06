@@ -31,16 +31,18 @@ export interface MicHandle {
   /** The raw source node, so a recorder worklet can tap the same clean signal. */
   source: MediaStreamAudioSourceNode;
   /** Fill `out` (or an internal buffer) with the latest time-domain samples. */
-  readFrame(out?: Float32Array<ArrayBuffer>): Float32Array<ArrayBuffer>;
+  readFrame: (out?: Float32Array<ArrayBuffer>) => Float32Array<ArrayBuffer>;
   /** Post-gain node: the clean, boosted signal. Recorders should tap this. */
   tap: AudioNode;
   /** Multiply the input signal (1 = unchanged). Boost helps meters/levels, not pitch. */
-  setGain(multiplier: number): void;
+  setGain: (multiplier: number) => void;
   /** What the browser actually gave us — used to confirm DSP really is off. */
-  getSettings(): MediaTrackSettings;
-  subscribePcm(listener: (samples: Float32Array, startSec: number) => void): Promise<() => void>;
-  onEnded?(listener: () => void): () => void;
-  close(): void;
+  getSettings: () => MediaTrackSettings;
+  subscribePcm: (
+    listener: (samples: Float32Array, startSec: number) => void,
+  ) => Promise<() => void>;
+  onEnded?: (listener: () => void) => () => void;
+  close: () => void;
 }
 
 export interface OpenMicOptions {

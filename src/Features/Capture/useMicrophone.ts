@@ -14,9 +14,9 @@ export interface Observation {
   samples: Float32Array;
 }
 interface Options {
-  isBusy(): boolean;
-  onError(message: string): void;
-  onBeforeClose(): void;
+  isBusy: () => boolean;
+  onError: (message: string) => void;
+  onBeforeClose: () => void;
 }
 interface MonitorGrid {
   bpm: number;

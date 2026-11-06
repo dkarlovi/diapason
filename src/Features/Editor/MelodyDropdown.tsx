@@ -10,8 +10,8 @@ interface Props {
   value: string;
   disabled: boolean;
   tooltip?: string | undefined;
-  onReset(): void;
-  children(close: () => void): ReactNode;
+  onReset: () => void;
+  children: (close: () => void) => ReactNode;
 }
 export function MelodyDropdown({ label, value, disabled, tooltip, onReset, children }: Props) {
   const [localOpen, setLocalOpen] = useState(false);

@@ -188,7 +188,7 @@ function NoteInspector({ state }: { state: EditorState }) {
 interface PropertyAction {
   label: string;
   disabled: boolean;
-  run(): void;
+  run: () => void;
 }
 
 /** One editable note property; every row keeps the same columns whether or not it is edited. */

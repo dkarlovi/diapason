@@ -10,8 +10,8 @@ interface Props {
   disabled: boolean;
   previewLabel: string;
   useLabel: string;
-  onPreview(): void;
-  onUse(): void;
+  onPreview: () => void;
+  onUse: () => void;
   title?: string | undefined;
 }
 const BASE_HINT = "Base preset: Use replaces your adjustments";

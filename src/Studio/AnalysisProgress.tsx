@@ -1,7 +1,7 @@
 import type { AnalysisState } from "../Analysis/AnalysisJobs";
 import { Button } from "../UI/Button";
 
-export function AnalysisProgress({ state, retry }: { state: AnalysisState; retry(): void }) {
+export function AnalysisProgress({ state, retry }: { state: AnalysisState; retry: () => void }) {
   if (state.status === "error")
     return (
       <div className="analysis-status analysis-error">

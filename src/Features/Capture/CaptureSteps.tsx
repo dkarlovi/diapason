@@ -17,7 +17,7 @@ export function CaptureSteps({
   locked: boolean;
   recording: boolean;
   microphone: string;
-  onChoose(step: SetupStep): void;
+  onChoose: (step: SetupStep) => void;
 }) {
   return (
     <nav className="capture-steps" aria-label="Recording steps">

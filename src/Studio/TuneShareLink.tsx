@@ -6,7 +6,7 @@ export function TuneShareLink({
   floating = false,
 }: {
   link: string | null;
-  onClose(): void;
+  onClose: () => void;
   floating?: boolean;
 }) {
   if (!link) return null;

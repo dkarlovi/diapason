@@ -17,8 +17,8 @@ interface Options {
   session?: AdHocTuneSession | undefined;
   recordingId: string;
   history: ReturnType<typeof useEditHistory>;
-  beforeAction(): void;
-  preview(version: SavedVersion): void;
+  beforeAction: () => void;
+  preview: (version: SavedVersion) => void;
 }
 export function useEditorVersions({
   recordingId,
