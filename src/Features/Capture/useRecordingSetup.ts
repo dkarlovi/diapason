@@ -14,6 +14,11 @@ import {
   type SetupAction,
   type VoiceTarget,
 } from "../../Recording/RecordingSetup";
+
+function measurementFailure(error: unknown): string {
+  return `Measurement error: ${error instanceof Error ? error.message : String(error)}`;
+}
+
 export function useRecordingSetup({
   isBusy,
   onBeforeClose,
@@ -34,23 +39,18 @@ export function useRecordingSetup({
     return next;
   }, []);
   const [acknowledged, setAcknowledged] = useState(false);
-  const busy = {
-    get current() {
-      return isBusy();
-    },
-  };
   const microphone = useMicrophone({ isBusy, onError: setStatus, onBeforeClose });
   const { currentMic, isCurrentMic } = microphone;
   const measurements = useMeasurements(microphone.subscribe, microphone.isRunning, currentMic);
   const changeTempo = useCallback(
     (bpm: number, beatsPerBar: number) => {
-      if (!busy.current) update({ type: "tempo", bpm, beatsPerBar });
+      if (!isBusy()) update({ type: "tempo", bpm, beatsPerBar });
     },
-    [update],
+    [isBusy, update],
   );
   const confirmTempo = useCallback(() => {
-    if (!busy.current) update({ type: "tempo-confirm" });
-  }, [update]);
+    if (!isBusy()) update({ type: "tempo-confirm" });
+  }, [isBusy, update]);
   const tempo = useTempo({
     bpm: setup.bpm,
     beatsPerBar: setup.beatsPerBar,
@@ -88,7 +88,7 @@ export function useRecordingSetup({
   ]);
 
   const openDevice = async (id: string) => {
-    if (busy.current || !setupRef.current.soundConfirmed) return;
+    if (isBusy() || !setupRef.current.soundConfirmed) return;
     measurements.cancel();
     tempo.stop();
     setAcknowledged(false);
@@ -96,7 +96,7 @@ export function useRecordingSetup({
     await microphone.openDevice(id);
   };
   const changeGain = (value: number) => {
-    if (busy.current || !Number.isFinite(value)) return;
+    if (isBusy() || !Number.isFinite(value)) return;
     const gain = Math.max(1, Math.min(20, value));
     if (setupRef.current.gain === gain) return;
     measurements.cancel();
@@ -131,7 +131,7 @@ export function useRecordingSetup({
     if (micCanConfirm) update({ type: "microphone", ready: true });
   };
   const chooseSound = (id: string) => {
-    if (busy.current) return;
+    if (isBusy()) return;
     const profile = getSoundProfile(id);
     const changed = profile.id !== setupRef.current.profileId;
     if (changed) {
@@ -146,8 +146,7 @@ export function useRecordingSetup({
   const runMeasurement = async (kind: "room" | "sound", target?: VoiceTarget) => {
     const opened = currentMic(),
       current = setupRef.current;
-    if (!opened || busy.current || (kind === "room" ? !current.micReady : !current.room?.pass))
-      return;
+    if (!opened || isBusy() || (kind === "room" ? !current.micReady : !current.room?.pass)) return;
     measurements.cancel();
     tempo.stop();
     setStatus("");
@@ -178,7 +177,7 @@ export function useRecordingSetup({
     } catch (error) {
       if (isCurrentMic(opened) && setupRef.current.revision === revision) {
         update({ type: "cancel" });
-        setStatus(`Measurement error: ${(error as Error).message}`);
+        setStatus(measurementFailure(error));
       }
     }
   };

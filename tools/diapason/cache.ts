@@ -104,7 +104,9 @@ export function createStageStore({
     }
   }
   const report = (error: unknown) =>
-    diagnostic(`Cache unavailable; recomputing when needed: ${(error as Error).message}`);
+    diagnostic(
+      `Cache unavailable; recomputing when needed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   async function ready() {
     const stat = await ensureDirectory(root);
     if (

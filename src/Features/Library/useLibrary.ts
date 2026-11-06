@@ -17,6 +17,13 @@ import type { Playback } from "../../Playback/Playback.type";
 const playbackLabels = { audio: "original audio", midi: "MIDI" };
 const clearPlaybackNotice = (notice: Notice | null) => (notice?.kind === "info" ? null : notice);
 
+function libraryFailure(action: string, error: unknown): Notice {
+  return {
+    kind: "error",
+    message: `${action}: ${error instanceof Error ? error.message : String(error)}`,
+  };
+}
+
 export type Playing = { id: string; kind: "audio" | "midi" } | null;
 
 function uid(): string {
@@ -99,7 +106,7 @@ export function useLibrary() {
       } catch (error) {
         if (!transport.current.mounted || token !== transport.current.request) return;
         stopPlayback();
-        setNotice({ kind: "error", message: `Playback failed: ${(error as Error).message}` });
+        setNotice(libraryFailure("Playback failed", error));
       }
     },
     [stopPlayback, setNotice],
@@ -122,10 +129,7 @@ export function useLibrary() {
         await reload();
         setNotice({ kind: "success", message: `Duplicated “${record.name}”` });
       } catch (error) {
-        setNotice({
-          kind: "error",
-          message: `Could not duplicate recording: ${(error as Error).message}`,
-        });
+        setNotice(libraryFailure("Could not duplicate recording", error));
       }
     },
     [reload, setNotice],
@@ -142,10 +146,7 @@ export function useLibrary() {
         await reload();
         setNotice({ kind: "success", message: `Deleted “${record.name}”` });
       } catch (error) {
-        setNotice({
-          kind: "error",
-          message: `Could not delete recording: ${(error as Error).message}`,
-        });
+        setNotice(libraryFailure("Could not delete recording", error));
       }
     },
     [reload, stopPlayback, setNotice],

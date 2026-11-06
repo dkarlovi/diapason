@@ -188,11 +188,6 @@
       "count": 1
     }
   },
-  "src/Features/Capture/useCapture.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
   "src/Features/Capture/useCaptureWizard.ts": {
     "react/exhaustive-effect-dependencies": {
       "count": 1
@@ -209,14 +204,11 @@
     },
     "react/immutability": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Capture/useRecordingSetup.ts": {
     "react-hooks/exhaustive-deps": {
-      "count": 3
+      "count": 1
     },
     "react/exhaustive-effect-dependencies": {
       "count": 1
@@ -225,18 +217,10 @@
       "count": 4
     },
     "react/memo-dependencies": {
-      "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
   "src/Features/Capture/useTempo.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "src/Features/Capture/useTempo.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -348,13 +332,10 @@
   },
   "src/Features/Editor/useEditor.ts": {
     "react-hooks/exhaustive-deps": {
-      "count": 5
+      "count": 1
     },
     "react/immutability": {
       "count": 1
-    },
-    "react/memo-dependencies": {
-      "count": 4
     },
     "react/refs": {
       "count": 2
@@ -397,9 +378,6 @@
       "count": 1
     },
     "react/exhaustive-effect-dependencies": {
-      "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
@@ -473,9 +451,6 @@
   "src/Features/Library/useLibrary.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
     }
   },
   "src/Features/Library/useRecordingImport.test.tsx": {
@@ -768,7 +743,7 @@
       "count": 5
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 2
     },
     "unicorn/no-array-sort": {
       "count": 1

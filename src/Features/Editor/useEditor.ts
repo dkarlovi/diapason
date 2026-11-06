@@ -113,8 +113,9 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     stopPlayback,
   } = useEditorPlayback({ recordingId: id, recordRef, pcmRef: pcm, notes });
   const history = useEditHistory({ record, replaceRecord, beforeChange: stopPlayback, session });
+  const { change: changeHistory, finish, flush, cancel } = history;
   const finishSession = () => {
-    history.finish();
+    finish();
     stopPlayback();
   };
   const { savingTune, saveTune } = useSaveTune({
@@ -130,7 +131,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   }, [location.state, showNotice]);
   const sharing = useTuneShare(
     showNotice,
-    history.flush,
+    flush,
     session
       ? async () => {
           const current = recordRef.current!;
@@ -143,7 +144,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   );
   const { applyPreset, changeKnob, resetKnob, changeKey } = useMelodySettings(
     recordRef,
-    history.change,
+    changeHistory,
   );
   useEffect(() => {
     mounted.current = true;
@@ -332,7 +333,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   };
   const { downloadMidi, downloadWav } = useEditorExports({
     canExport,
-    beforeExport: history.flush,
+    beforeExport: flush,
     recordingId: id,
     recordRef,
     pcmRef: pcm,
@@ -385,7 +386,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     const current = recordRef.current;
     if (!current || auditionRef.current || saving.current) return;
     stopPlayback();
-    history.change(label, (value) => ({ ...value, noteEdits }));
+    changeHistory(label, (value) => ({ ...value, noteEdits }));
   };
   const currentSelected = () => {
     const current = recordRef.current;
@@ -414,7 +415,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     gesture: {
       active: history.drafting,
       begin() {
-        history.finish();
+        finish();
         const item = currentSelected(),
           current = recordRef.current;
         if (!item || !current) return;
@@ -444,7 +445,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
         previewNote({ ...item.note, midi });
       },
       commit: history.commit,
-      cancel: history.cancel,
+      cancel,
     },
   });
   const resetSelectedPitch = () => {
@@ -462,9 +463,9 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     (settings: PlaySettings) => {
       const current = recordRef.current;
       if (!current) return;
-      history.change("Change playback sound", (value) => ({ ...value, play: settings }));
+      changeHistory("Change playback sound", (value) => ({ ...value, play: settings }));
     },
-    [history.change],
+    [changeHistory],
   );
 
   const commitName = useCallback(() => {
@@ -479,8 +480,8 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   }, [draftName, replaceRecord, session]);
 
   const duplicate = useCallback(async () => {
-    history.finish();
-    await history.flush();
+    finish();
+    await flush();
     const current = recordRef.current;
     if (!current) return;
     const copy = {
@@ -494,17 +495,17 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     delete copy.editHistory;
     await putRecording(copy);
     if (mounted.current) navigate(recordingPath(copy.id));
-  }, [navigate, history.finish, history.flush]);
+  }, [navigate, finish, flush]);
 
   const remove = useCallback(async () => {
     const current = recordRef.current;
     if (tuneLocked || session) return;
     if (!current || !confirm(`Delete “${current.name}”?`)) return;
-    history.cancel();
+    cancel();
     await stopEditorSaves(current.id);
     await deleteRecording(current.id);
     if (mounted.current) navigate("/", { state: { deletedRecording: current.name } });
-  }, [navigate, history.cancel]);
+  }, [navigate, cancel, session, tuneLocked]);
 
   const noteAt = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
@@ -519,12 +520,12 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       const current = recordRef.current;
       if (!current || auditionRef.current || saving.current) return;
       stopPlayback();
-      history.change(item.muted ? "Unmute note" : "Mute note", (value) => ({
+      changeHistory(item.muted ? "Unmute note" : "Mute note", (value) => ({
         ...value,
         muted: toggleMuted(value.muted ?? [], item),
       }));
     },
-    [stopPlayback, history.change],
+    [stopPlayback, changeHistory],
   );
   const clickRoll = useCallback(
     (event: MouseEvent<HTMLCanvasElement>) => {
@@ -574,7 +575,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     drafting: history.drafting,
     beginKnob: (key: keyof Knobs) => {
       if (!recordRef.current || !knobAvailability(recordRef.current, key).enabled) return;
-      history.finish();
+      finish();
       knobBaseline.current = recordRef.current;
       history.begin(`Change ${KNOB_DEFS.find((def) => def.key === key)?.label ?? key}`);
     },
@@ -594,7 +595,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       );
     },
     commitGesture: history.commit,
-    cancelGesture: history.cancel,
+    cancelGesture: cancel,
     selectedPitchEdited: selectedItem?.editState.axes.includes("pitch") ?? false,
     canEditPitch: analysisReady && !showingPreview && !versions.busy && !savingTune,
     shiftSelectedPitch,

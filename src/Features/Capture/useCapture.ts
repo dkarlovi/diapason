@@ -144,7 +144,7 @@ export function useCapture() {
         update({ type: "busy", value: false });
         setRecording(false);
         setTransport(null);
-        setError(`Record error: ${(error as Error).message}`);
+        setError(`Record error: ${error instanceof Error ? error.message : String(error)}`);
       }
     } finally {
       if (isCurrentMic(opened)) setStarting(false);
@@ -216,7 +216,9 @@ export function useCapture() {
       }
     } catch (error) {
       if (mounted.current)
-        setError(`Save error: ${(error as Error).message} — record again to retry.`);
+        setError(
+          `Save error: ${error instanceof Error ? error.message : String(error)} — record again to retry.`,
+        );
     } finally {
       if (mounted.current) {
         setSaving(false);

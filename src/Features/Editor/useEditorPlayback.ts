@@ -120,7 +120,10 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
           message: kind === "audio" ? "Playing original audio" : "Playing MIDI melody",
         });
       } catch (error) {
-        setNotice({ kind: "error", message: `Playback failed: ${(error as Error).message}` });
+        setNotice({
+          kind: "error",
+          message: `Playback failed: ${error instanceof Error ? error.message : String(error)}`,
+        });
       }
     },
     [notes, stopPlayback, recordRef, pcmRef, start, setNotice],

@@ -6,7 +6,7 @@ const state = vi.hoisted(() => ({
   requests: [] as {
     id: string;
     resolve: (handle: MicHandle) => void;
-    reject: (error: Error) => void;
+    reject: (error: unknown) => void;
   }[],
 }));
 vi.mock("../../Audio/Audio", () => ({
@@ -110,6 +110,22 @@ it("ignores obsolete failures and cancelled monitor ticks", async () => {
   await act(async () => state.requests[2]!.reject(new Error("denied")));
   expect(errors.at(-1)).toBe("Mic error: denied");
 });
+it.each(["permission denied", null, undefined])(
+  "reports a microphone rejection of %s without throwing",
+  async (reason) => {
+    const { result } = renderHook(() => useMicrophone(options));
+    let opening: Promise<void>;
+    act(() => {
+      opening = result.current.openDevice("");
+    });
+    await act(async () => {
+      state.requests[0]!.reject(reason);
+      await opening;
+    });
+    expect(errors.at(-1)).toBe(`Mic error: ${String(reason)}`);
+    expect(result.current.opening).toBe(false);
+  },
+);
 it("keeps gain consistent with the active microphone and emits observations", async () => {
   const hook = renderHook(() => useMicrophone(options));
   const mic = microphone();
