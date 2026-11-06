@@ -28,7 +28,7 @@ it("offers restoration or fresh audio independently of the collision-copy choice
     </MemoryRouter>,
   );
   const select = screen.getByRole("combobox", { name: "Melody for take.wav" });
-  expect((select as HTMLSelectElement).value).toBe("restore");
+  expect(select).toHaveProperty("value", "restore");
   await userEvent.selectOptions(select, "fresh");
   expect(onOptions).toHaveBeenLastCalledWith(0, { tuneMode: "fresh" });
   await userEvent.click(screen.getByRole("checkbox", { name: "Import as copy" }));

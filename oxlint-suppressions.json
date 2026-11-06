@@ -45,9 +45,6 @@
   "src/Audio/ClapInput.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    },
-    "typescript/unbound-method": {
-      "count": 2
     }
   },
   "src/Audio/Metronome.test.ts": {
@@ -57,9 +54,6 @@
   },
   "src/Audio/Recorder.test.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    },
-    "typescript/unbound-method": {
       "count": 2
     }
   },
@@ -182,11 +176,6 @@
   "src/Features/Capture/Capture.tsx": {
     "react/refs": {
       "count": 1
-    }
-  },
-  "src/Features/Capture/CaptureWorkstation.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
     }
   },
   "src/Features/Capture/LiveBeat.tsx": {
@@ -456,9 +445,6 @@
   "src/Features/Editor/useSliderCommit.test.tsx": {
     "react/refs": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Editor/useSliderCommit.ts": {
@@ -468,7 +454,7 @@
   },
   "src/Features/Library/RecordingImport.test.tsx": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Features/Library/RecordingImport.tsx": {
@@ -680,9 +666,6 @@
     }
   },
   "src/Recording/RecordingPackage.validation.ts": {
-    "typescript/no-base-to-string": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 5
     }
@@ -722,7 +705,7 @@
       "count": 1
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 4
+      "count": 3
     }
   },
   "src/Studio/useStudioMode.tsx": {

@@ -11,7 +11,7 @@ it("renders MIDI port identifiers as option values without parsing markup", asyn
   expect(await connectMidi(true)).toBe(true);
   render(<MidiOutputPicker />);
   const select = screen.getByRole("combobox");
-  expect((select.querySelectorAll("option")[1] as HTMLOptionElement).value).toBe(id);
+  expect(select.querySelectorAll("option")[1]).toHaveProperty("value", id);
   expect(select.querySelector("img")).toBeNull();
   fireEvent.change(select, { target: { value: id } });
   expect(selectedOutputId()).toBe(id);

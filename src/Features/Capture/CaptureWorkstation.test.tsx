@@ -52,19 +52,19 @@ it("shows elapsed progress during room and sound measurements", async () => {
   await click("Measure room noise");
   const room = screen.getByRole("progressbar", {
     name: "Measuring… stay silent",
-  }) as HTMLProgressElement;
-  expect(room.value).toBe(0);
+  });
+  expect(room).toHaveProperty("value", 0);
   advance(750);
-  expect(room.value).toBeCloseTo(0.5, 1);
+  expect(room).toHaveProperty("value", expect.closeTo(0.5, 1));
   advance(750);
   expect(screen.queryByRole("progressbar")).toBeNull();
   await click("Check my sound");
   const sound = screen.getByRole("progressbar", {
     name: "Checking… keep sounding",
-  }) as HTMLProgressElement;
-  expect(sound.value).toBe(0);
+  });
+  expect(sound).toHaveProperty("value", 0);
   advance(1000, true);
-  expect(sound.value).toBeCloseTo(0.5, 1);
+  expect(sound).toHaveProperty("value", expect.closeTo(0.5, 1));
   advance(1000, true);
   expect(screen.queryByRole("progressbar")).toBeNull();
 });

@@ -235,8 +235,8 @@ function validateStructure(value: unknown): asserts value is RecordingPackageV2 
     ["tune.effectiveKnobs", p.tune.effectiveKnobs],
     ["evidence.stages", p.evidence.stages],
     ["evidence.settings", p.evidence.settings],
-  ])
-    requiredObject(field, String(path));
+  ] satisfies [string, unknown][])
+    requiredObject(field, path);
   requiredObject(p.evidence.stages.knobs, "evidence.stages.knobs");
   for (const key of [
     "items",

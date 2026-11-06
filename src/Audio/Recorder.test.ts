@@ -8,11 +8,15 @@ const nodes: {
   };
 }[] = [];
 function context() {
+  const addModule = vi.fn(async () => {});
   return {
-    currentTime: 1,
-    sampleRate: 10,
-    audioWorklet: { addModule: vi.fn(async () => {}) },
-  } as unknown as AudioContext;
+    audioContext: {
+      currentTime: 1,
+      sampleRate: 10,
+      audioWorklet: { addModule },
+    } as unknown as AudioContext,
+    addModule,
+  };
 }
 function setup() {
   vi.stubGlobal(
@@ -38,17 +42,17 @@ it("registers recorder worklets per context, including after changing microphone
   const source = setup(),
     first = context(),
     second = context();
-  const a = await createRecorder(first, source),
-    b = await createRecorder(second, source);
-  expect(first.audioWorklet.addModule).toHaveBeenCalledOnce();
-  expect(second.audioWorklet.addModule).toHaveBeenCalledOnce();
+  const a = await createRecorder(first.audioContext, source),
+    b = await createRecorder(second.audioContext, source);
+  expect(first.addModule).toHaveBeenCalledOnce();
+  expect(second.addModule).toHaveBeenCalledOnce();
   a.dispose();
   b.dispose();
 });
 it("uses audio timestamps to exclude queued pre-start samples", async () => {
   const source = setup(),
     ctx = context();
-  const recorder = await createRecorder(ctx, source);
+  const recorder = await createRecorder(ctx.audioContext, source);
   recorder.start();
   nodes[0]!.port.onmessage?.({ data: { samples: new Float32Array([9, 9, 0.5, 0.6]), start: 0.8 } });
   expect([...recorder.stop()]).toEqual([0.5, expect.closeTo(0.6, 5)]);
