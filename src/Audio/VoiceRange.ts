@@ -3,6 +3,8 @@ import { freqToMidi, midiToName, type Frame } from "../Melody/Notes";
 import type { PitchRange } from "./Pitch";
 import type { EndpointResult } from "../Recording/RecordingSetup.type";
 import type { SoundProfile } from "../Recording/SoundProfile.type";
+import { upperMedianInPlace } from "./Statistics";
+import { hasProperties } from "../Encoding/Properties";
 
 /** Require a mostly held pitch; isolated octave glitches cannot define an endpoint. */
 export function measureVoiceEndpoint(
@@ -22,9 +24,8 @@ export function measureVoiceEndpoint(
     .map((f) => f.freq!)
     .filter(
       (f) => Number.isFinite(f) && f >= profile.analysis.minFreq && f <= profile.analysis.maxFreq,
-    )
-    .sort((a, b) => a - b);
-  const median = frequencies[Math.floor(frequencies.length / 2)] ?? 0;
+    );
+  const median = upperMedianInPlace(frequencies);
   const near = frequencies.filter((f) => Math.abs(1200 * Math.log2(f / median)) <= 50);
   const steady = frequencies.length >= 10 && near.length / frequencies.length >= 0.8;
   const checks = [
@@ -55,14 +56,15 @@ export function voiceRange(low: number, high: number, band: PitchRange): PitchRa
 }
 
 export function isPitchRange(value: unknown, band: PitchRange): value is PitchRange {
-  if (!value || typeof value !== "object") return false;
-  const range = value as PitchRange;
+  if (!hasProperties(value, "minFreq", "maxFreq")) return false;
   return (
-    Number.isFinite(range.minFreq) &&
-    Number.isFinite(range.maxFreq) &&
-    range.minFreq >= band.minFreq &&
-    range.maxFreq <= band.maxFreq &&
-    range.minFreq < range.maxFreq
+    typeof value.minFreq === "number" &&
+    typeof value.maxFreq === "number" &&
+    Number.isFinite(value.minFreq) &&
+    Number.isFinite(value.maxFreq) &&
+    value.minFreq >= band.minFreq &&
+    value.maxFreq <= band.maxFreq &&
+    value.minFreq < value.maxFreq
   );
 }
 

@@ -62,22 +62,29 @@ function validateRecording(record: JsonObject, pair: JsonObject, configured: Jso
 export function validateDiagnostics(value: unknown): asserts value is DiagnosticSnapshot["report"] {
   if (!isObject(value) || !finiteJson(value)) throw new Error("Invalid diagnostic report.");
   const { audio, saved, build, config, settings, analysis, stages } = value;
-  if (![audio, saved, build, config, settings, analysis, stages].every(isObject)) {
+  if (
+    !isObject(audio) ||
+    !isObject(saved) ||
+    !isObject(build) ||
+    !isObject(config) ||
+    !isObject(settings) ||
+    !isObject(analysis) ||
+    !isObject(stages)
+  ) {
     throw new Error("Invalid diagnostic report: missing processing evidence.");
   }
-  if (!isMelodySetting((settings as JsonObject).melody))
-    throw new Error("Invalid diagnostic melody settings.");
-  validatePair(audio as JsonObject);
-  validateRecording(saved as JsonObject, audio as JsonObject, config as JsonObject);
+  if (!isMelodySetting(settings.melody)) throw new Error("Invalid diagnostic melody settings.");
+  validatePair(audio);
+  validateRecording(saved, audio, config);
   if (
     ![
       value.frames,
       value.notes,
       value.midiEvents,
-      (stages as JsonObject).segments,
-      (stages as JsonObject).editCoverage,
-      (stages as JsonObject).decoded,
-      (stages as JsonObject).items,
+      stages.segments,
+      stages.editCoverage,
+      stages.decoded,
+      stages.items,
     ].every(Array.isArray)
   ) {
     throw new Error("Invalid diagnostic processing stages.");

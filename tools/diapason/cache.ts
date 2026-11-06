@@ -1,3 +1,4 @@
+import { cliErrorCode } from "./errors.ts";
 import { constants } from "node:fs";
 import type { Stats } from "node:fs";
 import { open, lstat, mkdir, readdir, realpath, rename, unlink, chmod } from "node:fs/promises";
@@ -38,7 +39,6 @@ interface CachedFile {
   bytes: number;
   touched: number;
 }
-const errorCode = (error: unknown) => (error as NodeJS.ErrnoException).code;
 const defaultCacheDirectory = () =>
   join(tmpdir(), `diapason-${process.getuid?.() ?? "user"}`, "cache/v1");
 const validKey = (key: unknown): key is string =>
@@ -50,7 +50,7 @@ async function ensureDirectory(directory: string) {
     try {
       await mkdir(parent, { mode: 0o700 });
     } catch (error) {
-      if (errorCode(error) !== "EEXIST") throw error;
+      if (cliErrorCode(error) !== "EEXIST") throw error;
     }
     const component = await lstat(parent);
     if (!component.isDirectory() || component.isSymbolicLink())
@@ -98,13 +98,15 @@ export function createStageStore({
         0o600,
       );
     } catch (error) {
-      if (errorCode(error) !== "EEXIST") throw error;
+      if (cliErrorCode(error) !== "EEXIST") throw error;
     } finally {
       await handle?.close();
     }
   }
   const report = (error: unknown) =>
-    diagnostic(`Cache unavailable; recomputing when needed: ${(error as Error).message}`);
+    diagnostic(
+      `Cache unavailable; recomputing when needed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   async function ready() {
     const stat = await ensureDirectory(root);
     if (
@@ -139,7 +141,8 @@ export function createStageStore({
     return result;
   }
   async function prune() {
-    const files = (await entries(false)).sort((a, b) => a.touched - b.touched);
+    const files = await entries(false);
+    files.sort((a, b) => a.touched - b.touched);
     let bytes = files.reduce((sum, f) => sum + f.bytes, 0);
     for (const file of files)
       if (bytes > maxBytes || Date.now() - file.touched > maxIdleMs) {
@@ -161,7 +164,7 @@ export function createStageStore({
         await mark(key);
         return entry.value;
       } catch (error) {
-        if (errorCode(error) !== "ENOENT") report(error);
+        if (cliErrorCode(error) !== "ENOENT") report(error);
         return undefined;
       } finally {
         await handle?.close();

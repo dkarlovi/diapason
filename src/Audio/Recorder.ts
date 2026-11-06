@@ -135,7 +135,8 @@ export function qualityStats(frames: Frame[], samples?: Float32Array): QualitySt
   const voiced = frames.filter((f) => f.freq !== null);
   const voicedRatio = frames.length ? voiced.length / frames.length : 0;
 
-  const clarities = voiced.map((f) => f.clarity).sort((a, b) => a - b);
+  const clarities = voiced.map((f) => f.clarity);
+  clarities.sort((a, b) => a - b);
   const medianClarity = clarities.length ? clarities[Math.floor(clarities.length / 2)]! : 0;
 
   const centsErrs = voiced.map((f) => {

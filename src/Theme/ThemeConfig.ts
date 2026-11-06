@@ -17,20 +17,29 @@ function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function normalizeSeed(value: unknown): string | undefined {
+  if (typeof value !== "string" || !/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value)) return;
+  return value.replace(/^#(.)(.)(.)$/, "#$1$1$2$2$3$3").toLowerCase();
+}
+
+const OPTIONAL_ROLES = ["neutral", "secondary"] as const;
+
 function seeds(value: unknown): ThemeSeeds | undefined {
   if (!object(value)) return;
-  const result: Partial<ThemeSeeds> = {};
-  for (const key of ["primary", "neutral", "secondary"] as const) {
-    const color = value[key];
-    if (color === undefined && key !== "primary") continue;
-    if (typeof color !== "string" || !/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color)) return;
-    result[key] = color.replace(/^#(.)(.)(.)$/, "#$1$1$2$2$3$3").toLowerCase();
+  const primary = normalizeSeed(value.primary);
+  if (!primary) return;
+  const result: ThemeSeeds = { primary };
+  for (const key of OPTIONAL_ROLES) {
+    if (value[key] === undefined) continue;
+    const color = normalizeSeed(value[key]);
+    if (!color) return;
+    result[key] = color;
   }
-  return result as ThemeSeeds;
+  return result;
 }
 
 const MODES = ["light", "dark"] as const;
-const ROLES = ["primary", "neutral", "secondary"] as const;
+const ROLES = ["primary", ...OPTIONAL_ROLES] as const;
 
 /** Version 1: version byte, six presence bits, then occupied RGB slots. */
 export function encodeTheme(theme: StudioTheme): string {
@@ -50,20 +59,25 @@ export function encodeTheme(theme: StudioTheme): string {
   return toBase64Url(Uint8Array.from(bytes));
 }
 
+function packedSeed(bytes: Uint8Array, offset: number): string {
+  return (
+    "#" +
+    Array.from(bytes.subarray(offset, offset + 3), (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("")
+  );
+}
+
 /** Decode one validated mode and return the next RGB offset. */
 function unpackSeeds(bytes: Uint8Array, present: number, start: number): [ThemeSeeds, number] {
-  const colors: Partial<ThemeSeeds> = {};
-  let offset = start;
-  for (const [roleIndex, role] of ROLES.entries()) {
-    if (!(present & (1 << roleIndex))) continue;
-    colors[role] =
-      "#" +
-      Array.from(bytes.subarray(offset, offset + 3), (byte) =>
-        byte.toString(16).padStart(2, "0"),
-      ).join("");
+  const colors: ThemeSeeds = { primary: packedSeed(bytes, start) };
+  let offset = start + 3;
+  for (const [roleIndex, role] of OPTIONAL_ROLES.entries()) {
+    if (!(present & (1 << (roleIndex + 1)))) continue;
+    colors[role] = packedSeed(bytes, offset);
     offset += 3;
   }
-  return [colors as ThemeSeeds, offset];
+  return [colors, offset];
 }
 
 /** Invalid versions, masks, lengths, and noncanonical encodings use the default. */

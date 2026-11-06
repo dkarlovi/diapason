@@ -21,7 +21,7 @@ describe("melody knobs", () => {
       }
   });
   it("exposes only the meaningful knobs", () => {
-    expect(KNOB_DEFS.map((def) => def.key).sort()).toEqual(
+    expect(KNOB_DEFS.map((def) => def.key).toSorted()).toEqual(
       [
         "levelGate",
         "minNoteMs",
@@ -37,7 +37,7 @@ describe("melody knobs", () => {
         "swing",
         "syncopation",
         "articulation",
-      ].sort(),
+      ].toSorted(),
     );
   });
   it("as played turns every musical prior off", () => {
@@ -100,6 +100,6 @@ describe("melody knobs", () => {
       readFileSync(new URL("../../.oxlintrc.json", import.meta.url), "utf8"),
     ) as { rules: Record<string, [string, { presetIds: string[] }]> };
     const [, options] = config.rules["local/no-preset-special-casing"]!;
-    expect([...options.presetIds].sort()).toEqual(Object.keys(PRESETS).sort());
+    expect(options.presetIds.toSorted()).toEqual(Object.keys(PRESETS).toSorted());
   });
 });

@@ -59,12 +59,15 @@ export function useWavDrop(onFiles: (files: File[]) => void, exclude: string) {
       event.preventDefault();
       if (!within(event, exclude) && files.some(maybeWav)) latest.current(files);
     };
-    const listeners = { dragenter: enter, dragover: over, dragleave: leave, drop } as const;
-    for (const [type, listener] of Object.entries(listeners))
-      document.addEventListener(type, listener as EventListener);
+    const listeners = [
+      ["dragenter", enter],
+      ["dragover", over],
+      ["dragleave", leave],
+      ["drop", drop],
+    ] as const;
+    for (const [type, listener] of listeners) document.addEventListener(type, listener);
     return () => {
-      for (const [type, listener] of Object.entries(listeners))
-        document.removeEventListener(type, listener as EventListener);
+      for (const [type, listener] of listeners) document.removeEventListener(type, listener);
     };
   }, [exclude]);
   return state;

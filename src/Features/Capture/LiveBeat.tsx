@@ -21,17 +21,16 @@ export function LiveBeat({
   // Leave a gap between the two flashes of a subdivided beat.
   const highlighted = !hasBeatSubdivision(bpm, beat) || (position - index) % 0.5 < 0.25;
   const seconds = Math.max(0, Math.floor(elapsed));
+  const pipsStyle: CSSProperties & { "--beat-columns": number } = {
+    "--beat-columns": Math.min(6, beatsPerBar),
+  };
   return (
     <div
       className="live-beat"
       role="group"
       aria-label={`Metronome · ${bpm} BPM · ${beatsPerBar} beats/bar`}
     >
-      <div
-        className="beat-pips"
-        aria-hidden="true"
-        style={{ "--beat-columns": Math.min(6, beatsPerBar) } as CSSProperties}
-      >
+      <div className="beat-pips" aria-hidden="true" style={pipsStyle}>
         {Array.from({ length: beatsPerBar }, (_, i) => (
           <span key={i} data-active={i === beat && highlighted}>
             {i + 1}

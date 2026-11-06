@@ -1,5 +1,6 @@
 import type { Frame } from "../Melody/Notes";
 import { qualityStats } from "../Audio/Recorder";
+import { upperMedianInPlace } from "../Audio/Statistics";
 import type { SetupCheck, RoomResult, MeasurementResult } from "./RecordingSetup.type";
 import type { SoundProfile } from "./SoundProfile.type";
 
@@ -42,7 +43,7 @@ export function peakLevel(samples: Float32Array): number {
 }
 
 export function noiseCalibration(samples: number[]): { floor: number; gate: number } {
-  const sorted = [...samples].sort((a, b) => a - b);
+  const sorted = samples.toSorted((a, b) => a - b);
   const floor = sorted[Math.floor(sorted.length * 0.95)] ?? 0;
   return { floor, gate: Math.min(0.1, Math.max(0.003, floor * 1.5)) };
 }
@@ -156,11 +157,8 @@ export function evaluateSound(
       CALIBRATION.soundMinSpan,
     );
   const stats = qualityStats(valid);
-  const voicedRms = valid
-    .filter((f) => f.freq !== null)
-    .map((f) => f.rms)
-    .sort((a, b) => a - b);
-  const rms = voicedRms[Math.floor(voicedRms.length / 2)] ?? 0;
+  const voicedRms = valid.filter((f) => f.freq !== null).map((f) => f.rms);
+  const rms = upperMedianInPlace(voicedRms);
   const checks = [
     setupCheck(
       "sound-samples",

@@ -145,7 +145,7 @@ export function useMicrophone({ isBusy, onError, onBeforeClose }: Options) {
     } catch (error) {
       if (owner.current.mounted && current === owner.current.generation) {
         setDevice((previous) => ({ ...previous, opening: false }));
-        onError(`Mic error: ${(error as Error).message}`);
+        onError(`Mic error: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   };

@@ -8,14 +8,19 @@ import {
   type GridSubdivision,
 } from "./Knobs";
 import type { MelodySetting } from "./MelodySetting.type";
+import { hasProperties } from "../Encoding/Properties";
 
 /** Compare recipes, including explicit overrides, without relying on property order. */
 export function sameMelodySetting(left: MelodySetting, right: MelodySetting): boolean {
-  const recipe = (setting: MelodySetting) => [
-    setting.preset,
-    setting.key === "auto" ? "auto" : [setting.key.tonic, setting.key.mode],
-    Object.entries(setting.overrides).sort(([a], [b]) => a.localeCompare(b)),
-  ];
+  const recipe = (setting: MelodySetting) => {
+    const overrides = Object.entries(setting.overrides);
+    overrides.sort(([a], [b]) => a.localeCompare(b));
+    return [
+      setting.preset,
+      setting.key === "auto" ? "auto" : [setting.key.tonic, setting.key.mode],
+      overrides,
+    ];
+  };
   return JSON.stringify(recipe(left)) === JSON.stringify(recipe(right));
 }
 export function newRecordingMelody(levelGate: number): MelodySetting {
@@ -46,8 +51,8 @@ export function melodySettingFor(record: Recording): MelodySetting {
 }
 
 export function isMelodySetting(value: unknown): value is MelodySetting {
-  if (!value || typeof value !== "object") return false;
-  const setting = value as Record<string, unknown>;
+  if (!hasProperties(value, "preset", "overrides", "key")) return false;
+  const setting = value;
   if (
     typeof setting.preset !== "string" ||
     !Object.hasOwn(PRESETS, setting.preset) ||
@@ -55,8 +60,8 @@ export function isMelodySetting(value: unknown): value is MelodySetting {
   )
     return false;
   if (setting.key === "auto") return true;
-  if (!setting.key || typeof setting.key !== "object") return false;
-  const key = setting.key as Record<string, unknown>;
+  if (!hasProperties(setting.key, "tonic", "mode")) return false;
+  const key = setting.key;
   return (
     Number.isInteger(key.tonic) &&
     Number(key.tonic) >= 0 &&

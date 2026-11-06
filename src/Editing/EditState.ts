@@ -1,13 +1,16 @@
 import { EDIT_FIELDS } from "../Recording/EditFields";
-import type { Recording } from "../Recording/Recording.type";
+import type { AudioRecording, NoteRecording, Recording } from "../Recording/Recording.type";
 import type { EditSnapshot } from "../Recording/RecordingEdit.type";
 
 export function captureEditSnapshot(record: Recording): EditSnapshot {
   const intent = Object.fromEntries(
     EDIT_FIELDS.filter((key) => record[key] !== undefined).map((key) => [key, record[key]]),
   );
-  return structuredClone({ schemaVersion: 1, intent }) as EditSnapshot;
+  return structuredClone({ schemaVersion: 1, intent });
 }
+export function applyEditSnapshot(record: AudioRecording, snapshot: EditSnapshot): AudioRecording;
+export function applyEditSnapshot(record: NoteRecording, snapshot: EditSnapshot): NoteRecording;
+export function applyEditSnapshot(record: Recording, snapshot: EditSnapshot): Recording;
 export function applyEditSnapshot(record: Recording, snapshot: EditSnapshot): Recording {
   const next = { ...record };
   for (const key of EDIT_FIELDS) delete next[key];
@@ -15,12 +18,11 @@ export function applyEditSnapshot(record: Recording, snapshot: EditSnapshot): Re
 }
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object")
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([k, v]) => [k, canonical(v)]),
-    );
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value);
+    entries.sort(([a], [b]) => a.localeCompare(b));
+    return Object.fromEntries(entries.map(([k, v]) => [k, canonical(v)]));
+  }
   return value;
 }
 export function sameEditSnapshot(a: EditSnapshot, b: EditSnapshot): boolean {

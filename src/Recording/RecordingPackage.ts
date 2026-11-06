@@ -171,6 +171,6 @@ export async function restoreRecordingPackage(
     },
   };
   return metadata.schemaVersion === 2 && mode === "restore"
-    ? (applyEditSnapshot(record, metadata.intent) as AudioRecording)
+    ? applyEditSnapshot(record, metadata.intent)
     : record;
 }

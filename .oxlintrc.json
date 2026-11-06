@@ -3,12 +3,7 @@
   "plugins": ["typescript", "unicorn", "oxc", "react"],
   "jsPlugins": ["./tools/oxlint/local-plugin.ts"],
   "options": {
-    "typeAware": true,
-    /* Reason: oxlint-tsgolint 7.0.2006 changes assertion diagnostics across identical
-     * runs when compiler diagnostics are enabled, destabilizing suppression counts.
-     * Type-aware linting stays enabled; tsc checks compiler diagnostics separately.
-     */
-    "typeCheck": false
+    "typeAware": true
   },
   "categories": {
     "correctness": "error",

@@ -13,6 +13,21 @@ it("reports an unavailable independent interoperability check as skipped", async
   );
   expect(result).toMatchObject({ id: "wav.interoperability", status: "skipped", optional: true });
 });
+it.each([null, undefined, "probe interrupted"])(
+  "reports a non-Error probe rejection of %s without throwing",
+  async (reason) => {
+    const result = await probeWav(
+      "/tmp/test.wav",
+      { sampleRate: 48000, sampleCount: 24000 },
+      {
+        exec: async () => {
+          throw reason;
+        },
+      },
+    );
+    expect(result).toMatchObject({ status: "fail", reason: `ffprobe failed: ${String(reason)}` });
+  },
+);
 it("checks the external WAV format without evaluating a file path as shell syntax", async () => {
   const file = "/tmp/a $(false).wav";
   const calls: { command: string; args: string[] }[] = [];

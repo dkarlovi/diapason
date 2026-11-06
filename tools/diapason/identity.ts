@@ -8,11 +8,10 @@ function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") {
     const record = value as Record<string, unknown>;
+    const keys = Object.keys(record);
+    keys.sort();
     return Object.fromEntries(
-      Object.keys(record)
-        .sort()
-        .filter((k) => record[k] !== undefined)
-        .map((k) => [k, canonical(record[k])]),
+      keys.filter((k) => record[k] !== undefined).map((k) => [k, canonical(record[k])]),
     );
   }
   return value;
@@ -38,7 +37,9 @@ async function sources(directory: string, suffix: RegExp): Promise<string[]> {
         : [];
     }),
   );
-  return nested.flat().sort();
+  const files = nested.flat();
+  files.sort();
+  return files;
 }
 export async function codeRuntimeIdentity(
   root: string,

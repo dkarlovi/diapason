@@ -1,3 +1,5 @@
+import { hasProperties } from "../Encoding/Properties";
+
 /** Half-open coverage in the original analysis timeline, in seconds. */
 export interface SourceRange {
   start: number;
@@ -13,22 +15,30 @@ export interface NoteEdits {
   pitch: PitchEdit[];
 }
 function validRange(value: unknown, duration: number): value is SourceRange {
-  if (!value || typeof value !== "object") return false;
-  const { start, end } = value as SourceRange;
+  if (!hasProperties(value, "start", "end")) return false;
+  const { start, end } = value;
   return (
-    Number.isFinite(start) && Number.isFinite(end) && start >= 0 && start < end && end <= duration
+    typeof start === "number" &&
+    typeof end === "number" &&
+    Number.isFinite(start) &&
+    Number.isFinite(end) &&
+    start >= 0 &&
+    start < end &&
+    end <= duration
   );
 }
-const validMidi = (midi: number) => Number.isInteger(midi) && midi >= 0 && midi <= 127;
+const validMidi = (midi: unknown): midi is number =>
+  typeof midi === "number" && Number.isInteger(midi) && midi >= 0 && midi <= 127;
 export function isNoteEdits(value: unknown, durationSec: number): value is NoteEdits {
-  if (!value || typeof value !== "object" || !(durationSec >= 0)) return false;
-  const layer = value as NoteEdits;
+  if (!hasProperties(value, "version", "pitch") || !(durationSec >= 0)) return false;
+  const layer = value;
   if (layer.version !== 1 || !Array.isArray(layer.pitch)) return false;
   const ids = new Set<string>();
   const ranges: SourceRange[] = [];
-  for (const edit of layer.pitch) {
+  const pitch: readonly unknown[] = layer.pitch;
+  for (const edit of pitch) {
     if (
-      !edit ||
+      !hasProperties(edit, "id", "midi", "ranges") ||
       typeof edit.id !== "string" ||
       !edit.id.trim() ||
       ids.has(edit.id) ||
@@ -39,7 +49,8 @@ export function isNoteEdits(value: unknown, durationSec: number): value is NoteE
       return false;
     ids.add(edit.id);
     let end = -1;
-    for (const scope of edit.ranges) {
+    const scopes: readonly unknown[] = edit.ranges;
+    for (const scope of scopes) {
       if (!validRange(scope, durationSec) || scope.start < end) return false;
       end = scope.end;
       ranges.push(scope);
@@ -97,12 +108,14 @@ export function stepPitchEdit(
     : setPitchEdit(edits, scope, midi, id);
 }
 export function protectedNoteBoundaries(edits: NoteEdits | undefined): number[] {
-  return [
+  const boundaries = [
     ...new Set(
       edits?.pitch.flatMap((edit) => edit.ranges.flatMap((range) => [range.start, range.end])) ??
         [],
     ),
-  ].sort((a, b) => a - b);
+  ];
+  boundaries.sort((a, b) => a - b);
+  return boundaries;
 }
 export function pitchEditFor(
   edits: NoteEdits | undefined,

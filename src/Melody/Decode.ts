@@ -38,7 +38,7 @@ function hopOf(frames: Frame[]) {
   return frames.length > 1 ? frames[1]!.t - frames[0]!.t : 512 / 48000;
 }
 function median(values: number[]): number {
-  const sorted = values.slice().sort((a, b) => a - b);
+  const sorted = values.toSorted((a, b) => a - b);
   const mid = sorted.length >> 1;
   return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }

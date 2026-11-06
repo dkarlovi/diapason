@@ -18,6 +18,9 @@ export function Editor({ id, session }: { id: string; session?: AdHocTuneSession
   const state = useEditor(id, session);
   const { embedded, tuneLocked } = useStudioMode();
   const layout = useEditorLayout(state.capabilities?.audio ?? false);
+  const workspaceStyle: CSSProperties & { "--tune-width": string } = {
+    "--tune-width": `${layout.width}px`,
+  };
   useEditorHistoryKeys({
     enabled: !state.editingDisabled,
     canUndo: state.canUndo,
@@ -64,7 +67,7 @@ export function Editor({ id, session }: { id: string; session?: AdHocTuneSession
         data-source-hidden={layout.sourceHidden}
         data-tune-motion={layout.motion.tune}
         data-source-motion={layout.motion.source}
-        style={{ "--tune-width": `${layout.width}px` } as CSSProperties}
+        style={workspaceStyle}
       >
         <EditorCanvas kind="audio" state={state} layout={layout} />
         <EditorCanvas kind="midi" state={state} layout={layout} />

@@ -224,7 +224,10 @@ it("flushes tuning to the old recording before loading another recording", async
 function read(blob: Blob): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error("Expected the exported blob as an ArrayBuffer."));
+    };
     reader.onerror = reject;
     reader.readAsArrayBuffer(blob);
   });

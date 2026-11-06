@@ -96,7 +96,7 @@ export function adHocRecording(tune: PortableTune, draft: AdHocTuneDraft): NoteR
       displayEditSnapshot(draft.history),
     ),
     name: draft.name,
-  } as NoteRecording;
+  };
 }
 export function isAdHocDirty(tune: PortableTune, draft: AdHocTuneDraft): boolean {
   return (

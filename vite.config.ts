@@ -17,10 +17,11 @@ try {
   /* Source archives may not include git metadata. */
 }
 const sourceHash = createHash("sha256");
-for (const file of readdirSync("src", { recursive: true })
+const sourceFiles = readdirSync("src", { recursive: true })
   .map(String)
-  .filter((candidate) => /\.(ts|tsx)$/.test(candidate) && !candidate.includes(".test."))
-  .sort()) {
+  .filter((candidate) => /\.(ts|tsx)$/.test(candidate) && !candidate.includes(".test."));
+sourceFiles.sort();
+for (const file of sourceFiles) {
   sourceHash.update(file).update(readFileSync(`src/${file}`));
 }
 const source = sourceHash.digest("hex");

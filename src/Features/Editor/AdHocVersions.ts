@@ -19,6 +19,7 @@ export function updateAdHocVersion(
         throw new Error("A version with this name already exists.");
       versions = [...versions, { ...value, name, nameKey }];
     }
-    return { ...draft, versions: versions.sort((a, b) => b.createdAt - a.createdAt) };
+    versions.sort((a, b) => b.createdAt - a.createdAt);
+    return { ...draft, versions };
   });
 }

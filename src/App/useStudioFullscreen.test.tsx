@@ -13,6 +13,19 @@ function Studio() {
     </main>
   );
 }
+
+function NonElementNavigation({ capture }: { capture: (navigate: () => void) => void }) {
+  const fullscreen = useStudioFullscreen();
+  return (
+    <button
+      onClick={(event) => {
+        capture(() => fullscreen.onNavigate({ ...event, target: new EventTarget() }));
+      }}
+    >
+      Navigate
+    </button>
+  );
+}
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -57,4 +70,13 @@ it("continues navigation when fullscreen is denied", async () => {
   fireEvent.click(screen.getByRole("link", { name: "Edit" }));
   await Promise.resolve();
   expect(location.pathname).toBe("/diapason/recording/one");
+});
+
+it("ignores navigation events whose target is not an element", () => {
+  const request = setup();
+  let navigate = () => {};
+  render(<NonElementNavigation capture={(handler) => (navigate = handler)} />);
+  fireEvent.click(screen.getByRole("button", { name: "Navigate" }));
+  expect(navigate).not.toThrow();
+  expect(request).not.toHaveBeenCalled();
 });

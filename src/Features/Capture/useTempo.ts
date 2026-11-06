@@ -93,7 +93,7 @@ export function useTempo(options: Options) {
       if (current === resources.current.token) {
         stop();
         latest.current.onError(
-          `Clap listening unavailable: ${(error as Error).message}. You can tap instead.`,
+          `Clap listening unavailable: ${error instanceof Error ? error.message : String(error)}. You can tap instead.`,
         );
       }
     }
@@ -120,7 +120,9 @@ export function useTempo(options: Options) {
     } catch (error) {
       if (current === resources.current.token) {
         stop();
-        latest.current.onError(`Preview unavailable: ${(error as Error).message}`);
+        latest.current.onError(
+          `Preview unavailable: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
   };

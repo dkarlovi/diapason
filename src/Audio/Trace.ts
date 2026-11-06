@@ -169,6 +169,8 @@ function cachedBackground(
 ): HTMLCanvasElement | null {
   const { width, height, colors } = geometry;
   const { tMin, tMax, midiMin, midiMax, beats, beatOrigin, showTimeLabels, timeLabelY } = view;
+  const scale = view.scale ? [...view.scale] : null;
+  scale?.sort((a, b) => a - b);
   const key = JSON.stringify([
     width,
     height,
@@ -184,7 +186,7 @@ function cachedBackground(
     view.inset,
     view.pitchLabels,
     view.preferredRange,
-    view.scale ? [...view.scale].sort((a, b) => a - b) : null,
+    scale,
     !!view.notes,
     Object.values(colors),
   ]);

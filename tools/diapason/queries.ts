@@ -5,6 +5,7 @@ import type { EvidenceView } from "../../src/Inspection/Views.ts";
 import type { CliResult, withRecording as WithRecording } from "./handlers.ts";
 import type { RenderOptions } from "./render.ts";
 import type { Runtime, RuntimeOptions } from "./runtime.ts";
+import { cliErrorCode, cliErrorMessage } from "./errors.ts";
 
 type QueryKind = "notes" | "controls" | "stages";
 export type OutputFormat = Required<RenderOptions>;
@@ -81,10 +82,14 @@ async function queryRecording(
     const view = await api.getView(context, name);
     return { report: await runQuery(api, context, kind, view, query) };
   } catch (caught) {
-    const error = caught as Error & { code?: string };
-    if (error.code !== "view.unavailable") throw error;
+    if (cliErrorCode(caught) !== "view.unavailable") throw caught;
     return {
-      report: api.makeReport(kind, context.identity, { unavailable: error.message }, "incomplete"),
+      report: api.makeReport(
+        kind,
+        context.identity,
+        { unavailable: cliErrorMessage(caught) },
+        "incomplete",
+      ),
     };
   }
 }

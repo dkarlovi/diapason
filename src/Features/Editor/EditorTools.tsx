@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PlaybackSettings } from "./PlaybackSettings";
 import { Button } from "../../UI/Button";
 import { MelodyPanel } from "./MelodyPanel";
@@ -9,6 +9,7 @@ import { AuditionMenuContext } from "./AuditionMenuContext";
 
 export function MelodyTools({ state, layout }: { state: EditorState; layout: EditorLayout }) {
   const [menu, setMenu] = useState<string | null>(null);
+  const context = useMemo(() => ({ visible: layout.open, menu, setMenu }), [layout.open, menu]);
   const audition = (action: () => void, id: string) => {
     action();
     if (layout.mobile && state.previewId !== id) layout.setOpen(false);
@@ -17,7 +18,7 @@ export function MelodyTools({ state, layout }: { state: EditorState; layout: Edi
     if (layout.mobile && !layout.open && state.previewId) state.rollRef.current?.focus();
   }, [layout.mobile, layout.open, state.previewId, state.rollRef]);
   return (
-    <AuditionMenuContext.Provider value={{ visible: layout.open, menu, setMenu }}>
+    <AuditionMenuContext.Provider value={context}>
       <div
         className="editor-tune-resizer"
         role="separator"

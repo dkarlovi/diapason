@@ -88,7 +88,11 @@ export function listVersions(id: string): Promise<SavedVersion[]> {
     const req = tx.objectStore("versions").index("recordingId").getAll(id) as IDBRequest<
       SavedVersion[]
     >;
-    req.onsuccess = () => result(req.result.sort((a, b) => b.createdAt - a.createdAt));
+    req.onsuccess = () => {
+      const versions = req.result;
+      versions.sort((a, b) => b.createdAt - a.createdAt);
+      result(versions);
+    };
   });
 }
 function normalizedName(name: string) {

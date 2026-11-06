@@ -19,14 +19,6 @@
       "count": 1
     }
   },
-  "src/App/useStudioFullscreen.ts": {
-    "typescript/no-unnecessary-type-conversion": {
-      "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/App/useStudioTheme.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
@@ -57,40 +49,21 @@
       "count": 2
     }
   },
-  "src/Audio/Recorder.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Audio/Trace.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/prefer-array-find": {
-      "count": 2
     }
   },
   "src/Audio/Trace.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Audio/VoiceRange.test.ts": {
     "oxc/no-map-spread": {
-      "count": 1
-    }
-  },
-  "src/Audio/VoiceRange.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    },
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -101,7 +74,7 @@
   },
   "src/Diagnostics/Diagnostics.validation.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 10
+      "count": 1
     }
   },
   "src/Editing/Edit.storage.test.ts": {
@@ -112,35 +85,11 @@
   "src/Editing/Edit.storage.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 3
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Editing/EditHistory.validation.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    }
-  },
-  "src/Editing/EditSnapshot.validation.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
-    },
-    "unicorn/prefer-set-has": {
-      "count": 1
-    }
-  },
-  "src/Editing/EditState.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
-  "src/Editing/Editor.model.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Editing/EditorSaveQueue.ts": {
@@ -165,32 +114,11 @@
   "src/Editing/NoteEdits.ts": {
     "oxc/no-map-spread": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Features/Capture/Capture.tsx": {
     "react/refs": {
       "count": 1
-    }
-  },
-  "src/Features/Capture/LiveBeat.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Features/Capture/Tempo.model.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
-  "src/Features/Capture/useCapture.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
     }
   },
   "src/Features/Capture/useCaptureWizard.ts": {
@@ -209,14 +137,11 @@
     },
     "react/immutability": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Capture/useRecordingSetup.ts": {
     "react-hooks/exhaustive-deps": {
-      "count": 3
+      "count": 1
     },
     "react/exhaustive-effect-dependencies": {
       "count": 1
@@ -225,18 +150,10 @@
       "count": 4
     },
     "react/memo-dependencies": {
-      "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
   "src/Features/Capture/useTempo.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "src/Features/Capture/useTempo.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -258,20 +175,12 @@
   },
   "src/Features/Editor/AdHocTune.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "src/Features/Editor/AdHocVersions.ts": {
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
   "src/Features/Editor/Editor.tsx": {
     "react/refs": {
       "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Editor/EditorCanvas.tsx": {
@@ -284,16 +193,6 @@
   },
   "src/Features/Editor/EditorHistory.integration.test.tsx": {
     "no-await-in-loop": {
-      "count": 1
-    }
-  },
-  "src/Features/Editor/EditorLoaded.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 4
-    }
-  },
-  "src/Features/Editor/EditorTools.tsx": {
-    "react/jsx-no-constructed-context-values": {
       "count": 1
     }
   },
@@ -348,13 +247,10 @@
   },
   "src/Features/Editor/useEditor.ts": {
     "react-hooks/exhaustive-deps": {
-      "count": 5
+      "count": 1
     },
     "react/immutability": {
       "count": 1
-    },
-    "react/memo-dependencies": {
-      "count": 4
     },
     "react/refs": {
       "count": 2
@@ -389,7 +285,7 @@
   },
   "src/Features/Editor/useEditorPlayback.test.tsx": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 2
     }
   },
   "src/Features/Editor/useEditorPlayback.ts": {
@@ -397,17 +293,6 @@
       "count": 1
     },
     "react/exhaustive-effect-dependencies": {
-      "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Features/Editor/useEditorPlot.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 4
-    },
-    "unicorn/prefer-array-find": {
       "count": 1
     }
   },
@@ -473,9 +358,6 @@
   "src/Features/Library/useLibrary.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
     }
   },
   "src/Features/Library/useRecordingImport.test.tsx": {
@@ -497,9 +379,6 @@
     },
     "react/refs": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
     }
   },
   "src/Features/Library/useWaveformBackfill.ts": {
@@ -548,11 +427,6 @@
       "count": 2
     }
   },
-  "src/Melody/Decode.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Melody/Intro.integration.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -563,17 +437,9 @@
       "count": 1
     }
   },
-  "src/Melody/Key.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Melody/Knobs.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 4
     }
   },
   "src/Melody/Knobs.ts": {
@@ -593,9 +459,6 @@
   },
   "src/Melody/Settings.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
-    },
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -604,23 +467,8 @@
       "count": 2
     }
   },
-  "src/Playback/Playback.test.ts": {
-    "unicorn/no-array-reverse": {
-      "count": 1
-    }
-  },
-  "src/Playback/Playback.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Recording/Capture.model.test.ts": {
     "oxc/no-map-spread": {
-      "count": 2
-    }
-  },
-  "src/Recording/Capture.model.ts": {
-    "unicorn/no-array-sort": {
       "count": 2
     }
   },
@@ -645,9 +493,6 @@
   "src/Recording/Recording.storage.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 3
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Recording/RecordingImport.storage.test.ts": {
@@ -662,7 +507,7 @@
   },
   "src/Recording/RecordingPackage.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Recording/RecordingPackage.validation.ts": {
@@ -695,40 +540,7 @@
       "count": 2
     }
   },
-  "src/Storage/StoredChanges.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Studio/MidiOutputPicker.test.tsx": {
-    "typescript/no-misused-spread": {
-      "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
-    }
-  },
-  "src/Studio/useStudioMode.tsx": {
-    "react/jsx-no-constructed-context-values": {
-      "count": 2
-    }
-  },
-  "src/Theme/CssTheme.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Theme/ThemeConfig.test.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Theme/ThemeConfig.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "src/Theme/ThemeMessage.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -745,7 +557,7 @@
   },
   "src/Tune/PortableTune.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 1
     }
   },
   "src/Tune/Tune.codec.ts": {
@@ -768,9 +580,6 @@
       "count": 5
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
-    },
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -782,9 +591,6 @@
   "tools/diapason/files.ts": {
     "no-await-in-loop": {
       "count": 2
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "tools/diapason/handlers.ts": {
@@ -803,17 +609,9 @@
   "tools/diapason/identity.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/no-array-sort": {
-      "count": 2
     }
   },
   "tools/diapason/probe.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "tools/diapason/queries.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -854,16 +652,6 @@
   "tools/structure.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    }
-  },
-  "tools/structure/rules.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
-  "vite.config.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   }
 }

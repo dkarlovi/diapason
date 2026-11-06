@@ -1,24 +1,29 @@
-import type { Recording, MutedNote, QuantizeSetting } from "../Recording/Recording.type";
 import { EditStorageError } from "./EditStorageError";
 import { isNoteEdits } from "./NoteEdits";
 import { isMelodySetting } from "../Melody/Settings";
 import { INSTRUMENTS } from "../Playback/Instruments";
 import type { EditSnapshot } from "../Recording/RecordingEdit.type";
+import { hasProperties } from "../Encoding/Properties";
+import { EDIT_FIELDS } from "../Recording/EditFields";
+
+const INTENT_FIELDS = new Set<string>(EDIT_FIELDS);
 
 const invalid = () =>
   new EditStorageError("invalid-version", "This version contains unsupported editing data.");
 function isPlaybackIntent(value: unknown): boolean {
-  if (!value || typeof value !== "object") return false;
-  const play = value as NonNullable<Recording["play"]>;
+  if (!hasProperties(value, "instrument", "octave")) return false;
   return (
-    INSTRUMENTS.some((instrument) => instrument.id === play.instrument) &&
-    [1, 0, -1, -2, -3].includes(play.octave)
+    INSTRUMENTS.some((instrument) => instrument.id === value.instrument) &&
+    typeof value.octave === "number" &&
+    [1, 0, -1, -2, -3].includes(value.octave)
   );
 }
 function isMuteAnchor(value: unknown, duration: number): boolean {
-  if (!value || typeof value !== "object") return false;
-  const { t, midi } = value as MutedNote;
+  if (!hasProperties(value, "t", "midi")) return false;
+  const { t, midi } = value;
   return (
+    typeof t === "number" &&
+    typeof midi === "number" &&
     Number.isFinite(t) &&
     t >= 0 &&
     t <= duration &&
@@ -38,12 +43,12 @@ function isLegacyTuning(value: unknown): boolean {
   );
 }
 function isLegacyQuantize(value: unknown): boolean {
-  if (!value || typeof value !== "object") return false;
-  const setting = value as QuantizeSetting;
+  if (!hasProperties(value, "on", "subdivision")) return false;
   return (
-    typeof setting.on === "boolean" &&
-    Number.isFinite(setting.subdivision) &&
-    setting.subdivision > 0
+    typeof value.on === "boolean" &&
+    typeof value.subdivision === "number" &&
+    Number.isFinite(value.subdivision) &&
+    value.subdivision > 0
   );
 }
 export function validateEditSnapshot(snapshot: EditSnapshot, duration: number): void {
@@ -55,9 +60,8 @@ export function validateEditSnapshot(snapshot: EditSnapshot, duration: number): 
   )
     throw invalid();
   const { melody, noteEdits, play, muted, tuning, quantize } = snapshot.intent;
-  const fields = ["melody", "noteEdits", "play", "muted", "tuning", "quantize"];
   const valid = [
-    Object.keys(snapshot.intent).every((key) => fields.includes(key)),
+    Object.keys(snapshot.intent).every((key) => INTENT_FIELDS.has(key)),
     melody === undefined || isMelodySetting(melody),
     noteEdits === undefined || isNoteEdits(noteEdits, duration),
     play === undefined || isPlaybackIntent(play),

@@ -146,7 +146,7 @@ it("breaks pitch lines at silence and out-of-window frames", () => {
   );
   expect(operations.filter((o) => o.method === "arc")).toHaveLength(4);
   expect(operations.filter((o) => o.method === "stroke" && o.stroke === "#5ad1a8")).toHaveLength(1);
-  expect(operations.filter((o) => o.method === "fill").at(-1)?.fill).toBe("#355f52");
+  expect(operations.findLast((o) => o.method === "fill")?.fill).toBe("#355f52");
 });
 it("layers faint traces behind dashed muted and solid active notes and restores canvas state", () => {
   const { canvas, operations, ctx } = surface();
@@ -469,7 +469,7 @@ it("briefly wobbles only the sounding warning badge without moving its note bar"
   const bars = operations.filter((op) => op.method === "fillRect" && op.alpha === 0.85);
   expect(bars.map((op) => op.args)).toEqual([bars[0]!.args, bars[0]!.args, bars[0]!.args]);
   drawTrace(canvas, [], { ...roll, playheadTime: 0.04, animateKeyWarnings: false });
-  expect(operations.filter((op) => op.method === "rotate").at(-1)?.args).toEqual([0]);
+  expect(operations.findLast((op) => op.method === "rotate")?.args).toEqual([0]);
 });
 
 it.each([
