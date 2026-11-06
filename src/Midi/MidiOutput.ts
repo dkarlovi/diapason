@@ -24,7 +24,15 @@ export async function connectMidi(prompt: boolean): Promise<boolean> {
   }
   try {
     access = await navigator.requestMIDIAccess();
-    access.onstatechange = notify;
+    let outputs = midiOutputs();
+    access.onstatechange = () => {
+      const current = midiOutputs();
+      // Opening a port also fires statechange; only device changes interrupt playback.
+      if (current.length === outputs.length && current.every((port, i) => port === outputs[i]))
+        return;
+      outputs = current;
+      notify();
+    };
     notify();
     return true;
   } catch {
