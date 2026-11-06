@@ -1,7 +1,7 @@
 interface DragHandlers {
-  down(event: PointerEvent): void;
-  move(event: PointerEvent): void;
-  end(event: PointerEvent): void;
+  down: (event: PointerEvent) => void;
+  move: (event: PointerEvent) => void;
+  end: (event: PointerEvent) => void;
 }
 
 /**

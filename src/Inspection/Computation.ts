@@ -53,8 +53,8 @@ export async function computeComparison(context: InvestigationContext) {
   });
   const frames = unpackFrames(packed);
   return {
-    result: await compareRecordingPackage(context.input, frames, (record, view) =>
-      cachedSnapshot(context, record, frames, key, provenance, view),
+    result: await compareRecordingPackage(context.input, frames, (candidate, view) =>
+      cachedSnapshot(context, candidate, frames, key, provenance, view),
     ),
     provenance,
   };

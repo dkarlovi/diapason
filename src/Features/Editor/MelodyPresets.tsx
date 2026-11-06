@@ -40,7 +40,7 @@ export function MelodyPresets(props: Props) {
                     previewing={props.previewId === `preset-${preset.id}`}
                     disabled={props.disabled}
                     previewLabel={`Play ${preset.label}`}
-                    useLabel={`Use ${preset.label}`}
+                    applyLabel={`Use ${preset.label}`}
                     onPreview={() =>
                       props.previewMelody(
                         { preset: preset.id, overrides: {} },

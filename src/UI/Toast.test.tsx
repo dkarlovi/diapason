@@ -7,7 +7,7 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
 });
-it("links to the saved recording and pauses dismissal while the action has focus", () => {
+it("links to the saved recording and pauses dismissal while the action has focus", async () => {
   vi.useFakeTimers();
   const dismiss = vi.fn();
   render(
@@ -25,10 +25,10 @@ it("links to the saved recording and pauses dismissal while the action has focus
   const link = screen.getByRole("link", { name: "Open" });
   expect(link.getAttribute("href")).toBe("/recording/new-take");
   fireEvent.focus(link);
-  act(() => vi.advanceTimersByTime(20000));
+  await act(async () => vi.advanceTimersByTime(20000));
   expect(dismiss).not.toHaveBeenCalled();
   fireEvent.blur(link);
-  act(() => vi.advanceTimersByTime(8000));
+  await act(async () => vi.advanceTimersByTime(8000));
   expect(dismiss).toHaveBeenCalledOnce();
 });
 it("announces errors urgently and allows manual dismissal", () => {
@@ -46,7 +46,7 @@ it("announces errors urgently and allows manual dismissal", () => {
 
 it.each(["hover", "focus"])(
   "resumes automatic dismissal after hiding a toast paused by %s",
-  (pause) => {
+  async (pause) => {
     vi.useFakeTimers();
     const dismiss = vi.fn();
     const { rerender } = render(
@@ -55,13 +55,13 @@ it.each(["hover", "focus"])(
     const toast = screen.getByRole("status");
     if (pause === "hover") fireEvent.mouseEnter(toast);
     else fireEvent.focus(screen.getByRole("button", { name: "Dismiss notification" }));
-    act(() => vi.advanceTimersByTime(10000));
+    await act(async () => vi.advanceTimersByTime(10000));
     expect(dismiss).not.toHaveBeenCalled();
     rerender(<Toast notice={null} onDismiss={dismiss} />);
     rerender(<Toast notice={{ kind: "info", message: "Next notice" }} onDismiss={dismiss} />);
-    act(() => vi.advanceTimersByTime(5999));
+    await act(async () => vi.advanceTimersByTime(5999));
     expect(dismiss).not.toHaveBeenCalled();
-    act(() => vi.advanceTimersByTime(1));
+    await act(async () => vi.advanceTimersByTime(1));
     expect(dismiss).toHaveBeenCalledOnce();
   },
 );

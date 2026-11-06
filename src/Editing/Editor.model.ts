@@ -133,12 +133,16 @@ export function makeReportInput(
   };
 }
 
-export function auditionLabel(id: string, melody: MelodySetting, key: Key | null): string | null {
+export function auditionLabel(
+  id: string,
+  melody: MelodySetting,
+  selectedKey: Key | null,
+): string | null {
   if (id.startsWith("preset-")) return PRESETS[melody.preset].label;
-  if (id.startsWith("key-")) return key ? `Key ${keyName(key)}` : "Key Auto";
+  if (id.startsWith("key-")) return selectedKey ? `Key ${keyName(selectedKey)}` : "Key Auto";
   if (id.startsWith("knob-")) {
     const key = id.split("-")[1] as keyof Knobs;
-    const def = KNOB_DEFS.find((def) => def.key === key);
+    const def = KNOB_DEFS.find((candidate) => candidate.key === key);
     if (def)
       return `${def.label}: ${knobValueLabel(def, resolveKnobs(melody.preset, melody.overrides)[key])}`;
   }

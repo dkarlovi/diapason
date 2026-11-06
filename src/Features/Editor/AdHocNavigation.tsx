@@ -15,7 +15,7 @@ function LockedRecordingNavigation({ id }: { id: string }) {
 function AdHocNavigation(props: {
   session: AdHocTuneSession;
   embedded: boolean;
-  beforeLeave(): void;
+  beforeLeave: () => void;
 }) {
   useAdHocNavigation(props);
   return null;
@@ -32,7 +32,7 @@ export function EditorSessionNavigation({
   session: AdHocTuneSession | undefined;
   embedded: boolean;
   tuneLocked: boolean;
-  beforeLeave(): void;
+  beforeLeave: () => void;
 }) {
   if (session)
     return <AdHocNavigation session={session} embedded={embedded} beforeLeave={beforeLeave} />;

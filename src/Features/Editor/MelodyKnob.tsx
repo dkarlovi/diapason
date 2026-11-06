@@ -24,7 +24,7 @@ export function MelodyKnob({
   reason?: string | undefined;
   onChange: MelodyPanelProps["changeKnob"];
   onReset: MelodyPanelProps["resetKnob"];
-  onPreview(value: number | string): void;
+  onPreview: (value: number | string) => void;
   previewId: string | null;
   gesture: EditGesture;
 }) {
@@ -51,7 +51,7 @@ export function MelodyKnob({
               previewing={previewId === `knob-${def.key}-${option.value}`}
               disabled={disabled}
               previewLabel={`Preview ${def.label} ${option.label}`}
-              useLabel={`Use ${def.label} ${option.label}`}
+              applyLabel={`Use ${def.label} ${option.label}`}
               onPreview={() => onPreview(option.value)}
               onUse={() => {
                 onChange(def.key, option.value);

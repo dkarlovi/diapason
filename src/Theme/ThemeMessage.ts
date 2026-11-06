@@ -12,5 +12,5 @@ export function readThemeMessage(value: unknown): HostThemeUpdate | undefined {
     return;
   const theme = parseTheme(message.theme);
   if (message.theme !== null && !theme) return;
-  return { theme, scheme: message.scheme as HostThemeUpdate["scheme"] };
+  return { theme, scheme: message.scheme };
 }

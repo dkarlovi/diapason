@@ -76,7 +76,7 @@ export interface StageProvenance {
   inputs: string[];
 }
 export interface StageStore {
-  read(key: string): Promise<unknown | undefined>;
+  read(key: string): Promise<unknown>;
   write(key: string, value: unknown): Promise<void>;
 }
 export interface InvestigationContext {

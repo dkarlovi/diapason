@@ -33,9 +33,7 @@ it("reveals steps in order, requires sound and tempo, and retains calibration af
   expect(screen.getByRole("button", { name: "Edit Check your sound" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Tempo (BPM)"), { target: { value: "90" } });
   await click("Confirm tempo");
-  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
-    false,
-  );
+  expect(screen.getByRole("button", { name: "Record" })).toHaveProperty("disabled", false);
 });
 it("invalidates room and sound on gain edits while retaining tempo", async () => {
   await calibratedCapture();
@@ -49,9 +47,10 @@ it("requires acknowledgment for unknown processing and blocks enabled processing
   fixture.settings = { echoCancellation: true };
   renderCapture();
   await click("Continue with whistling");
-  expect(
-    (screen.getByRole("button", { name: "Confirm microphone" }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  expect(screen.getByRole("button", { name: "Confirm microphone" })).toHaveProperty(
+    "disabled",
+    true,
+  );
   fixture.settings = {};
   await click("Reconnect microphone");
   expect(screen.getAllByText(/Unknown/).length).toBe(3);
@@ -99,9 +98,10 @@ it("revokes microphone readiness when unknown-setting acknowledgment is withdraw
   const done = screen.queryByRole("button", { name: "Done editing" });
   if (done) fireEvent.click(done);
   expect(screen.queryByRole("button", { name: "Record" })).toBeNull();
-  expect(
-    (screen.getByRole("button", { name: "Confirm microphone" }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  expect(screen.getByRole("button", { name: "Confirm microphone" })).toHaveProperty(
+    "disabled",
+    true,
+  );
 });
 
 it("keeps gain available to recover from an invalidated or noisy room test", async () => {
@@ -110,7 +110,7 @@ it("keeps gain available to recover from an invalidated or noisy room test", asy
   fireEvent.change(screen.getByLabelText(/Input gain/), { target: { value: "20" } });
   expect(screen.getByRole("button", { name: "Measure room noise" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText(/Input gain/), { target: { value: "1" } });
-  expect((screen.getByLabelText(/Input gain/) as HTMLInputElement).value).toBe("1");
+  expect(screen.getByLabelText(/Input gain/)).toHaveProperty("value", "1");
 });
 
 it("has no tempo until chosen and keeps gain in microphone and room setup", async () => {
@@ -129,10 +129,8 @@ it("has no tempo until chosen and keeps gain in microphone and room setup", asyn
   advance(1500);
   await click("Check my sound");
   advance(2000, true);
-  expect((screen.getByLabelText("Tempo (BPM)") as HTMLInputElement).value).toBe("");
-  expect(
-    (screen.getByRole("button", { name: "Confirm tempo" }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  expect(screen.getByLabelText("Tempo (BPM)")).toHaveProperty("value", "");
+  expect(screen.getByRole("button", { name: "Confirm tempo" })).toHaveProperty("disabled", true);
   expect(screen.queryByLabelText(/Input gain/)).toBeNull();
   fireEvent.change(screen.getByLabelText("Tempo (BPM)"), { target: { value: "120" } });
   expect(screen.getByText(/Preview grid · 120 BPM/)).toBeTruthy();

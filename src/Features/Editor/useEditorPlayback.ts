@@ -126,14 +126,14 @@ export function useEditorPlayback({ recordingId, recordRef, pcmRef, notes }: Opt
     [notes, stopPlayback, recordRef, pcmRef, start, setNotice],
   );
   const previewSequence = useCallback(
-    (notes: NoteEvent[], id: string, duration?: number, offset = 0, play?: PlaySettings) => {
+    (previewNotes: NoteEvent[], id: string, duration?: number, offset = 0, play?: PlaySettings) => {
       const current = recordRef.current;
       const wasThis = transport.current.previewId === id;
       stopPlayback();
       if (!current || wasThis) return;
       start(
         "midi",
-        playNotes(notes, duration ?? current.durationSec, play ?? current.play),
+        playNotes(previewNotes, duration ?? current.durationSec, play ?? current.play),
         offset,
       );
       transport.current.previewId = id;

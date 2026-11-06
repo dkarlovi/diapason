@@ -65,7 +65,7 @@ it("cancels Escape and prevents late input from saving an externally cancelled d
   fireEvent.keyDown(input, { key: "Escape" });
   fireEvent.blur(input);
   fireEvent.pointerUp(input, { pointerId: 1 });
-  expect((input as HTMLInputElement).value).toBe("3");
+  expect(input).toHaveProperty("value", "3");
   expect(screen.getByLabelText("Saved").textContent).toBe("");
   fireEvent.pointerDown(input, { isPrimary: true, button: 0, pointerId: 1 });
   fireEvent.change(input, { target: { value: 7 } });

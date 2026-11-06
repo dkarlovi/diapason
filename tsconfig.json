@@ -8,13 +8,17 @@
     "types": ["vite/client"],
 
     "strict": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,

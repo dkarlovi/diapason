@@ -10,7 +10,7 @@ import type { PortableTune } from "../Tune/PortableTune.type";
 export function useTuneShare(
   showNotice: (notice: Notice | null) => void,
   beforeShare?: () => Promise<void>,
-  getTune?: (() => Promise<PortableTune>) | undefined,
+  getTune?: () => Promise<PortableTune>,
 ) {
   const [busy, setBusy] = useState(false);
   const [fallbackLink, setFallbackLink] = useState<string | null>(null);

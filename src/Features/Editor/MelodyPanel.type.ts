@@ -11,10 +11,10 @@ export interface MelodyPanelProps {
   previewId: string | null;
   applyPreset: (id: PresetId) => void;
   drafting: boolean;
-  beginKnob(key: keyof Knobs): void;
-  draftKnob(key: keyof Knobs, value: number): void;
-  commitGesture(): void;
-  cancelGesture(): void;
+  beginKnob: (key: keyof Knobs) => void;
+  draftKnob: (key: keyof Knobs, value: number) => void;
+  commitGesture: () => void;
+  cancelGesture: () => void;
   changeKnob: (key: keyof Knobs, value: number | string) => void;
   resetKnob: (key?: keyof Knobs) => void;
   changeKey: (key: KeyChoice) => void;

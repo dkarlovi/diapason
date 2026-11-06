@@ -29,8 +29,8 @@ npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
-npm run lint      # oxlint, held to .oxlint-baseline.json
-npm run lint:baseline # lower the oxlint baseline after fixing findings
+npm run lint      # oxlint, with native oxlint-suppressions.json
+npm run lint:baseline # prune native suppressions after fixing findings
 npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules
 npm run structure # thin modules, shared export names, and re-exports
@@ -47,8 +47,39 @@ npm run check     # typecheck + lint + names + arch + structure + format check +
 
 React linting checks hooks, render purity, refs, immutable state, component identity,
 DOM properties, controlled checkboxes, stable prop defaults, and context values.
-Existing findings are recorded in `.oxlint-baseline.json`; new findings fail
-`npm run lint`, and fixes require lowering the baseline.
+Existing findings are recorded in `oxlint-suppressions.json`, which Oxlint automatically
+loads from the working directory. Both plain `oxlint` and `npm run lint` reject new
+findings and stale suppressions. After fixes, run `npm run lint:baseline`
+(`oxlint --prune-suppressions .`) to remove unused suppressions; do not use
+`--suppress-all` to absorb new findings into the existing backlog.
+
+Type-aware linting uses `oxlint-tsgolint`, enabled by `options.typeAware` in
+`.oxlintrc.json`. The correctness category checks type-dependent issues such as
+unhandled promises and unbound methods. Type inference remains available: linting
+does not require explicit annotations for inferred types or function return values.
+`tsc --noEmit` remains the separate TypeScript compiler check.
+Oxlint's `typeCheck` option is disabled: with `oxlint-tsgolint` 7.0.2006,
+repeated runs with compiler diagnostics enabled classify some unchanged casts
+differently between `no-unsafe-type-assertion` and `no-unnecessary-type-assertion`,
+making native suppression counts unstable. Type-aware lint rules remain enabled.
+
+Oxlint enables correctness, performance, and suspicious categories. The native
+suppression file records the adopted backlog; fixes prune it and new findings fail.
+Every disabled setting and override has an adjacent `Reason:` comment in
+`.oxlintrc.json`. Upstream-supported exceptions include a `Source:` URL and a
+verbatim `Quote:`; project policy choices are identified separately.
+`tools/oxlint/config.test.ts` rejects missing rationales and unquoted upstream sources.
+The preset-registry test reads this commented configuration with `jsonc-parser`.
+The configuration disables React's legacy JSX import requirement, mandatory helper
+hoisting, and mandatory `addEventListener` usage. `typescript/consistent-return`
+is disabled because TypeScript's `noImplicitReturns` checks return paths.
+
+Exceptions are scoped to the affected APIs and fixtures: worker/worklet and
+BroadcastChannel messages have no window target origin; constructor-only browser
+mocks are intentional; the broadcast-channel fixture needs `export {}` to isolate
+its declarations. `__APP_BUILD__` is an allowed build-time global.
+The save queue's two loop-condition findings are baselined because
+their state changes across awaited operations.
 
 React Compiler runs on application components and hooks in development, production
 builds, and Vitest through `oxc-transform-react`, the experimental Rust compiler

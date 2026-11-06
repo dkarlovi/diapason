@@ -34,7 +34,7 @@ interface Options {
   pcmRef: RefObject<Float32Array>;
   frames: Frame[];
   canExport: boolean;
-  beforeExport(): Promise<void>;
+  beforeExport: () => Promise<void>;
 }
 export function useEditorExports({
   recordingId,

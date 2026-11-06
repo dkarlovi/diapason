@@ -30,7 +30,7 @@ it("updates an embedded studio from its parent without replacing its content", (
 
 it.each([false, true])(
   "ignores unrelated senders and malformed messages (embedded=%s)",
-  (embedded) => {
+  async (embedded) => {
     renderHook(() => useStudioTheme(undefined, "light", embedded));
     const messages: Array<[unknown, unknown]> = [
       [{}, { type: "diapason:theme", theme: "AQGqu8w", scheme: "dark" }],
@@ -38,13 +38,12 @@ it.each([false, true])(
     ];
     if (!embedded)
       messages.push([window.parent, { type: "diapason:theme", theme: "AQGqu8w", scheme: "dark" }]);
-    for (const [source, data] of messages) {
-      act(() =>
+    await act(async () => {
+      for (const [source, data] of messages)
         window.dispatchEvent(
           new MessageEvent<unknown>("message", { source: source as Window, data }),
-        ),
-      );
-    }
+        );
+    });
     expect(document.documentElement.style.colorScheme).toBe("light");
     expect(document.documentElement.dataset.studioTheme).toBe('"default"');
   },

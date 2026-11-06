@@ -5,7 +5,7 @@ import type { AdHocTuneSession } from "./AdHocSession";
 interface Options {
   session: AdHocTuneSession;
   embedded: boolean;
-  beforeLeave(): void;
+  beforeLeave: () => void;
 }
 export function useAdHocNavigation(options: Options): void {
   const latest = useRef(options);

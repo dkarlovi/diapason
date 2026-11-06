@@ -216,23 +216,23 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       });
   }, [analysisReady, analysis.cacheWarning, showNotice]);
   const previewMelody = useCallback(
-    (change: Partial<MelodySetting>, previewId: string) => {
+    (change: Partial<MelodySetting>, candidateId: string) => {
       const current = recordRef.current;
       if (!current) return;
       const target = constrainMelodyChange(current, { ...melody, ...change });
       const result = processRecording({ ...current, melody: target }, frames);
       setAudition(result);
       setCandidate({
-        id: previewId,
+        id: candidateId,
         label:
-          auditionLabel(previewId, result.settings.melody, result.interpretation.key.chosen) ??
+          auditionLabel(candidateId, result.settings.melody, result.interpretation.key.chosen) ??
           "Melody",
-        applied: previewId.startsWith("knob-")
+        applied: candidateId.startsWith("knob-")
           ? JSON.stringify(resolveKnobs(melody.preset, melody.overrides)) ===
             JSON.stringify(resolveKnobs(target.preset, target.overrides))
           : sameMelodySetting(melody, target),
       });
-      previewSequence(result.notes, previewId);
+      previewSequence(result.notes, candidateId);
     },
     [frames, previewSequence, melody],
   );
@@ -263,11 +263,11 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       validateEditSnapshot(version.commit.snapshot, current.durationSec);
       const target = applyEditSnapshot(current, version.commit.snapshot);
       const result = processRecording(target, frames);
-      const previewId = `version-${version.id}`;
+      const versionPreviewId = `version-${version.id}`;
       setAudition(result);
       const targetPlay = target.play ?? DEFAULT_PLAY;
-      setCandidate({ id: previewId, label: version.name, applied: false, play: targetPlay });
-      previewSequence(result.notes, previewId, undefined, 0, targetPlay);
+      setCandidate({ id: versionPreviewId, label: version.name, applied: false, play: targetPlay });
+      previewSequence(result.notes, versionPreviewId, undefined, 0, targetPlay);
     },
   });
   const showingPreview = /^(preset|key|knob|version)-/.test(previewId ?? "");
@@ -581,14 +581,14 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     draftKnob: (key: keyof Knobs, value: number) => {
       const current = knobBaseline.current;
       if (!current || !knobAvailability(current, key).enabled || !isKnobs({ [key]: value })) return;
-      const melody = melodySettingFor(current);
+      const draftMelody = melodySettingFor(current);
       history.update(
         captureEditSnapshot(
-          value === resolveKnobs(melody.preset, melody.overrides)[key]
+          value === resolveKnobs(draftMelody.preset, draftMelody.overrides)[key]
             ? current
             : {
                 ...current,
-                melody: { ...melody, overrides: { ...melody.overrides, [key]: value } },
+                melody: { ...draftMelody, overrides: { ...draftMelody.overrides, [key]: value } },
               },
         ),
       );
@@ -627,14 +627,14 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     interpretation,
     previewId,
     previewMelody,
-    previewPlay: (settings: PlaySettings, id: string, label: string) => {
+    previewPlay: (settings: PlaySettings, candidateId: string, label: string) => {
       setCandidate({
-        id,
+        id: candidateId,
         label,
         applied: settings.instrument === play.instrument && settings.octave === play.octave,
         play: settings,
       });
-      previewSequence(notes, id, undefined, 0, settings);
+      previewSequence(notes, candidateId, undefined, 0, settings);
     },
     selectedNote: selectedItem?.note ?? null,
     selectedNoteId: selectedItem?.id,

@@ -6,7 +6,7 @@ import { Button } from "./Button";
 
 const icons = { success: CircleCheck, error: CircleAlert, info: Play };
 
-export function Toast(props: { notice: Notice | null; onDismiss(): void; label?: string }) {
+export function Toast(props: { notice: Notice | null; onDismiss: () => void; label?: string }) {
   return props.notice ? <VisibleToast {...props} notice={props.notice} /> : null;
 }
 
@@ -16,7 +16,7 @@ function VisibleToast({
   label,
 }: {
   notice: Notice;
-  onDismiss(): void;
+  onDismiss: () => void;
   label?: string;
 }) {
   const [hovered, setHovered] = useState(false);

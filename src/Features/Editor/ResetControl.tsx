@@ -8,7 +8,7 @@ export function ResetControl({
 }: {
   label: string;
   disabled: boolean;
-  onReset(): void;
+  onReset: () => void;
 }) {
   const action = `Reset ${label.toLowerCase()}`;
   return (

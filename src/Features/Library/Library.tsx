@@ -42,11 +42,11 @@ function RecordingCard({
 }: {
   record: Recording;
   playing: Playing;
-  onPlay(record: Recording, kind: "audio" | "midi"): void;
-  onDuplicate(id: string): void;
-  onDelete(record: Recording): void;
-  onShare(id: string): void;
-  onMidi(id: string): void;
+  onPlay: (record: Recording, kind: "audio" | "midi") => void;
+  onDuplicate: (id: string) => void;
+  onDelete: (record: Recording) => void;
+  onShare: (id: string) => void;
+  onMidi: (id: string) => void;
   sharing: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);

@@ -28,9 +28,7 @@ function matchesWav(data: ProbeOutput, expected: ExpectedWav) {
     stream.codec_name === "pcm_s16le" &&
     stream.channels === 1 &&
     Number(stream.sample_rate) === expected.sampleRate &&
-    Math.abs(
-      Number(stream.duration) * Number(expected.sampleRate) - Number(expected.sampleCount),
-    ) <= 1
+    Math.abs(Number(stream.duration) * expected.sampleRate - Number(expected.sampleCount)) <= 1
   );
 }
 export async function probeWav(

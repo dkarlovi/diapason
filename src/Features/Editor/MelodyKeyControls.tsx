@@ -13,7 +13,15 @@ const keys: Key[] = Array.from({ length: 12 }, (_, tonic) => [
   { tonic, mode: "minor" as const },
 ]).flat();
 const keyValue = (key: Key) => `${key.tonic}-${key.mode}`;
-function KeyOption({ choice, props, close }: { choice: KeyChoice; props: Props; close(): void }) {
+function KeyOption({
+  choice,
+  props,
+  close,
+}: {
+  choice: KeyChoice;
+  props: Props;
+  close: () => void;
+}) {
   const auto = choice === "auto";
   const label = auto ? "Auto" : keyName(choice);
   const id = `key-${auto ? "auto" : keyValue(choice)}`;
@@ -28,7 +36,7 @@ function KeyOption({ choice, props, close }: { choice: KeyChoice; props: Props; 
       previewing={previewing}
       disabled={props.disabled}
       previewLabel={auto ? "Play Auto key" : `Play key ${label}`}
-      useLabel={auto ? "Use Auto key" : `Use key ${label}`}
+      applyLabel={auto ? "Use Auto key" : `Use key ${label}`}
       onPreview={() => props.previewMelody({ key: choice }, id)}
       onUse={() => {
         props.changeKey(choice);

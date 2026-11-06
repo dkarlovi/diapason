@@ -154,7 +154,7 @@ it.each([
   ["quantize", { on: false, subdivision: 0 }],
 ])("rejects malformed %s fields without interpreting them", (field, value) => {
   const snapshot = captureEditSnapshot(recording());
-  Object.assign(snapshot.intent, { [field as string]: value });
+  Object.assign(snapshot.intent, { [field]: value });
   expect(() => validateEditSnapshot(snapshot, 1)).toThrow(/unsupported editing data/);
 });
 it("persists full history atomically and rejects a mismatched current commit", async () => {

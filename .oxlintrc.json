@@ -2,20 +2,54 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc", "react"],
   "jsPlugins": ["./tools/oxlint/local-plugin.ts"],
+  "options": {
+    "typeAware": true,
+    /* Reason: oxlint-tsgolint 7.0.2006 changes assertion diagnostics across identical
+     * runs when compiler diagnostics are enabled, destabilizing suppression counts.
+     * Type-aware linting stays enabled; tsc checks compiler diagnostics separately.
+     */
+    "typeCheck": false
+  },
+  "categories": {
+    "correctness": "error",
+    "perf": "error",
+    "suspicious": "error"
+  },
   "rules": {
+    /* Reason: tsconfig.json enables noImplicitReturns, which checks return paths
+     * while permitting intentional string | undefined results such as cssColor.
+     * Source: https://oxc.rs/docs/guide/usage/linter/rules/typescript/consistent-return
+     * Quote: "If possible, prefer TypeScript's `noImplicitReturns` compiler option over this rule."
+     */
+    "typescript/consistent-return": "off",
+    /* Reason: tsconfig.json uses react-jsx, so JSX needs no React namespace import.
+     * Source: https://oxc.rs/docs/guide/usage/linter/rules/react/react-in-jsx-scope
+     * Quote: "this rule is not necessary on React 17+ if you are using the new JSX Transform"
+     */
+    "react/react-in-jsx-scope": "off",
+    /* Reason: local helpers stay next to their only caller; lack of captured values
+     * alone does not justify broadening their scope. This is a project policy choice.
+     * Reference: https://oxc.rs/docs/guide/usage/linter/rules/unicorn/consistent-function-scoping
+     */
+    "unicorn/consistent-function-scoping": "off",
+    /* Reason: single-owner worker and channel handlers intentionally use onmessage;
+     * replacing a handler is useful when ownership changes. Multiple-listener APIs
+     * remain available where needed. This is a project policy choice.
+     * Reference: https://oxc.rs/docs/guide/usage/linter/rules/unicorn/prefer-add-event-listener
+     */
+    "unicorn/prefer-add-event-listener": "off",
+    /* Reason: Vite injects __APP_BUILD__ as the build provenance global declared
+     * in src/vite-env.d.ts; its underscores distinguish it from application values.
+     */
+    "eslint/no-underscore-dangle": ["error", { "allow": ["__APP_BUILD__"] }],
+    "typescript/no-floating-promises": "error",
     "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "error",
-    "react/refs": "error",
-    "react/set-state-in-effect": "error",
-    "react/immutability": "error",
     "react/no-unknown-property": "error",
     "react/checked-requires-onchange-or-readonly": "error",
     "react/no-unstable-nested-components": "error",
-    "react/no-object-type-as-default-prop": "error",
     "react/style-prop-object": "error",
     "react/capitalized-calls": "error",
     "react/unsupported-syntax": "error",
-    "react/jsx-no-constructed-context-values": "error",
     "local/no-narrative-comments": "error",
     "local/no-preset-special-casing": [
       "error",
@@ -42,6 +76,42 @@
     ]
   },
   "overrides": [
+    /* Reason: these paths use worker/worklet or BroadcastChannel messaging, whose
+     * overloads do not accept window target origins. Window messaging stays checked.
+     * Source: https://oxc.rs/docs/guide/usage/linter/rules/unicorn/require-post-message-target-origin
+     * Quote: "it may not be a good idea to enable in cases where `postMessage()` may be used with `BroadcastChannel` or worker/service worker contexts"
+     */
+    {
+      "files": [
+        "src/Analysis/Analysis.worker.ts",
+        "src/Audio/ClapInput.ts",
+        "src/Audio/Recorder.ts",
+        "src/Storage/StoredChanges.ts",
+        "src/Storage/StoredChanges.test.ts"
+      ],
+      "rules": { "unicorn/require-post-message-target-origin": "off" }
+    },
+    /* Reason: these browser-constructor fixtures must support new Worker() and
+     * new AudioContext(); their constructor-only classes deliberately throw or
+     * return the test audio context. Other class checks remain enabled.
+     * Reference: https://oxc.rs/docs/guide/usage/linter/rules/typescript/no-extraneous-class
+     */
+    {
+      "files": ["src/Analysis/AnalysisJobs.test.ts", "src/Playback/Playback.test.ts"],
+      "rules": { "typescript/no-extraneous-class": ["error", { "allowConstructorOnly": true }] }
+    },
+    /* Reason: export {} makes this import-free Vitest setup fixture a module,
+     * keeping its channel registry and class declarations out of the global scope.
+     * Reference: https://oxc.rs/docs/guide/usage/linter/rules/unicorn/require-module-specifiers
+     */
+    {
+      "files": ["tests/support/broadcast-channel.ts"],
+      "rules": { "unicorn/require-module-specifiers": "off" }
+    },
+    /* Reason: tests intentionally name specific presets to pin frozen recipes,
+     * construct fixtures, and exercise presets independently. Production behavior
+     * must still depend only on effective control values, never preset identity.
+     */
     {
       "files": ["**/*.test.ts", "**/*.test.tsx", "tests/**"],
       "rules": { "local/no-preset-special-casing": "off" }

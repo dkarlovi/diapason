@@ -10,13 +10,13 @@ import type { MelodySetting } from "../../Melody/MelodySetting.type";
 afterEach(cleanup);
 it("offers Context correction on any preset and Auto tune only supplies its starting value", () => {
   render(<Harness />);
-  const slider = screen.getByLabelText("Context correction") as HTMLInputElement;
-  expect(slider.value).toBe("0");
+  const slider = screen.getByLabelText("Context correction");
+  expect(slider).toHaveProperty("value", "0");
   fireEvent.change(slider, { target: { value: "0.37" } });
-  expect((screen.getByLabelText("Context correction") as HTMLInputElement).value).toBe("0.37");
+  expect(screen.getByLabelText("Context correction")).toHaveProperty("value", "0.37");
   fireEvent.click(screen.getByLabelText("Choose preset"));
   fireEvent.click(screen.getByRole("button", { name: "Use Auto tune" }));
-  expect((screen.getByLabelText("Context correction") as HTMLInputElement).value).toBe("1");
+  expect(screen.getByLabelText("Context correction")).toHaveProperty("value", "1");
   fireEvent.change(screen.getByLabelText("Context correction"), { target: { value: "0" } });
   expect(screen.getByText("Custom (from Auto tune)")).toBeTruthy();
 });

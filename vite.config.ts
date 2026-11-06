@@ -19,7 +19,7 @@ try {
 const sourceHash = createHash("sha256");
 for (const file of readdirSync("src", { recursive: true })
   .map(String)
-  .filter((file) => /\.(ts|tsx)$/.test(file) && !file.includes(".test."))
+  .filter((candidate) => /\.(ts|tsx)$/.test(candidate) && !candidate.includes(".test."))
   .sort()) {
   sourceHash.update(file).update(readFileSync(`src/${file}`));
 }

@@ -43,7 +43,7 @@ describe("recording notes", () => {
 });
 
 it("a mute follows its note through a merge and returns when switching back", () => {
-  const frames = Array.from({ length: 100 }, (_, i) => ({
+  const editedFrames = Array.from({ length: 100 }, (_, i) => ({
     t: i * 0.01,
     freq: 440 * 2 ** (((i >= 40 && i < 52 ? 70 : 69) - 69) / 12),
     clarity: 0.99,
@@ -54,15 +54,19 @@ it("a mute follows its note through a merge and returns when switching back", ()
     melody: { preset: "as-played", key: "auto", overrides: { steadiness: 0 } },
     muted: [{ t: 0.46, midi: 70 }],
   };
-  const baseline = recordingItems(original, frames);
+  const baseline = recordingItems(original, editedFrames);
   expect(baseline.map((item) => item.muted)).toEqual([false, true, false]);
   expect(
     recordingItems(
       { ...original, melody: { preset: "gentle", key: "auto", overrides: {} } },
-      frames,
+      editedFrames,
     ).map((item) => item.muted),
   ).toEqual([true]);
-  expect(recordingItems(original, frames).map((item) => item.muted)).toEqual([false, true, false]);
+  expect(recordingItems(original, editedFrames).map((item) => item.muted)).toEqual([
+    false,
+    true,
+    false,
+  ]);
 });
 it("previewNotes does not change the record", async () => {
   const { previewNotes } = await import("./Processing");

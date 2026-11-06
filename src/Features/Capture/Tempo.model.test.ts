@@ -6,7 +6,7 @@ it.each([
   [40, [0, 1.5, 3, 4.5, 6]],
   [220, [0, 60 / 220, 120 / 220, 180 / 220, 240 / 220]],
 ])("estimates %s BPM from consistent beats", (bpm, times) => {
-  expect(estimateTempo(times as number[])).toMatchObject({ bpm, stable: true, eventCount: 5 });
+  expect(estimateTempo(times)).toMatchObject({ bpm, stable: true, eventCount: 5 });
 });
 it("requires enough valid events and rejects unstable timing, pauses and duplicates", () => {
   expect(estimateTempo([0, 0.5, 1]).stable).toBe(false);

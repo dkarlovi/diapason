@@ -18,8 +18,8 @@ it("retains a completed room result and cancels obsolete measurements", async ()
     };
   };
   const { result, unmount } = renderHook(() => useMeasurements(subscribe, () => true));
-  act(() => result.current.startRoom((value) => completed.push(value)));
-  act(() => {
+  await act(async () => result.current.startRoom((value) => completed.push(value)));
+  await act(async () => {
     for (let i = 0; i < 15; i++)
       listener?.({
         t: i / 10,
@@ -31,18 +31,18 @@ it("retains a completed room result and cancels obsolete measurements", async ()
   });
   expect(completed).toHaveLength(1);
   expect(completed[0]).toMatchObject({ pass: true, floor: 0.001 });
-  act(() => vi.advanceTimersByTime(3000));
+  await act(async () => vi.advanceTimersByTime(3000));
   expect(completed).toHaveLength(1);
-  act(() =>
+  await act(async () =>
     result.current.startSound(0.001, getSoundProfile("whistle"), (value) => completed.push(value)),
   );
-  act(() => result.current.cancel());
-  act(() => vi.advanceTimersByTime(2000));
+  await act(async () => result.current.cancel());
+  await act(async () => vi.advanceTimersByTime(2000));
   expect(completed).toHaveLength(1);
   unmount();
   expect(vi.getTimerCount()).toBe(0);
 });
-it("fails a measurement with no audio rather than accepting timer completion", () => {
+it("fails a measurement with no audio rather than accepting timer completion", async () => {
   vi.useFakeTimers();
   const completed: { pass: boolean }[] = [];
   const { result } = renderHook(() =>
@@ -51,12 +51,12 @@ it("fails a measurement with no audio rather than accepting timer completion", (
       () => true,
     ),
   );
-  act(() => result.current.startRoom((value) => completed.push(value)));
-  act(() => vi.advanceTimersByTime(1500));
+  await act(async () => result.current.startRoom((value) => completed.push(value)));
+  await act(async () => vi.advanceTimersByTime(1500));
   expect(completed[0]?.pass).toBe(false);
 });
 
-it("remembers a hidden interval even when no samples arrive during it", () => {
+it("remembers a hidden interval even when no samples arrive during it", async () => {
   vi.useFakeTimers();
   const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(false);
   let listener: ((value: Observation) => void) | undefined;
@@ -66,8 +66,8 @@ it("remembers a hidden interval even when no samples arrive during it", () => {
   };
   const completed: { pass: boolean }[] = [];
   const { result } = renderHook(() => useMeasurements(subscribe, () => true));
-  act(() => result.current.startRoom((value) => completed.push(value)));
-  act(() => {
+  await act(async () => result.current.startRoom((value) => completed.push(value)));
+  await act(async () => {
     for (let i = 0; i < 15; i++)
       listener?.({
         t: i / 10,

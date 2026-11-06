@@ -75,9 +75,9 @@ export function useTempo(options: Options) {
         mic,
         latest.current.floor,
         addEvent,
-        (message) => {
+        (failureMessage) => {
           stop();
-          setMessage(message);
+          setMessage(failureMessage);
         },
         () => current === resources.current.token,
       );

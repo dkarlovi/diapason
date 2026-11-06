@@ -6,10 +6,10 @@ import type { AdHocTuneSession } from "./AdHocSession";
 interface Options {
   id: string;
   session?: AdHocTuneSession | undefined;
-  current(): Recording | null;
-  isIdle(): boolean;
-  adopt(record: Recording): void;
-  deleted(record: Recording): void;
+  current: () => Recording | null;
+  isIdle: () => boolean;
+  adopt: (record: Recording) => void;
+  deleted: (record: Recording) => void;
 }
 /**
  * Shows whatever another tab or embed saved last. An editor with unsaved local work keeps it;

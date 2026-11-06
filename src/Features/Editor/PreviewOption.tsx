@@ -9,9 +9,9 @@ interface Props {
   previewing: boolean;
   disabled: boolean;
   previewLabel: string;
-  useLabel: string;
-  onPreview(): void;
-  onUse(): void;
+  applyLabel: string;
+  onPreview: () => void;
+  onUse: () => void;
   title?: string | undefined;
 }
 const BASE_HINT = "Base preset: Use replaces your adjustments";
@@ -52,7 +52,7 @@ export function PreviewOption(props: Props) {
         <Button
           data-active={!props.selected}
           disabled={props.disabled || props.selected}
-          aria-label={props.useLabel}
+          aria-label={props.applyLabel}
           aria-describedby={base ? hintId : undefined}
           title={base ? BASE_HINT : undefined}
           onClick={props.onUse}
@@ -63,7 +63,7 @@ export function PreviewOption(props: Props) {
           className="preview-option-applied"
           data-active={props.selected}
           role="img"
-          aria-label={`${props.useLabel.replace(/^Use /, "")} applied`}
+          aria-label={`${props.applyLabel.replace(/^Use /, "")} applied`}
         >
           <Check aria-hidden="true" />
         </span>

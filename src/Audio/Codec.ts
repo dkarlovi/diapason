@@ -15,7 +15,7 @@ async function gunzip(blob: Blob): Promise<ArrayBuffer> {
 
 /** Float32 PCM -> gzipped Int16 Blob for storage. */
 export async function encodeAudio(pcm: Float32Array): Promise<Blob> {
-  return gzip(floatToPcm16(pcm).buffer as ArrayBuffer);
+  return gzip(floatToPcm16(pcm).buffer);
 }
 
 /** Gzipped Int16 Blob -> Float32 PCM for analysis/playback. */

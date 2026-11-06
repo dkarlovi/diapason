@@ -24,16 +24,21 @@ it("forwards audio-clock PCM and disposes subscriptions without accepting queued
   );
   vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:claps");
   vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
-  const makeContext = () =>
-    ({
-      state: "running",
-      audioWorklet: { addModule: vi.fn(async () => {}) },
-    }) as unknown as AudioContext;
+  const makeContext = () => {
+    const addModule = vi.fn(async () => {});
+    return {
+      audioContext: {
+        state: "running",
+        audioWorklet: { addModule },
+      } as unknown as AudioContext,
+      addModule,
+    };
+  };
   const source = { connect: vi.fn(), disconnect: vi.fn() } as unknown as AudioNode;
   const times: number[] = [];
   const ctx = makeContext(),
     second = makeContext();
-  const off = await subscribePcm(ctx, source, (_samples, start) => times.push(start));
+  const off = await subscribePcm(ctx.audioContext, source, (_samples, start) => times.push(start));
   const late = nodes[0]!.port.onmessage!;
   late(new MessageEvent("message", { data: { samples: new Float32Array([0.5]), start: 2 } }));
   off();
@@ -41,8 +46,8 @@ it("forwards audio-clock PCM and disposes subscriptions without accepting queued
   late(new MessageEvent("message", { data: { samples: new Float32Array([0.5]), start: 3 } }));
   expect(times).toEqual([2]);
   expect(nodes[0]!.port.close).toHaveBeenCalledOnce();
-  const stopSecond = await subscribePcm(second, source, () => {});
+  const stopSecond = await subscribePcm(second.audioContext, source, () => {});
   stopSecond();
-  expect(ctx.audioWorklet.addModule).toHaveBeenCalledOnce();
-  expect(second.audioWorklet.addModule).toHaveBeenCalledOnce();
+  expect(ctx.addModule).toHaveBeenCalledOnce();
+  expect(second.addModule).toHaveBeenCalledOnce();
 });

@@ -1,0 +1,869 @@
+{
+  "src/Analysis/Analysis.worker.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Analysis/AnalysisCache.storage.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/App/EditorSaveStatus.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/App/PortableTune.integration.test.tsx": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/App/useStudioFullscreen.ts": {
+    "typescript/no-unnecessary-type-conversion": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/App/useStudioTheme.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/App/useStudioTheme.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Audio/Audio.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Audio/ClapInput.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Audio/Metronome.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Audio/Recorder.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Audio/Recorder.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Audio/Trace.test.ts": {
+    "typescript/no-base-to-string": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/prefer-array-find": {
+      "count": 2
+    }
+  },
+  "src/Audio/Trace.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Audio/VoiceRange.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/Audio/VoiceRange.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Diagnostics/DiagnosticSnapshot.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Diagnostics/Diagnostics.validation.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 10
+    }
+  },
+  "src/Editing/Edit.storage.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Editing/Edit.storage.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Editing/EditHistory.validation.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Editing/EditSnapshot.validation.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/prefer-set-has": {
+      "count": 1
+    }
+  },
+  "src/Editing/EditState.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Editing/Editor.model.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Editing/EditorSaveQueue.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-unmodified-loop-condition": {
+      "count": 2
+    },
+    "typescript/no-base-to-string": {
+      "count": 1
+    },
+    "unicorn/no-useless-spread": {
+      "count": 2
+    }
+  },
+  "src/Editing/NoteEdits.integration.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Editing/NoteEdits.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/Capture.tsx": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/LiveBeat.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/Tempo.model.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/useCapture.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Capture/useCaptureWizard.ts": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/useMicrophone.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/useMicrophone.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    },
+    "react/immutability": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/useRecordingSetup.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/immutability": {
+      "count": 4
+    },
+    "react/memo-dependencies": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/useTempo.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Capture/useTempo.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/AdHocSession.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/AdHocSession.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/AdHocTune.integration.test.tsx": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/AdHocTune.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/AdHocVersions.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/Editor.tsx": {
+    "react/refs": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/EditorCanvas.tsx": {
+    "react/immutability": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/EditorHistory.integration.test.tsx": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/EditorLoaded.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/Features/Editor/EditorTools.tsx": {
+    "react/jsx-no-constructed-context-values": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/MelodyPanel.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/MelodyPanel.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/NoteDetail.tsx": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/TunePromotion.storage.test.ts": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useAdHocNavigation.ts": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useAdHocTune.ts": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/immutability": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditHistory.test.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditHistory.ts": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/useEditor.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 5
+    },
+    "react/immutability": {
+      "count": 1
+    },
+    "react/memo-dependencies": {
+      "count": 4
+    },
+    "react/refs": {
+      "count": 2
+    },
+    "react/set-state-in-effect": {
+      "count": 2
+    },
+    "typescript/no-floating-promises": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorExports.ts": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorGestures.ts": {
+    "react/refs": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/useEditorHistoryKeys.ts": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorPlayback.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/useEditorPlayback.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorPlot.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    },
+    "unicorn/prefer-array-find": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorPlot.ts": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorVersions.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useNoteDrag.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/useNoteDrag.ts": {
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-boolean-literal-compare": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useSaveTune.ts": {
+    "react/immutability": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useSliderCommit.test.tsx": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useSliderCommit.ts": {
+    "typescript/no-unnecessary-boolean-literal-compare": {
+      "count": 1
+    }
+  },
+  "src/Features/Library/RecordingImport.test.tsx": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Features/Library/RecordingImport.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Library/WaveformThumbnail.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/Features/Library/useLibrary.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Features/Library/useRecordingImport.test.tsx": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/Features/Library/useRecordingImport.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "src/Features/Library/useWavDrop.ts": {
+    "react/immutability": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Features/Library/useWaveformBackfill.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/Inspection/Controls.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Inspection/Notes.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 2
+    }
+  },
+  "src/Inspection/Notes.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/Inspection/Stages.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Inspection/Views.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Melody/AutoTune.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Melody/Decode.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 2
+    }
+  },
+  "src/Melody/Decode.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Melody/Intro.integration.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Melody/Key.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/Melody/Key.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Melody/Knobs.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 4
+    }
+  },
+  "src/Melody/Knobs.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Melody/Replay.integration.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Melody/Settings.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Melody/Settings.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Midi/MidiOutput.integration.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Playback/Playback.test.ts": {
+    "unicorn/no-array-reverse": {
+      "count": 1
+    }
+  },
+  "src/Playback/Playback.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Recording/Capture.model.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 2
+    }
+  },
+  "src/Recording/Capture.model.ts": {
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/Recording/NoteSource.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Recording/NoteSource.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Recording/Pipeline.integration.test.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Recording/Recording.storage.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/Recording/RecordingImport.storage.test.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/Recording/RecordingPackage.test.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "src/Recording/RecordingPackage.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Recording/RecordingPackage.validation.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    }
+  },
+  "src/Recording/RecordingPackageCli.integration.test.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "src/Recording/RecordingPackageComparison.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Recording/WavMetadata.integration.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Recording/WavMetadata.test.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "src/Recording/WavMetadata.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Storage/StoredChanges.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Studio/MidiOutputPicker.test.tsx": {
+    "typescript/no-misused-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Studio/useStudioMode.tsx": {
+    "react/jsx-no-constructed-context-values": {
+      "count": 2
+    }
+  },
+  "src/Theme/CssTheme.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Theme/ThemeConfig.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Theme/ThemeConfig.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/Theme/ThemeMessage.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/Theme/ThemePalette.ts": {
+    "typescript/no-misused-spread": {
+      "count": 1
+    }
+  },
+  "src/Tune/PortableTune.test.ts": {
+    "no-await-in-loop": {
+      "count": 4
+    }
+  },
+  "src/Tune/PortableTune.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/Tune/Tune.codec.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "tests/support/broadcast-channel.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tests/support/fixtures.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/diapason/cache.ts": {
+    "no-await-in-loop": {
+      "count": 5
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "tools/diapason/commands.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/diapason/files.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/diapason/handlers.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "tools/diapason/identity.test.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    }
+  },
+  "tools/diapason/identity.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "tools/diapason/probe.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "tools/diapason/queries.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/diapason/query-render.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "tools/diapason/render.ts": {
+    "typescript/no-base-to-string": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "tools/diapason/runtime.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/measure-tune-payload.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "tools/oxlint/no-preset-special-casing.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/react-compiler.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "tools/structure.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "tools/structure/rules.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "vite.config.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  }
+}
