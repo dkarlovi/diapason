@@ -27,16 +27,18 @@ function validRange(value: unknown, duration: number): value is SourceRange {
     end <= duration
   );
 }
-const validMidi = (midi: number) => Number.isInteger(midi) && midi >= 0 && midi <= 127;
+const validMidi = (midi: unknown): midi is number =>
+  typeof midi === "number" && Number.isInteger(midi) && midi >= 0 && midi <= 127;
 export function isNoteEdits(value: unknown, durationSec: number): value is NoteEdits {
-  if (!value || typeof value !== "object" || !(durationSec >= 0)) return false;
-  const layer = value as NoteEdits;
+  if (!hasProperties(value, "version", "pitch") || !(durationSec >= 0)) return false;
+  const layer = value;
   if (layer.version !== 1 || !Array.isArray(layer.pitch)) return false;
   const ids = new Set<string>();
   const ranges: SourceRange[] = [];
-  for (const edit of layer.pitch) {
+  const pitch: readonly unknown[] = layer.pitch;
+  for (const edit of pitch) {
     if (
-      !edit ||
+      !hasProperties(edit, "id", "midi", "ranges") ||
       typeof edit.id !== "string" ||
       !edit.id.trim() ||
       ids.has(edit.id) ||
@@ -47,7 +49,8 @@ export function isNoteEdits(value: unknown, durationSec: number): value is NoteE
       return false;
     ids.add(edit.id);
     let end = -1;
-    for (const scope of edit.ranges) {
+    const scopes: readonly unknown[] = edit.ranges;
+    for (const scope of scopes) {
       if (!validRange(scope, durationSec) || scope.start < end) return false;
       end = scope.end;
       ranges.push(scope);

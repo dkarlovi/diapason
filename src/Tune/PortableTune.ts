@@ -6,7 +6,7 @@ import {
   resolveKnobs,
   withControlDefaults,
   interpretationVersionForControls,
-  type Knobs,
+  KNOB_DEFS,
   DETECTION_KNOBS,
 } from "../Melody/Knobs";
 import { isMelodySetting, melodySettingFor } from "../Melody/Settings";
@@ -95,11 +95,7 @@ function validateTuneMusic(t: PortableTune, historical: boolean) {
   requireTune(t.play && INSTRUMENTS.some((i) => i.id === t.play.instrument));
   requireTune([1, 0, -1, -2, -3].includes(t.play.octave));
   const effective = historical ? savedKnobs : resolveKnobs(t.melody.preset, t.melody.overrides);
-  requireTune(
-    Object.keys(effective).every(
-      (k) => effective[k as keyof Knobs] === savedKnobs[k as keyof Knobs],
-    ),
-  );
+  requireTune(KNOB_DEFS.every(({ key }) => effective[key] === savedKnobs[key]));
   requireTune(
     DETECTION_KNOBS.every((k) => t.noteSource.frozenDetection[k] === t.effectiveKnobs[k]),
   );

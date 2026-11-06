@@ -100,16 +100,6 @@
       "count": 1
     }
   },
-  "src/Editing/EditState.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Editing/Editor.model.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Editing/EditorSaveQueue.ts": {
     "no-await-in-loop": {
       "count": 2
@@ -131,9 +121,6 @@
   },
   "src/Editing/NoteEdits.ts": {
     "oxc/no-map-spread": {
-      "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
@@ -201,7 +188,7 @@
   },
   "src/Features/Editor/AdHocTune.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Features/Editor/Editor.tsx": {
@@ -504,7 +491,7 @@
   },
   "src/Melody/Settings.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 1
     }
   },
   "src/Midi/MidiOutput.integration.test.ts": {
@@ -557,7 +544,7 @@
   },
   "src/Recording/RecordingPackage.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Recording/RecordingPackage.validation.ts": {
@@ -590,11 +577,6 @@
       "count": 2
     }
   },
-  "src/Storage/StoredChanges.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Studio/MidiOutputPicker.test.tsx": {
     "typescript/no-misused-spread": {
       "count": 1
@@ -603,19 +585,9 @@
       "count": 3
     }
   },
-  "src/Theme/CssTheme.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Theme/ThemeConfig.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    }
-  },
-  "src/Theme/ThemeConfig.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
     }
   },
   "src/Theme/ThemePalette.ts": {
@@ -630,7 +602,7 @@
   },
   "src/Tune/PortableTune.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 1
     }
   },
   "src/Tune/Tune.codec.ts": {
@@ -653,7 +625,7 @@
       "count": 5
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "tools/diapason/commands.ts": {
@@ -664,9 +636,6 @@
   "tools/diapason/files.ts": {
     "no-await-in-loop": {
       "count": 2
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "tools/diapason/handlers.ts": {
@@ -688,11 +657,6 @@
     }
   },
   "tools/diapason/probe.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
-    }
-  },
-  "tools/diapason/queries.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }

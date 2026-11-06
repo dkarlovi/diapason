@@ -62,7 +62,7 @@ export function readCssTheme(host: HTMLElement): HostThemeMessage {
           : "light";
   const message: HostThemeMessage = {
     type: "diapason:theme",
-    theme: colors.primary ? encodeTheme({ light: colors as ThemeSeeds }) : null,
+    theme: colors.primary ? encodeTheme({ light: { ...colors, primary: colors.primary } }) : null,
     scheme,
   };
   cached.set(host, { signature, message });

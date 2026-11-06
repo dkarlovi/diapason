@@ -141,10 +141,10 @@ export function auditionLabel(
   if (id.startsWith("preset-")) return PRESETS[melody.preset].label;
   if (id.startsWith("key-")) return selectedKey ? `Key ${keyName(selectedKey)}` : "Key Auto";
   if (id.startsWith("knob-")) {
-    const key = id.split("-")[1] as keyof Knobs;
+    const key = id.split("-")[1];
     const def = KNOB_DEFS.find((candidate) => candidate.key === key);
     if (def)
-      return `${def.label}: ${knobValueLabel(def, resolveKnobs(melody.preset, melody.overrides)[key])}`;
+      return `${def.label}: ${knobValueLabel(def, resolveKnobs(melody.preset, melody.overrides)[def.key])}`;
   }
   return null;
 }

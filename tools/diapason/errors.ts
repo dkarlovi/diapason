@@ -1,5 +1,27 @@
 import type { Report } from "../../src/Inspection/Inspection.type.ts";
 
+export function cliErrorCode(value: unknown): string | undefined {
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    "code" in value &&
+    typeof value.code === "string"
+  )
+    return value.code;
+  return undefined;
+}
+
+export function cliErrorMessage(value: unknown): string {
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    "message" in value &&
+    typeof value.message === "string"
+  )
+    return value.message;
+  return String(value);
+}
+
 export interface CliError {
   code?: string;
   message: string;

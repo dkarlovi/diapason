@@ -1,5 +1,6 @@
 import { lstat, mkdir, writeFile, unlink } from "node:fs/promises";
 import { resolve, basename } from "node:path";
+import { cliErrorCode } from "./errors.ts";
 export async function publishOutputs(
   directory: string,
   entries: Record<string, string | Uint8Array>,
@@ -16,7 +17,7 @@ export async function publishOutputs(
     try {
       await lstat(path);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") continue;
+      if (cliErrorCode(error) === "ENOENT") continue;
       throw error;
     }
     throw new Error(`Output already exists: ${path}`);

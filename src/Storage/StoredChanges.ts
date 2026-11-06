@@ -1,14 +1,17 @@
 import type { StoredChange } from "./StoredChange.type";
+import { hasProperties } from "../Encoding/Properties";
 
 const CHANNEL = "diapason:stored-changes";
 let sender: BroadcastChannel | null = null;
 
 function isStoredChange(value: unknown): value is StoredChange {
-  const change = value as Partial<Record<string, unknown>> | null;
-  if (!change || typeof change !== "object") return false;
-  if (change.kind === "recording") return typeof change.id === "string";
+  if (!hasProperties(value, "kind")) return false;
+  const change = value;
+  if (change.kind === "recording")
+    return hasProperties(change, "id") && typeof change.id === "string";
   return (
     change.kind === "tune-draft" &&
+    hasProperties(change, "fragment", "source", "savedAt") &&
     typeof change.fragment === "string" &&
     typeof change.source === "string" &&
     Number.isFinite(change.savedAt)

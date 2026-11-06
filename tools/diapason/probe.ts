@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { cliErrorCode, cliErrorMessage } from "./errors.ts";
 import type { VerificationCheck } from "../../src/Inspection/Verification.ts";
 
 interface ProbeOutput {
@@ -64,14 +65,13 @@ export async function probeWav(
         : "ffprobe format evidence disagrees with the validated WAV.",
     };
   } catch (caught) {
-    const error = caught as NodeJS.ErrnoException;
+    const unavailable = cliErrorCode(caught) === "ENOENT";
     return {
       ...check,
-      status: error.code === "ENOENT" ? "skipped" : "fail",
-      reason:
-        error.code === "ENOENT"
-          ? "ffprobe is not installed; independent interoperability check skipped."
-          : `ffprobe failed: ${error.message}`,
+      status: unavailable ? "skipped" : "fail",
+      reason: unavailable
+        ? "ffprobe is not installed; independent interoperability check skipped."
+        : `ffprobe failed: ${cliErrorMessage(caught)}`,
     };
   }
 }

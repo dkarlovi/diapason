@@ -1,3 +1,4 @@
+import { cliErrorCode } from "./errors.ts";
 import { constants } from "node:fs";
 import type { Stats } from "node:fs";
 import { open, lstat, mkdir, readdir, realpath, rename, unlink, chmod } from "node:fs/promises";
@@ -38,7 +39,6 @@ interface CachedFile {
   bytes: number;
   touched: number;
 }
-const errorCode = (error: unknown) => (error as NodeJS.ErrnoException).code;
 const defaultCacheDirectory = () =>
   join(tmpdir(), `diapason-${process.getuid?.() ?? "user"}`, "cache/v1");
 const validKey = (key: unknown): key is string =>
@@ -50,7 +50,7 @@ async function ensureDirectory(directory: string) {
     try {
       await mkdir(parent, { mode: 0o700 });
     } catch (error) {
-      if (errorCode(error) !== "EEXIST") throw error;
+      if (cliErrorCode(error) !== "EEXIST") throw error;
     }
     const component = await lstat(parent);
     if (!component.isDirectory() || component.isSymbolicLink())
@@ -98,7 +98,7 @@ export function createStageStore({
         0o600,
       );
     } catch (error) {
-      if (errorCode(error) !== "EEXIST") throw error;
+      if (cliErrorCode(error) !== "EEXIST") throw error;
     } finally {
       await handle?.close();
     }
@@ -164,7 +164,7 @@ export function createStageStore({
         await mark(key);
         return entry.value;
       } catch (error) {
-        if (errorCode(error) !== "ENOENT") report(error);
+        if (cliErrorCode(error) !== "ENOENT") report(error);
         return undefined;
       } finally {
         await handle?.close();
