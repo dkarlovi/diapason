@@ -70,8 +70,10 @@ export async function cachedSnapshot(
   if (saved.schemaVersion !== 2) throw new Error("No saved melody baseline.");
   const settings = resolveRecordingSettings(record);
   const knobs = resolveKnobs(settings.melody.preset, settings.melody.overrides);
-  const identify = (stage: string, dependencies: unknown) =>
-    context.execution.codeRuntimeKey && frameKey ? context.stageKey?.(stage, dependencies) : null;
+  const identify = (stageName: string, dependencies: unknown) =>
+    context.execution.codeRuntimeKey && frameKey
+      ? context.stageKey?.(stageName, dependencies)
+      : null;
   const segments = identify("segments", {
     frames: frameKey,
     levelGate: knobs.levelGate,

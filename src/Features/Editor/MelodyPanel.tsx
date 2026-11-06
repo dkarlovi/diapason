@@ -34,7 +34,7 @@ export function MelodyPanel(props: PropsWithChildren<MelodyPanelProps>) {
         </nav>
         <div className="melody-controls">
           {groups[group].map((key) => {
-            const def = KNOB_DEFS.find((def) => def.key === key)!;
+            const def = KNOB_DEFS.find((candidate) => candidate.key === key)!;
             return (
               <MelodyKnob
                 key={key}

@@ -28,7 +28,7 @@ export function selectorRange(
 ): SourceRange | undefined {
   validateSelector(selector);
   if (selector.note === undefined) return selector.time;
-  const item = view.evidence.stages.items.find((item) => item.id === selector.note);
+  const item = view.evidence.stages.items.find((candidate) => candidate.id === selector.note);
   if (!item) throw new Error(`Note ${selector.note} is unavailable in the ${view.name} view.`);
   return item.source;
 }

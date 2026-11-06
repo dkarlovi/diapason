@@ -165,15 +165,15 @@ export function useEditorGestures(options: Options) {
         if (event.button === 1) event.preventDefault();
       };
       const controller = new AbortController();
-      const options = { signal: controller.signal };
+      const listenerOptions = { signal: controller.signal };
       touchGestures(canvas, latest, controller.signal);
-      canvas.addEventListener("pointerdown", down, options);
-      canvas.addEventListener("pointermove", move, options);
-      canvas.addEventListener("pointerup", up, options);
-      canvas.addEventListener("pointercancel", up, options);
-      canvas.addEventListener("lostpointercapture", up, options);
-      canvas.addEventListener("wheel", wheel, { ...options, passive: false });
-      canvas.addEventListener("auxclick", auxiliary, options);
+      canvas.addEventListener("pointerdown", down, listenerOptions);
+      canvas.addEventListener("pointermove", move, listenerOptions);
+      canvas.addEventListener("pointerup", up, listenerOptions);
+      canvas.addEventListener("pointercancel", up, listenerOptions);
+      canvas.addEventListener("lostpointercapture", up, listenerOptions);
+      canvas.addEventListener("wheel", wheel, { ...listenerOptions, passive: false });
+      canvas.addEventListener("auxclick", auxiliary, listenerOptions);
       return () => {
         controller.abort();
         canvas.style.cursor = "";

@@ -18,7 +18,7 @@ export class PackageError extends Error {
   }
 }
 function isPackageDiagnostic(error: PackageError): boolean {
-  return error.trusted === false && error.path !== "$";
+  return !error.trusted && error.path !== "$";
 }
 export function packageError(error: unknown, path: string, check = "package.valid"): PackageError {
   return error instanceof PackageError && isPackageDiagnostic(error)

@@ -1,7 +1,7 @@
 import type { AdHocTuneDraft } from "./AdHocTune";
 import { publishStoredChange, subscribeStoredChanges } from "../../Storage/StoredChanges";
 const key = (fragment: string) => `diapason:tune-draft:1:${fragment}`;
-export function readAdHocDraft(storage: Storage, fragment: string): unknown | null {
+export function readAdHocDraft(storage: Storage, fragment: string): unknown {
   const value = storage.getItem(key(fragment));
   return value === null ? null : JSON.parse(value);
 }

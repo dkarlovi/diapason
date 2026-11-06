@@ -144,9 +144,9 @@ it("replays frozen edited evidence with identical MIDI and rejects malformed int
     version: 1,
     pitch: [{ id: "manual", midi: 73, ranges: [{ ...first.source }] }],
   };
-  const { decodeWav } = await import("../Encoding/WavReader");
+  const { decodeWav: decodeEditedWav } = await import("../Encoding/WavReader");
   const { notesToMidi } = await import("../Midi/Midi");
-  const { pcm } = decodeWav(await base.wav.arrayBuffer());
+  const { pcm } = decodeEditedWav(await base.wav.arrayBuffer());
   const frames = analyzeRecording(pcm, rec.sampleRate, rec);
   const pending = diagnosticSnapshot(makeReportInput(rec, frames, qualityStats(frames, pcm)), pcm);
   rec.noteEdits.pitch = [];

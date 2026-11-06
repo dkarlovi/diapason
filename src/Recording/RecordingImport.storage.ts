@@ -13,7 +13,9 @@ export async function insertImportedRecording(
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "ConstraintError")
-      throw new Error("This recording already exists. Import as copy to keep both.");
+      throw new Error("This recording already exists. Import as copy to keep both.", {
+        cause: error,
+      });
     throw error;
   }
 }

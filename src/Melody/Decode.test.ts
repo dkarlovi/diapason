@@ -17,8 +17,8 @@ const context: PitchContext = {
   meter: null,
 };
 const gentle = PRESETS.gentle.knobs;
-function decodeMelody(frames: Frame[], knobs: Knobs, context: PitchContext): NoteEvent[] {
-  return notesFromSegments(segmentMelody(frames, knobs), knobs, context);
+function decodeMelody(inputFrames: Frame[], knobs: Knobs, pitchContext: PitchContext): NoteEvent[] {
+  return notesFromSegments(segmentMelody(inputFrames, knobs), knobs, pitchContext);
 }
 function frames(parts: [number, number | null][]): Frame[] {
   const result: Frame[] = [];

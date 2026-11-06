@@ -298,7 +298,7 @@ it("ignores an obsolete playback animation callback after starting a new recordi
 
 function midiEvents(bytes: Uint8Array) {
   let offset = 22,
-    tick = 0;
+    elapsedTicks = 0;
   const events: { tick: number; status: number; key: number; velocity: number }[] = [];
   const variable = () => {
     let value = 0,
@@ -310,7 +310,7 @@ function midiEvents(bytes: Uint8Array) {
     return value;
   };
   while (offset < bytes.length) {
-    tick += variable();
+    elapsedTicks += variable();
     const status = bytes[offset++]!;
     if (status === 0xff) {
       offset++;
@@ -322,7 +322,7 @@ function midiEvents(bytes: Uint8Array) {
       offset++;
       continue;
     }
-    events.push({ tick, status, key: bytes[offset++]!, velocity: bytes[offset++]! });
+    events.push({ tick: elapsedTicks, status, key: bytes[offset++]!, velocity: bytes[offset++]! });
   }
   return events;
 }

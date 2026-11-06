@@ -43,8 +43,8 @@ export function useEditorVersions({
         .then((rows) => {
           if (generation.current === token) setVersions(rows);
         })
-        .catch((error) => {
-          if (generation.current === token) setError(String(error));
+        .catch((loadError) => {
+          if (generation.current === token) setError(String(loadError));
         });
     load();
     const unsubscribe = session ? session.subscribe(load) : subscribeRecording(recordingId, load);

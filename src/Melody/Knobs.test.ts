@@ -59,7 +59,7 @@ describe("melody knobs", () => {
     const asPlayed = PRESETS["as-played"].knobs;
     const pitch = { keyPull: 1, contextCorrection: 1 };
     const unchangedPitch = { keyPull: 0, contextCorrection: 0, mode: "auto" };
-    for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "intent"))
+    for (const preset of Object.values(PRESETS).filter((candidate) => candidate.kind === "intent"))
       expect(preset.knobs).toMatchObject({ swing: 0, syncopation: 0, articulation: 1 });
     expect(asPlayed).toMatchObject({ ...unchangedPitch, grid: 0 });
     expect(PRESETS["auto-pitch"].knobs).toMatchObject({ ...pitch, grid: 0 });
@@ -70,7 +70,7 @@ describe("melody knobs", () => {
     const autoTune = PRESETS["auto-tune"].knobs;
     const changed = (id: PresetId) =>
       KNOB_DEFS.map((def) => def.key).filter((key) => PRESETS[id].knobs[key] !== autoTune[key]);
-    for (const preset of Object.values(PRESETS).filter((preset) => preset.kind === "mood"))
+    for (const preset of Object.values(PRESETS).filter((candidate) => candidate.kind === "mood"))
       expect(changed(preset.id)).toHaveLength(1);
   });
   it("keeps every published recipe frozen, so saved tunes resolve to the same values", () => {

@@ -10,7 +10,10 @@ it("refuses a collision at save time and preserves local edits", async () => {
   await putRecording(recording({ name: "Local" }));
   await expect(
     insertImportedRecording(recording({ name: "Incoming" }), "original"),
-  ).rejects.toThrow(/already|exist|collision/i);
+  ).rejects.toMatchObject({
+    message: expect.stringMatching(/already|exist|collision/i),
+    cause: expect.objectContaining({ name: "ConstraintError" }),
+  });
   expect((await getRecording("regression"))?.name).toBe("Local");
   const copy = await insertImportedRecording(recording({ name: "Incoming" }), "copy");
   expect(copy.id).not.toBe("regression");

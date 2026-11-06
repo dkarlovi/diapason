@@ -30,6 +30,7 @@ export function useAdHocTune(fragment: string) {
             setCorrupt(true);
             throw new Error(
               "The temporary draft is damaged. Discard it to reopen the original tune.",
+              { cause },
             );
           }
           warning = RECOVERY_WARNING;

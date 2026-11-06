@@ -25,9 +25,9 @@ afterEach(() => {
 vi.mock("../../Recording/Recording.storage", () => ({
   allRecordings: vi.fn(async () => recordings),
   storageEstimate: vi.fn(async () => null),
-  getRecording: vi.fn(async (id: string) => recordings.find((recording) => recording.id === id)),
-  putRecording: vi.fn(async (recording: Recording) => {
-    recordings = [...recordings, recording];
+  getRecording: vi.fn(async (id: string) => recordings.find((stored) => stored.id === id)),
+  putRecording: vi.fn(async (incoming: Recording) => {
+    recordings = [...recordings, incoming];
   }),
   deleteRecording: vi.fn(),
   saveWaveform: vi.fn(async () => undefined),

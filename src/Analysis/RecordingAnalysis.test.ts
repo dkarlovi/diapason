@@ -59,11 +59,11 @@ it.each(clickCases)(
         (dt < 0.04 ? envelope * Math.sin(2 * Math.PI * (beat % 4 === 0 ? 1600 : 1000) * dt) : 0)
       );
     });
-    const notes = recordingNotes(
+    const detectedNotes = recordingNotes(
       recording({ melody: { preset: "as-played", overrides: {}, key: "auto" } }),
       analyzeBuffer(samples, rate),
     );
-    expect(notes).toHaveLength(frequency ? 1 : 0);
-    if (frequency) expect(notes[0]!.duration).toBeGreaterThan(1.1);
+    expect(detectedNotes).toHaveLength(frequency ? 1 : 0);
+    if (frequency) expect(detectedNotes[0]!.duration).toBeGreaterThan(1.1);
   },
 );
