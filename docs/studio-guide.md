@@ -254,7 +254,9 @@ Mode can change the effective key from the selected key; see
 
 The header's **MIDI out** picker routes note playback to the browser synth or an
 external synth/DAW via Web MIDI when supported and permitted. Both outputs support
-instrument selection and an octave shift. Diapason MIDI downloads preserve both
+instrument selection and an octave shift. Changing the output or connecting or
+disconnecting a MIDI output stops playback; opening a port for its first playback
+keeps the transport running. Diapason MIDI downloads preserve both
 choices in editable metadata and render them using General MIDI equivalents.
 External instruments use General MIDI equivalents: square lead (Plain beep),
 electric piano, steel-string guitar (Acoustic guitar), flute, trumpet, alto sax
