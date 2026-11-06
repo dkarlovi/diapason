@@ -1,3 +1,5 @@
+import { hasProperties } from "../Encoding/Properties";
+
 /** Half-open coverage in the original analysis timeline, in seconds. */
 export interface SourceRange {
   start: number;
@@ -13,10 +15,16 @@ export interface NoteEdits {
   pitch: PitchEdit[];
 }
 function validRange(value: unknown, duration: number): value is SourceRange {
-  if (!value || typeof value !== "object") return false;
-  const { start, end } = value as SourceRange;
+  if (!hasProperties(value, "start", "end")) return false;
+  const { start, end } = value;
   return (
-    Number.isFinite(start) && Number.isFinite(end) && start >= 0 && start < end && end <= duration
+    typeof start === "number" &&
+    typeof end === "number" &&
+    Number.isFinite(start) &&
+    Number.isFinite(end) &&
+    start >= 0 &&
+    start < end &&
+    end <= duration
   );
 }
 const validMidi = (midi: number) => Number.isInteger(midi) && midi >= 0 && midi <= 127;

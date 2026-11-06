@@ -70,11 +70,6 @@
       "count": 1
     }
   },
-  "src/Audio/VoiceRange.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Diagnostics/DiagnosticSnapshot.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -82,7 +77,7 @@
   },
   "src/Diagnostics/Diagnostics.validation.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 10
+      "count": 1
     }
   },
   "src/Editing/Edit.storage.test.ts": {
@@ -101,9 +96,6 @@
     }
   },
   "src/Editing/EditSnapshot.validation.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
-    },
     "unicorn/prefer-set-has": {
       "count": 1
     }
@@ -142,7 +134,7 @@
       "count": 1
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Features/Capture/Capture.tsx": {
@@ -624,11 +616,6 @@
   "src/Theme/ThemeConfig.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    }
-  },
-  "src/Theme/ThemeMessage.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Theme/ThemePalette.ts": {

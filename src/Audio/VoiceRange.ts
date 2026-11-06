@@ -4,6 +4,7 @@ import type { PitchRange } from "./Pitch";
 import type { EndpointResult } from "../Recording/RecordingSetup.type";
 import type { SoundProfile } from "../Recording/SoundProfile.type";
 import { upperMedianInPlace } from "./Statistics";
+import { hasProperties } from "../Encoding/Properties";
 
 /** Require a mostly held pitch; isolated octave glitches cannot define an endpoint. */
 export function measureVoiceEndpoint(
@@ -55,14 +56,15 @@ export function voiceRange(low: number, high: number, band: PitchRange): PitchRa
 }
 
 export function isPitchRange(value: unknown, band: PitchRange): value is PitchRange {
-  if (!value || typeof value !== "object") return false;
-  const range = value as PitchRange;
+  if (!hasProperties(value, "minFreq", "maxFreq")) return false;
   return (
-    Number.isFinite(range.minFreq) &&
-    Number.isFinite(range.maxFreq) &&
-    range.minFreq >= band.minFreq &&
-    range.maxFreq <= band.maxFreq &&
-    range.minFreq < range.maxFreq
+    typeof value.minFreq === "number" &&
+    typeof value.maxFreq === "number" &&
+    Number.isFinite(value.minFreq) &&
+    Number.isFinite(value.maxFreq) &&
+    value.minFreq >= band.minFreq &&
+    value.maxFreq <= band.maxFreq &&
+    value.minFreq < value.maxFreq
   );
 }
 
