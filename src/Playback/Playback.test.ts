@@ -106,7 +106,7 @@ it("schedules notes a window ahead of the audio clock and stops refilling on sto
     midi: 69,
     name: "A4",
   }));
-  const playback = playNotes([...notes].reverse(), 6);
+  const playback = playNotes(notes.toReversed(), 6);
   expect(starts).toEqual([10.05, 11.05, 11.99]);
   audio.currentTime = 11.1;
   vi.advanceTimersByTime(250);

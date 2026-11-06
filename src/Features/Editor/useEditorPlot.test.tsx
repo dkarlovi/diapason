@@ -1,12 +1,12 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useEditorPlot } from "./useEditorPlot";
-import type { Recording } from "../../Recording/Recording.type";
+import { recording } from "../../../tests/support/recording";
 import { createPlayheadStore } from "../../Playback/Playhead.store";
 import type { TraceView } from "../../Audio/Trace.type";
 import type { Key } from "../../Melody/Key";
 
-const drawTrace = vi.hoisted(() => vi.fn());
+const drawTrace = vi.hoisted(() => vi.fn<typeof import("../../Audio/Trace").drawTrace>());
 vi.mock("../../Audio/Trace", async (original) => ({
   ...(await original<typeof import("../../Audio/Trace")>()),
   drawTrace,
@@ -28,7 +28,7 @@ function setup(onRender = () => {}, height = 500) {
     ({ id }) => {
       onRender();
       return useEditorPlot({
-        record: { id, durationSec: 20 } as Recording,
+        record: recording({ id, durationSec: 20 }),
         frames: [],
         notes: [],
         muted: [],
@@ -194,7 +194,7 @@ function transposedSetup() {
   const result = renderHook(
     ({ transpose, key = defaultKey }) =>
       useEditorPlot({
-        record: { id: "one", durationSec: 20, bpm: 120, beatsPerBar: 4 } as Recording,
+        record: recording({ id: "one", durationSec: 20, bpm: 120, beatsPerBar: 4 }),
         frames: [],
         notes: [note],
         muted: [],
@@ -209,9 +209,7 @@ function transposedSetup() {
     { initialProps },
   );
   const last = (label: string) =>
-    drawTrace.mock.calls
-      .filter(([target]) => (target as HTMLCanvasElement).dataset.label === label)
-      .at(-1)?.[2] as TraceView | undefined;
+    drawTrace.mock.calls.findLast(([target]) => target.dataset.label === label)?.[2];
   return { ...result, last };
 }
 it("scrolls the pitch axis past transposed notes as they lead toward the target", async () => {

@@ -250,7 +250,7 @@ it("mutes a note through the MIDI roll", async () => {
     </MemoryRouter>,
   );
   await readyEditor();
-  const roll = screen.getByTitle(/Click a note to hear it/) as HTMLCanvasElement;
+  const roll = screen.getByTitle(/Click a note to hear it/);
   roll.getBoundingClientRect = () => ({
     left: 0,
     top: 0,
@@ -432,7 +432,11 @@ it("keeps the inspector's controls and rows stable while toggling and editing", 
     "Up one semitone",
     "Reset pitch",
   ]);
-  const row = () => document.querySelector(".editor-note-property") as HTMLElement;
+  const row = () => {
+    const element = document.querySelector(".editor-note-property");
+    if (!(element instanceof HTMLElement)) throw new Error("Note property row is missing.");
+    return element;
+  };
   expect(row().dataset.edited).toBe("false");
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Mute note" }));
@@ -704,7 +708,7 @@ it("changes the selected note's pitch with arrow keys and by dragging it vertica
     </MemoryRouter>,
   );
   await readyEditor();
-  const roll = screen.getByRole("img", { name: "MIDI piano roll" }) as HTMLCanvasElement;
+  const roll = screen.getByRole("img", { name: "MIDI piano roll" });
   await act(async () => {
     fireEvent.keyDown(roll, { key: "ArrowUp" });
   });
@@ -737,7 +741,8 @@ it("changes the selected note's pitch with arrow keys and by dragging it vertica
     Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
     await act(async () => roll.dispatchEvent(event));
   };
-  const anchor = document.querySelector(".editor-note-anchor") as HTMLElement;
+  const anchor = document.querySelector(".editor-note-anchor");
+  if (!(anchor instanceof HTMLElement)) throw new Error("Note anchor is missing.");
   const x = parseFloat(anchor.style.left) + 10;
   const y = parseFloat(anchor.style.top);
   await pointer("pointerdown", x, y);

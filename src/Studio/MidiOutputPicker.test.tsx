@@ -5,9 +5,9 @@ import { MidiOutputPicker } from "./MidiOutputPicker";
 
 it("renders MIDI port identifiers as option values without parsing markup", async () => {
   const id = '"><img src=x>';
-  const port = { id, name: "External synth" } as MIDIOutput;
-  const access = { outputs: new Map([[id, port]]), onstatechange: null } as unknown as MIDIAccess;
-  vi.stubGlobal("navigator", { ...navigator, requestMIDIAccess: async () => access });
+  const port = { id, name: "External synth" } satisfies Pick<MIDIOutput, "id" | "name">;
+  const access = { outputs: new Map([[id, port]]), onstatechange: null };
+  vi.stubGlobal("navigator", { requestMIDIAccess: async () => access });
   expect(await connectMidi(true)).toBe(true);
   render(<MidiOutputPicker />);
   const select = screen.getByRole("combobox");
@@ -70,7 +70,7 @@ it("waits for an explicit request when permission cannot be queried", async () =
 it("restores selected ports, notifies changes and falls back on disconnection", async () => {
   vi.resetModules();
   const midi = await import("../Midi/MidiOutput");
-  const port = { id: "saved", name: "Synth" } as MIDIOutput;
+  const port = { id: "saved", name: "Synth" } satisfies Pick<MIDIOutput, "id" | "name">;
   const access = {
     outputs: new Map([[port.id, port]]),
     onstatechange: null as (() => void) | null,

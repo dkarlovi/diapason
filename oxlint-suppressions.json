@@ -55,9 +55,6 @@
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/prefer-array-find": {
-      "count": 2
     }
   },
   "src/Audio/Trace.ts": {
@@ -95,11 +92,6 @@
       "count": 2
     }
   },
-  "src/Editing/EditSnapshot.validation.ts": {
-    "unicorn/prefer-set-has": {
-      "count": 1
-    }
-  },
   "src/Editing/EditorSaveQueue.ts": {
     "no-await-in-loop": {
       "count": 2
@@ -126,11 +118,6 @@
   },
   "src/Features/Capture/Capture.tsx": {
     "react/refs": {
-      "count": 1
-    }
-  },
-  "src/Features/Capture/LiveBeat.tsx": {
-    "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
@@ -194,9 +181,6 @@
   "src/Features/Editor/Editor.tsx": {
     "react/refs": {
       "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Editor/EditorCanvas.tsx": {
@@ -210,11 +194,6 @@
   "src/Features/Editor/EditorHistory.integration.test.tsx": {
     "no-await-in-loop": {
       "count": 1
-    }
-  },
-  "src/Features/Editor/EditorLoaded.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 4
     }
   },
   "src/Features/Editor/MelodyPanel.test.tsx": {
@@ -306,7 +285,7 @@
   },
   "src/Features/Editor/useEditorPlayback.test.tsx": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 2
     }
   },
   "src/Features/Editor/useEditorPlayback.ts": {
@@ -314,14 +293,6 @@
       "count": 1
     },
     "react/exhaustive-effect-dependencies": {
-      "count": 1
-    }
-  },
-  "src/Features/Editor/useEditorPlot.test.tsx": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 4
-    },
-    "unicorn/prefer-array-find": {
       "count": 1
     }
   },
@@ -408,9 +379,6 @@
     },
     "react/refs": {
       "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 2
     }
   },
   "src/Features/Library/useWaveformBackfill.ts": {
@@ -499,11 +467,6 @@
       "count": 2
     }
   },
-  "src/Playback/Playback.test.ts": {
-    "unicorn/no-array-reverse": {
-      "count": 1
-    }
-  },
   "src/Recording/Capture.model.test.ts": {
     "oxc/no-map-spread": {
       "count": 2
@@ -575,14 +538,6 @@
   "src/Recording/WavMetadata.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    }
-  },
-  "src/Studio/MidiOutputPicker.test.tsx": {
-    "typescript/no-misused-spread": {
-      "count": 1
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 3
     }
   },
   "src/Theme/ThemeConfig.test.ts": {

@@ -4,6 +4,9 @@ import { isMelodySetting } from "../Melody/Settings";
 import { INSTRUMENTS } from "../Playback/Instruments";
 import type { EditSnapshot } from "../Recording/RecordingEdit.type";
 import { hasProperties } from "../Encoding/Properties";
+import { EDIT_FIELDS } from "../Recording/EditFields";
+
+const INTENT_FIELDS = new Set<string>(EDIT_FIELDS);
 
 const invalid = () =>
   new EditStorageError("invalid-version", "This version contains unsupported editing data.");
@@ -57,9 +60,8 @@ export function validateEditSnapshot(snapshot: EditSnapshot, duration: number): 
   )
     throw invalid();
   const { melody, noteEdits, play, muted, tuning, quantize } = snapshot.intent;
-  const fields = ["melody", "noteEdits", "play", "muted", "tuning", "quantize"];
   const valid = [
-    Object.keys(snapshot.intent).every((key) => fields.includes(key)),
+    Object.keys(snapshot.intent).every((key) => INTENT_FIELDS.has(key)),
     melody === undefined || isMelodySetting(melody),
     noteEdits === undefined || isNoteEdits(noteEdits, duration),
     play === undefined || isPlaybackIntent(play),
