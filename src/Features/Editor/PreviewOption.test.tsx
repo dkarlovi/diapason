@@ -13,7 +13,7 @@ function renderRow(state: { selected?: boolean; base?: boolean; previewing?: boo
       previewing={state.previewing ?? false}
       disabled={false}
       previewLabel="Preview Flute"
-      useLabel="Use Flute"
+      applyLabel="Use Flute"
       onPreview={() => {}}
       onUse={() => {}}
     />,

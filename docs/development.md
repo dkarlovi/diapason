@@ -65,6 +65,11 @@ making native suppression counts unstable. Type-aware lint rules remain enabled.
 
 Oxlint enables correctness, performance, and suspicious categories. The native
 suppression file records the adopted backlog; fixes prune it and new findings fail.
+Every disabled setting and override has an adjacent `Reason:` comment in
+`.oxlintrc.json`. Upstream-supported exceptions include a `Source:` URL and a
+verbatim `Quote:`; project policy choices are identified separately.
+`tools/oxlint/config.test.ts` rejects missing rationales and unquoted upstream sources.
+The preset-registry test reads this commented configuration with `jsonc-parser`.
 The configuration disables React's legacy JSX import requirement, mandatory helper
 hoisting, and mandatory `addEventListener` usage. `typescript/consistent-return`
 is disabled because TypeScript's `noImplicitReturns` checks return paths.
@@ -72,10 +77,8 @@ is disabled because TypeScript's `noImplicitReturns` checks return paths.
 Exceptions are scoped to the affected APIs and fixtures: worker/worklet and
 BroadcastChannel messages have no window target origin; constructor-only browser
 mocks are intentional; the broadcast-channel fixture needs `export {}` to isolate
-its declarations. `__APP_BUILD__` is an allowed build-time global. In
-`PreviewOption.tsx`, React Compiler mistakes the string property's
-`useLabel.replace` call for a dynamic Hook, so only its `react/hooks` rule is
-disabled. The save queue's two loop-condition findings are baselined because
+its declarations. `__APP_BUILD__` is an allowed build-time global.
+The save queue's two loop-condition findings are baselined because
 their state changes across awaited operations.
 
 React Compiler runs on application components and hooks in development, production

@@ -54,7 +54,7 @@ export function PlaybackSettings({
                 previewing={state.previewId === `play-${field.key}-${option.value}`}
                 disabled={field.disabled}
                 previewLabel={`Preview ${field.label} ${option.label}`}
-                useLabel={`Use ${field.label} ${option.label}`}
+                applyLabel={`Use ${field.label} ${option.label}`}
                 onPreview={() =>
                   onPreview(
                     { ...state.play, [field.key]: option.value },

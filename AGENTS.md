@@ -49,6 +49,7 @@ Before suggesting "the agent should check X" or "by convention we do Y", ask: _c
 Active quality rules live in:
 
 - `tsconfig.json`: strict compiler options.
+- `tools/oxlint/config.test.ts`: every disabled Oxlint setting and override needs an adjacent `Reason:` comment. When an upstream limitation justifies an exception, include its `Source:` URL and a short verbatim `Quote:`. Identify project policy choices as such; a rule reference alone does not imply upstream recommends disabling it.
 - `.oxlintrc.json` + `oxlint-suppressions.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` and `no-preset-special-casing` rules in `tools/oxlint/`. Oxlint automatically loads native suppressions from the working directory. New findings and stale suppressions fail plain `oxlint` and `npm run lint`; run `npm run lint:baseline` to prune suppressions after fixes. Never use `--suppress-all` to absorb new findings into the existing backlog.
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `tools/structure.ts` + `.structurerc.json`: fails on a small module with one importer and no test of its own (inline it), an export name declared by more than one module (rename one), and any re-export (import from the module that declares the name). `.structurerc.json` holds the deliberate exceptions, each with a reason; an entry that matches nothing fails too.

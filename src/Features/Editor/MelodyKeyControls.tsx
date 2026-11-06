@@ -36,7 +36,7 @@ function KeyOption({
       previewing={previewing}
       disabled={props.disabled}
       previewLabel={auto ? "Play Auto key" : `Play key ${label}`}
-      useLabel={auto ? "Use Auto key" : `Use key ${label}`}
+      applyLabel={auto ? "Use Auto key" : `Use key ${label}`}
       onPreview={() => props.previewMelody({ key: choice }, id)}
       onUse={() => {
         props.changeKey(choice);
