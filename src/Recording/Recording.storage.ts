@@ -18,8 +18,11 @@ function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBReque
 }
 
 export function allRecordings(): Promise<Recording[]> {
-  return tx<Recording[]>("readonly", (s) => s.getAll() as IDBRequest<Recording[]>).then((rs) =>
-    rs.sort((a, b) => b.createdAt - a.createdAt),
+  return tx<Recording[]>("readonly", (s) => s.getAll() as IDBRequest<Recording[]>).then(
+    (records) => {
+      records.sort((a, b) => b.createdAt - a.createdAt);
+      return records;
+    },
   );
 }
 

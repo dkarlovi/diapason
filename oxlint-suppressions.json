@@ -19,14 +19,6 @@
       "count": 1
     }
   },
-  "src/App/useStudioFullscreen.ts": {
-    "typescript/no-unnecessary-type-conversion": {
-      "count": 3
-    },
-    "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
   "src/App/useStudioTheme.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
@@ -57,11 +49,6 @@
       "count": 2
     }
   },
-  "src/Audio/Recorder.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Audio/Trace.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
@@ -76,9 +63,6 @@
   "src/Audio/Trace.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Audio/VoiceRange.test.ts": {
@@ -88,9 +72,6 @@
   },
   "src/Audio/VoiceRange.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    },
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -112,9 +93,6 @@
   "src/Editing/Edit.storage.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 3
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Editing/EditHistory.validation.ts": {
@@ -132,9 +110,6 @@
   },
   "src/Editing/EditState.ts": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    },
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -168,9 +143,6 @@
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Features/Capture/Capture.tsx": {
@@ -180,11 +152,6 @@
   },
   "src/Features/Capture/LiveBeat.tsx": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Features/Capture/Tempo.model.ts": {
-    "unicorn/no-array-sort": {
       "count": 1
     }
   },
@@ -245,11 +212,6 @@
       "count": 2
     }
   },
-  "src/Features/Editor/AdHocVersions.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Features/Editor/Editor.tsx": {
     "react/refs": {
       "count": 3
@@ -274,11 +236,6 @@
   "src/Features/Editor/EditorLoaded.test.tsx": {
     "typescript/no-unsafe-type-assertion": {
       "count": 4
-    }
-  },
-  "src/Features/Editor/EditorTools.tsx": {
-    "react/jsx-no-constructed-context-values": {
-      "count": 1
     }
   },
   "src/Features/Editor/MelodyPanel.test.tsx": {
@@ -523,11 +480,6 @@
       "count": 2
     }
   },
-  "src/Melody/Decode.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Melody/Intro.integration.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -538,17 +490,9 @@
       "count": 1
     }
   },
-  "src/Melody/Key.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Melody/Knobs.test.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 4
     }
   },
   "src/Melody/Knobs.ts": {
@@ -569,9 +513,6 @@
   "src/Melody/Settings.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 3
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Midi/MidiOutput.integration.test.ts": {
@@ -584,18 +525,8 @@
       "count": 1
     }
   },
-  "src/Playback/Playback.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
   "src/Recording/Capture.model.test.ts": {
     "oxc/no-map-spread": {
-      "count": 2
-    }
-  },
-  "src/Recording/Capture.model.ts": {
-    "unicorn/no-array-sort": {
       "count": 2
     }
   },
@@ -620,9 +551,6 @@
   "src/Recording/Recording.storage.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 3
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "src/Recording/RecordingImport.storage.test.ts": {
@@ -683,11 +611,6 @@
       "count": 3
     }
   },
-  "src/Studio/useStudioMode.tsx": {
-    "react/jsx-no-constructed-context-values": {
-      "count": 2
-    }
-  },
   "src/Theme/CssTheme.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -744,9 +667,6 @@
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    },
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   },
   "tools/diapason/commands.ts": {
@@ -778,9 +698,6 @@
   "tools/diapason/identity.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "unicorn/no-array-sort": {
-      "count": 2
     }
   },
   "tools/diapason/probe.ts": {
@@ -829,16 +746,6 @@
   "tools/structure.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 2
-    }
-  },
-  "tools/structure/rules.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
-    }
-  },
-  "vite.config.ts": {
-    "unicorn/no-array-sort": {
-      "count": 1
     }
   }
 }

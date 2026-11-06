@@ -141,7 +141,8 @@ export function createStageStore({
     return result;
   }
   async function prune() {
-    const files = (await entries(false)).sort((a, b) => a.touched - b.touched);
+    const files = await entries(false);
+    files.sort((a, b) => a.touched - b.touched);
     let bytes = files.reduce((sum, f) => sum + f.bytes, 0);
     for (const file of files)
       if (bytes > maxBytes || Date.now() - file.touched > maxIdleMs) {

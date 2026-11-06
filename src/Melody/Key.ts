@@ -35,9 +35,10 @@ export function rankKeys(notes: NoteEvent[]): KeyScore[] {
         score: variance === 0 ? 0 : covariance / Math.sqrt(variance * profileVariance),
       });
     }
-  return ranked.sort(
+  ranked.sort(
     (a, b) => b.score - a.score || a.key.tonic - b.key.tonic || (a.key.mode === "major" ? -1 : 1),
   );
+  return ranked;
 }
 export function scalePitchClasses(key: Key): ReadonlySet<number> {
   const intervals = key.mode === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10, 11];

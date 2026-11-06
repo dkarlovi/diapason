@@ -104,7 +104,7 @@ function exportsOf(item: ModuleItem, imported: Set<string>): ExportedNames {
 export function exportFindings(paths: string[], files: Files) {
   const declarers = new Map<string, string[]>();
   const reExports: StructureFinding[] = [];
-  for (const path of [...paths].sort()) {
+  for (const path of paths.toSorted()) {
     const { body } = parseSync(files.read(path), {
       syntax: "typescript",
       tsx: path.endsWith(".tsx"),

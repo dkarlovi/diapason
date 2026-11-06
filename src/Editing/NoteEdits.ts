@@ -97,12 +97,14 @@ export function stepPitchEdit(
     : setPitchEdit(edits, scope, midi, id);
 }
 export function protectedNoteBoundaries(edits: NoteEdits | undefined): number[] {
-  return [
+  const boundaries = [
     ...new Set(
       edits?.pitch.flatMap((edit) => edit.ranges.flatMap((range) => [range.start, range.end])) ??
         [],
     ),
-  ].sort((a, b) => a - b);
+  ];
+  boundaries.sort((a, b) => a - b);
+  return boundaries;
 }
 export function pitchEditFor(
   edits: NoteEdits | undefined,

@@ -3,7 +3,7 @@ import { BASE } from "../Routing/Routes";
 
 const MOBILE = "(max-width: 760px), (pointer: coarse) and (max-width: 1024px)";
 const supported = () =>
-  !!document.fullscreenEnabled && !!document.documentElement.requestFullscreen;
+  document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === "function";
 
 const plainClick = (event: MouseEvent<HTMLElement>) =>
   !event.defaultPrevented &&
@@ -14,11 +14,11 @@ const plainClick = (event: MouseEvent<HTMLElement>) =>
 export function useStudioFullscreen() {
   const [active, setActive] = useState(() => !!document.fullscreenElement);
   const [available, setAvailable] = useState(
-    () => supported() && !!window.matchMedia?.(MOBILE).matches,
+    () => supported() && (window.matchMedia?.(MOBILE).matches ?? false),
   );
   useEffect(() => {
     const media = window.matchMedia?.(MOBILE);
-    const update = () => setAvailable(supported() && !!media?.matches);
+    const update = () => setAvailable(supported() && (media?.matches ?? false));
     const changed = () => setActive(!!document.fullscreenElement);
     media?.addEventListener?.("change", update);
     document.addEventListener("fullscreenchange", changed);
@@ -32,8 +32,8 @@ export function useStudioFullscreen() {
     void document.documentElement.requestFullscreen().catch(() => {});
   };
   const onNavigate = (event: MouseEvent<HTMLElement>) => {
-    if (!available || !plainClick(event)) return;
-    const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+    if (!available || !plainClick(event) || !(event.target instanceof Element)) return;
+    const link = event.target.closest<HTMLAnchorElement>("a[href]");
     if (!link || link.download || !["", "_self"].includes(link.target)) return;
     const url = new URL(link.href);
     if (

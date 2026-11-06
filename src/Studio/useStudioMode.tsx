@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useState, type PropsWithChildren } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import { Navigate, useLocation, useNavigate, type NavigateOptions } from "react-router";
 import { encodeTheme, parseColorScheme, parseTheme } from "../Theme/ThemeConfig";
 
@@ -35,10 +42,8 @@ export function StudioBoundary({ children }: PropsWithChildren) {
   }));
   const tuneEntry =
     entry.embedded && (entry.pathname === "/tune" || entry.hash.startsWith("#tune="));
-  const mode = {
-    ...entry,
-    tuneLocked: entry.tuneLocked || tuneEntry || configuration(location.search).tuneLocked,
-  };
+  const tuneLocked = entry.tuneLocked || tuneEntry || configuration(location.search).tuneLocked;
+  const mode = useMemo(() => ({ ...entry, tuneLocked }), [entry, tuneLocked]);
   const query = configurationSearch(mode, location.search);
   const pathname =
     mode.embedded &&

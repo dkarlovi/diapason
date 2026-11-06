@@ -3,6 +3,7 @@ import { freqToMidi, midiToName, type Frame } from "../Melody/Notes";
 import type { PitchRange } from "./Pitch";
 import type { EndpointResult } from "../Recording/RecordingSetup.type";
 import type { SoundProfile } from "../Recording/SoundProfile.type";
+import { upperMedianInPlace } from "./Statistics";
 
 /** Require a mostly held pitch; isolated octave glitches cannot define an endpoint. */
 export function measureVoiceEndpoint(
@@ -22,9 +23,8 @@ export function measureVoiceEndpoint(
     .map((f) => f.freq!)
     .filter(
       (f) => Number.isFinite(f) && f >= profile.analysis.minFreq && f <= profile.analysis.maxFreq,
-    )
-    .sort((a, b) => a - b);
-  const median = frequencies[Math.floor(frequencies.length / 2)] ?? 0;
+    );
+  const median = upperMedianInPlace(frequencies);
   const near = frequencies.filter((f) => Math.abs(1200 * Math.log2(f / median)) <= 50);
   const steady = frequencies.length >= 10 && near.length / frequencies.length >= 0.8;
   const checks = [

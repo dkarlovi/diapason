@@ -85,7 +85,7 @@ export function playNotes(
   // The playhead and every voice share this start, however long scheduling takes.
   const t0 = c.currentTime + 0.05;
   const srcs: AudioScheduledSourceNode[] = [];
-  const queue = [...notes].sort((a, b) => a.start - b.start);
+  const queue = notes.toSorted((a, b) => a.start - b.start);
   let next = 0;
   // Building every voice up front blocks the click for long takes; schedule a window at a time.
   const schedule = () => {
