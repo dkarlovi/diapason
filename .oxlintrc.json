@@ -4,25 +4,27 @@
   "jsPlugins": ["./tools/oxlint/local-plugin.ts"],
   "options": {
     "typeAware": true,
-    "typeCheck": true
+    "typeCheck": false
   },
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "perf": "error",
+    "suspicious": "error"
   },
   "rules": {
+    "typescript/consistent-return": "off",
+    "react/react-in-jsx-scope": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "eslint/no-underscore-dangle": ["error", { "allow": ["__APP_BUILD__"] }],
+    "typescript/no-floating-promises": "error",
     "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "error",
-    "react/refs": "error",
-    "react/set-state-in-effect": "error",
-    "react/immutability": "error",
     "react/no-unknown-property": "error",
     "react/checked-requires-onchange-or-readonly": "error",
     "react/no-unstable-nested-components": "error",
-    "react/no-object-type-as-default-prop": "error",
     "react/style-prop-object": "error",
     "react/capitalized-calls": "error",
     "react/unsupported-syntax": "error",
-    "react/jsx-no-constructed-context-values": "error",
     "local/no-narrative-comments": "error",
     "local/no-preset-special-casing": [
       "error",
@@ -49,6 +51,28 @@
     ]
   },
   "overrides": [
+    {
+      "files": [
+        "src/Analysis/Analysis.worker.ts",
+        "src/Audio/ClapInput.ts",
+        "src/Audio/Recorder.ts",
+        "src/Storage/StoredChanges.ts",
+        "src/Storage/StoredChanges.test.ts"
+      ],
+      "rules": { "unicorn/require-post-message-target-origin": "off" }
+    },
+    {
+      "files": ["src/Analysis/AnalysisJobs.test.ts", "src/Playback/Playback.test.ts"],
+      "rules": { "typescript/no-extraneous-class": ["error", { "allowConstructorOnly": true }] }
+    },
+    {
+      "files": ["src/Features/Editor/PreviewOption.tsx"],
+      "rules": { "react/hooks": "off" }
+    },
+    {
+      "files": ["tests/support/broadcast-channel.ts"],
+      "rules": { "unicorn/require-module-specifiers": "off" }
+    },
     {
       "files": ["**/*.test.ts", "**/*.test.tsx", "tests/**"],
       "rules": { "local/no-preset-special-casing": "off" }

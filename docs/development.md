@@ -58,6 +58,25 @@ Type-aware linting uses `oxlint-tsgolint`, enabled by `options.typeAware` in
 unhandled promises and unbound methods. Type inference remains available: linting
 does not require explicit annotations for inferred types or function return values.
 `tsc --noEmit` remains the separate TypeScript compiler check.
+Oxlint's `typeCheck` option is disabled: with `oxlint-tsgolint` 7.0.2006,
+repeated runs with compiler diagnostics enabled classify some unchanged casts
+differently between `no-unsafe-type-assertion` and `no-unnecessary-type-assertion`,
+making native suppression counts unstable. Type-aware lint rules remain enabled.
+
+Oxlint enables correctness, performance, and suspicious categories. The native
+suppression file records the adopted backlog; fixes prune it and new findings fail.
+The configuration disables React's legacy JSX import requirement, mandatory helper
+hoisting, and mandatory `addEventListener` usage. `typescript/consistent-return`
+is disabled because TypeScript's `noImplicitReturns` checks return paths.
+
+Exceptions are scoped to the affected APIs and fixtures: worker/worklet and
+BroadcastChannel messages have no window target origin; constructor-only browser
+mocks are intentional; the broadcast-channel fixture needs `export {}` to isolate
+its declarations. `__APP_BUILD__` is an allowed build-time global. In
+`PreviewOption.tsx`, React Compiler mistakes the string property's
+`useLabel.replace` call for a dynamic Hook, so only its `react/hooks` rule is
+disabled. The save queue's two loop-condition findings are baselined because
+their state changes across awaited operations.
 
 React Compiler runs on application components and hooks in development, production
 builds, and Vitest through `oxc-transform-react`, the experimental Rust compiler
