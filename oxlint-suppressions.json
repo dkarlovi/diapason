@@ -38,9 +38,6 @@
     }
   },
   "src/App/useStudioTheme.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -103,9 +100,6 @@
   "src/Audio/Trace.ts": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    },
-    "typescript/unbound-method": {
-      "count": 16
     },
     "unicorn/no-array-sort": {
       "count": 1
@@ -188,13 +182,13 @@
     "no-await-in-loop": {
       "count": 2
     },
+    "no-unmodified-loop-condition": {
+      "count": 2
+    },
     "typescript/no-base-to-string": {
       "count": 1
     },
     "unicorn/no-useless-spread": {
-      "count": 2
-    },
-    "no-unmodified-loop-condition": {
       "count": 2
     }
   },
@@ -247,11 +241,6 @@
       "count": 2
     }
   },
-  "src/Features/Capture/LiveBeat.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    }
-  },
   "src/Features/Capture/LiveBeat.tsx": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -275,11 +264,6 @@
   "src/Features/Capture/useCaptureWizard.ts": {
     "react/exhaustive-effect-dependencies": {
       "count": 1
-    }
-  },
-  "src/Features/Capture/useMeasurements.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
     }
   },
   "src/Features/Capture/useMicrophone.test.tsx": {
@@ -401,7 +385,7 @@
       "count": 7
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 5
+      "count": 4
     }
   },
   "src/Features/Editor/EditorTools.tsx": {
@@ -569,7 +553,7 @@
       "count": 1
     },
     "typescript/no-unsafe-type-assertion": {
-      "count": 5
+      "count": 3
     }
   },
   "src/Features/Editor/useEditorPlayback.ts": {
@@ -587,9 +571,6 @@
     }
   },
   "src/Features/Editor/useEditorPlot.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 9
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -626,11 +607,8 @@
     }
   },
   "src/Features/Editor/useNoteDrag.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
-      "count": 3
+      "count": 2
     }
   },
   "src/Features/Editor/useNoteDrag.ts": {
@@ -863,11 +841,6 @@
       "count": 1
     }
   },
-  "src/Midi/MidiPlayback.test.ts": {
-    "typescript/no-unsafe-type-assertion": {
-      "count": 9
-    }
-  },
   "src/Playback/Playback.test.ts": {
     "unicorn/no-array-reverse": {
       "count": 1
@@ -1057,11 +1030,6 @@
   "src/Tune/Tune.codec.ts": {
     "no-await-in-loop": {
       "count": 1
-    }
-  },
-  "src/UI/Toast.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 5
     }
   },
   "src/UI/Toast.tsx": {

@@ -1,6 +1,7 @@
 import type { NoteEvent } from "../Melody/Notes";
 import { DEFAULT_PLAY, type InstrumentId } from "../Playback/Instruments";
 import type { Playback } from "../Playback/Playback.type";
+import type { MidiSink } from "./MidiPlayback.type";
 
 const CHANNEL = 0; // MIDI channel 1
 
@@ -18,7 +19,7 @@ export const PROGRAMS: Record<InstrumentId, number> = {
 
 /** Keep future events in the app so Stop never depends on a driver's MIDI queue. */
 export function playNotesMidi(
-  out: MIDIOutput,
+  out: MidiSink,
   notes: NoteEvent[],
   duration: number,
   octave: number,
@@ -68,7 +69,7 @@ export function playNotesMidi(
       if (stopped) return;
       stopped = true;
       clearTimeout(timer);
-      (out as MIDIOutput & { clear?: () => void }).clear?.(); // drop still-scheduled messages (not in every browser)
+      out.clear?.(); // drop still-scheduled messages (not in every browser)
       for (const key of keys) out.send([0x80 | CHANNEL, key, 0]);
       // Transport completion must preserve the soundfont's natural release tails,
       // just like browser synth playback. An interruption still silences immediately.

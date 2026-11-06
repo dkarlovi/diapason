@@ -204,8 +204,8 @@ interface TraceGeometry {
   width: number;
   height: number;
   semitoneHeight: number;
-  xOf(t: number): number;
-  yOf(midi: number): number;
+  xOf: (t: number) => number;
+  yOf: (midi: number) => number;
 }
 
 function drawRangeBand(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {

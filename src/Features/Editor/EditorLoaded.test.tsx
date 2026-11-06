@@ -732,8 +732,8 @@ it("changes the selected note's pitch with arrow keys and by dragging it vertica
   });
   expect(saved?.noteEdits?.pitch).toEqual([]);
 
-  const rect = { left: 0, top: 0, width: 1000, height: 500 };
-  roll.getBoundingClientRect = () => rect as DOMRect;
+  const rect = new DOMRect(0, 0, 1000, 500);
+  roll.getBoundingClientRect = () => rect;
   Object.defineProperties(roll, { clientWidth: { value: 1000 }, clientHeight: { value: 500 } });
   await act(async () => window.dispatchEvent(new Event("resize")));
   const pointer = async (type: string, x: number, y: number) => {

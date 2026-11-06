@@ -268,7 +268,7 @@ it("requires applying or stopping an unapplied audition before downloading", asy
 it("replaces note previews and stops the preview on unmount", async () => {
   const hook = await editor();
   const canvas = document.createElement("canvas");
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
+  canvas.getBoundingClientRect = () => new DOMRect(0, 0, 100, 100);
   const event = {
     currentTarget: canvas,
     clientX: 25,
@@ -337,7 +337,7 @@ it("exports only enabled notes and applies the selected grid to MIDI event timin
   ];
   const { result } = await editor();
   const canvas = document.createElement("canvas");
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
+  canvas.getBoundingClientRect = () => new DOMRect(0, 0, 100, 100);
   await act(async () =>
     result.current.clickRoll({
       currentTarget: canvas,

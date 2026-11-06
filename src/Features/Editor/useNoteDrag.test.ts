@@ -20,7 +20,7 @@ const view = { tMin: 0, tMax: 1, midiMin: 60, midiMax: 80, noteHeight: 1 };
 function setup(enabled = true) {
   const canvas = document.createElement("canvas");
   Object.defineProperty(canvas, "clientHeight", { value: 500 });
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 500 }) as DOMRect;
+  canvas.getBoundingClientRect = () => new DOMRect(0, 0, 1000, 500);
   document.body.append(canvas);
   const preview = vi.fn();
   const commit = vi.fn();
@@ -57,7 +57,7 @@ function setup(enabled = true) {
       },
     });
   });
-  const pointer = (type: string, y: number, props: Record<string, unknown> = {}) => {
+  const pointer = async (type: string, y: number, props: Record<string, unknown> = {}) => {
     const event = new MouseEvent(type, {
       clientX: 500,
       clientY: y,
@@ -69,48 +69,48 @@ function setup(enabled = true) {
       pointerType: { value: props.type ?? "mouse" },
       isPrimary: { value: props.primary ?? true },
     });
-    act(() => canvas.dispatchEvent(event));
+    await act(async () => canvas.dispatchEvent(event));
     return event;
   };
   return { canvas, preview, commit, pointer, claims: hook.result.current };
 }
 
-it("drags the selected note by whole semitones and saves once on release", () => {
+it("drags the selected note by whole semitones and saves once on release", async () => {
   const { preview, commit, pointer, canvas } = setup();
   const clicked = vi.fn();
   canvas.addEventListener("click", clicked);
-  expect(pointer("pointerdown", 275).defaultPrevented).toBe(true);
-  pointer("pointermove", 262);
-  pointer("pointermove", 250);
-  pointer("pointermove", 226);
-  pointer("pointermove", 224);
+  expect((await pointer("pointerdown", 275)).defaultPrevented).toBe(true);
+  await pointer("pointermove", 262);
+  await pointer("pointermove", 250);
+  await pointer("pointermove", 226);
+  await pointer("pointermove", 224);
   expect(preview.mock.calls).toEqual([[70], [71]]);
   expect(commit).not.toHaveBeenCalled();
-  pointer("pointerup", 224);
+  await pointer("pointerup", 224);
   expect(preview).toHaveBeenLastCalledWith(null);
   expect(commit).toHaveBeenCalledExactlyOnceWith(71);
-  act(() => canvas.click());
+  await act(async () => canvas.click());
   expect(clicked).not.toHaveBeenCalled();
-  act(() => canvas.click());
+  await act(async () => canvas.click());
   expect(clicked).toHaveBeenCalledOnce();
 });
-it("treats tiny movement as a click and returning to the start as no edit", () => {
+it("treats tiny movement as a click and returning to the start as no edit", async () => {
   const { preview, commit, pointer, canvas } = setup();
   const clicked = vi.fn();
   canvas.addEventListener("click", clicked);
-  pointer("pointerdown", 275);
-  pointer("pointermove", 272);
-  pointer("pointerup", 272);
-  act(() => canvas.click());
+  await pointer("pointerdown", 275);
+  await pointer("pointermove", 272);
+  await pointer("pointerup", 272);
+  await act(async () => canvas.click());
   expect(clicked).toHaveBeenCalledOnce();
-  pointer("pointerdown", 275);
-  pointer("pointermove", 250);
-  pointer("pointermove", 276);
-  pointer("pointerup", 276);
+  await pointer("pointerdown", 275);
+  await pointer("pointermove", 250);
+  await pointer("pointermove", 276);
+  await pointer("pointerup", 276);
   expect(preview.mock.calls).toEqual([[70], [69], [null]]);
   expect(commit).not.toHaveBeenCalled();
 });
-it("ignores presses away from the selected note, other buttons, and disabled editing", () => {
+it("ignores presses away from the selected note, other buttons, and disabled editing", async () => {
   const { claims, pointer, preview } = setup();
   const press = (y: number, button = 0) => {
     const event = new MouseEvent("pointerdown", { clientX: 500, clientY: y, button });
@@ -121,30 +121,30 @@ it("ignores presses away from the selected note, other buttons, and disabled edi
   expect(press(286)).toBe(true);
   expect(press(300)).toBe(false);
   expect(press(275, 1)).toBe(false);
-  pointer("pointerdown", 400);
-  pointer("pointermove", 300);
+  await pointer("pointerdown", 400);
+  await pointer("pointermove", 300);
   expect(preview).not.toHaveBeenCalled();
   cleanup();
   expect(setup(false).claims(new MouseEvent("pointerdown", { clientY: 275 }) as PointerEvent)).toBe(
     false,
   );
 });
-it("cancels on Escape without letting it dismiss the selection, and on a second finger", () => {
+it("cancels on Escape without letting it dismiss the selection, and on a second finger", async () => {
   const { preview, commit, pointer } = setup();
   const dismissed = vi.fn();
   document.addEventListener("keydown", dismissed);
-  pointer("pointerdown", 275, { type: "touch" });
-  pointer("pointermove", 225, { type: "touch" });
-  act(() => {
+  await pointer("pointerdown", 275, { type: "touch" });
+  await pointer("pointermove", 225, { type: "touch" });
+  await act(async () => {
     document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   });
   expect(dismissed).not.toHaveBeenCalled();
-  pointer("pointerup", 225, { type: "touch" });
+  await pointer("pointerup", 225, { type: "touch" });
   expect(commit).not.toHaveBeenCalled();
-  pointer("pointerdown", 275, { type: "touch" });
-  pointer("pointermove", 225, { type: "touch" });
-  pointer("pointerdown", 100, { type: "touch", id: 2, primary: false });
-  pointer("pointerup", 225, { type: "touch" });
+  await pointer("pointerdown", 275, { type: "touch" });
+  await pointer("pointermove", 225, { type: "touch" });
+  await pointer("pointerdown", 100, { type: "touch", id: 2, primary: false });
+  await pointer("pointerup", 225, { type: "touch" });
   expect(preview).toHaveBeenLastCalledWith(null);
   expect(commit).not.toHaveBeenCalled();
   document.removeEventListener("keydown", dismissed);
