@@ -16,7 +16,7 @@ export async function connectMidi(prompt: boolean): Promise<boolean> {
   if (!midiSupported()) return false;
   if (!prompt) {
     try {
-      const st = await navigator.permissions.query({ name: "midi" as PermissionName });
+      const st = await navigator.permissions.query({ name: "midi" });
       if (st.state !== "granted") return false;
     } catch {
       return false; // permission can't be queried — wait for an explicit request

@@ -36,7 +36,7 @@ it("saves and renames versions with usable errors and no Git terminology", async
     "textContent",
     "A version with this name already exists.",
   );
-  expect((screen.getByLabelText("Version name") as HTMLInputElement).value).toBe("first idea");
+  expect(screen.getByLabelText("Version name")).toHaveProperty("value", "first idea");
   await user.click(screen.getByRole("button", { name: "Rename version First idea" }));
   const row = screen.getByRole("listitem");
   const input = within(row).getByLabelText("New version name");

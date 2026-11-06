@@ -42,11 +42,11 @@ it("locks record and device edits while starting audio", async () => {
     release = resolve;
   });
   await click("Record");
-  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(true);
-  expect(
-    (screen.getByRole("button", { name: "Edit Set up your microphone" }) as HTMLButtonElement)
-      .disabled,
-  ).toBe(true);
+  expect(screen.getByRole("button", { name: "Record" })).toHaveProperty("disabled", true);
+  expect(screen.getByRole("button", { name: "Edit Set up your microphone" })).toHaveProperty(
+    "disabled",
+    true,
+  );
   expect(fixture.start).not.toHaveBeenCalled();
   await act(async () => {
     release();
@@ -65,9 +65,7 @@ it("stays ready for separate takes and resets the recording clock after saving",
   expect(first).not.toBeNull();
   expect(screen.queryByText("Editor route")).toBeNull();
   expect(screen.getByRole("status", { name: "Recording saved" })).toBeTruthy();
-  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
-    false,
-  );
+  expect(screen.getByRole("button", { name: "Record" })).toHaveProperty("disabled", false);
   expect(screen.queryByText("0:03")).toBeNull();
   fixture.pcm = new Float32Array(96000).fill(0.2);
   await click("Record");
@@ -92,9 +90,7 @@ it.each(["encode", "recorder"])("allows retry after %s failure", async (kind) =>
     kind === "encode" ? /Save error: storage failed/ : /Record error: worklet unavailable/,
   );
   expect(screen.queryByRole("status", { name: "Recording saved" })).toBeNull();
-  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
-    false,
-  );
+  expect(screen.getByRole("button", { name: "Record" })).toHaveProperty("disabled", false);
 });
 it("rejects a recording that stops before the downbeat", async () => {
   await calibratedCapture();
@@ -105,9 +101,7 @@ it("rejects a recording that stops before the downbeat", async () => {
   expect(fixture.saved).toBeNull();
   advance(10000);
   expect(screen.queryByRole("alert")).toBeNull();
-  expect((screen.getByRole("button", { name: "Record" }) as HTMLButtonElement).disabled).toBe(
-    false,
-  );
+  expect(screen.getByRole("button", { name: "Record" })).toHaveProperty("disabled", false);
 });
 
 it("replaces the saved toast with an error if the microphone disconnects", async () => {

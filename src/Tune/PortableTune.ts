@@ -61,8 +61,8 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
     candidate.items.some(
       (item, i) =>
         item.automatic.midi !== processed.items[i]?.automatic.midi ||
-        Math.abs(item.automatic.start - processed.items[i]!.automatic.start) > 0.001 ||
-        Math.abs(item.automatic.duration - processed.items[i]!.automatic.duration) > 0.001,
+        Math.abs(item.automatic.start - processed.items[i].automatic.start) > 0.001 ||
+        Math.abs(item.automatic.duration - processed.items[i].automatic.duration) > 0.001,
     ) ||
     JSON.stringify(candidate.interpretation.key.chosen) !==
       JSON.stringify(processed.interpretation.key.chosen) ||

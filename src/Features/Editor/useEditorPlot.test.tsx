@@ -189,8 +189,10 @@ function transposedSetup() {
   const traceRef = { current: canvas("trace") };
   const rollRef = { current: canvas("roll") };
   const note = { midi: 84, name: "C6", start: 1, duration: 1 };
+  const initialProps: { transpose: number; key?: Key | null } = { transpose: 0 };
+  const defaultKey: Key = { tonic: 0, mode: "major" };
   const result = renderHook(
-    ({ transpose, key = { tonic: 0, mode: "major" } }: { transpose: number; key?: Key | null }) =>
+    ({ transpose, key = defaultKey }) =>
       useEditorPlot({
         record: { id: "one", durationSec: 20, bpm: 120, beatsPerBar: 4 } as Recording,
         frames: [],
@@ -204,7 +206,7 @@ function transposedSetup() {
         traceRef,
         claimsPointer: () => false,
       }),
-    { initialProps: { transpose: 0 } as { transpose: number; key?: Key | null } },
+    { initialProps },
   );
   const last = (label: string) =>
     drawTrace.mock.calls

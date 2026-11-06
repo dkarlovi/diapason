@@ -91,7 +91,7 @@ it("retains canonical theme seeds and a forced scheme through query-less navigat
   renderStudio(`/new?embed=1&scheme=dark&theme=${encodeURIComponent(theme)}`);
   await userEvent.click(screen.getByRole("link", { name: "Edit take" }));
   await userEvent.click(screen.getByRole("link", { name: "Library attempt" }));
-  const query = screen.getByText(/^Capture/).textContent!.slice("Capture ".length);
+  const query = screen.getByText(/^Capture/).textContent.slice("Capture ".length);
   expect(new URLSearchParams(query).get("theme")).toBe("AQGqu8w");
   expect(new URLSearchParams(query).get("scheme")).toBe("dark");
 });

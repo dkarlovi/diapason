@@ -97,8 +97,8 @@ it("retains only current intent and named versions when the editor is reopened",
   await flushEditorSaves();
   mount(rec.id);
   await screen.findByDisplayValue("Lifecycle");
-  expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
-  expect((screen.getByRole("button", { name: "Redo" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", true);
+  expect(screen.getByRole("button", { name: "Redo" })).toHaveProperty("disabled", true);
   await user.click(screen.getByRole("button", { name: "Recording actions" }));
   await user.click(screen.getByRole("button", { name: "Versions" }));
   await user.click(await screen.findByRole("button", { name: "Restore version First idea" }));
@@ -175,7 +175,7 @@ it("previews a version with its own instrument while leaving applied intent unto
   expect(played.sound).toEqual({ instrument: "flute", octave: -2 });
   expect((await getRecording(rec.id))?.play).toEqual({ instrument: "pad", octave: 0 });
   await user.click(screen.getByRole("button", { name: "Stop preview of Flute" }));
-  expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", true);
 });
 
 it("commits an unfinished slider exactly once when leaving the editor", async () => {
@@ -233,7 +233,7 @@ it("shows another tab's save and lets its own later save win", async () => {
   });
   await saveRecordingName(rec.id, "Renamed elsewhere");
   await screen.findByDisplayValue("Renamed elsewhere");
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.3");
+  expect(screen.getByLabelText("Steadiness")).toHaveProperty("value", "0.3");
   await act(async () => {
     fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.6" } });
   });
@@ -285,8 +285,8 @@ it("resumes a blocked editor load after a pending save is recovered", async () =
     expect((await getRecording(rec.id))?.melody?.overrides.steadiness).toBe(0.6),
   );
   await screen.findByDisplayValue("Recovered editor");
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.6");
-  expect((screen.getByRole("button", { name: "Undo" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByLabelText("Steadiness")).toHaveProperty("value", "0.6");
+  expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", true);
 });
 it("duplicates promoted intent without inheriting its persistent history", async () => {
   const rec = recording({ id: "promoted-copy", name: "Promoted source" });

@@ -19,11 +19,6 @@
       "count": 1
     }
   },
-  "src/App/Embed.integration.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "src/App/PortableTune.integration.test.tsx": {
     "no-await-in-loop": {
       "count": 1
@@ -48,9 +43,6 @@
     }
   },
   "src/Audio/Audio.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -61,11 +53,6 @@
     },
     "typescript/unbound-method": {
       "count": 2
-    }
-  },
-  "src/Audio/Codec.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "src/Audio/Metronome.test.ts": {
@@ -134,9 +121,6 @@
     }
   },
   "src/Editing/Edit.storage.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -208,24 +192,9 @@
       "count": 1
     }
   },
-  "src/Features/Capture/Capture.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Features/Capture/Capture.tsx": {
     "react/refs": {
       "count": 1
-    }
-  },
-  "src/Features/Capture/CaptureReady.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 6
-    }
-  },
-  "src/Features/Capture/CaptureRecord.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 5
     }
   },
   "src/Features/Capture/CaptureSteps.tsx": {
@@ -234,20 +203,12 @@
     }
   },
   "src/Features/Capture/CaptureWorkstation.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
   },
   "src/Features/Capture/LiveBeat.tsx": {
     "typescript/no-unsafe-type-assertion": {
-      "count": 1
-    }
-  },
-  "src/Features/Capture/Tempo.model.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
@@ -375,26 +336,15 @@
   "src/Features/Editor/EditorHistory.integration.test.tsx": {
     "no-await-in-loop": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 6
     }
   },
   "src/Features/Editor/EditorLoaded.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 7
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 4
     }
   },
   "src/Features/Editor/EditorTools.tsx": {
     "react/jsx-no-constructed-context-values": {
-      "count": 1
-    }
-  },
-  "src/Features/Editor/EditorVersions.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
@@ -414,11 +364,8 @@
     }
   },
   "src/Features/Editor/MelodyPanel.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    },
     "typescript/no-unsafe-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "src/Features/Editor/MelodyPanel.tsx": {
@@ -493,9 +440,6 @@
     },
     "react/refs": {
       "count": 3
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "src/Features/Editor/useEditor.ts": {
@@ -571,9 +515,6 @@
     }
   },
   "src/Features/Editor/useEditorPlot.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 4
     },
@@ -584,9 +525,6 @@
   "src/Features/Editor/useEditorPlot.ts": {
     "react/refs": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
     },
     "typescript/unbound-method": {
       "count": 1
@@ -836,11 +774,6 @@
       "count": 2
     }
   },
-  "src/Midi/MidiOutput.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "src/Playback/Playback.test.ts": {
     "unicorn/no-array-reverse": {
       "count": 1
@@ -1002,9 +935,6 @@
     }
   },
   "src/Theme/ThemeMessage.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -1020,9 +950,6 @@
     }
   },
   "src/Tune/PortableTune.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     }

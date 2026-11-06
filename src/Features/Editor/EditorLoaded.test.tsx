@@ -152,7 +152,7 @@ it("groups MIDI sound separately from the preset, key, and the controls they sha
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Use Auto timing" }));
   });
-  expect((within(correction).getByLabelText("Steadiness") as HTMLInputElement).value).toBe("1");
+  expect(within(correction).getByLabelText("Steadiness")).toHaveProperty("value", "1");
   expect(saved?.play?.instrument).toBe("flute");
   expect(saved?.melody?.key).toEqual({ tonic: 7, mode: "major" });
 });
@@ -460,12 +460,12 @@ it("asks before resetting Tune and preserves changes when cancelled", async () =
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   });
   expect(confirm).toHaveBeenCalledOnce();
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.9");
+  expect(screen.getByLabelText("Steadiness")).toHaveProperty("value", "0.9");
   confirm.mockReturnValue(true);
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   });
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).not.toBe("0.9");
+  expect(screen.getByLabelText("Steadiness")).not.toHaveProperty("value", "0.9");
 });
 
 it("previews playback settings without saving, then applies the chosen option", async () => {
@@ -537,11 +537,11 @@ it("offers an explicit scoped reset and can restore the replaced tuning", async 
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Reset steadiness" }));
   });
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).not.toBe("0.9");
+  expect(screen.getByLabelText("Steadiness")).not.toHaveProperty("value", "0.9");
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: /Undo / }));
   });
-  expect((screen.getByLabelText("Steadiness") as HTMLInputElement).value).toBe("0.9");
+  expect(screen.getByLabelText("Steadiness")).toHaveProperty("value", "0.9");
 });
 
 it("toggles context playback between Play and Stop", async () => {
@@ -591,9 +591,7 @@ it("edits pitch rapidly, preserves pending tuning and clears the edit when stepp
   await act(async () => {
     fireEvent.keyDown(roll, { key: "Home" });
   });
-  expect((screen.getByRole("button", { name: "Reset pitch" }) as HTMLButtonElement).disabled).toBe(
-    true,
-  );
+  expect(screen.getByRole("button", { name: "Reset pitch" })).toHaveProperty("disabled", true);
   vi.useFakeTimers();
   await act(async () => {
     fireEvent.change(screen.getByLabelText("Steadiness"), { target: { value: "0.9" } });
@@ -625,9 +623,7 @@ it("edits pitch rapidly, preserves pending tuning and clears the edit when stepp
     fireEvent.click(screen.getByRole("button", { name: "Down one semitone" }));
   });
   expect(saved?.noteEdits).toEqual({ version: 1, pitch: [] });
-  expect((screen.getByRole("button", { name: "Reset pitch" }) as HTMLButtonElement).disabled).toBe(
-    true,
-  );
+  expect(screen.getByRole("button", { name: "Reset pitch" })).toHaveProperty("disabled", true);
 });
 it("keeps edited muted notes and confirms only bulk reset", async () => {
   const confirm = vi.fn().mockReturnValue(false);

@@ -148,7 +148,7 @@ export function useEditHistory(options: Options) {
     (label: string, transform: (value: Recording) => Recording) => {
       if (!record.current || !history.current) return;
       begin(label);
-      update(captureEditSnapshot(transform(record.current!)));
+      update(captureEditSnapshot(transform(record.current)));
       finish();
     },
     [begin, update, finish],

@@ -23,9 +23,7 @@ it("shows six horizontal setup steps without enabling future steps or an initial
   expect(steps.querySelectorAll("button")).toHaveLength(6);
   expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Record" })).toBeNull();
-  expect(
-    (screen.getByRole("button", { name: /Step 6: Record/ }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  expect(screen.getByRole("button", { name: /Step 6: Record/ })).toHaveProperty("disabled", true);
   expect(steps.textContent).not.toContain("NaN");
 });
 

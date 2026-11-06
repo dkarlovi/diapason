@@ -226,7 +226,7 @@ export function useEditorPlot({
     const next = followPan(duration, zoom, pan, position, visible);
     if (next !== pan) setPan(next);
   };
-  const layers = useRef({ trace: {} as TraceLayer, roll: {} as TraceLayer });
+  const layers = useRef<{ trace: TraceLayer; roll: TraceLayer }>({ trace: {}, roll: {} });
   const redraw = useRef<(tick?: boolean) => void>(() => {});
   const transposition = useTransposeMotion(redraw);
   /** Ticks reuse the resolved palette; any other redraw (theme, resize, edits) re-reads it. */

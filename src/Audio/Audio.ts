@@ -74,7 +74,7 @@ export async function openMic({
   gain.connect(analyser);
 
   const track = stream.getAudioTracks()[0]!;
-  const buf = new Float32Array(analyser.fftSize) as Float32Array<ArrayBuffer>;
+  const buf = new Float32Array(analyser.fftSize);
 
   return {
     sampleRate: ctx.sampleRate,
