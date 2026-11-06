@@ -49,7 +49,7 @@ Before suggesting "the agent should check X" or "by convention we do Y", ask: _c
 Active quality rules live in:
 
 - `tsconfig.json`: strict compiler options.
-- `.oxlintrc.json` + `.oxlint-baseline.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` and `no-preset-special-casing` rules in `tools/oxlint/`. oxlint has no baseline of its own, so `npm run lint` (`tools/lint-baseline.ts`) holds its findings to the committed counts per file and rule: a count that grows fails with the new findings, and a count that shrinks fails until `npm run lint:baseline` lowers it. Never re-save the baseline to absorb a new finding.
+- `.oxlintrc.json` + `oxlint-suppressions.json`: oxlint rules, including the React hooks and React Compiler rules and the local `no-narrative-comments` and `no-preset-special-casing` rules in `tools/oxlint/`. Oxlint automatically loads native suppressions from the working directory. New findings and stale suppressions fail plain `oxlint` and `npm run lint`; run `npm run lint:baseline` to prune suppressions after fixes. Never use `--suppress-all` to absorb new findings into the existing backlog.
 - `.dependency-cruiser.mjs`: layering and import cycles, with no baseline.
 - `tools/structure.ts` + `.structurerc.json`: fails on a small module with one importer and no test of its own (inline it), an export name declared by more than one module (rename one), and any re-export (import from the module that declares the name). `.structurerc.json` holds the deliberate exceptions, each with a reason; an entry that matches nothing fails too.
 - `.ls-lint.yml`: folder and filename rules.

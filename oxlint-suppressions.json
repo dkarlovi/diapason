@@ -1,0 +1,364 @@
+{
+  "src/App/useStudioTheme.test.ts": {
+    "typescript/no-floating-promises": {
+      "count": 1
+    }
+  },
+  "src/Audio/ClapInput.test.ts": {
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Audio/Recorder.test.ts": {
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Audio/Trace.test.ts": {
+    "typescript/no-base-to-string": {
+      "count": 2
+    }
+  },
+  "src/Audio/Trace.ts": {
+    "typescript/unbound-method": {
+      "count": 16
+    }
+  },
+  "src/Editing/EditorSaveQueue.ts": {
+    "typescript/no-base-to-string": {
+      "count": 1
+    },
+    "unicorn/no-useless-spread": {
+      "count": 2
+    }
+  },
+  "src/Features/Capture/Capture.tsx": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/CaptureSteps.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Capture/LiveBeat.test.tsx": {
+    "typescript/no-floating-promises": {
+      "count": 3
+    }
+  },
+  "src/Features/Capture/useMeasurements.test.tsx": {
+    "typescript/no-floating-promises": {
+      "count": 3
+    }
+  },
+  "src/Features/Capture/useMicrophone.test.tsx": {
+    "typescript/unbound-method": {
+      "count": 4
+    }
+  },
+  "src/Features/Capture/useMicrophone.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    },
+    "react/immutability": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 3
+    }
+  },
+  "src/Features/Capture/useRecordingSetup.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react/immutability": {
+      "count": 4
+    },
+    "typescript/unbound-method": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/AdHoc.storage.ts": {
+    "typescript/no-redundant-type-constituents": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/AdHocNavigation.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/Editor.tsx": {
+    "react/refs": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/EditorCanvas.tsx": {
+    "react/immutability": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/EditorTools.tsx": {
+    "react/jsx-no-constructed-context-values": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/MelodyDropdown.tsx": {
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/MelodyKeyControls.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/MelodyKnob.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/MelodyPanel.tsx": {
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/NoteDetail.tsx": {
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/PointerDrag.ts": {
+    "typescript/unbound-method": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/PreviewOption.tsx": {
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/ResetControl.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/TunePromotion.storage.test.ts": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useAdHocNavigation.ts": {
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useAdHocTune.ts": {
+    "react/immutability": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditHistory.test.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditHistory.ts": {
+    "react/refs": {
+      "count": 3
+    }
+  },
+  "src/Features/Editor/useEditor.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 5
+    },
+    "react/immutability": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 2
+    },
+    "react/set-state-in-effect": {
+      "count": 2
+    },
+    "typescript/no-floating-promises": {
+      "count": 4
+    }
+  },
+  "src/Features/Editor/useEditorExports.ts": {
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorGestures.ts": {
+    "react/refs": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/useEditorHistoryKeys.ts": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorPlayback.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorPlot.test.tsx": {
+    "typescript/no-floating-promises": {
+      "count": 9
+    }
+  },
+  "src/Features/Editor/useEditorPlot.ts": {
+    "react/refs": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useEditorVersions.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/useNoteDrag.test.ts": {
+    "typescript/no-floating-promises": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useNoteDrag.ts": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useSaveTune.ts": {
+    "react/immutability": {
+      "count": 1
+    },
+    "typescript/unbound-method": {
+      "count": 2
+    }
+  },
+  "src/Features/Editor/useSliderCommit.test.tsx": {
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Editor/useStoredRecording.ts": {
+    "typescript/unbound-method": {
+      "count": 4
+    }
+  },
+  "src/Features/Library/Library.tsx": {
+    "typescript/unbound-method": {
+      "count": 5
+    }
+  },
+  "src/Features/Library/RecordingImport.tsx": {
+    "typescript/unbound-method": {
+      "count": 5
+    }
+  },
+  "src/Features/Library/useLibrary.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    }
+  },
+  "src/Features/Library/useWavDrop.ts": {
+    "react/immutability": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 1
+    }
+  },
+  "src/Features/Library/useWaveformBackfill.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/Inspection/Inspection.type.ts": {
+    "typescript/no-redundant-type-constituents": {
+      "count": 1
+    }
+  },
+  "src/Playback/Playback.ts": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Recording/RecordingPackage.validation.ts": {
+    "typescript/no-base-to-string": {
+      "count": 1
+    }
+  },
+  "src/Studio/AnalysisProgress.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Studio/MidiOutputPicker.test.tsx": {
+    "typescript/no-misused-spread": {
+      "count": 1
+    }
+  },
+  "src/Studio/TuneShareLink.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "src/Studio/useStudioMode.tsx": {
+    "react/jsx-no-constructed-context-values": {
+      "count": 2
+    }
+  },
+  "src/Studio/useTuneShare.ts": {
+    "typescript/no-duplicate-type-constituents": {
+      "count": 1
+    }
+  },
+  "src/Theme/ThemePalette.ts": {
+    "typescript/no-misused-spread": {
+      "count": 1
+    }
+  },
+  "src/UI/Toast.test.tsx": {
+    "typescript/no-floating-promises": {
+      "count": 5
+    }
+  },
+  "src/UI/Toast.tsx": {
+    "typescript/unbound-method": {
+      "count": 1
+    }
+  },
+  "tools/diapason/render.ts": {
+    "typescript/no-base-to-string": {
+      "count": 1
+    }
+  }
+}

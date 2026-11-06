@@ -29,8 +29,8 @@ npm run build     # typecheck (tsc) + production build to dist/
 npm run preview   # serve the production build
 npm run typecheck # tsc --noEmit only
 npm test          # Vitest regression tests
-npm run lint      # oxlint, held to .oxlint-baseline.json
-npm run lint:baseline # lower the oxlint baseline after fixing findings
+npm run lint      # oxlint, with native oxlint-suppressions.json
+npm run lint:baseline # prune native suppressions after fixing findings
 npm run arch      # dependency-cruiser layering and import-cycle rules
 npm run lint:names # ls-lint folder and filename rules
 npm run structure # thin modules, shared export names, and re-exports
@@ -47,8 +47,17 @@ npm run check     # typecheck + lint + names + arch + structure + format check +
 
 React linting checks hooks, render purity, refs, immutable state, component identity,
 DOM properties, controlled checkboxes, stable prop defaults, and context values.
-Existing findings are recorded in `.oxlint-baseline.json`; new findings fail
-`npm run lint`, and fixes require lowering the baseline.
+Existing findings are recorded in `oxlint-suppressions.json`, which Oxlint automatically
+loads from the working directory. Both plain `oxlint` and `npm run lint` reject new
+findings and stale suppressions. After fixes, run `npm run lint:baseline`
+(`oxlint --prune-suppressions .`) to remove unused suppressions; do not use
+`--suppress-all` to absorb new findings into the existing backlog.
+
+Type-aware linting uses `oxlint-tsgolint`, enabled by `options.typeAware` in
+`.oxlintrc.json`. The correctness category checks type-dependent issues such as
+unhandled promises and unbound methods. Type inference remains available: linting
+does not require explicit annotations for inferred types or function return values.
+`tsc --noEmit` remains the separate TypeScript compiler check.
 
 React Compiler runs on application components and hooks in development, production
 builds, and Vitest through `oxc-transform-react`, the experimental Rust compiler
