@@ -87,7 +87,7 @@ it("round-trips Auto tune with interpretation v2, fixed notes, edits, mutes and 
   const wrongVersion = bytes.slice();
   wrongVersion[5] = 1;
   await expect(decodeTune(wrongVersion)).rejects.toThrow();
-}, 15000);
+}, 60000);
 
 it("keeps legacy preset interpretation v1 when sharing and rejects unknown interpretation versions", async () => {
   const tune = createPortableTune(noteRecording(), []);

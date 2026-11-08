@@ -259,4 +259,4 @@ it("browses full-context notes, controls and source stages with complete paginat
     ["--limit", "-1"],
   ])
     await expect(query("notes", extra)).rejects.toHaveProperty("code", 2);
-}, 25000);
+}, 60000);

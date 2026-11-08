@@ -68,9 +68,11 @@ cycle and `*.type.ts` rules rely on.
 ## Melody interpretation
 
 The decoder finds notes before naming them. A dip in level (re-articulation) or a
-real silence always starts a new note; within one articulation, a sustained pitch
-step does too, while scoops, vibrato and drift stay part of the held note; higher
-**Steadiness** absorbs longer slips (up to 250 ms). Each note then gets one steady-state pitch. The performer's
+real silence always starts a new note; within one articulation, pitch changes are
+fitted as constant regions. Higher **Steadiness** increases the cost of another
+region and absorbs longer slips (up to 250 ms), which can also swallow quick
+intentional notes. Each note's representative pitch is the median of its middle
+three fifths, so drift can affect the result. The performer's
 tuning offset from A440 is estimated from the whole take (whistlers are often a
 quarter-tone off), and the tuned pitch, key, implied harmony and step size decide
 each note name. Captured and exported WAV audio is never pitch-corrected. Musical

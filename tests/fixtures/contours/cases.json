@@ -1,0 +1,1874 @@
+[
+  {
+    "id": "held-drift",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "linear",
+        "frames": 94,
+        "from": 76,
+        "to": 77
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 32,
+            "pitch": 76.166666667
+          },
+          {
+            "startFrame": 32,
+            "endFrame": 63,
+            "pitch": 76.505376344
+          },
+          {
+            "startFrame": 63,
+            "endFrame": 94,
+            "pitch": 76.838709677
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76.5
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76.5
+          }
+        ],
+        "intent": "differs"
+      }
+    ]
+  },
+  {
+    "id": "connecting-slide-up",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 72
+      },
+      {
+        "kind": "linear",
+        "frames": 28,
+        "from": 72,
+        "to": 79
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 79
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "contains",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 47,
+          "pitch": 72
+        },
+        {
+          "startFrame": 75,
+          "endFrame": 122,
+          "pitch": 79
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 49,
+            "pitch": 72
+          },
+          {
+            "startFrame": 49,
+            "endFrame": 57,
+            "pitch": 73.425925926
+          },
+          {
+            "startFrame": 57,
+            "endFrame": 65,
+            "pitch": 75.5
+          },
+          {
+            "startFrame": 65,
+            "endFrame": 73,
+            "pitch": 77.574074074
+          },
+          {
+            "startFrame": 73,
+            "endFrame": 122,
+            "pitch": 79
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 70,
+            "pitch": 72
+          },
+          {
+            "startFrame": 70,
+            "endFrame": 122,
+            "pitch": 79
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 70,
+            "pitch": 72
+          },
+          {
+            "startFrame": 70,
+            "endFrame": 122,
+            "pitch": 79
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "connecting-slide-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 79
+      },
+      {
+        "kind": "linear",
+        "frames": 28,
+        "from": 79,
+        "to": 72
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 72
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "contains",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 47,
+          "pitch": 79
+        },
+        {
+          "startFrame": 75,
+          "endFrame": 122,
+          "pitch": 72
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 49,
+            "pitch": 79
+          },
+          {
+            "startFrame": 49,
+            "endFrame": 57,
+            "pitch": 77.574074074
+          },
+          {
+            "startFrame": 57,
+            "endFrame": 65,
+            "pitch": 75.5
+          },
+          {
+            "startFrame": 65,
+            "endFrame": 73,
+            "pitch": 73.425925926
+          },
+          {
+            "startFrame": 73,
+            "endFrame": 122,
+            "pitch": 72
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 70,
+            "pitch": 79
+          },
+          {
+            "startFrame": 70,
+            "endFrame": 122,
+            "pitch": 72
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 70,
+            "pitch": 79
+          },
+          {
+            "startFrame": 70,
+            "endFrame": 122,
+            "pitch": 72
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "quick-chromatic-steps",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 77
+      },
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 78
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 12,
+          "pitch": 76
+        },
+        {
+          "startFrame": 12,
+          "endFrame": 24,
+          "pitch": 77
+        },
+        {
+          "startFrame": 24,
+          "endFrame": 36,
+          "pitch": 78
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 77
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 36,
+            "pitch": 77
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 36,
+            "pitch": 77
+          }
+        ],
+        "intent": "differs"
+      }
+    ]
+  },
+  {
+    "id": "sustained-chromatic-steps",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 77
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 78
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 47,
+          "pitch": 76
+        },
+        {
+          "startFrame": 47,
+          "endFrame": 94,
+          "pitch": 77
+        },
+        {
+          "startFrame": 94,
+          "endFrame": 141,
+          "pitch": 78
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 77
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 77
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 77
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "wide-vibrato",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "vibrato",
+        "frames": 188,
+        "midi": 76,
+        "amplitude": 0.8,
+        "hz": 4
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 188,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76.687250547
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 75.316654547
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 76.685562252
+          },
+          {
+            "startFrame": 36,
+            "endFrame": 47,
+            "pitch": 75.310554982
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 59,
+            "pitch": 76.685996253
+          },
+          {
+            "startFrame": 59,
+            "endFrame": 71,
+            "pitch": 75.317328752
+          },
+          {
+            "startFrame": 71,
+            "endFrame": 83,
+            "pitch": 76.687009278
+          },
+          {
+            "startFrame": 83,
+            "endFrame": 94,
+            "pitch": 75.300575174
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 106,
+            "pitch": 76.683971698
+          },
+          {
+            "startFrame": 106,
+            "endFrame": 118,
+            "pitch": 75.314919864
+          },
+          {
+            "startFrame": 118,
+            "endFrame": 129,
+            "pitch": 76.692820323
+          },
+          {
+            "startFrame": 129,
+            "endFrame": 141,
+            "pitch": 75.313617891
+          },
+          {
+            "startFrame": 141,
+            "endFrame": 153,
+            "pitch": 76.681949132
+          },
+          {
+            "startFrame": 153,
+            "endFrame": 165,
+            "pitch": 75.313280209
+          },
+          {
+            "startFrame": 165,
+            "endFrame": 176,
+            "pitch": 76.696147004
+          },
+          {
+            "startFrame": 176,
+            "endFrame": 188,
+            "pitch": 75.315450061
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 188,
+            "pitch": 75.993298955
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 188,
+            "pitch": 75.993298955
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "continuous-articulated-run",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 1,
+        "midi": 77,
+        "rms": 0.03
+      },
+      {
+        "kind": "hold",
+        "frames": 11,
+        "midi": 77
+      },
+      {
+        "kind": "hold",
+        "frames": 1,
+        "midi": 78,
+        "rms": 0.03
+      },
+      {
+        "kind": "hold",
+        "frames": 11,
+        "midi": 78
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 12,
+          "pitch": 76
+        },
+        {
+          "startFrame": 12,
+          "endFrame": 24,
+          "pitch": 77
+        },
+        {
+          "startFrame": 24,
+          "endFrame": 36,
+          "pitch": 78
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 77
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 77
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 77
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 78
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "repeated-with-level-dip",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 1,
+        "midi": 76,
+        "rms": 0.03
+      },
+      {
+        "kind": "hold",
+        "frames": 46,
+        "midi": 76
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 47,
+          "pitch": 76
+        },
+        {
+          "startFrame": 47,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "repeated-with-silence",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 28,
+        "midi": 76
+      },
+      {
+        "kind": "silence",
+        "frames": 12
+      },
+      {
+        "kind": "hold",
+        "frames": 28,
+        "midi": 76
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 28,
+          "pitch": 76
+        },
+        {
+          "startFrame": 40,
+          "endFrame": 68,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 28,
+            "pitch": 76
+          },
+          {
+            "startFrame": 40,
+            "endFrame": 68,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 28,
+            "pitch": 76
+          },
+          {
+            "startFrame": 40,
+            "endFrame": 68,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 28,
+            "pitch": 76
+          },
+          {
+            "startFrame": 40,
+            "endFrame": 68,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "intentional-continuous-glide",
+    "provenance": "Synthetic deliberate continuous glide. The desired discrete MIDI representation is unreviewed; do not assume it should collapse to a held note or a staircase.",
+    "parts": [
+      {
+        "kind": "linear",
+        "frames": 122,
+        "from": 72,
+        "to": 79
+      }
+    ],
+    "intent": {
+      "review": "unreviewed",
+      "boundaries": "exact",
+      "notes": null
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 10,
+            "pitch": 72.260330579
+          },
+          {
+            "startFrame": 10,
+            "endFrame": 19,
+            "pitch": 72.809917355
+          },
+          {
+            "startFrame": 19,
+            "endFrame": 28,
+            "pitch": 73.330578512
+          },
+          {
+            "startFrame": 28,
+            "endFrame": 38,
+            "pitch": 73.880165289
+          },
+          {
+            "startFrame": 38,
+            "endFrame": 48,
+            "pitch": 74.458677686
+          },
+          {
+            "startFrame": 48,
+            "endFrame": 57,
+            "pitch": 75.008264463
+          },
+          {
+            "startFrame": 57,
+            "endFrame": 67,
+            "pitch": 75.55785124
+          },
+          {
+            "startFrame": 67,
+            "endFrame": 76,
+            "pitch": 76.107438017
+          },
+          {
+            "startFrame": 76,
+            "endFrame": 85,
+            "pitch": 76.628099174
+          },
+          {
+            "startFrame": 85,
+            "endFrame": 94,
+            "pitch": 77.148760331
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 103,
+            "pitch": 77.669421488
+          },
+          {
+            "startFrame": 103,
+            "endFrame": 112,
+            "pitch": 78.190082645
+          },
+          {
+            "startFrame": 112,
+            "endFrame": 122,
+            "pitch": 78.739669421
+          }
+        ],
+        "intent": "unreviewed"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 25,
+            "pitch": 72.694214876
+          },
+          {
+            "startFrame": 25,
+            "endFrame": 49,
+            "pitch": 74.111570248
+          },
+          {
+            "startFrame": 49,
+            "endFrame": 73,
+            "pitch": 75.5
+          },
+          {
+            "startFrame": 73,
+            "endFrame": 97,
+            "pitch": 76.888429752
+          },
+          {
+            "startFrame": 97,
+            "endFrame": 122,
+            "pitch": 78.305785124
+          }
+        ],
+        "intent": "unreviewed"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 31,
+            "pitch": 72.867768595
+          },
+          {
+            "startFrame": 31,
+            "endFrame": 61,
+            "pitch": 74.632231405
+          },
+          {
+            "startFrame": 61,
+            "endFrame": 91,
+            "pitch": 76.367768595
+          },
+          {
+            "startFrame": 91,
+            "endFrame": 122,
+            "pitch": 78.132231405
+          }
+        ],
+        "intent": "unreviewed"
+      }
+    ]
+  },
+  {
+    "id": "attack-overshoot",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 8,
+        "midi": 78
+      },
+      {
+        "kind": "linear",
+        "frames": 5,
+        "from": 78,
+        "to": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 81,
+        "midi": 76
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 11,
+            "pitch": 78
+          },
+          {
+            "startFrame": 11,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "release-drift",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 70,
+        "midi": 76
+      },
+      {
+        "kind": "linear",
+        "frames": 24,
+        "from": 76,
+        "to": 78
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 75,
+            "pitch": 76
+          },
+          {
+            "startFrame": 75,
+            "endFrame": 84,
+            "pitch": 76.782608696
+          },
+          {
+            "startFrame": 84,
+            "endFrame": 94,
+            "pitch": 77.608695652
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 79,
+            "pitch": 76
+          },
+          {
+            "startFrame": 79,
+            "endFrame": 94,
+            "pitch": 77.391304348
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "held-drift-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "linear",
+        "frames": 94,
+        "from": 76,
+        "to": 75
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 31,
+            "pitch": 75.838709677
+          },
+          {
+            "startFrame": 31,
+            "endFrame": 62,
+            "pitch": 75.505376344
+          },
+          {
+            "startFrame": 62,
+            "endFrame": 94,
+            "pitch": 75.166666667
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 75.5
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 75.5
+          }
+        ],
+        "intent": "differs"
+      }
+    ]
+  },
+  {
+    "id": "quick-chromatic-steps-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 75
+      },
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 74
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 12,
+          "pitch": 76
+        },
+        {
+          "startFrame": 12,
+          "endFrame": 24,
+          "pitch": 75
+        },
+        {
+          "startFrame": 24,
+          "endFrame": 36,
+          "pitch": 74
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 75
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 36,
+            "pitch": 75
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 36,
+            "pitch": 75
+          }
+        ],
+        "intent": "differs"
+      }
+    ]
+  },
+  {
+    "id": "sustained-chromatic-steps-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 75
+      },
+      {
+        "kind": "hold",
+        "frames": 47,
+        "midi": 74
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 47,
+          "pitch": 76
+        },
+        {
+          "startFrame": 47,
+          "endFrame": 94,
+          "pitch": 75
+        },
+        {
+          "startFrame": 94,
+          "endFrame": 141,
+          "pitch": 74
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 75
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 75
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 47,
+            "pitch": 76
+          },
+          {
+            "startFrame": 47,
+            "endFrame": 94,
+            "pitch": 75
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 141,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "continuous-articulated-run-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 12,
+        "midi": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 1,
+        "midi": 75,
+        "rms": 0.03
+      },
+      {
+        "kind": "hold",
+        "frames": 11,
+        "midi": 75
+      },
+      {
+        "kind": "hold",
+        "frames": 1,
+        "midi": 74,
+        "rms": 0.03
+      },
+      {
+        "kind": "hold",
+        "frames": 11,
+        "midi": 74
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 12,
+          "pitch": 76
+        },
+        {
+          "startFrame": 12,
+          "endFrame": 24,
+          "pitch": 75
+        },
+        {
+          "startFrame": 24,
+          "endFrame": 36,
+          "pitch": 74
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 75
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 75
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 12,
+            "pitch": 76
+          },
+          {
+            "startFrame": 12,
+            "endFrame": 24,
+            "pitch": 75
+          },
+          {
+            "startFrame": 24,
+            "endFrame": 36,
+            "pitch": 74
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "attack-overshoot-up",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 8,
+        "midi": 74
+      },
+      {
+        "kind": "linear",
+        "frames": 5,
+        "from": 74,
+        "to": 76
+      },
+      {
+        "kind": "hold",
+        "frames": 81,
+        "midi": 76
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 11,
+            "pitch": 74
+          },
+          {
+            "startFrame": 11,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "release-drift-down",
+    "provenance": "Synthetic contour; intent is defined by construction, not a reviewed human performance.",
+    "parts": [
+      {
+        "kind": "hold",
+        "frames": 70,
+        "midi": 76
+      },
+      {
+        "kind": "linear",
+        "frames": 24,
+        "from": 76,
+        "to": 74
+      }
+    ],
+    "intent": {
+      "review": "synthetic",
+      "boundaries": "exact",
+      "notes": [
+        {
+          "startFrame": 0,
+          "endFrame": 94,
+          "pitch": 76
+        }
+      ]
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 75,
+            "pitch": 76
+          },
+          {
+            "startFrame": 75,
+            "endFrame": 84,
+            "pitch": 75.217391304
+          },
+          {
+            "startFrame": 84,
+            "endFrame": 94,
+            "pitch": 74.391304348
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 79,
+            "pitch": 76
+          },
+          {
+            "startFrame": 79,
+            "endFrame": 94,
+            "pitch": 74.608695652
+          }
+        ],
+        "intent": "differs"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 94,
+            "pitch": 76
+          }
+        ],
+        "intent": "matches"
+      }
+    ]
+  },
+  {
+    "id": "intentional-continuous-glide-down",
+    "provenance": "Synthetic deliberate continuous glide. The desired discrete MIDI representation is unreviewed; do not assume it should collapse to a held note or a staircase.",
+    "parts": [
+      {
+        "kind": "linear",
+        "frames": 122,
+        "from": 79,
+        "to": 72
+      }
+    ],
+    "intent": {
+      "review": "unreviewed",
+      "boundaries": "exact",
+      "notes": null
+    },
+    "observations": [
+      {
+        "steadiness": 0,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 10,
+            "pitch": 78.739669421
+          },
+          {
+            "startFrame": 10,
+            "endFrame": 19,
+            "pitch": 78.190082645
+          },
+          {
+            "startFrame": 19,
+            "endFrame": 28,
+            "pitch": 77.669421488
+          },
+          {
+            "startFrame": 28,
+            "endFrame": 37,
+            "pitch": 77.148760331
+          },
+          {
+            "startFrame": 37,
+            "endFrame": 46,
+            "pitch": 76.628099174
+          },
+          {
+            "startFrame": 46,
+            "endFrame": 55,
+            "pitch": 76.107438017
+          },
+          {
+            "startFrame": 55,
+            "endFrame": 64,
+            "pitch": 75.58677686
+          },
+          {
+            "startFrame": 64,
+            "endFrame": 74,
+            "pitch": 75.037190083
+          },
+          {
+            "startFrame": 74,
+            "endFrame": 84,
+            "pitch": 74.458677686
+          },
+          {
+            "startFrame": 84,
+            "endFrame": 94,
+            "pitch": 73.880165289
+          },
+          {
+            "startFrame": 94,
+            "endFrame": 103,
+            "pitch": 73.330578512
+          },
+          {
+            "startFrame": 103,
+            "endFrame": 112,
+            "pitch": 72.809917355
+          },
+          {
+            "startFrame": 112,
+            "endFrame": 122,
+            "pitch": 72.260330579
+          }
+        ],
+        "intent": "unreviewed"
+      },
+      {
+        "steadiness": 0.6,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 25,
+            "pitch": 78.305785124
+          },
+          {
+            "startFrame": 25,
+            "endFrame": 49,
+            "pitch": 76.888429752
+          },
+          {
+            "startFrame": 49,
+            "endFrame": 73,
+            "pitch": 75.5
+          },
+          {
+            "startFrame": 73,
+            "endFrame": 97,
+            "pitch": 74.111570248
+          },
+          {
+            "startFrame": 97,
+            "endFrame": 122,
+            "pitch": 72.694214876
+          }
+        ],
+        "intent": "unreviewed"
+      },
+      {
+        "steadiness": 1,
+        "segments": [
+          {
+            "startFrame": 0,
+            "endFrame": 31,
+            "pitch": 78.132231405
+          },
+          {
+            "startFrame": 31,
+            "endFrame": 61,
+            "pitch": 76.367768595
+          },
+          {
+            "startFrame": 61,
+            "endFrame": 91,
+            "pitch": 74.632231405
+          },
+          {
+            "startFrame": 91,
+            "endFrame": 122,
+            "pitch": 72.867768595
+          }
+        ],
+        "intent": "unreviewed"
+      }
+    ]
+  }
+]
