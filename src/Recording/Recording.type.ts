@@ -1,4 +1,4 @@
-import type { NoteEdits } from "../Editing/NoteEdits";
+import type { NoteEdits } from "../Editing/NoteEdits.type";
 import type { PlaySettings } from "../Playback/Instruments";
 import type { WaveformSummary } from "../Audio/Waveform";
 import type { RecordingPackageV2, TuneImportMode } from "./RecordingPackage.type";
@@ -32,7 +32,7 @@ export interface MutedNote {
   midi: number;
 }
 
-export interface QuantizeSetting {
+interface QuantizeSetting {
   on: boolean;
   /** Grid divisions per beat (see quantize.ts). */
   subdivision: number;

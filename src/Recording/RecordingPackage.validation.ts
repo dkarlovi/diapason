@@ -16,6 +16,8 @@ import { finiteJson, isObject } from "../Diagnostics/Diagnostics.validation";
 import type { Frame, NoteEvent } from "../Melody/Notes";
 import type { WavMetadata } from "./WavMetadata.type";
 import type { NoteItem } from "./NoteItem.type";
+import { isPitchCurve } from "../Melody/PitchCurve";
+import { bendEditFor } from "../Editing/BendEdits";
 
 // Bound work before parsing untrusted JSON, independently of share-link limits.
 export const MAX_PACKAGE_METADATA_BYTES = 128 * 1024 * 1024;
@@ -83,6 +85,11 @@ function validNote(n: NoteEvent): boolean {
     n.start >= 0,
     n.duration > 0,
     n.name === midiToName(n.midi),
+    n.bend === undefined ||
+      (isPitchCurve(n.bend.points) &&
+        Number.isFinite(n.bend.glide) &&
+        n.bend.glide >= 0 &&
+        n.bend.glide <= 1),
   ].every(Boolean);
 }
 function validateItem(item: NoteItem, duration: number) {
@@ -97,6 +104,13 @@ function validateItem(item: NoteItem, duration: number) {
     Array.isArray(item.editState.ids),
     Array.isArray(item.editState.axes),
     Array.isArray(item.editState.differingAxes),
+  );
+  requireFields(
+    ...[item.editState.axes, item.editState.differingAxes].map(
+      (axes) =>
+        axes.every((axis) => axis === "pitch" || axis === "bend") &&
+        new Set(axes).size === axes.length,
+    ),
   );
 }
 function validateEvidence(e: ProcessingEvidence, samples: number, rate: number) {
@@ -173,11 +187,19 @@ function validateRelationships(p: RecordingPackageV2, duration: number) {
   requireFields(
     firstDifference(
       e.stages.items.flatMap((item, noteIndex) =>
-        item.editState.axes.length ? [{ noteIndex, midi: item.note.midi }] : [],
+        item.editState.axes.includes("pitch") ? [{ noteIndex, midi: item.note.midi }] : [],
       ),
       p.tune.pitchEdits,
       "pitchEdits",
     ) === null,
+  );
+  requireSame(
+    e.stages.items.flatMap((item, noteIndex) => {
+      const edit = bendEditFor(p.intent.intent.noteEdits, item.source);
+      return edit ? [{ noteIndex, points: edit.points }] : [];
+    }),
+    p.tune.bendEdits ?? [],
+    "bendEdits",
   );
   requireFields(
     firstDifference(
@@ -187,21 +209,54 @@ function validateRelationships(p: RecordingPackageV2, duration: number) {
     ) === null,
   );
   for (const [index, item] of e.stages.items.entries()) {
-    requireFields(
-      firstDifference(item.source, e.stages.segments[index]!.source, "source") === null,
-    );
-    const edit = pitchEditFor(p.intent.intent.noteEdits, item.source);
-    requireFields(
-      firstDifference(edit ? [edit.id] : [], item.editState.ids, "editIds") === null,
-      firstDifference(edit ? ["pitch"] : [], item.editState.axes, "editAxes") === null,
-      item.note.start === item.automatic.start,
-      item.note.duration === item.automatic.duration,
-    );
-    requireFields(
-      item.note.midi === (edit?.midi ?? item.automatic.midi),
-      item.muted === (p.intent.intent.muted ?? []).some((m) => covers(m, item.raw)),
-    );
+    validateItemRelationships(p, item, index);
   }
+}
+function validateItemRelationships(p: RecordingPackageV2, item: NoteItem, index: number) {
+  const e = p.evidence;
+  requireFields(firstDifference(item.source, e.stages.segments[index]!.source, "source") === null);
+  validateItemBends(p, item, index);
+  const edit = pitchEditFor(p.intent.intent.noteEdits, item.source);
+  const bend = bendEditFor(p.intent.intent.noteEdits, item.source);
+  requireFields(
+    firstDifference(
+      [...(edit ? [edit.id] : []), ...(bend ? [bend.id] : [])],
+      item.editState.ids,
+      "editIds",
+    ) === null,
+    firstDifference(
+      [...(edit ? ["pitch"] : []), ...(bend ? ["bend"] : [])],
+      item.editState.axes,
+      "editAxes",
+    ) === null,
+    item.note.start === item.automatic.start,
+    item.note.duration === item.automatic.duration,
+  );
+  requireFields(
+    item.note.midi === (edit?.midi ?? item.automatic.midi),
+    item.muted === (p.intent.intent.muted ?? []).some((m) => covers(m, item.raw)),
+  );
+}
+function validateItemBends(p: RecordingPackageV2, item: NoteItem, index: number) {
+  const glide = withControlDefaults(p.tune.effectiveKnobs).glide;
+  const curve = p.evidence.stages.segments[index]!.curve;
+  const bend = bendEditFor(p.intent.intent.noteEdits, item.source);
+  requireSame(curve, p.tune.noteSource.segments[index]!.curve, "source.curve");
+  requireSame(
+    curve && glide > 0 ? { points: curve, glide } : undefined,
+    item.automatic.bend,
+    "automatic.bend",
+  );
+  requireSame(
+    bend && glide > 0 ? { points: bend.points, glide } : item.automatic.bend,
+    item.note.bend,
+    "note.bend",
+  );
+  if (p.tune.noteSource.interpretationVersion !== 3)
+    requireFields(
+      !bend,
+      [item.note, item.automatic, item.raw].every((note) => note.bend === undefined),
+    );
 }
 function validateTuneContext(p: RecordingPackageV2, duration: number) {
   validateEditSnapshot(p.intent, duration);
@@ -262,7 +317,7 @@ function validateStructure(value: unknown): asserts value is RecordingPackageV2 
   requiredObject(p.provenance.build, "provenance.build");
 
   const version = p.tune.noteSource.interpretationVersion;
-  if (version !== 1 && version !== 2)
+  if (version !== 1 && version !== 2 && version !== 3)
     throw new PackageError(
       "unsupported",
       "tune.noteSource.interpretationVersion",

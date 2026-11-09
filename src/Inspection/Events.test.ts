@@ -19,3 +19,27 @@ it("uses exported instrument/octave and independently reads actual MIDI events",
   expect(read.beatsPerBar).toBe(4);
   expect(read.microsecondsPerQuarter).toBe(Math.round(60000000 / 95));
 });
+
+it("normalizes stepped playback pitches before octave filtering", async () => {
+  const { logicalPlaybackEvents } = await import("./Events");
+  const result = logicalPlaybackEvents(
+    [
+      {
+        midi: 69,
+        name: "A4",
+        start: 0,
+        duration: 1,
+        bend: {
+          glide: 0.4,
+          points: [
+            { position: 0, offset: -2 },
+            { position: 1, offset: 0 },
+          ],
+        },
+      },
+    ],
+    { play: { instrument: "beep", octave: -1 }, bpm: 120, beatsPerBar: 4 },
+  );
+  expect(result.notes.map((n) => n.midi)).toEqual([55, 56, 57]);
+  expect(result.events.every((e) => e.type === "on" || e.type === "off")).toBe(true);
+});

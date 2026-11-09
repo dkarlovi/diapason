@@ -14,7 +14,7 @@ import type {
   RecordingPackageV2,
 } from "./RecordingPackage.type";
 import type { ProcessingEvidence } from "./ProcessingEvidence.type";
-import type { SourceRange } from "../Editing/NoteEdits";
+import type { SourceRange } from "../Editing/NoteEdits.type";
 import { historicalControls } from "../Melody/Knobs";
 
 export interface SourceMatch {

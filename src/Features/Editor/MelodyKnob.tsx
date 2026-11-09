@@ -1,5 +1,6 @@
 import { useSliderCommit, type EditGesture } from "./useSliderCommit";
 import { useId } from "react";
+import { snapGlide } from "../../Melody/PitchCurve";
 import { MelodyDropdown } from "./MelodyDropdown";
 import { PreviewOption } from "./PreviewOption";
 import type { KnobDef, Knobs } from "../../Melody/Knobs";
@@ -29,7 +30,12 @@ export function MelodyKnob({
   gesture: EditGesture;
 }) {
   const id = useId();
-  const slider = useSliderCommit(gesture);
+  const slider = useSliderCommit({
+    ...gesture,
+    update(next) {
+      gesture.update(def.key === "glide" ? snapGlide(next) : next);
+    },
+  });
   const text =
     def.kind === "range" && def.max <= 1 && def.key !== "levelGate"
       ? `${Math.round(Number(value) * 100)}%`
@@ -83,9 +89,17 @@ export function MelodyKnob({
         step={def.step}
         value={value}
         aria-describedby={reason ? `${id}-reason` : undefined}
-        aria-valuetext={text}
+        aria-valuetext={knobValueLabel(def, value)}
         disabled={disabled}
         {...slider}
+        onKeyDown={(event) => {
+          slider.onKeyDown?.(event);
+          if (def.key !== "glide" || event.ctrlKey || event.metaKey || event.altKey) return;
+          const next = glideKeyValue(Number(value), event.key);
+          if (next === null) return;
+          event.preventDefault();
+          gesture.update(next);
+        }}
       />
       {reason && (
         <span id={`${id}-reason`} className="sr-only">
@@ -96,4 +110,28 @@ export function MelodyKnob({
       <ResetControl label={def.label} disabled={disabled} onReset={() => onReset(def.key)} />
     </div>
   );
+}
+
+function glideKeyValue(value: number, key: string): number | null {
+  if (key === "Home") return 0;
+  if (key === "End") return 1;
+  const direction = new Map([
+    ["ArrowRight", 1],
+    ["ArrowUp", 1],
+    ["PageUp", 1],
+    ["ArrowLeft", -1],
+    ["ArrowDown", -1],
+    ["PageDown", -1],
+  ]).get(key);
+  if (!direction) return null;
+  const detent = glideDetent(value, direction);
+  if (detent !== null) return detent;
+  const amount = key.startsWith("Page") ? 0.1 : 0.01;
+  return snapGlide(Math.round((value + direction * amount) * 100) / 100);
+}
+
+function glideDetent(value: number, direction: number): number | null {
+  if (value < 0.4 && direction > 0) return value === 0 ? 0.2 : 0.4;
+  if (value <= 0.4 && direction < 0) return value <= 0.2 ? 0 : 0.2;
+  return null;
 }

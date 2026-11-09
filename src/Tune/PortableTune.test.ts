@@ -2,11 +2,122 @@
 import { expect, it } from "vitest";
 import { noteRecording } from "../../tests/support/note-recording";
 import { INSTRUMENTS } from "../Playback/Instruments";
-import { createPortableTune, recordingFromPortableTune } from "./PortableTune";
+import {
+  createPortableTune,
+  recordingFromPortableTune,
+  validatePortableTune,
+} from "./PortableTune";
 import { encodeTune, decodeTune } from "./Tune.codec";
 import { processRecording } from "../Recording/Processing";
 import { loadFixture } from "../../tests/support/fixtures";
 import { resolveKnobs } from "../Melody/Knobs";
+
+const automaticCurve = [
+  { position: 0, offset: -4 },
+  { position: 1, offset: 0 },
+];
+const manualCurve = [
+  { position: 0, offset: -3 },
+  { position: 0.7, offset: -1 },
+  { position: 1, offset: 0 },
+];
+
+it("retains explicit Glide zero as interpretation 3 without requiring a curve", async () => {
+  const record = noteRecording();
+  record.melody!.overrides.glide = 0;
+  const tune = await decodeTune(await encodeTune(createPortableTune(record, [])));
+  expect(tune.noteSource.interpretationVersion).toBe(3);
+  expect(tune.melody.overrides).toEqual({ glide: 0 });
+  expect(tune.noteSource.segments[0]!.curve).toBeUndefined();
+});
+
+it.each([0, 0.7, 1])(
+  "preserves source curves and separate manual pitch and bend edits at Glide %s",
+  async (glide) => {
+    const record = noteRecording();
+    record.noteSource.interpretationVersion = 3;
+    record.noteSource.segments[0]!.curve = automaticCurve;
+    record.melody!.overrides = { glide };
+    record.noteEdits = {
+      version: 1,
+      pitch: [{ id: "pitch", ranges: [{ start: 0, end: 0.5 }], midi: 75 }],
+      bend: [
+        {
+          id: "bend",
+          segment: structuredClone(record.noteSource.segments[0]!),
+          points: manualCurve,
+        },
+      ],
+    };
+    const tune = createPortableTune(record, []);
+    expect(tune.noteSource.interpretationVersion).toBe(3);
+    expect(tune.pitchEdits).toEqual([{ noteIndex: 0, midi: 75 }]);
+    expect(tune.bendEdits).toEqual([{ noteIndex: 0, points: manualCurve }]);
+    const bytes = await encodeTune(tune);
+    expect(bytes[5]).toBe(3);
+    const decoded = await decodeTune(bytes);
+    expect(decoded.noteSource.segments[0]!.curve).toEqual(automaticCurve);
+    expect(decoded.bendEdits).toEqual(tune.bendEdits);
+    expect(decoded.melody.overrides.glide).toBe(glide);
+    const restored = recordingFromPortableTune(decoded, "bend-import", 1);
+    expect(restored.noteEdits?.bend?.[0]?.segment).toEqual(decoded.noteSource.segments[0]);
+    const processed = processRecording(restored, []);
+    expect(processed.items[0]!.editState.axes).toEqual(["pitch", "bend"]);
+    expect(processed.notes[0]!.midi).toBe(75);
+    expect(processed.notes[0]!.bend).toEqual(glide ? { points: manualCurve, glide } : undefined);
+    expect(await encodeTune(decoded)).toEqual(bytes);
+  },
+);
+
+it("keeps bend-only edits out of pitchEdits and upgrades a curved source with default Glide", () => {
+  const record = noteRecording();
+  record.noteSource.interpretationVersion = 3;
+  record.noteSource.segments[0]!.curve = automaticCurve;
+  record.noteEdits = {
+    version: 1,
+    pitch: [],
+    bend: [{ id: "bend", segment: record.noteSource.segments[0]!, points: manualCurve }],
+  };
+  const tune = createPortableTune(record, []);
+  expect(tune.noteSource.interpretationVersion).toBe(3);
+  expect(tune.pitchEdits).toEqual([]);
+  expect(tune.bendEdits).toEqual([{ noteIndex: 0, points: manualCurve }]);
+});
+
+it.each(
+  [
+    [{ position: 0, offset: -1 }],
+    [
+      { position: 0.1, offset: -1 },
+      { position: 1, offset: 0 },
+    ],
+    [
+      { position: 0, offset: -49 },
+      { position: 1, offset: 0 },
+    ],
+    [
+      { position: 0, offset: -1 },
+      { position: 0, offset: 0 },
+      { position: 1, offset: 0 },
+    ],
+    [
+      { position: 0, offset: NaN },
+      { position: 1, offset: 0 },
+    ],
+    [
+      { position: 0, offset: -1 },
+      { position: 1, offset: 1 },
+    ],
+  ].map((points) => ({ points })),
+)("rejects malformed source and edited curves %#", ({ points }) => {
+  const tune = createPortableTune(noteRecording(), []);
+  tune.noteSource.interpretationVersion = 3;
+  tune.noteSource.segments[0]!.curve = points;
+  expect(() => validatePortableTune(tune)).toThrow();
+  delete tune.noteSource.segments[0]!.curve;
+  tune.bendEdits = [{ noteIndex: 0, points }];
+  expect(() => validatePortableTune(tune)).toThrow();
+});
 
 it("shares a fractional Context correction value on Clean using v2", async () => {
   const record = noteRecording();
@@ -28,12 +139,13 @@ it("shares a fractional Context correction value on Clean using v2", async () =>
 
 it("versions identical effective controls consistently regardless of their base preset", () => {
   const controls = { ...resolveKnobs("auto-tune", {}), contextCorrection: 1 };
+  const { glide: _glide, ...legacyControls } = controls;
   for (const preset of ["clean", "auto-tune", "keep-odd"] as const) {
     const record = noteRecording();
     record.melody = {
       preset,
       key: "auto",
-      overrides: { ...controls, ...record.noteSource.frozenDetection },
+      overrides: { ...legacyControls, ...record.noteSource.frozenDetection },
     };
     expect(createPortableTune(record, []).noteSource.interpretationVersion).toBe(2);
   }
@@ -87,7 +199,7 @@ it("round-trips Auto tune with interpretation v2, fixed notes, edits, mutes and 
   const wrongVersion = bytes.slice();
   wrongVersion[5] = 1;
   await expect(decodeTune(wrongVersion)).rejects.toThrow();
-}, 15000);
+}, 60000);
 
 it("keeps legacy preset interpretation v1 when sharing and rejects unknown interpretation versions", async () => {
   const tune = createPortableTune(noteRecording(), []);

@@ -13,6 +13,7 @@ import { freqToMidi, type Frame } from "../Melody/Notes";
 import { analysisOptionsFor } from "./RecordingProfiles";
 import type { Segment } from "../Melody/Decode.type";
 import type { NoteSource } from "./NoteSource.type";
+import { isPitchCurve } from "../Melody/PitchCurve";
 
 export function noteSourceFromAnalysis(
   record: Recording,
@@ -23,14 +24,21 @@ export function noteSourceFromAnalysis(
   const knobs = resolveKnobs(preset, overrides);
   const { minFreq, maxFreq } = analysisOptionsFor(record);
   const range = { minMidi: freqToMidi(minFreq), maxMidi: freqToMidi(maxFreq) };
+  const controlVersion = interpretationVersionForControls(knobs, overrides);
+  const interpretationVersion =
+    record.noteEdits?.bend?.length || segments?.some((segment) => segment.curve)
+      ? 3
+      : controlVersion;
   return {
     version: 1,
-    interpretationVersion: interpretationVersionForControls(knobs, overrides),
+    interpretationVersion,
     range,
     segments:
       segments ??
       interpretMelody(frames, {
         knobs,
+        version: interpretationVersion,
+        fixedSegments: record.noteEdits?.bend?.map((edit) => edit.segment) ?? [],
         key,
         range,
         timing: record,
@@ -50,7 +58,7 @@ function validateSourceContext(source: NoteSource, historical: boolean) {
   requireTune(
     historical
       ? Number.isSafeInteger(source.interpretationVersion) && source.interpretationVersion > 0
-      : source.interpretationVersion === 1 || source.interpretationVersion === 2,
+      : [1, 2, 3].includes(source.interpretationVersion),
   );
   requireTune(Array.isArray(source.segments));
   requireTune(
@@ -87,6 +95,10 @@ export function validateNoteSource(
   let end = 0;
   for (const segment of source.segments) {
     validateSegment(segment, end, durationSec);
+    requireTune(
+      segment.curve === undefined ||
+        (source.interpretationVersion === 3 && isPitchCurve(segment.curve)),
+    );
     end = segment.source.end;
   }
   return source;

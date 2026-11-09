@@ -11,7 +11,7 @@ import {
 } from "./Key";
 import type { Knobs } from "./Knobs";
 import { applyFeel, gridLag } from "./Rhythm";
-import type { Segment } from "./Decode.type";
+import type { Segment, InterpretationVersion } from "./Decode.type";
 
 export type KeyChoice = "auto" | Key;
 export interface Interpretation {
@@ -27,6 +27,8 @@ export interface Interpretation {
 }
 export interface SegmentInterpretationInput {
   knobs: Knobs;
+  version?: InterpretationVersion;
+  fixedSegments?: Segment[];
   key: KeyChoice;
   timing: { bpm: number; beatsPerBar: number };
   range: { minMidi: number; maxMidi: number };
@@ -35,7 +37,22 @@ export function interpretMelody(
   frames: Frame[],
   input: SegmentInterpretationInput & { protectedBoundaries?: readonly number[] },
 ): Interpretation {
-  return interpretSegments(segmentMelody(frames, input.knobs, input.protectedBoundaries), input);
+  const detected = segmentMelody(frames, input.knobs, input.protectedBoundaries, input.version);
+  const fixed = input.fixedSegments ?? [];
+  const segments = fixed.length
+    ? detected
+        .filter(
+          (segment) =>
+            !fixed.some(
+              (candidate) =>
+                candidate.source.start < segment.source.end &&
+                segment.source.start < candidate.source.end,
+            ),
+        )
+        .concat(fixed)
+        .toSorted((a, b) => a.start - b.start)
+    : detected;
+  return interpretSegments(segments, input);
 }
 export function interpretSegments(
   segments: Segment[],
@@ -66,6 +83,12 @@ export function interpretSegments(
     tuning,
     meter,
   });
+  const notes = applyFeel(decoded, knobs, timing).map((note, i) => {
+    const points = segments[i]!.curve;
+    return points && knobs.glide > 0
+      ? Object.assign({}, note, { bend: { points, glide: knobs.glide } })
+      : note;
+  });
   return {
     segments,
     knobs,
@@ -74,6 +97,6 @@ export function interpretSegments(
     tuning,
     faithful,
     decoded,
-    notes: applyFeel(decoded, knobs, timing),
+    notes,
   };
 }

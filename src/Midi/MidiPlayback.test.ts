@@ -161,3 +161,52 @@ it("preserves the synth release tail when transport cleans up naturally finished
   expect(send).not.toHaveBeenCalled();
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it("sets bend before the transposed note and resets on interruption without stale callbacks", () => {
+  const send = vi.fn();
+  const curved = {
+    ...note(69, 0, 2),
+    bend: {
+      glide: 0.7,
+      points: [
+        { position: 0, offset: -12 },
+        { position: 1, offset: 0 },
+      ],
+    },
+  };
+  const playback = playNotesMidi({ send }, [curved, note(70, 3)], 4, 1);
+  vi.advanceTimersByTime(50);
+  expect(send.mock.calls.slice(-2)).toEqual([[[0xe0, 0, 0]], [[0x90, 81, 100]]]);
+  playback.stop();
+  expect(send.mock.calls.slice(-4)).toEqual([
+    [[0x80, 81, 0]],
+    [[0xe0, 0, 64]],
+    [[0xb0, 123, 0]],
+    [[0xb0, 120, 0]],
+  ]);
+  const count = send.mock.calls.length;
+  vi.advanceTimersByTime(5000);
+  expect(send).toHaveBeenCalledTimes(count);
+});
+
+it("does not replay expired bend configuration after a stale timer", () => {
+  const send = vi.fn();
+  const clock = vi.spyOn(performance, "now").mockReturnValue(0);
+  const curved = {
+    ...note(69, 0, 0.1),
+    bend: {
+      glide: 1,
+      points: [
+        { position: 0, offset: -12 },
+        { position: 1, offset: 0 },
+      ],
+    },
+  };
+  const playback = playNotesMidi({ send }, [curved, note(70, 0.5, 1)], 2, 0);
+  clock.mockReturnValue(1000);
+  vi.advanceTimersByTime(50);
+  expect(send.mock.calls.filter(([bytes]) => bytes[0] === 0xe0)).toEqual([[[0xe0, 0, 64]]]);
+  expect(send.mock.calls.at(-1)).toEqual([[0x90, 70, 100]]);
+  playback.stop();
+  clock.mockRestore();
+});

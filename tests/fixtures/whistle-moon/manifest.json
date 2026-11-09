@@ -1,0 +1,11 @@
+{
+  "provenance": "Unmodified schema-2 Fly me to the moon export diapason-fly-me-to-the-moon-1793310526324.wav. PCM identity matches issue #50. This older package contains five saved corrections; interpretation.json preserves the later seven explicit pitch edits and context-only feedback. Untouched notes and other source boundaries are not reviewed truth. User feedback on 2026-11-08 identifies baseline notes 10 and 11 together (4.032\u20135.013333333333334 seconds) as one intended F#6, MIDI 90. This is passage-specific feedback, not a general rule for adjacent equal-pitch notes.",
+  "files": {
+    "original.wav": "01f933365132fcbd2cd358cc8b13ebbff005178c834c2104523e74d13d7ac499"
+  },
+  "pcmSha256": "150d5d23618d70d9fd7f9e8544194a8607f357724317a455e45ef56ca7370f0a",
+  "sampleRate": 48000,
+  "sampleCount": 814072,
+  "bpm": 111,
+  "beatsPerBar": 4
+}

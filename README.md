@@ -12,7 +12,7 @@ Recordings and processing stay in your browser. No account or upload is required
 
 - Record with guided microphone calibration, a metronome, and tap or clap tempo.
 - Keep takes in a local library and compare the original audio with a MIDI piano roll.
-- Preview melody presets, adjust pitch and rhythm, edit or mute notes, and save versions.
+- Preview melody presets, shape pitch, rhythm and glides, edit or mute notes, and save versions.
 - Play through the browser synth or an external MIDI device when Web MIDI is available.
 - Share editable tune links, download MIDI, or export a WAV package to restore a take.
 - Embed the recording studio or a shared tune in another website.

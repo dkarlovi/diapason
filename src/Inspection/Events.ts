@@ -1,3 +1,4 @@
+import { steppedNotes } from "../Melody/PitchCurve";
 import { midiEvents } from "../Midi/Midi";
 import { recordingFromPortableTune } from "../Tune/PortableTune";
 import { recordingNotes } from "../Recording/Processing";
@@ -8,8 +9,8 @@ export function logicalPlaybackEvents(
   notes: NoteEvent[],
   tune: Pick<PortableTune, "play" | "bpm" | "beatsPerBar">,
 ) {
-  const rendered = notes
-    .map((n) => ({ ...n, midi: n.midi + 12 * tune.play.octave }))
+  const rendered = steppedNotes(notes)
+    .map((n) => Object.assign({}, n, { midi: n.midi + 12 * tune.play.octave }))
     .filter((n) => n.midi >= 0 && n.midi <= 127);
   return {
     notes: rendered,

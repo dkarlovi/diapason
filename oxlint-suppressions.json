@@ -206,11 +206,6 @@
       "count": 1
     }
   },
-  "src/Features/Editor/NoteDetail.tsx": {
-    "react/refs": {
-      "count": 1
-    }
-  },
   "src/Features/Editor/TunePromotion.storage.test.ts": {
     "typescript/unbound-method": {
       "count": 1

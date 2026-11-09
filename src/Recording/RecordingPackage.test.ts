@@ -37,6 +37,53 @@ function snapshot(preset: "clean" | "auto-tune" = "clean") {
   };
   return captureRecordingPackage(edited, pcm, frames, context, 1234);
 }
+it("round trips manual pitch and bend intent with v3 evidence and removes reset bends on re-export", async () => {
+  const { record, pcm, frames } = fixture;
+  const automatic = processRecording(
+    { ...record, melody: { preset: "as-played", key: "auto", overrides: { glide: 0.7 } } },
+    frames,
+  );
+  const segment = automatic.interpretation.segments[0]!;
+  const points = [
+    { position: 0, offset: -3 },
+    { position: 0.7, offset: -1 },
+    { position: 1, offset: 0 },
+  ];
+  const edited = {
+    ...record,
+    melody: { preset: "as-played" as const, key: "auto" as const, overrides: { glide: 0.7 } },
+    noteEdits: {
+      version: 1 as const,
+      pitch: [{ id: "pitch", ranges: [segment.source], midi: 75 }],
+      bend: [{ id: "bend", segment, points }],
+    },
+  };
+  const parsed = await readRecordingPackage(
+    await (
+      await encodeRecordingPackage(captureRecordingPackage(edited, pcm, frames, context, 1234))
+    ).arrayBuffer(),
+  );
+  if (parsed.metadata.schemaVersion !== 2) throw new Error("expected package");
+  expect(parsed.metadata.tune.noteSource.interpretationVersion).toBe(3);
+  expect(parsed.metadata.tune.pitchEdits).toEqual([{ noteIndex: 0, midi: 75 }]);
+  expect(parsed.metadata.tune.bendEdits).toEqual([{ noteIndex: 0, points }]);
+  expect(parsed.metadata.evidence.stages.items[0]!.editState.ids).toEqual(["pitch", "bend"]);
+  const bad = structuredClone(parsed.metadata);
+  bad.evidence.stages.items[0]!.note.bend!.points[0]!.offset = 49;
+  bad.evidence.notes[0]!.bend!.points[0]!.offset = 49;
+  expect(() => validateRecordingPackage(bad, pcm.length, record.sampleRate)).toThrow();
+  const restored = await restoreRecordingPackage(parsed, "curved.wav", "restore");
+  expect(restored.noteEdits).toEqual(edited.noteEdits);
+  delete restored.noteEdits!.bend;
+  const reset = await readRecordingPackage(
+    await (
+      await encodeRecordingPackage(captureRecordingPackage(restored, pcm, frames, context, 1235))
+    ).arrayBuffer(),
+  );
+  if (reset.metadata.schemaVersion !== 2) throw new Error("expected package");
+  expect(reset.metadata.intent.intent.noteEdits?.bend).toBeUndefined();
+  expect(reset.metadata.tune.bendEdits).toBeUndefined();
+}, 30000);
 it.each(["clean", "auto-tune"] as const)(
   "round trips %s intent and unchanged audio while preserving exact downloadable MIDI",
   async (preset) => {

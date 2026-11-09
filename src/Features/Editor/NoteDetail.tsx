@@ -99,12 +99,35 @@ function NoteSheet({
   }, [open, setOpen]);
   const { revealPitch } = state.viewport;
   const revealRef = useRef(revealPitch);
-  revealRef.current = revealPitch;
   useLayoutEffect(() => {
-    const roll = state.rollRef.current?.clientHeight;
-    const sheet = sheetRef.current?.offsetHeight;
-    if (roll && sheet) revealRef.current(midi, Math.min(0.8, sheet / roll));
-  }, [midi, state.rollRef]);
+    revealRef.current = revealPitch;
+  });
+  const bendRef = useRef({ note: state.selectedNote, reveal: state.viewport.revealBend });
+  useLayoutEffect(() => {
+    bendRef.current = { note: state.selectedNote, reveal: state.viewport.revealBend };
+  });
+  const selectedStart = state.selectedNote?.start;
+  useLayoutEffect(() => {
+    const canvas = state.rollRef.current;
+    const sheet = sheetRef.current;
+    if (selectedStart === undefined || !canvas || !sheet) return;
+    const update = () => {
+      const roll = canvas.getBoundingClientRect();
+      if (!roll.height) return;
+      const covered = Math.min(
+        0.8,
+        1 - (sheet.getBoundingClientRect().top - roll.top) / roll.height,
+      );
+      const { note, reveal } = bendRef.current;
+      if (note?.bend && note.bend.glide > 0.4) reveal(note, covered);
+      else revealRef.current(midi, covered);
+    };
+    update();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(canvas);
+    observer?.observe(sheet);
+    return () => observer?.disconnect();
+  }, [midi, selectedStart, state.rollRef]);
   return (
     <section
       ref={sheetRef}
@@ -124,9 +147,6 @@ function NoteSheet({
 
 function NoteInspector({ state }: { state: EditorState }) {
   const note = state.selectedNote!;
-  const membership = state.displayKey
-    ? `${isOutOfKey(note.midi, scalePitchClasses(state.displayKey)) ? "Out of key" : "In key"} (${keyName(state.displayKey)})`
-    : undefined;
   const contextPlaying = state.previewId === `note-${note.start}`;
   const contextLabel = contextPlaying ? "Stop context playback" : "Hear in context";
   return (
@@ -159,28 +179,111 @@ function NoteInspector({ state }: { state: EditorState }) {
         </Button>
       </div>
       <div className="editor-note-properties">
-        <NoteProperty
-          label="Pitch"
-          value={midiToName(note.midi + state.displayTranspose)}
-          description={membership}
-          edited={state.selectedPitchEdited}
-          decrease={{
-            label: "Down one semitone",
-            disabled: !state.canEditPitch || note.midi <= 0,
-            run: () => state.shiftSelectedPitch(-1),
-          }}
-          increase={{
-            label: "Up one semitone",
-            disabled: !state.canEditPitch || note.midi >= 127,
-            run: () => state.shiftSelectedPitch(1),
-          }}
-          reset={{
-            label: "Reset pitch",
-            disabled: !state.canEditPitch,
-            run: state.resetSelectedPitch,
-          }}
-        />
+        <PitchProperty state={state} />
+        {state.bendEditing.visible && <BendProperties state={state} />}
       </div>
+    </>
+  );
+}
+
+function PitchProperty({ state }: { state: EditorState }) {
+  const note = state.selectedNote!;
+  const membership = state.displayKey
+    ? `${isOutOfKey(note.midi, scalePitchClasses(state.displayKey)) ? "Out of key" : "In key"} (${keyName(state.displayKey)})`
+    : undefined;
+  return (
+    <NoteProperty
+      label="Pitch"
+      value={midiToName(note.midi + state.displayTranspose)}
+      description={membership}
+      edited={state.selectedPitchEdited}
+      decrease={{
+        label: "Down one semitone",
+        disabled: !state.canEditPitch || note.midi <= 0,
+        run: () => state.shiftSelectedPitch(-1),
+      }}
+      increase={{
+        label: "Up one semitone",
+        disabled: !state.canEditPitch || note.midi >= 127,
+        run: () => state.shiftSelectedPitch(1),
+      }}
+      reset={{
+        label: "Reset pitch",
+        disabled: !state.canEditPitch,
+        run: state.resetSelectedPitch,
+      }}
+    />
+  );
+}
+
+export function BendProperties({
+  state,
+}: {
+  state: Pick<EditorState, "bendEditing" | "canEditPitch">;
+}) {
+  const bend = state.bendEditing;
+  const point = bend.points[bend.active]!;
+  const disabled = !state.canEditPitch;
+  return (
+    <>
+      <label className="editor-bend-point">
+        <span>Point</span>
+        <select
+          aria-label="Bend point"
+          value={bend.active}
+          disabled={disabled}
+          onChange={(event) => bend.setActive(Number(event.target.value))}
+        >
+          {bend.points.slice(0, -1).map((handle, index) => (
+            <option key={handle.position} value={index}>
+              {index + 1} of {bend.points.length - 1}
+            </option>
+          ))}
+        </select>
+      </label>
+      <NoteProperty
+        label="Bend"
+        value={`${point.offset > 0 ? "+" : ""}${point.offset.toFixed(1)} st`}
+        description="Semitones above or below the note target"
+        edited={bend.edited}
+        decrease={{
+          label: "Lower bend point",
+          disabled: disabled || point.offset <= -48,
+          run: () => bend.changePoint(point.position, point.offset - 0.5),
+        }}
+        increase={{
+          label: "Raise bend point",
+          disabled: disabled || point.offset >= 48,
+          run: () => bend.changePoint(point.position, point.offset + 0.5),
+        }}
+        reset={{ label: "Reset bend", disabled, run: () => bend.reset() }}
+      />
+      <NoteProperty
+        label="Position"
+        value={`${Math.round(point.position * 100)}%`}
+        description="Position through this note; the first point stays at the start"
+        edited={bend.edited}
+        decrease={{
+          label: "Move bend point earlier",
+          disabled:
+            disabled ||
+            bend.active === 0 ||
+            point.position <= bend.points[bend.active - 1]!.position + 1e-6,
+          run: () => bend.changePoint(point.position - 0.05, point.offset),
+        }}
+        increase={{
+          label: "Move bend point later",
+          disabled:
+            disabled ||
+            bend.active === 0 ||
+            point.position >= bend.points[bend.active + 1]!.position - 1e-6,
+          run: () => bend.changePoint(point.position + 0.05, point.offset),
+        }}
+        reset={{ label: "Reset bend timing", disabled, run: () => bend.reset() }}
+      />
+      <p className="editor-bend-hint">
+        Drag the points on the note, or adjust them here. The final point stays on the target pitch.
+      </p>
     </>
   );
 }

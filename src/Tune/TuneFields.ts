@@ -11,6 +11,7 @@ import { TUNE_LIMITS, validatePortableTune } from "./PortableTune";
 import { TuneReader, TuneWriter } from "./TuneBinary";
 import type { NoteSource } from "../Recording/NoteSource.type";
 import type { PortableTune } from "./PortableTune.type";
+import type { PitchPoint } from "../Melody/PitchCurve.type";
 
 // Wire order is frozen for format v1. Never derive instrument/preset codes from UI ordering.
 const instruments = ["beep", "epiano", "pluck", "flute", "trumpet", "saxophone", "pad"] as const;
@@ -45,9 +46,22 @@ const keys: (keyof Knobs)[] = [
   "grid",
   "mode",
   "contextCorrection",
+  "glide",
 ];
 const controlKeys = (version: NoteSource["interpretationVersion"]) =>
-  version === 1 ? keys.slice(0, -1) : keys;
+  keys.slice(0, version === 1 ? 13 : version === 2 ? 14 : 15);
+function writeCurve(w: TuneWriter, points: PitchPoint[]) {
+  w.uint(points.length);
+  for (const point of points) {
+    w.float(point.position);
+    w.float(point.offset);
+  }
+}
+function readCurve(r: TuneReader): PitchPoint[] {
+  const count = r.uint();
+  if (count < 2 || count > 32) throw new Error("Invalid pitch curve size");
+  return Array.from({ length: count }, () => ({ position: r.float(), offset: r.float() }));
+}
 function writeKnob(w: TuneWriter, key: keyof Knobs, value: Knobs[keyof Knobs]) {
   const def = KNOB_DEFS.find((d) => d.key === key)!;
   if (def.kind === "select") {
@@ -101,6 +115,7 @@ export function packTune(tune: PortableTune): Uint8Array {
     if (Math.floor(mask / 2 ** i) % 2) writeKnob(w, k, tune.melody.overrides[k]!);
   });
   const edits = new Map(tune.pitchEdits.map((e) => [e.noteIndex, e.midi]));
+  const bends = new Map(tune.bendEdits?.map((edit) => [edit.noteIndex, edit.points]));
   const muted = new Set(tune.mutedIndices);
   w.uint(tune.noteSource.segments.length);
   let previous = 0;
@@ -115,7 +130,11 @@ export function packTune(tune: PortableTune): Uint8Array {
       s.source.end !== canonicalEnd;
     if (s.source.start !== s.start || Math.abs(s.source.end - (s.start + s.duration)) > 1e-9)
       throw new Error("Unsupported source coverage");
-    w.byte(noteFlags(s.pitch, muted.has(i), edits.has(i), precise));
+    w.byte(
+      noteFlags(s.pitch, muted.has(i), edits.has(i), precise) +
+        (s.curve ? 16 : 0) +
+        (bends.has(i) ? 32 : 0),
+    );
     w.uint(start - previous);
     previous = start;
     w.uint(duration);
@@ -127,6 +146,8 @@ export function packTune(tune: PortableTune): Uint8Array {
     if (Number.isInteger(s.pitch)) w.byte(s.pitch);
     else w.float(s.pitch);
     if (edits.has(i)) w.byte(edits.get(i)!);
+    if (s.curve) writeCurve(w, s.curve);
+    if (bends.has(i)) writeCurve(w, bends.get(i)!);
   });
   return w.finish();
 }
@@ -143,32 +164,47 @@ function readOverrides(
   });
   return overrides;
 }
-function readNotes(r: TuneReader) {
+function readNoteFlags(r: TuneReader, version: NoteSource["interpretationVersion"]): number {
+  const flags = r.byte();
+  if (flags > (version === 3 ? 63 : 15)) throw new Error("Unknown note flags");
+  return flags;
+}
+function readNoteSegment(
+  r: TuneReader,
+  flags: number,
+  startMs: number,
+): NoteSource["segments"][number] {
+  const durationMs = r.uint();
+  let start = startMs / 1000,
+    end = (startMs + durationMs) / 1000,
+    duration = end - start;
+  if (flags & 8) {
+    start = r.float();
+    duration = r.float();
+    end = r.float();
+  }
+  const pitch = flags & 1 ? r.float() : r.byte();
+  return { start, duration, pitch, source: { start, end } };
+}
+function readNotes(r: TuneReader, version: NoteSource["interpretationVersion"]) {
   const count = r.uint();
   if (count > TUNE_LIMITS.notes) throw new Error("Too many notes");
   const segments = [],
     pitchEdits = [],
+    bendEdits = [],
     mutedIndices = [];
   let previous = 0;
   for (let i = 0; i < count; i++) {
-    const flags = r.byte();
-    if (flags > 15) throw new Error("Unknown note flags");
+    const flags = readNoteFlags(r, version);
     previous += r.uint();
-    const durationMs = r.uint();
-    let start = previous / 1000,
-      end = (previous + durationMs) / 1000,
-      duration = end - start;
-    if (flags & 8) {
-      start = r.float();
-      duration = r.float();
-      end = r.float();
-    }
-    const pitch = flags & 1 ? r.float() : r.byte();
-    segments.push({ start, duration, pitch, source: { start, end } });
+    const segment = readNoteSegment(r, flags, previous);
+    segments.push(segment);
     if (flags & 2) mutedIndices.push(i);
     if (flags & 4) pitchEdits.push({ noteIndex: i, midi: r.byte() });
+    if (flags & 16) segment.curve = readCurve(r);
+    if (flags & 32) bendEdits.push({ noteIndex: i, points: readCurve(r) });
   }
-  return { segments, pitchEdits, mutedIndices };
+  return { segments, pitchEdits, mutedIndices, ...(bendEdits.length ? { bendEdits } : {}) };
 }
 export function unpackTune(
   bytes: Uint8Array,
@@ -191,7 +227,7 @@ export function unpackTune(
   const range = { minMidi: r.float(), maxMidi: r.float() };
   const overrides = readOverrides(r, interpretationVersion);
   const effectiveKnobs = resolveKnobs(preset, overrides);
-  const { segments, pitchEdits, mutedIndices } = readNotes(r);
+  const { segments, pitchEdits, mutedIndices, bendEdits } = readNotes(r, interpretationVersion);
   r.end();
   return validatePortableTune({
     schemaVersion: 1,
@@ -217,6 +253,7 @@ export function unpackTune(
       frozenDetection: Object.fromEntries(DETECTION_KNOBS.map((k) => [k, effectiveKnobs[k]])),
     },
     pitchEdits,
+    ...(bendEdits ? { bendEdits } : {}),
     mutedIndices,
   });
 }

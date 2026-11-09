@@ -1,8 +1,10 @@
+import { medianPitch } from "./PitchStatistics";
+import { findContourParts, extractPitchContour } from "./ContourSegmentation";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "./Notes";
 import { scalePitchClasses } from "./Key";
 import type { Knobs } from "./Knobs";
 import { contextPitchScore } from "./ContextCorrection";
-import type { Segment, PitchContext } from "./Decode.type";
+import type { Segment, PitchContext, InterpretationVersion } from "./Decode.type";
 
 interface Span {
   start: number;
@@ -37,11 +39,7 @@ function isVoiced(frame: Frame, knobs: Knobs) {
 function hopOf(frames: Frame[]) {
   return frames.length > 1 ? frames[1]!.t - frames[0]!.t : 512 / 48000;
 }
-function median(values: number[]): number {
-  const sorted = values.toSorted((a, b) => a - b);
-  const mid = sorted.length >> 1;
-  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
-}
+
 // Voiced runs. Gaps where the level stays up are pitch-tracker dropouts and are
 // bridged when shorter than the silence gap; a real drop in level always splits.
 function voicedSpans(frames: Frame[], knobs: Knobs): Span[] {
@@ -70,22 +68,26 @@ function voicedSpans(frames: Frame[], knobs: Knobs): Span[] {
 }
 // Whistlers and singers re-articulate with a brief dip in level. Those dips are
 // note boundaries even when the pitch on both sides is the same.
-function articulations(frames: Frame[], span: Span): Span[] {
+function isArticulationDip(k: number, span: Span, level: (index: number) => number): boolean {
+  const lo = Math.max(span.start, k - DIP_RADIUS);
+  const hi = Math.min(span.end, k + DIP_RADIUS + 1);
+  let left = -Infinity,
+    right = -Infinity,
+    lowest = true;
+  for (let j = lo; j < hi; j++) {
+    if (level(j) < level(k)) lowest = false;
+    if (j < k) left = Math.max(left, level(j));
+    if (j > k) right = Math.max(right, level(j));
+  }
+  return lowest && left - level(k) >= DIP_DEPTH && right - level(k) >= DIP_DEPTH;
+}
+function articulations(frames: Frame[], span: Span, settling = 0): Span[] {
   const level = (i: number) => Math.log10(Math.max(frames[i]!.rms, 1e-6));
   const cuts = [span.start];
   for (let k = span.start + 1; k < span.end - 1; k++) {
-    const lo = Math.max(span.start, k - DIP_RADIUS);
-    const hi = Math.min(span.end, k + DIP_RADIUS + 1);
-    let left = -Infinity,
-      right = -Infinity,
-      lowest = true;
-    for (let j = lo; j < hi; j++) {
-      if (level(j) < level(k)) lowest = false;
-      if (j < k) left = Math.max(left, level(j));
-      if (j > k) right = Math.max(right, level(j));
-    }
-    if (lowest && left - level(k) >= DIP_DEPTH && right - level(k) >= DIP_DEPTH) {
-      cuts.push(k);
+    if (isArticulationDip(k, span, level)) {
+      const previous = cuts.at(-1)!;
+      if (k - previous >= settling || level(k) - level(previous) < DIP_DEPTH) cuts.push(k);
       k += DIP_RADIUS;
     }
   }
@@ -142,40 +144,56 @@ function absorbSlips(spans: Span[], slip: number): Span[] {
   }
 }
 function smoothed(raw: number[]): number[] {
-  return raw.map((_, i) => median(raw.slice(Math.max(0, i - 2), i + 3)));
+  return raw.map((_, i) => medianPitch(raw.slice(Math.max(0, i - 2), i + 3)));
 }
 // Steady-state pitch: the middle of the note, away from attack and release.
 function notePitch(raw: number[]): number {
   const trim = Math.floor(raw.length / 5);
-  return median(raw.slice(trim, raw.length - trim));
+  return medianPitch(raw.slice(trim, raw.length - trim));
 }
 interface PieceOptions {
   minLength: number;
   slip: number;
   splitCost: number;
+  version: InterpretationVersion;
 }
 function segmentPiece(frames: Frame[], piece: Span, knobs: Knobs, options: PieceOptions) {
   const indices: number[] = [];
   for (let i = piece.start; i < piece.end; i++) if (isVoiced(frames[i]!, knobs)) indices.push(i);
   if (!indices.length) return [];
   const raw = indices.map((i) => freqToMidi(frames[i]!.freq!));
-  const parts = absorbSlips(
-    pitchChanges(smoothed(raw), options.minLength, options.splitCost),
-    options.slip,
-  );
-  return parts.map((part) => ({
-    start: part.start ? indices[part.start]! : piece.start,
-    end: part.end < indices.length ? indices[part.end]! : piece.end,
-    pitch: notePitch(raw.slice(part.start, part.end)),
-  }));
+  const parts: (Span & { pitch?: number })[] =
+    options.version === 3
+      ? findContourParts(smoothed(raw), options.minLength, knobs.steadiness)
+      : absorbSlips(
+          pitchChanges(smoothed(raw), options.minLength, options.splitCost),
+          options.slip,
+        );
+  return Array.from(parts, (part) => {
+    const pitch = part.pitch ?? notePitch(raw.slice(part.start, part.end));
+    const curve =
+      options.version === 3
+        ? extractPitchContour(smoothed(raw.slice(part.start, part.end)), pitch, knobs.steadiness)
+        : undefined;
+    return {
+      start: part.start ? indices[part.start]! : piece.start,
+      end: part.end < indices.length ? indices[part.end]! : piece.end,
+      pitch,
+      ...(curve ? { curve } : {}),
+    };
+  });
 }
-function inSeconds(frames: Frame[], piece: Span & { pitch: number }): Segment {
+function inSeconds(
+  frames: Frame[],
+  piece: Span & { pitch: number; curve?: Segment["curve"] },
+): Segment {
   const time = (index: number) => frames[index]?.t ?? frames.at(-1)!.t + hopOf(frames);
   return {
     source: { start: time(piece.start), end: time(piece.end) },
     start: time(piece.start),
     duration: time(piece.end) - time(piece.start),
     pitch: piece.pitch,
+    ...(piece.curve ? { curve: piece.curve } : {}),
   };
 }
 function protectedPieces(frames: Frame[], piece: Span, boundaries: readonly number[]): Span[] {
@@ -189,16 +207,18 @@ export function segmentMelody(
   frames: Frame[],
   knobs: Knobs,
   protectedBoundaries: readonly number[] = [],
+  version: InterpretationVersion = (knobs.glide ?? 0) > 0 ? 3 : 1,
 ): Segment[] {
   const hop = hopOf(frames);
   const steadiness = Math.min(1, Math.max(0, knobs.steadiness));
   const options = {
+    version,
     minLength: Math.max(1, Math.round(knobs.minNoteMs / 1000 / hop)),
     slip: (SLIP_MAX * steadiness) / hop,
     splitCost: SPLIT_COST_MIN + (SPLIT_COST_MAX - SPLIT_COST_MIN) * steadiness,
   };
   return voicedSpans(frames, knobs)
-    .flatMap((span) => articulations(frames, span))
+    .flatMap((span) => articulations(frames, span, version === 3 ? options.slip : 0))
     .flatMap((piece) =>
       protectedBoundaries.length ? protectedPieces(frames, piece, protectedBoundaries) : [piece],
     )

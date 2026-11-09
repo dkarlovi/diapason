@@ -23,6 +23,7 @@ describe("melody knobs", () => {
   it("exposes only the meaningful knobs", () => {
     expect(KNOB_DEFS.map((def) => def.key).toSorted()).toEqual(
       [
+        "glide",
         "levelGate",
         "minNoteMs",
         "silenceGapMs",

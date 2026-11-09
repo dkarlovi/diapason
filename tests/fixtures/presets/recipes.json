@@ -13,7 +13,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "auto-pitch": {
     "steadiness": 1,
@@ -29,7 +30,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "auto-timing": {
     "steadiness": 1,
@@ -45,7 +47,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "auto-tune": {
     "steadiness": 1,
@@ -61,7 +64,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "auto-major": {
     "steadiness": 1,
@@ -77,7 +81,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "auto-minor": {
     "steadiness": 1,
@@ -93,7 +98,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "auto-syncopated": {
     "steadiness": 1,
@@ -109,7 +115,8 @@
     "swing": 0,
     "syncopation": 1,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "gentle": {
     "steadiness": 0.6,
@@ -125,7 +132,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "clean": {
     "steadiness": 1,
@@ -141,7 +149,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   },
   "keep-odd": {
     "steadiness": 0.6,
@@ -157,7 +166,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "happy": {
     "steadiness": 1,
@@ -173,7 +183,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "sad": {
     "steadiness": 1,
@@ -189,7 +200,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "dreamy": {
     "steadiness": 1,
@@ -205,7 +217,8 @@
     "swing": 0,
     "syncopation": 0,
     "articulation": 1.2,
-    "grid": 0
+    "grid": 0,
+    "glide": 0
   },
   "syncopated": {
     "steadiness": 1,
@@ -221,6 +234,7 @@
     "swing": 0,
     "syncopation": 1,
     "articulation": 1,
-    "grid": 2
+    "grid": 2,
+    "glide": 0
   }
 }

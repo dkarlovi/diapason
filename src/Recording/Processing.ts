@@ -1,3 +1,4 @@
+import { bendEditFor } from "../Editing/BendEdits";
 import {
   isNoteEdits,
   pitchEditFor,
@@ -7,7 +8,7 @@ import {
 import type { MutedNote, Recording } from "./Recording.type";
 import { freqToMidi, midiToName, type Frame, type NoteEvent } from "../Melody/Notes";
 import { resolveRecordingSettings } from "./RecordingSettings";
-import { resolveKnobs } from "../Melody/Knobs";
+import { interpretationVersionForControls, resolveKnobs } from "../Melody/Knobs";
 import { interpretSegments, interpretMelody } from "../Melody/Interpret";
 import { melodySettingFor } from "../Melody/Settings";
 import { analysisOptionsFor } from "./RecordingProfiles";
@@ -23,9 +24,19 @@ export function processRecording(rec: Recording, frames: Frame[]) {
   const settings = resolveRecordingSettings(rec);
   const { preset, overrides, key } = settings.melody;
   const { minFreq, maxFreq } = analysisOptionsFor(rec);
+  const knobs = resolveKnobs(preset, overrides);
+  const controlVersion = interpretationVersionForControls(knobs, overrides);
+  const version =
+    controlVersion === 3 || rec.noteEdits?.bend?.length
+      ? 3
+      : (rec.noteSource?.interpretationVersion ?? controlVersion);
   const input = {
+    version,
+    ...(rec.noteEdits?.bend
+      ? { fixedSegments: rec.noteEdits.bend.map((edit) => edit.segment) }
+      : {}),
     protectedBoundaries: protectedNoteBoundaries(rec.noteEdits),
-    knobs: resolveKnobs(preset, overrides),
+    knobs,
     key,
     timing: { bpm: rec.bpm, beatsPerBar: rec.beatsPerBar },
     range: rec.noteSource?.range ?? { minMidi: freqToMidi(minFreq), maxMidi: freqToMidi(maxFreq) },
@@ -38,16 +49,33 @@ export function processRecording(rec: Recording, frames: Frame[]) {
     const source = interpretation.segments[index]!.source;
     const automatic = interpretation.notes[index]!;
     const edit = pitchEditFor(rec.noteEdits, source);
+    const bend = bendEditFor(rec.noteEdits, source);
+    const pitched = edit
+      ? { ...automatic, midi: edit.midi, name: midiToName(edit.midi) }
+      : automatic;
+    const note =
+      bend && knobs.glide > 0
+        ? { ...pitched, bend: { points: bend.points, glide: knobs.glide } }
+        : pitched;
+    const axes: NoteItem["editState"]["axes"] = [
+      ...(edit ? ["pitch" as const] : []),
+      ...(bend ? ["bend" as const] : []),
+    ];
     return {
       id: index + 1,
       raw,
       source,
       automatic,
-      note: edit ? { ...automatic, midi: edit.midi, name: midiToName(edit.midi) } : automatic,
+      note,
       editState: {
-        ids: edit ? [edit.id] : [],
-        axes: edit ? ["pitch"] : [],
-        differingAxes: edit && edit.midi !== automatic.midi ? ["pitch"] : [],
+        ids: [...(edit ? [edit.id] : []), ...(bend ? [bend.id] : [])],
+        axes,
+        differingAxes: axes.filter((axis) =>
+          axis === "pitch"
+            ? edit!.midi !== automatic.midi
+            : JSON.stringify(bend!.points) !==
+              JSON.stringify(interpretation.segments[index]!.curve),
+        ),
       },
       fixedSource: !!rec.noteSource,
       muted: muted.some((anchor) =>

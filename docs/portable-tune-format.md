@@ -8,7 +8,7 @@ sender-local recording ID.
 ## Envelope and URL
 
 Bytes 0–3 are ASCII `DPSN`; byte 4 is schema version 1; byte 5 is interpretation
-version 1 or 2; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
+version 1, 2 or 3; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
 fields below, with no trailing data. Choose gzip only when it is smaller than the
 raw representation. URLs use unpadded canonical base64url after
 `/diapason/#tune=`. The Library offers import before any candidate writes.
@@ -27,6 +27,18 @@ Presets only supply control values; no interpretation algorithm branches on thei
 identity. Legacy recipes with no new control override continue to export as v1,
 preserving their original envelope and wire codes. Earlier readers reject v2
 rather than silently changing the melody.
+
+Interpretation v3 adds Glide and normalized pitch contours. An explicit Glide
+override, including zero, requires v3. Source contours and manual bend edits stay
+separate; pitch edits transpose a contour, and timing edits retain its normalized
+positions. V1/v2 encodings remain unchanged. Readers that do not support v3 reject
+it rather than flattening its melody.
+
+A contour has 2–32 points, each with a finite normalized position and a finite
+semitone offset from its target pitch. Positions strictly increase from 0 to 1;
+offsets are within ±48 semitones, and the last offset is zero. Automatic analysis
+uses at most eight points. Glide changes output articulation within the retained
+contour; it does not re-segment v3 source notes.
 
 ## Field order
 
@@ -51,15 +63,22 @@ UTF-8 strings have a byte-length varint and are decoded strictly.
    Interpretation v2 appends Context correction as bit 13, a 0–1 range in 0.01
    steps (with the same Float64 escape). V1 rejects this bit. A preset's default
    Context correction value and any explicit override are resolved like other
-   controls, not as a separate engine mode.
+   controls, not as a separate engine mode. Interpretation v3 appends Glide as
+   bit 14, a 0–1 range in 0.01 steps with the same Float64 escape; v1/v2 reject it.
 7. Note count, then each note in chronological order:
    - Flags: fractional pitch (bit 0), muted (bit 1), manual pitch override (bit 2),
-     exact interpretation timing refinement (bit 3). Other bits are invalid.
+     exact interpretation timing refinement (bit 3). V3 also permits automatic
+     source contour (bit 4) and manual bend edit (bit 5); v1/v2 reject these bits.
+     Other bits are invalid.
    - Start delta from the preceding integer millisecond start, then duration in
      milliseconds, both varints. The first preceding start is zero.
    - If bit 3: exact start, duration and source end as three Float64 values.
    - Baseline pitch: a byte for integer semitones, Float64 for fractional pitch.
    - If bit 2: manually selected MIDI pitch as a byte.
+   - If bit 4: automatic source contour.
+   - If bit 5: manual bend contour.
+     Each contour stores its point-count varint followed by each point's position
+     and semitone offset as two Float64 values.
 
 The source interval normally equals performed start/end. Fixed-note edits refer
 to note indices on the wire, then become fresh local range-based edits on import.
@@ -81,8 +100,10 @@ rounding drift.
 
 ## MIDI wrapper
 
-The exported Standard MIDI File remains Type 0, with ordinary audible notes,
-General MIDI program, tempo and meter. Octave transposition appears in the
+The exported Standard MIDI File remains Type 0, with audible notes,
+General MIDI program, tempo and meter. Smooth contours add MIDI 1.0 pitch bend,
+matching RPN bend-range setup and resets; stepped contours use ordinary notes.
+Flat legacy output retains its existing bytes. Octave transposition appears in the
 rendered track; out-of-MIDI-range notes follow the external-output behavior and
 are omitted. Diapason's original baseline pitches and separate playback choices
 remain in metadata and are restored exactly once.

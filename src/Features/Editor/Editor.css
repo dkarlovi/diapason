@@ -1039,3 +1039,39 @@
     transition: none;
   }
 }
+
+.editor-bend-point {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 4px;
+  margin-left: 14px;
+  min-height: 34px;
+  color: var(--color-muted-foreground);
+}
+.editor-bend-point select {
+  min-width: 0;
+  min-height: 30px;
+}
+.editor-bend-hint {
+  max-width: 270px;
+  margin: 4px 0 0 14px;
+  color: var(--color-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+@media (max-width: 760px) {
+  .editor-bend-point {
+    grid-template-columns: 72px 1fr;
+    gap: 6px;
+    margin-left: 16px;
+    min-height: 48px;
+  }
+  .editor-bend-point select {
+    min-height: 44px;
+  }
+  .editor-bend-hint {
+    max-width: none;
+    margin-left: 16px;
+  }
+}

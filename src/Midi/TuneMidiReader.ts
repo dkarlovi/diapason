@@ -1,4 +1,4 @@
-import type { MidiEvent } from "./Midi";
+import type { MidiEvent } from "./Midi.type";
 import { TUNE_LIMITS } from "../Tune/PortableTune";
 import { fromTuneBase64Url } from "../Tune/Tune.codec";
 export const TUNE_MIDI_PREFIX = "diapason:tune:1:";
@@ -52,12 +52,16 @@ class MidiReader {
     this.tick += this.variable();
     const status = this.byte();
     if (status === 0xff) return this.metaEvent();
-    const lengths: Record<number, number> = { 192: 1, 144: 2, 128: 2 };
+    const lengths: Record<number, number> = { 192: 1, 144: 2, 128: 2, 176: 2, 224: 2 };
     const length = lengths[status];
     if (length === undefined) return invalid();
     const data = this.take(length);
     if (data.some((b) => b >= 128)) return invalid();
     if (status === 192) this.program = data[0]!;
+    else if (status === 176)
+      this.events.push({ tick: this.tick, type: "control", controller: data[0]!, value: data[1]! });
+    else if (status === 224)
+      this.events.push({ tick: this.tick, type: "bend", value: data[0]! + data[1]! * 128 });
     else
       this.events.push({
         tick: this.tick,

@@ -4,7 +4,7 @@ import { analyzeRecording } from "../../src/Analysis/RecordingAnalysis";
 import { recording } from "./recording";
 
 export function loadFixture(
-  name: "whistle-regression" | "whistle-take2" | "whistle-intro",
+  name: "whistle-regression" | "whistle-take2" | "whistle-intro" | "whistle-moon",
   durationSec?: number,
 ) {
   const bytes = readFileSync(new URL(`../fixtures/${name}/original.wav`, import.meta.url));

@@ -1,7 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { autoRange, drawTrace } from "./Trace";
 import type { TraceLayer, TraceView } from "./Trace.type";
-import type { Frame } from "../Melody/Notes";
+import { bendSamples, steppedNotes } from "../Melody/PitchCurve";
+import type { NoteEvent, Frame } from "../Melody/Notes";
 import { scalePitchClasses } from "../Melody/Key";
 
 type Operation = {
@@ -33,6 +34,7 @@ function surface(width = 100) {
     "clearRect",
     "fillRect",
     "beginPath",
+    "closePath",
     "moveTo",
     "lineTo",
     "stroke",
@@ -535,4 +537,88 @@ it("invalidates the background for scale changes and reuses equivalent scales", 
     layer,
   );
   expect(background.operations.length).toBeGreaterThan(painted);
+});
+
+it("draws a filled contour, clipped edit stripes and a target reference", () => {
+  const { canvas, operations } = surface();
+  const note: NoteEvent = {
+    midi: 69,
+    name: "A4",
+    start: 0,
+    duration: 1,
+    bend: {
+      glide: 1,
+      points: [
+        { position: 0, offset: -1 },
+        { position: 1, offset: 0 },
+      ],
+    },
+  };
+  drawTrace(canvas, [], { ...view, notes: [note], edited: [note] });
+  expect(operations.some((o) => o.method === "fill" && o.fill === "#5ad1a8")).toBe(true);
+  expect(operations.some((o) => o.method === "clip")).toBe(true);
+  expect(operations.some((o) => o.method === "stroke" && o.alpha === 0.3)).toBe(true);
+  for (const sample of bendSamples(note)) {
+    expect(operations).toContainEqual(
+      expect.objectContaining({
+        method: "lineTo",
+        args: [sample.position * 100, 100 - ((69 + sample.offset - 67) / 4) * 100 - 12.5],
+      }),
+    );
+  }
+});
+it("draws stepped blocks from the MIDI evaluator while retaining one logical label", () => {
+  const { canvas, operations } = surface();
+  const note: NoteEvent = {
+    midi: 69,
+    name: "A4",
+    start: 0,
+    duration: 1,
+    bend: {
+      glide: 0.4,
+      points: [
+        { position: 0, offset: -2 },
+        { position: 1, offset: 0 },
+      ],
+    },
+  };
+  drawTrace(canvas, [], { ...view, notes: [note] });
+  const rects = operations.filter((o) => o.method === "rect" && o.fill === "#5ad1a8");
+  expect(rects).toHaveLength(steppedNotes([note]).length);
+  expect(operations.filter((o) => o.method === "fillText" && o.args[0] === "A4")).toHaveLength(1);
+});
+it("draws muted contours as dashed outlines and stable raw handles with a solid destination", () => {
+  const { canvas, operations } = surface();
+  const points = [
+    { position: 0, offset: -1 },
+    { position: 0.5, offset: 1 },
+    { position: 1, offset: 0 },
+  ];
+  const note: NoteEvent = {
+    midi: 69,
+    name: "A4",
+    start: 0,
+    duration: 1,
+    bend: { glide: 0.41, points },
+  };
+  drawTrace(canvas, [], {
+    ...view,
+    muted: [note],
+    edited: [note],
+    bendHandles: { note, points, active: 0 },
+  });
+  expect(operations.some((o) => o.method === "stroke" && o.dash.join() === "3,3")).toBe(true);
+  expect(
+    operations
+      .filter((o) => o.method === "arc" && o.fill === "#ffffff")
+      .map((o) => o.args.slice(0, 2)),
+  ).toEqual([
+    [0, 75],
+    [50, 25],
+  ]);
+  expect(
+    operations.some(
+      (o) => o.method === "arc" && o.fill === "#b6f2dd" && o.args[0] === 100 && o.args[1] === 50,
+    ),
+  ).toBe(true);
 });

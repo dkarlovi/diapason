@@ -86,7 +86,10 @@ export function EditorRecordingActions({ state }: { state: EditorState }) {
                 <MidiOutputPicker />
               </div>
               <Button
-                disabled={!state.canEditPitch || !state.record?.noteEdits?.pitch.length}
+                disabled={
+                  !state.canEditPitch ||
+                  !(state.record?.noteEdits?.pitch.length || state.record?.noteEdits?.bend?.length)
+                }
                 onClick={state.resetAllNoteEdits}
               >
                 Reset all note edits

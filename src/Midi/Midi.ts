@@ -1,6 +1,9 @@
 // Minimal Standard MIDI File (Type 0) writer — no dependencies.
 // Recordings note events { midi, start (s), duration (s) } and returns a Blob you can download.
 
+import { steppedNotes } from "../Melody/PitchCurve";
+import { bendMessages, midiMessage } from "./MidiBend";
+import type { MidiEvent } from "./Midi.type";
 import type { NoteEvent } from "../Melody/Notes";
 
 export interface MidiOptions {
@@ -34,12 +37,6 @@ const u32 = (n: number): number[] => [
 
 const u16 = (n: number): number[] => [(n >> 8) & 0xff, n & 0xff];
 
-export interface MidiEvent {
-  tick: number;
-  type: "on" | "off";
-  midi: number;
-}
-
 /** Absolute events shared by diagnostic evidence and the file writer. */
 export function midiEvents(events: NoteEvent[], opts: MidiOptions = {}): MidiEvent[] {
   const bpm = opts.bpm ?? 120;
@@ -48,19 +45,37 @@ export function midiEvents(events: NoteEvent[], opts: MidiOptions = {}): MidiEve
   // Build an absolute-time list of note-on / note-off events.
   const abs: MidiEvent[] = [];
   let previousOff = -1;
-  for (const e of events) {
+  for (const e of steppedNotes(events)) {
     const on = secToTicks(e.start);
     const off = secToTicks(e.start + e.duration);
     if (on < previousOff)
       throw new Error("MIDI resolution cannot preserve distinct monophonic notes at this PPQ.");
     previousOff = Math.max(off, on + 1);
-    abs.push({ tick: on, type: "on", midi: e.midi });
-    abs.push({ tick: Math.max(off, on + 1), type: "off", midi: e.midi });
+    abs.push(...noteMidiEvents(e, on, Math.max(off, on + 1), secToTicks));
   }
   // Sort by tick; note-off before note-on at the same tick to free the pitch.
-  abs.sort((a, b) => a.tick - b.tick || (a.type === "off" ? -1 : 1));
+  abs.sort((a, b) => a.tick - b.tick);
 
   return abs;
+}
+
+function noteMidiEvents(
+  note: NoteEvent,
+  on: number,
+  off: number,
+  ticks: (seconds: number) => number,
+): MidiEvent[] {
+  const result: MidiEvent[] = [];
+  const bends = bendMessages(note);
+  for (const { position, ...event } of bends)
+    if (position === 0) result.push({ ...event, tick: on });
+  result.push({ tick: on, type: "on", midi: note.midi });
+  for (const { position, ...event } of bends)
+    if (position > 0 && position < 1)
+      result.push({ ...event, tick: ticks(note.start + position * note.duration) });
+  result.push({ tick: off, type: "off", midi: note.midi });
+  if (bends.length) result.push({ tick: off, type: "bend", value: 8192 });
+  return result;
 }
 
 export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
@@ -79,9 +94,7 @@ export function notesToMidi(events: NoteEvent[], opts: MidiOptions = {}): Blob {
   for (const ev of abs) {
     const delta = ev.tick - prev;
     prev = ev.tick;
-    const status = ev.type === "on" ? 0x90 : 0x80;
-    const vel = ev.type === "on" ? velocity : 0;
-    track.push(...midiVarLen(delta), status, ev.midi & 0x7f, vel);
+    track.push(...midiVarLen(delta), ...midiMessage(ev, velocity));
   }
   // End of track.
   track.push(...midiVarLen(0), 0xff, 0x2f, 0x00);

@@ -117,6 +117,42 @@ Run checks from a Git checkout with both refs available.
 
 `npm run test:coverage` collects V8 coverage for all production TypeScript, including unexecuted files. Reports are in `coverage/index.html`, `coverage/coverage-summary.json`, and `coverage/coverage-final.json`. `npm run metrics:coverage` regenerates coverage and passes it to Fallow for measured function risk. Unlike static test dependency reachability, this measures executed code; mocked implementations do not count as exercised. `npm run check` collects coverage once and gates coverage-aware complexity against the health baseline. No percentage gate is imposed before establishing a baseline.
 
+## Contour regression evidence
+
+`tests/fixtures/whistle-moon/` preserves the full source WAV identified in issue
+#50, its file and PCM hashes, and the reviewed pitch-correction feedback. The WAV
+package predates that feedback and contains fewer edits; the manifest distinguishes
+these sources. Unedited notes and source boundaries are preservation targets,
+not reviewed musical truth.
+
+`tests/fixtures/contours/cases.json` records synthetic contours, their constructed
+intent, and baseline observations at Steadiness 0, 0.6, and 1. It includes mirrored
+directional cases. Baseline characterization checks do not establish musical
+correctness: observations marked `differs` document known limitations, and an
+`unreviewed` intentional glide has no accepted discrete MIDI target. Endpoint
+plateau coverage for a connecting slide leaves the transition's exact boundary
+open. Tests exercise segmentation directly, without contextual correction.
+
+Run the source and synthetic contour checks with:
+
+```bash
+npm test -- src/Melody/Contours.integration.test.ts tests/support/contours.test.ts
+```
+
+## Visual studies
+
+With `npm run dev` running, open
+`http://localhost:5173/diapason/dev/glide-study.html` for the interactive glide
+visualization study. A short synthesized excerpt of the opening clarinet phrase from
+Gershwin’s _Rhapsody in Blue_ compares fixed notes, stepped slides, and curved note
+ribbons. The opening trill and broad rising glide use approximate expressive timing
+and a clarinet-like synth. Selected notes expose draggable bend points with keyboard
+support. Above the Fine stop, the Glide slider varies the time spent bending between
+control points: lower values hold pitches longer and connect them briefly, while
+100% uses the full drawn curve. Point pitches and arrival times stay fixed.
+It does not change saved recordings or export
+MIDI. This is a design study, separate from the shipped editor.
+
 ## Deployment
 
 GitHub Actions runs `npm run check` on pull requests. Pushes to `main` (or a manual

@@ -1,7 +1,9 @@
+import type { PitchPoint } from "../Melody/PitchCurve.type";
 import type { PitchRange } from "./Pitch";
 import type { NoteEvent, Frame } from "../Melody/Notes";
 
 export interface TraceView {
+  bendHandles?: { note: NoteEvent; points: PitchPoint[]; active?: number };
   preferredRange?: PitchRange;
   /** Pitch classes belonging to the effective key; omitted when the key is unknown. */
   scale?: ReadonlySet<number>;

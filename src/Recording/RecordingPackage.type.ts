@@ -27,13 +27,12 @@ export interface RecordingPackageV2 {
   frames: Frame[];
   evidence: ProcessingEvidence;
 }
-export interface CapturedRecordingPackage {
+export interface CapturedRecordingPackage extends Pick<
+  RecordingPackageV2,
+  "frames" | "intent" | "tune" | "evidence"
+> {
   record: AudioRecording;
   pcm: Float32Array;
-  frames: Frame[];
-  intent: EditSnapshot;
-  tune: PortableTune;
-  evidence: ProcessingEvidence;
   context: ExportContext;
   exportedAt: number;
 }

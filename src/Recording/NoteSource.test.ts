@@ -6,6 +6,38 @@ import { interpretMelody, interpretSegments } from "../Melody/Interpret";
 import { noteSourceFromAnalysis, validateNoteSource } from "./NoteSource";
 import { processRecording } from "./Processing";
 const take = loadFixture("whistle-intro");
+it("accepts valid curves only in interpretation 3", () => {
+  const source = noteSourceFromAnalysis(take.record, take.frames);
+  source.segments[0]!.curve = [
+    { position: 0, offset: -2 },
+    { position: 1, offset: 0 },
+  ];
+  expect(() => validateNoteSource(source, take.record.durationSec)).toThrow();
+  source.interpretationVersion = 3;
+  expect(validateNoteSource(source, take.record.durationSec)).toBe(source);
+  source.segments[0]!.curve[1]!.offset = 1;
+  expect(() => validateNoteSource(source, take.record.durationSec)).toThrow();
+});
+it("captures v3 automatic curves while retaining manually protected source segments", () => {
+  const record = {
+    ...take.record,
+    melody: { preset: "as-played" as const, key: "auto" as const, overrides: { glide: 0.7 } },
+  };
+  const first = processRecording(record, take.frames).interpretation.segments[0]!;
+  const curve = [
+    { position: 0, offset: -3 },
+    { position: 1, offset: 0 },
+  ];
+  const segment = { ...first, curve };
+  const edited = {
+    ...record,
+    noteEdits: { version: 1 as const, pitch: [], bend: [{ id: "bend", segment, points: curve }] },
+  };
+  const source = noteSourceFromAnalysis(edited, take.frames);
+  expect(source.interpretationVersion).toBe(3);
+  expect(source.segments[0]).toEqual(segment);
+  expect(source.segments).toEqual(processRecording(edited, take.frames).interpretation.segments);
+});
 it.each(Object.keys(PRESETS) as (keyof typeof PRESETS)[])(
   "fixed segments preserve %s interpretation",
   (preset) => {

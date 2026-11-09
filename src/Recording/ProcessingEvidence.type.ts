@@ -2,7 +2,7 @@ import type { PlaySettings } from "../Playback/Instruments";
 import type { ChordSpan } from "../Melody/Harmony";
 import type { Interpretation } from "../Melody/Interpret";
 import type { MelodySetting } from "../Melody/MelodySetting.type";
-import type { PitchEditCoverage } from "../Editing/NoteEdits";
+import type { PitchEditCoverage } from "../Editing/NoteEdits.type";
 import type { NoteEvent } from "../Melody/Notes";
 import type { QualityStats } from "../Audio/Recorder";
 import type { NoteItem } from "./NoteItem.type";

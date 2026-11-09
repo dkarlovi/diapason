@@ -1,3 +1,4 @@
+import type { NoteBend } from "./PitchCurve.type";
 // Frequency/MIDI helpers and the shared acoustic frame and note types.
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
@@ -23,6 +24,7 @@ export interface Frame {
 
 /** A detected note event, ready for MIDI export. Times are in seconds. */
 export interface NoteEvent {
+  bend?: NoteBend;
   midi: number;
   name: string;
   start: number;

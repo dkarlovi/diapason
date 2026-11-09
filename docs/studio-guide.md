@@ -110,7 +110,7 @@ preview. Starting another preview replaces it.
 - **Key:** One dropdown contains Auto, three suggested alternatives, and all 24
   explicit keys, each with Preview and Use actions.
 - **Controls:** Essentials groups Steadiness, Pull into key, Context correction,
-  and Pull onto grid. Pitch includes key pull, Context correction, Mode, Smooth leaps, and Max pitch move. Rhythm holds
+  and Pull onto grid. Pitch includes key pull, Context correction, Mode, Smooth leaps, Max pitch move, and Glide. Rhythm holds
   Timing grid, grid pull, Swing, Syncopation, and Note length. Detection holds
   Steadiness, Level gate, Minimum note length, and Silence gap. Changing a control
   shows **Custom (from …)** and saves it. Each control has an explicit Reset
@@ -129,8 +129,7 @@ Context correction favors the natural
 scale while allowing a minor key's raised seventh over the inferred major
 dominant chord, and discourages large melodic jumps. **Pull into key** adjusts
 the scale preference; **Smooth leaps** adjusts the melodic preference. It uses
-the same note detection as Auto timing and does not add glide handling or alter the
-recorded audio. Preview it before applying: it can change deliberate chromatic
+the same note detection as Auto timing. It does not alter the recorded audio. Preview it before applying: it can change deliberate chromatic
 notes, and it does not guarantee a correct transcription. As played and Auto
 timing remain available for performances where those exceptions matter.
 
@@ -142,7 +141,29 @@ from every other one.
 Older shared tunes remain readable with their saved control values. See the
 [portable format](portable-tune-format.md) for interpretation version details.
 
+**Glide** shapes motion within each detected note: **None (0%)** holds its target
+pitch, **Coarse steps (20%)** uses two-semitone steps, **Fine steps (40%)** uses
+semitone steps, and **Smooth (41–100%)** bends continuously. In the smooth range,
+lower values hold each point's pitch longer before moving; 100% uses the whole
+interval for movement. Point pitches and arrival times stay fixed. Arrow keys
+move between the three stops and then in 1% increments through the smooth range.
+The filled ribbon or stepped blocks show the sounding pitch, with a faint line
+showing the note's destination. Each block belongs to the same editable note.
+
+Changing Glide, including explicitly setting it to zero, opts into contour-aware
+interpretation. Within that interpretation, changing the amount preserves note
+segmentation. Older recordings and presets keep their saved behavior until you
+use the control. Original audio stays unchanged.
+
 ## Edit individual notes
+
+With Glide in the smooth range, selecting a note exposes white bend handles and a
+solid destination marker. Drag a white handle vertically to change its pitch or
+horizontally to change its arrival time. The final destination stays fixed.
+Whole-note pitch edits transpose the contour; timing changes scale it with the
+note. **Reset bend** restores the automatic contour. Bend gestures are one Undo
+step and support keyboard adjustment; Escape, lost pointer capture, or a second
+touch cancels an unfinished gesture.
 
 Click a piano-roll note to hear it and open a note inspector beside it. Its darker
 heading shows the note number and name, start time and duration, with context

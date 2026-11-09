@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rhapsody in Blue · Glide study · diapason</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: light-dark(#f8f9ff, #111418);
+        --surface: light-dark(#fdfcff, #191c20);
+        --canvas: light-dark(#eff0f7, #0b0e13);
+        --ink: light-dark(#191c20, #e1e2e8);
+        --muted: light-dark(#43474e, #c3c6cf);
+        --line: light-dark(#c3c6cf, #43474e);
+        --accent: light-dark(#2f628c, #9bcbfb);
+        --note: light-dark(#a4c9e9, #315674);
+        --note-ink: light-dark(#103b5d, #d0e5ff);
+        --playing: light-dark(#6c4d0f, #ebc078);
+        font:
+          14px/1.5 system-ui,
+          sans-serif;
+        accent-color: var(--accent);
+        background: var(--bg);
+        color: var(--ink);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 9px 14px;
+        min-height: 44px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--accent);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 4px;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 3px;
+      }
+      ::selection {
+        background: var(--note);
+        color: var(--note-ink);
+      }
+      header {
+        padding: 17px 28px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        background: var(--surface);
+      }
+      .brand {
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        font-size: 19px;
+      }
+      h1 {
+        font-size: 16px;
+        font-weight: 500;
+        margin: 0;
+        padding-left: 22px;
+        border-left: 1px solid var(--line);
+      }
+      main {
+        padding: 28px;
+        max-width: 1440px;
+        margin: auto;
+      }
+      .intro {
+        margin: 0 0 22px;
+        color: var(--muted);
+        max-width: 70ch;
+      }
+      .toolbar {
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        align-items: start;
+        gap: 28px;
+        margin-bottom: 24px;
+      }
+      #play {
+        width: 108px;
+      }
+      #play[aria-pressed="true"] {
+        color: var(--playing);
+        border-color: var(--playing);
+      }
+      .glide-control {
+        max-width: 680px;
+      }
+      .control-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: baseline;
+      }
+      label {
+        font-weight: 550;
+      }
+      output {
+        font-variant-numeric: tabular-nums;
+        min-width: 146px;
+        text-align: right;
+        color: var(--accent);
+      }
+      input[type="range"] {
+        width: 100%;
+        margin: 9px 0 0;
+        height: 28px;
+        cursor: pointer;
+      }
+      .stops {
+        position: relative;
+        height: 25px;
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 8px;
+      }
+      .stops span {
+        position: absolute;
+        white-space: nowrap;
+      }
+      .stops span:nth-child(1) {
+        left: 0;
+      }
+      .stops span:nth-child(2) {
+        left: 20%;
+        transform: translateX(-50%);
+      }
+      .stops span:nth-child(3) {
+        left: 40%;
+        transform: translateX(-50%);
+      }
+      .stops span:nth-child(4) {
+        right: 0;
+      }
+      .workstation {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 286px;
+        border: 1px solid var(--line);
+      }
+      .roll {
+        min-width: 0;
+        background: var(--canvas);
+      }
+      .roll-heading {
+        min-height: 52px;
+        padding: 13px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .roll-heading strong {
+        font-weight: 550;
+      }
+      .legend {
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .legend svg {
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+      .scroll {
+        overflow-x: auto;
+        scrollbar-color: var(--line) var(--canvas);
+      }
+      #roll {
+        display: block;
+        width: 100%;
+        min-width: 820px;
+        height: 456px;
+        touch-action: pan-x;
+      }
+      .grid-line {
+        stroke: var(--line);
+        stroke-width: 0.5;
+        opacity: 0.5;
+      }
+      .grid-label {
+        fill: var(--muted);
+        font: 11px system-ui;
+      }
+      .note-shape {
+        stroke: var(--note);
+        stroke-linecap: butt;
+        stroke-linejoin: round;
+        stroke-width: 10;
+        fill: none;
+      }
+      .note-edge {
+        stroke: var(--accent);
+        stroke-width: 12;
+        fill: none;
+        stroke-linejoin: round;
+        opacity: 0.7;
+      }
+      .note-path {
+        cursor: pointer;
+      }
+      .pitch-line {
+        stroke: var(--note-ink);
+        stroke-width: 1.4;
+        fill: none;
+        pointer-events: none;
+        opacity: 0.65;
+      }
+      .note-label {
+        fill: var(--note-ink);
+        font: 600 11px system-ui;
+        pointer-events: none;
+      }
+      .anchor {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 1;
+        stroke-dasharray: 4 5;
+        opacity: 0.35;
+      }
+      .point-hit {
+        fill: transparent;
+        cursor: move;
+        touch-action: none;
+      }
+      .point-dot {
+        fill: var(--surface);
+        stroke: var(--accent);
+        stroke-width: 2;
+        pointer-events: none;
+      }
+      .point:focus .point-dot {
+        stroke: var(--ink);
+        stroke-width: 3;
+      }
+      .point {
+        outline: none;
+      }
+      .anchor-dot {
+        fill: var(--accent);
+      }
+      #playhead {
+        stroke: var(--playing);
+        stroke-width: 2;
+        pointer-events: none;
+      }
+      .roll-footer {
+        min-height: 48px;
+        padding: 12px 18px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      aside {
+        background: var(--surface);
+        border-left: 1px solid var(--line);
+      }
+      .inspector-heading {
+        padding: 13px 18px;
+        min-height: 52px;
+        background: var(--canvas);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+      }
+      .inspector-heading strong {
+        font-weight: 550;
+      }
+      .inspector-body {
+        padding: 18px;
+      }
+      .readout {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin: 0 0 20px;
+      }
+      .readout dt {
+        color: var(--muted);
+      }
+      .readout dd {
+        margin: 0;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      h2 {
+        font-size: 14px;
+        font-weight: 550;
+        margin: 20px 0 8px;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 16px;
+      }
+      #point-value {
+        min-height: 42px;
+        margin: 10px 0 18px;
+        color: var(--accent);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+      #reset {
+        width: 100%;
+      }
+      .explanation {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+      }
+      .explanation p {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 4px 0 0;
+        max-width: 50ch;
+      }
+      .explanation strong {
+        font-weight: 550;
+      }
+      .prototype {
+        margin-top: 26px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      @media (max-width: 720px) {
+        header {
+          padding: 14px 16px;
+          gap: 16px;
+        }
+        h1 {
+          padding-left: 16px;
+        }
+        main {
+          padding: 20px 16px;
+        }
+        .toolbar {
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+        .glide-control {
+          grid-row: 1;
+        }
+        .workstation {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .inspector-body {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0 20px;
+        }
+        .inspector-body h2 {
+          margin-top: 0;
+        }
+        .readout {
+          align-content: start;
+        }
+        #point-value,
+        #reset {
+          grid-column: 1 / -1;
+        }
+        #point-value {
+          min-height: 60px;
+          margin-top: 0;
+        }
+        .explanation {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+      }
+      @media (forced-colors: active) {
+        .note-shape {
+          stroke: Highlight;
+        }
+        .note-edge,
+        .pitch-line,
+        .point-dot,
+        #playhead {
+          stroke: CanvasText;
+        }
+        .note-label {
+          fill: HighlightText;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="brand">diapason</span>
+      <h1>Rhapsody in Blue</h1>
+    </header>
+    <main>
+      <p class="intro">
+        The opening trill, rising glissando and first melodic reply. Compare Glide at 0% and 100%,
+        then drag the white points to reshape the climb.
+      </p>
+      <div class="toolbar">
+        <button id="play" type="button" aria-pressed="false">Play phrase</button>
+        <div class="glide-control">
+          <div class="control-heading">
+            <label for="glide">Glide</label
+            ><output id="glide-value" for="glide">Smooth · 100%</output>
+          </div>
+          <input
+            id="glide"
+            type="range"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+            aria-describedby="glide-stops"
+          />
+          <div class="stops" id="glide-stops">
+            <span>None</span><span>Coarse</span><span>Fine</span><span>As whistled</span>
+          </div>
+        </div>
+      </div>
+      <div class="workstation">
+        <section class="roll" aria-label="Rhapsody in Blue opening clarinet phrase">
+          <div class="roll-heading">
+            <strong>Pitch over time</strong
+            ><span class="legend"
+              ><svg width="22" height="12" aria-hidden="true">
+                <path
+                  d="M0 10 Q11 10 22 2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                /></svg
+              >Sounding pitch</span
+            >
+          </div>
+          <div class="scroll">
+            <svg
+              id="roll"
+              role="group"
+              aria-label="The opening clarinet phrase in concert pitch. Select a note to edit its bend."
+              viewBox="0 0 900 456"
+            >
+              <g id="grid"></g>
+              <g id="notes"></g>
+              <g id="handles"></g>
+              <line id="playhead" y1="16" y2="424" visibility="hidden" />
+            </svg>
+          </div>
+          <div class="roll-footer" id="roll-hint">
+            The dashed outline marks the selected note’s fixed target pitch.
+          </div>
+        </section>
+        <aside aria-label="Selected note">
+          <div class="inspector-heading">
+            <strong id="note-name">#17 · Bb5</strong><span>Selected note</span>
+          </div>
+          <div class="inspector-body">
+            <dl class="readout">
+              <dt>Starts</dt>
+              <dd id="note-start">1.86 s</dd>
+              <dt>Length</dt>
+              <dd id="note-length">4.80 s</dd>
+              <dt>Target</dt>
+              <dd id="note-target">Bb5</dd>
+            </dl>
+            <div>
+              <h2>Bend points</h2>
+              <p class="hint">
+                Drag vertically to change pitch; horizontally to move a bend in time. Arrow keys
+                work too.
+              </p>
+            </div>
+            <p id="point-value" aria-live="polite">Select a white point to inspect its bend.</p>
+            <button id="reset" type="button">Reset this bend</button>
+          </div>
+        </aside>
+      </div>
+      <div class="explanation">
+        <div>
+          <strong>The shape is the sound.</strong>
+          <p>
+            Flat notes stay flat. Stepped slides become separate blocks. Above Fine, more Glide
+            gives each bend more time: brief connections become long, flowing slides.
+          </p>
+        </div>
+        <div>
+          <strong>One note, several pitches.</strong>
+          <p>
+            A bend keeps one note’s duration and identity. The white points shape the movement
+            inside it.
+          </p>
+        </div>
+        <div>
+          <strong>A fixed destination.</strong>
+          <p>
+            The small solid point marks the target pitch. Glide changes how the note reaches it.
+          </p>
+        </div>
+      </div>
+      <p class="prototype">
+        A short synthesized study of Gershwin’s opening, in concert pitch, with approximate
+        expressive timing and a clarinet-like tone.
+        <a
+          href="https://acoustics.org/pressroom/httpdocs/155th/chen.htm"
+          target="_blank"
+          rel="noreferrer"
+          >Opening reference</a
+        >. This does not change recordings or export MIDI.
+      </p>
+    </main>
+    <script>
+      const svg = document.querySelector("#roll");
+      const ns = "http://www.w3.org/2000/svg";
+      const slider = document.querySelector("#glide");
+      const pointValue = document.querySelector("#point-value");
+      const playButton = document.querySelector("#play");
+      const names = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+      const pitchName = (pitch) =>
+        names[Math.round(pitch) % 12] + (Math.floor(Math.round(pitch) / 12) - 1);
+      const flatPoints = () => [
+        [0, 0],
+        [0.32, 0],
+        [0.65, 0],
+        [1, 0],
+      ];
+      const notes = Array.from({ length: 16 }, (_, index) => ({
+        start: 0.1 + index * 0.11,
+        duration: 0.11,
+        pitch: index % 2 ? 55 : 53,
+        points: flatPoints(),
+      }));
+      notes.push({
+        start: 1.86,
+        duration: 4.8,
+        pitch: 82,
+        points: [
+          [0, -29],
+          [0.32, -12],
+          [0.65, -6],
+          [0.82, 0],
+        ],
+      });
+      let cursor = 6.66;
+      for (const [pitch, duration] of [
+        [80, 0.12],
+        [82, 0.12],
+        [80, 0.34],
+        [78, 0.34],
+        [80, 0.34],
+        [78, 0.34],
+        [80, 0.34],
+        [78, 0.34],
+        [77, 0.42],
+        [75, 0.42],
+        [74, 0.42],
+        [73, 0.95],
+      ]) {
+        notes.push({ start: cursor, duration, pitch, points: flatPoints() });
+        cursor += duration + 0.025;
+      }
+      const phraseDuration = Math.ceil(cursor + 0.4);
+      const pitchTop = 84;
+      const pitchBottom = 51;
+      const pitchStep = 12;
+      const plotBottom = 424;
+      const originals = structuredClone(notes);
+      let selected = 16;
+      let glide = 100;
+      let dragging = null;
+      let activePoint = null;
+      let audio = null;
+      let voices = [];
+      let playing = false;
+      let playStarted = 0;
+      let animation = 0;
+      const x = (time) => 54 + (time / phraseDuration) * 824;
+      const y = (pitch) => 24 + (pitchTop - pitch) * pitchStep;
+      const node = (tag, attrs) => {
+        const element = document.createElementNS(ns, tag);
+        for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, value);
+        return element;
+      };
+      function rawPitch(note, fraction, transitionShare = 1) {
+        for (let i = 1; i < note.points.length; i++) {
+          const left = note.points[i - 1],
+            right = note.points[i];
+          if (fraction <= right[0]) {
+            const position = (fraction - left[0]) / (right[0] - left[0]);
+            const t = Math.max(
+              0,
+              Math.min(1, (position - (1 - transitionShare)) / transitionShare),
+            );
+            const eased = t * t * (3 - 2 * t);
+            return note.pitch + left[1] + (right[1] - left[1]) * eased;
+          }
+        }
+        return note.pitch;
+      }
+      function heardPitch(note, fraction) {
+        if (glide === 0) return note.pitch;
+        if (glide <= 40) {
+          const raw = rawPitch(note, fraction);
+          const size = glide === 20 ? 2 : 1;
+          return note.pitch + Math.round((raw - note.pitch) / size) * size;
+        }
+        const amount = (glide - 40) / 60;
+        return rawPitch(note, fraction, 0.08 + 0.92 * amount);
+      }
+      function drawGrid() {
+        const group = document.querySelector("#grid");
+        for (let pitch = pitchBottom; pitch <= pitchTop; pitch++) {
+          group.append(
+            node("line", { x1: 48, x2: 888, y1: y(pitch), y2: y(pitch), class: "grid-line" }),
+          );
+          const label = node("text", { x: 10, y: y(pitch) + 4, class: "grid-label" });
+          label.textContent = pitchName(pitch);
+          group.append(label);
+        }
+        for (let time = 0; time <= phraseDuration; time += 2) {
+          group.append(
+            node("line", { x1: x(time), x2: x(time), y1: 16, y2: plotBottom, class: "grid-line" }),
+          );
+          const label = node("text", { x: x(time), y: plotBottom + 22, class: "grid-label" });
+          label.textContent = time + " s";
+          group.append(label);
+        }
+      }
+      function pathsFor(note) {
+        if (glide > 40 || glide === 0) {
+          return [
+            Array.from(
+              { length: 121 },
+              (_, i) =>
+                `${i ? "L" : "M"}${x(note.start + (note.duration * i) / 120)},${y(heardPitch(note, i / 120))}`,
+            ).join(" "),
+          ];
+        }
+        const paths = [];
+        let from = 0,
+          pitch = heardPitch(note, 0);
+        for (let i = 1; i <= 120; i++) {
+          const next = heardPitch(note, i / 120);
+          if (next !== pitch || i === 120) {
+            paths.push(
+              `M${x(note.start + (note.duration * from) / 120)},${y(pitch)} L${x(note.start + (note.duration * i) / 120) - 1},${y(pitch)}`,
+            );
+            from = i;
+            pitch = next;
+          }
+        }
+        return paths;
+      }
+      function render() {
+        const group = document.querySelector("#notes");
+        group.replaceChildren();
+        for (const [index, note] of notes.entries()) {
+          const item = node("g", {
+            class: "note-path",
+            "data-note": index,
+            tabindex: 0,
+            role: "button",
+            "aria-label": `Note ${index + 1}, ${pitchName(note.pitch)}, select bend`,
+            "aria-pressed": index === selected,
+          });
+          if (index === selected)
+            item.append(
+              node("rect", {
+                x: x(note.start),
+                y: y(note.pitch) - 11,
+                width: x(note.start + note.duration) - x(note.start),
+                height: 22,
+                rx: 3,
+                class: "anchor",
+              }),
+            );
+          for (const d of pathsFor(note)) {
+            item.append(node("path", { d, class: "note-edge" }));
+            item.append(node("path", { d, class: "note-shape" }));
+            if (glide > 40) item.append(node("path", { d, class: "pitch-line" }));
+          }
+          const label = node("text", {
+            x: x(note.start + note.duration) - 34,
+            y: y(heardPitch(note, 1)) + 4,
+            class: "note-label",
+          });
+          label.textContent = pitchName(note.pitch);
+          if (x(note.start + note.duration) - x(note.start) >= 38) item.append(label);
+          group.append(item);
+        }
+        const note = notes[selected];
+        document.querySelector("#note-name").textContent =
+          `#${selected + 1} · ${pitchName(note.pitch)}`;
+        document.querySelector("#note-start").textContent = note.start.toFixed(2) + " s";
+        document.querySelector("#note-length").textContent = note.duration.toFixed(2) + " s";
+        document.querySelector("#note-target").textContent = pitchName(note.pitch);
+        document.querySelector("#glide-value").textContent =
+          glide === 0
+            ? "None · 0%"
+            : glide === 20
+              ? "Coarse steps · 20%"
+              : glide === 40
+                ? "Fine steps · 40%"
+                : `Smooth · ${glide}%`;
+        slider.setAttribute("aria-valuetext", document.querySelector("#glide-value").textContent);
+        const visible = glide > 40;
+        for (const [index, point] of note.points.entries()) {
+          const handle = document.querySelector(`[data-point="${index}"]`);
+          const cx = x(note.start + note.duration * point[0]);
+          const cy = y(heardPitch(note, point[0]));
+          handle.setAttribute("transform", `translate(${cx},${cy})`);
+          handle.setAttribute("visibility", visible ? "visible" : "hidden");
+          handle.setAttribute("tabindex", visible && index < 3 ? "0" : "-1");
+          handle.setAttribute(
+            "aria-label",
+            `Bend point ${index + 1}, ${(point[0] * note.duration).toFixed(2)} seconds into note, ${point[1].toFixed(2)} semitones from target. Arrow keys change pitch and time.`,
+          );
+        }
+        document.querySelector("#roll-hint").textContent = visible
+          ? "The dashed outline marks the selected note’s fixed target pitch."
+          : "Move Glide above Fine to reveal the editable bend points.";
+      }
+      function drawHandles() {
+        const group = document.querySelector("#handles");
+        for (let i = 0; i < 4; i++) {
+          const handle = node("g", {
+            class: "point",
+            "data-point": i,
+            role: i < 3 ? "button" : "img",
+          });
+          if (i < 3) {
+            handle.append(node("circle", { r: 22, class: "point-hit" }));
+            handle.append(node("circle", { r: 6, class: "point-dot" }));
+          } else
+            handle.append(node("rect", { x: -3, y: -3, width: 6, height: 6, class: "anchor-dot" }));
+          group.append(handle);
+        }
+      }
+      function inspectPoint(index) {
+        activePoint = index;
+        const note = notes[selected],
+          point = note.points[index];
+        pointValue.textContent = `Point ${index + 1} · ${(point[0] * note.duration).toFixed(2)} s into note · ${Math.abs(point[1]).toFixed(2)} semitones ${point[1] < 0 ? "below" : "above"} target`;
+      }
+      function selectNote(index) {
+        selected = index;
+        activePoint = null;
+        pointValue.textContent = "Select a white point to inspect its bend.";
+        render();
+      }
+      function stop() {
+        playing = false;
+        cancelAnimationFrame(animation);
+        for (const voice of voices) {
+          try {
+            voice.stop();
+          } catch {}
+        }
+        voices = [];
+        playButton.textContent = "Play phrase";
+        playButton.setAttribute("aria-pressed", "false");
+        document.querySelector("#playhead").setAttribute("visibility", "hidden");
+      }
+      function schedulePhrase(context, start) {
+        const scheduled = [];
+        const real = new Float32Array(16);
+        const imaginary = new Float32Array(16);
+        for (const [harmonic, amplitude] of [
+          [1, 1],
+          [3, 0.45],
+          [5, 0.22],
+          [7, 0.11],
+          [9, 0.05],
+          [11, 0.02],
+        ])
+          imaginary[harmonic] = amplitude;
+        const clarinet = context.createPeriodicWave(real, imaginary);
+        for (const note of notes) {
+          const voice = context.createOscillator(),
+            gain = context.createGain();
+          voice.setPeriodicWave(clarinet);
+          const filter = context.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.value = 6000;
+          filter.Q.value = 0.5;
+          voice.connect(filter).connect(gain).connect(context.destination);
+          const at = start + note.start;
+          gain.gain.setValueAtTime(0, at);
+          gain.gain.linearRampToValueAtTime(0.045, at + 0.015);
+          gain.gain.setValueAtTime(0.045, at + note.duration - 0.035);
+          gain.gain.linearRampToValueAtTime(0, at + note.duration);
+          for (let i = 0; i <= 120; i++) {
+            const t = at + (note.duration * i) / 120;
+            const hz = 440 * 2 ** ((heardPitch(note, i / 120) - 69) / 12);
+            if (i === 0 || glide <= 40) voice.frequency.setValueAtTime(hz, t);
+            else voice.frequency.exponentialRampToValueAtTime(hz, t);
+          }
+          voice.start(at);
+          voice.stop(at + note.duration + 0.01);
+          scheduled.push(voice);
+        }
+        return scheduled;
+      }
+      async function play() {
+        if (playing) {
+          stop();
+          return;
+        }
+        audio ??= new AudioContext();
+        await audio.resume();
+        playStarted = audio.currentTime + 0.08;
+        document.querySelector(".scroll").scrollLeft = 0;
+        voices = schedulePhrase(audio, playStarted);
+        playing = true;
+        playButton.textContent = "Stop phrase";
+        playButton.setAttribute("aria-pressed", "true");
+        function tick() {
+          const time = audio.currentTime - playStarted;
+          if (time > phraseDuration) {
+            stop();
+            return;
+          }
+          const head = document.querySelector("#playhead");
+          head.setAttribute("visibility", "visible");
+          head.setAttribute("x1", x(Math.max(0, time)));
+          head.setAttribute("x2", x(Math.max(0, time)));
+          const scroll = document.querySelector(".scroll");
+          const headPosition = (x(Math.max(0, time)) * svg.getBoundingClientRect().width) / 900;
+          if (headPosition > scroll.scrollLeft + scroll.clientWidth * 0.8)
+            scroll.scrollLeft = headPosition - scroll.clientWidth * 0.65;
+          animation = requestAnimationFrame(tick);
+        }
+        tick();
+      }
+      slider.addEventListener("input", () => {
+        stop();
+        const value = Number(slider.value);
+        glide = value < 10 ? 0 : value < 30 ? 20 : value < 40 ? 40 : value;
+        slider.value = glide;
+        render();
+      });
+      slider.addEventListener("keydown", (event) => {
+        if (
+          glide <= 40 &&
+          ["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp"].includes(event.key)
+        ) {
+          event.preventDefault();
+          const forward = event.key === "ArrowRight" || event.key === "ArrowUp";
+          slider.value = forward
+            ? glide === 0
+              ? 20
+              : glide === 20
+                ? 40
+                : 41
+            : glide === 40
+              ? 20
+              : 0;
+          slider.dispatchEvent(new Event("input"));
+        }
+      });
+      svg.addEventListener("click", (event) => {
+        const note = event.target.closest("[data-note]");
+        if (note) selectNote(Number(note.dataset.note));
+      });
+      svg.addEventListener("pointerdown", (event) => {
+        const point = event.target.closest("[data-point]");
+        if (!point || Number(point.dataset.point) === 3 || glide <= 40) return;
+        stop();
+        event.preventDefault();
+        dragging = Number(point.dataset.point);
+        inspectPoint(dragging);
+        svg.setPointerCapture(event.pointerId);
+      });
+      svg.addEventListener("pointermove", (event) => {
+        if (dragging === null) return;
+        const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(
+          svg.getScreenCTM().inverse(),
+        );
+        const note = notes[selected],
+          knot = note.points[dragging];
+        if (dragging > 0)
+          knot[0] = Math.max(
+            note.points[dragging - 1][0] + 0.08,
+            Math.min(
+              note.points[dragging + 1][0] - 0.08,
+              (((point.x - 54) / 824) * phraseDuration - note.start) / note.duration,
+            ),
+          );
+        const desired = Math.max(
+          pitchBottom - note.pitch,
+          Math.min(pitchTop - note.pitch, pitchTop - (point.y - 24) / pitchStep - note.pitch),
+        );
+        knot[1] = desired;
+        render();
+        inspectPoint(dragging);
+      });
+      svg.addEventListener("pointerup", () => {
+        dragging = null;
+      });
+      svg.addEventListener("pointercancel", () => {
+        dragging = null;
+      });
+      svg.addEventListener("focusin", (event) => {
+        const point = event.target.closest("[data-point]");
+        if (point && Number(point.dataset.point) < 3) inspectPoint(Number(point.dataset.point));
+      });
+      svg.addEventListener("keydown", (event) => {
+        const handle = event.target.closest("[data-point]");
+        if (!handle) {
+          const note = event.target.closest("[data-note]");
+          if (note && ["Enter", " "].includes(event.key)) {
+            event.preventDefault();
+            selectNote(Number(note.dataset.note));
+          }
+          return;
+        }
+        const index = Number(handle.dataset.point);
+        if (index === 3 || !event.key.startsWith("Arrow")) return;
+        event.preventDefault();
+        stop();
+        const note = notes[selected],
+          point = note.points[index];
+        if (event.key === "ArrowUp" || event.key === "ArrowDown")
+          point[1] = Math.max(
+            pitchBottom - note.pitch,
+            Math.min(pitchTop - note.pitch, point[1] + (event.key === "ArrowUp" ? 0.25 : -0.25)),
+          );
+        else if (index > 0)
+          point[0] = Math.max(
+            note.points[index - 1][0] + 0.08,
+            Math.min(
+              note.points[index + 1][0] - 0.08,
+              point[0] + (event.key === "ArrowRight" ? 0.02 : -0.02),
+            ),
+          );
+        render();
+        inspectPoint(index);
+      });
+      document.querySelector("#reset").addEventListener("click", () => {
+        stop();
+        notes[selected].points = structuredClone(originals[selected].points);
+        render();
+        if (activePoint !== null) inspectPoint(activePoint);
+      });
+      playButton.addEventListener("click", play);
+      window.addEventListener("pagehide", stop);
+      drawGrid();
+      drawHandles();
+      render();
+    </script>
+  </body>
+</html>
