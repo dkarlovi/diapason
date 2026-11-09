@@ -11,6 +11,7 @@ interface Options {
   view: TraceView;
   enabled: boolean;
   gesture: EditGesture;
+  excludes?: (event: PointerEvent) => boolean;
 }
 
 export function rollPoint(
@@ -39,6 +40,7 @@ export function useNoteDrag(options: Options) {
     const primary = event.isPrimary !== false && (event.pointerType === "touch" || !event.button);
     return (
       enabled &&
+      !latest.current.excludes?.(event) &&
       primary &&
       !!selected &&
       !!canvas &&

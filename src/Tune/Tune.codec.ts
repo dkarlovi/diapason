@@ -1,3 +1,4 @@
+import type { NoteItem } from "../Recording/NoteItem.type";
 import { fromBase64Url as decodeBase64Url } from "../Encoding/Base64Url";
 import { recordingFromPortableTune } from "./PortableTune";
 import { processRecording } from "../Recording/Processing";
@@ -44,13 +45,11 @@ function verifyPackedMelody(expected: PortableTune, decoded: PortableTune) {
   );
   requireTune(before.items.every((item, i) => samePackedNote(item, after.items[i]!)));
 }
-function samePackedNote(
-  a: ReturnType<typeof processRecording>["items"][number],
-  b: ReturnType<typeof processRecording>["items"][number],
-): boolean {
+function samePackedNote(a: NoteItem, b: NoteItem): boolean {
   return (
     a.automatic.midi === b.automatic.midi &&
     a.note.midi === b.note.midi &&
+    JSON.stringify(a.note.bend) === JSON.stringify(b.note.bend) &&
     a.muted === b.muted &&
     Math.abs(a.note.start - b.note.start) <= 0.001 &&
     Math.abs(a.note.duration - b.note.duration) <= 0.001
@@ -72,7 +71,7 @@ export async function decodeTune(bytes: Uint8Array): Promise<PortableTune> {
   if (
     bytes.length > TUNE_LIMITS.encoded ||
     MAGIC.some((n, i) => bytes[i] !== n) ||
-    (bytes[5] !== 1 && bytes[5] !== 2) ||
+    (bytes[5] !== 1 && bytes[5] !== 2 && bytes[5] !== 3) ||
     (bytes[6] !== 0 && bytes[6] !== 1)
   )
     throw new Error("Unsupported or damaged Diapason tune. Update Diapason if this link is newer.");

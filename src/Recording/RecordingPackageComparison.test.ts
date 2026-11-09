@@ -161,3 +161,29 @@ it("uses the same numeric tolerance for musical differences as for replay eviden
   current.notes[0]!.duration += 3.552713678800501e-15;
   expect(compareSavedMelody(saved, current)).toEqual({ matches: true, differences: [] });
 });
+it("reports a bend-only musical change as corrected even when note targets and timings agree", () => {
+  if (input.metadata.schemaVersion !== 2) throw new Error("package");
+  const saved = structuredClone(input.metadata.evidence);
+  const item = saved.stages.items[0]!;
+  item.note.bend = {
+    glide: 0.7,
+    points: [
+      { position: 0, offset: -3 },
+      { position: 1, offset: 0 },
+    ],
+  };
+  item.editState = { ids: ["bend"], axes: ["bend"], differingAxes: ["bend"] };
+  saved.notes[0] = item.note;
+  const changed = structuredClone(saved);
+  changed.stages.items[0]!.note.bend!.points[0]!.offset = -2;
+  changed.notes[0] = changed.stages.items[0]!.note;
+  const comparison = compareSavedMelody(saved, changed);
+  expect(comparison.matches).toBe(false);
+  expect(comparison.differences).toMatchObject([
+    {
+      intent: "corrected",
+      kind: "matched",
+      deltas: [{ semitones: 0, startSeconds: 0, durationSeconds: 0 }],
+    },
+  ]);
+});

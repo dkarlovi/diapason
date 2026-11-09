@@ -98,3 +98,11 @@ Verification ran the full coverage suite: 146 files and 1,026 tests passed. Two 
 The updated repository documentation instructions keep the public README unchanged after review. Maintained guides now describe detection limitations, representative-pitch calculation, and the contour corpus. The implementation remains uncommitted on `issue-50-contour-evaluation`; ambiguous real note boundaries, exact slide transition allocation, and the intentional glide's discrete MIDI representation remain open.
 
 Final verification after the type-guard refactor: all 1,026 tests passed across 146 files (96.92 seconds). Typechecking, lint, naming, architecture, structure, formatting, duplication, audit, health, and the production build passed individually. No quality baselines were changed.
+
+## User review after the evaluation slice
+
+The user identified baseline Moon notes 10 and 11 (4.032–5.013333333333334 seconds) as one intended held F#6, MIDI 90. Treat the combined source coverage and single-note intent as a passage-specific regression target, not a rule to merge adjacent equal-pitch notes. The existing 32-segment arrays remain historical baseline observations; they are not rewritten to pretend the decoder already finds the intended segmentation.
+
+Adjustable glide handling is an explicit product goal: the user expects retained movement to be reproducible through discrete notes. Output for this feature remains discrete notes; MIDI pitch-bend support is not required. The control must distinguish retaining meaningful movement from suppressing passing pitches without indiscriminately swallowing intentional quick notes. Whether to extend Steadiness or expose a separate control still needs algorithm evaluation.
+
+The user described fast transitions as movement between intended notes and clarified that “shorter” means smaller pitch distance. Smaller-distance movement is evidence for retaining intentional glide detail; fast transitions are evidence for endpoint notes. These are adjustable tendencies, not absolute rules: elapsed time and pitch distance must be evaluated separately, and deliberate quick steps must remain possible.

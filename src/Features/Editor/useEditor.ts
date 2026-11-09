@@ -1,3 +1,5 @@
+import { useBendEditing } from "./useBendEditing";
+import { bendEditFor } from "../../Editing/BendEdits";
 import { compareSavedMelody } from "../../Recording/RecordingPackageComparison";
 import { keyName } from "../../Melody/Key";
 import { createPortableTune } from "../../Tune/PortableTune";
@@ -15,7 +17,8 @@ import { useEditorVersions } from "./useEditorVersions";
 import { applyEditSnapshot } from "../../Editing/EditState";
 import { captureEditSnapshot } from "../../Editing/EditState";
 import { KNOB_DEFS, isKnobs, type Knobs } from "../../Melody/Knobs";
-import { resetPitchEdit, stepPitchEdit, type NoteEdits } from "../../Editing/NoteEdits";
+import { resetPitchEdit, stepPitchEdit } from "../../Editing/NoteEdits";
+import type { NoteEdits } from "../../Editing/NoteEdits.type";
 import { useAnalysisStatus } from "../../Studio/useAnalysisStatus";
 import { useEditorPlayback } from "./useEditorPlayback";
 import { useEditorExports } from "./useEditorExports";
@@ -81,6 +84,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   const traceRef = useRef<HTMLCanvasElement>(null);
   const rollRef = useRef<HTMLCanvasElement>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [bendPoint, setBendPoint] = useState(0);
   const mounted = useRef(false);
 
   const replaceRecord = useCallback((next: Recording) => {
@@ -370,6 +374,20 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
     muted,
     edited,
     origins,
+    bendHandles:
+      selectedItem && (displayed?.interpretation.knobs.glide ?? 0) > 0.4
+        ? {
+            note: selectedItem.note,
+            active: bendPoint,
+            points: bendEditFor(record?.noteEdits, selectedItem.source)?.points ??
+              selectedItem.automatic.bend?.points ?? [
+                { position: 0, offset: 0 },
+                { position: 1 / 3, offset: 0 },
+                { position: 2 / 3, offset: 0 },
+                { position: 1, offset: 0 },
+              ],
+          }
+        : undefined,
     grid: displayGrid,
     key: displayKey,
     transpose: displayTranspose,
@@ -407,7 +425,25 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   };
   const knobBaseline = useRef<Recording | null>(null);
   const pitchBaseline = useRef<{ record: Recording; item: NoteItem } | null>(null);
-  claimRef.current = useNoteDrag({
+  const bendEditing = useBendEditing({
+    selectPoint: setBendPoint,
+    record,
+    recordRef,
+    selected: selectedItem,
+    frames,
+    view: rollView,
+    rollRef,
+    enabled: analysisReady && !showingPreview && !versions.busy && !savingTune,
+    active: history.drafting,
+    glide: interpretation?.knobs.glide ?? 0,
+    begin: history.begin,
+    update: history.update,
+    commit: history.commit,
+    cancel,
+    change: changeHistory,
+  });
+  const claimsPitch = useNoteDrag({
+    excludes: bendEditing.claims,
     rollRef,
     selected: selectedItem,
     view: rollView,
@@ -448,6 +484,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       cancel,
     },
   });
+  claimRef.current = (event) => bendEditing.claims(event) || claimsPitch(event);
   const resetSelectedPitch = () => {
     if (auditionRef.current) return;
     const item = currentSelected();
@@ -455,7 +492,11 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
       commitEdits(resetPitchEdit(recordRef.current.noteEdits, item.source), "Reset pitch");
   };
   const resetAllNoteEdits = () => {
-    if (auditionRef.current || !recordRef.current?.noteEdits?.pitch.length) return;
+    if (
+      auditionRef.current ||
+      !(recordRef.current?.noteEdits?.pitch.length || recordRef.current?.noteEdits?.bend?.length)
+    )
+      return;
     if (confirm("Reset all note edits, including inactive edits?"))
       commitEdits({ version: 1, pitch: [] }, "Reset all note edits");
   };
@@ -549,6 +590,7 @@ export function useEditor(id: string, session?: AdHocTuneSession) {
   );
 
   return {
+    bendEditing,
     displayKey,
     rollKeyDescription: displayKey
       ? `Key: ${keyName(displayKey)}. Shaded rows and exclamation badges mark pitches outside this key.`

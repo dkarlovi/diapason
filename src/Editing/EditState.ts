@@ -33,6 +33,14 @@ export function sameEditSnapshot(a: EditSnapshot, b: EditSnapshot): boolean {
           noteEdits: {
             ...snapshot.intent.noteEdits,
             pitch: snapshot.intent.noteEdits.pitch.map(({ ranges, midi }) => ({ ranges, midi })),
+            ...(snapshot.intent.noteEdits.bend
+              ? {
+                  bend: snapshot.intent.noteEdits.bend.map(({ segment, points }) => ({
+                    segment,
+                    points,
+                  })),
+                }
+              : {}),
           },
         }
       : {}),

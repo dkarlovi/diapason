@@ -1,3 +1,6 @@
+import { steppedNotes } from "../Melody/PitchCurve";
+import { bendMessages, midiMessage } from "./MidiBend";
+import type { MidiEvent } from "./Midi.type";
 import type { NoteEvent } from "../Melody/Notes";
 import { DEFAULT_PLAY, type InstrumentId } from "../Playback/Instruments";
 import type { Playback } from "../Playback/Playback.type";
@@ -27,15 +30,26 @@ export function playNotesMidi(
 ): Playback {
   const t0 = performance.now() + 50;
   const keys = new Set<number>();
-  const events: { at: number; key: number; on: boolean; end: number }[] = [];
+  const events: { at: number; event: MidiEvent; end: number }[] = [];
+  let bent = false;
   out.send([0xc0 | CHANNEL, PROGRAMS[instrument] ?? PROGRAMS.beep]);
-  for (const n of notes) {
+  for (const n of steppedNotes(notes)) {
     const key = Math.round(n.midi) + 12 * octave;
     if (key < 0 || key > 127) continue;
     const on = t0 + n.start * 1000;
     // End a hair early so back-to-back same notes don't swallow the next note-on.
     const off = on + Math.max(0, n.duration * 1000 - Math.min(5, n.duration * 500));
-    events.push({ at: on, key, on: true, end: off }, { at: off, key, on: false, end: off });
+    const bends = bendMessages(n);
+    for (const { position: _position, ...event } of bends.filter((b) => b.position === 0))
+      events.push({ at: on, event: { ...event, tick: 0 }, end: off });
+    events.push({ at: on, event: { tick: 0, midi: key, type: "on" }, end: off });
+    for (const { position, ...event } of bends.filter((b) => b.position > 0 && b.position < 1)) {
+      const at = on + position * n.duration * 1000;
+      if (at < off) events.push({ at, event: { ...event, tick: 0 }, end: off });
+    }
+    events.push({ at: off, event: { tick: 0, midi: key, type: "off" }, end: off });
+    if (bends.length)
+      events.push({ at: off, event: { tick: 0, type: "bend", value: 8192 }, end: Infinity });
   }
   const end = Math.max(
     duration,
@@ -46,14 +60,17 @@ export function playNotesMidi(
   let next = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const dispatch = () => {
+    if (stopped) return;
     const now = performance.now();
     while (next < events.length && events[next]!.at <= now) {
-      const event = events[next++]!;
-      // A throttled callback must not replay notes that have already ended.
-      if (event.on && event.end <= now) continue;
-      out.send([event.on ? 0x90 | CHANNEL : 0x80 | CHANNEL, event.key, event.on ? 100 : 0]);
-      if (event.on) keys.add(event.key);
-      else keys.delete(event.key);
+      const scheduled = events[next++]!;
+      const event = scheduled.event;
+      // Expired notes must not replay their pitch configuration after timer throttling.
+      if (event.type !== "off" && scheduled.end <= now) continue;
+      out.send(midiMessage(event, 100));
+      if (event.type === "bend") bent = event.value !== 8192;
+      if (event.type === "on") keys.add(event.midi);
+      else if (event.type === "off") keys.delete(event.midi);
     }
     if (next < events.length) {
       timer = setTimeout(dispatch, Math.max(1, events[next]!.at - performance.now()));
@@ -71,6 +88,7 @@ export function playNotesMidi(
       clearTimeout(timer);
       out.clear?.(); // drop still-scheduled messages (not in every browser)
       for (const key of keys) out.send([0x80 | CHANNEL, key, 0]);
+      if (bent) out.send([0xe0, 0, 64]);
       // Transport completion must preserve the soundfont's natural release tails,
       // just like browser synth playback. An interruption still silences immediately.
       if (performance.now() >= t0 + end * 1000) return;

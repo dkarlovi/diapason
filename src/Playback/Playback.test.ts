@@ -14,7 +14,29 @@ async function fakeAudio() {
   const starts: number[] = [];
   const ramps: number[][] = [];
   const frequencies: { value: number }[] = [];
+  const detunes: {
+    value: number;
+    setValueAtTime: ReturnType<typeof vi.fn>;
+    linearRampToValueAtTime: ReturnType<typeof vi.fn>;
+  }[] = [];
+  const detune = () => {
+    const param = { value: 0, setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() };
+    detunes.push(param);
+    return param;
+  };
   const audio = {
+    sampleRate: 48000,
+    createBuffer: (_channels: number, length: number, sampleRate: number) => ({
+      sampleRate,
+      getChannelData: () => new Float32Array(length),
+    }),
+    createBufferSource: () => ({
+      detune: detune(),
+      playbackRate: { value: 1 },
+      connect: (other: unknown) => other,
+      start: (at: number) => starts.push(at),
+      stop: (...args: number[]) => stops.push(args),
+    }),
     currentTime: 0,
     state: "running",
     destination: {},
@@ -45,6 +67,7 @@ async function fakeAudio() {
       frequencies.push(frequency);
       const node = {
         frequency,
+        detune: detune(),
         setPeriodicWave() {},
         connect: (other: unknown) => other,
         start: (at: number) => starts.push(at),
@@ -62,7 +85,7 @@ async function fakeAudio() {
     },
   );
   const { playNotes } = await import("./Playback");
-  return { audio, stops, starts, ramps, frequencies, playNotes };
+  return { audio, stops, starts, ramps, frequencies, detunes, playNotes };
 }
 
 it("lets a finished note release naturally and fades an interrupted preview", async () => {
@@ -142,5 +165,37 @@ it.each<InstrumentId>(["trumpet", "saxophone"])(
     expect(ramps.at(-1)?.[0]).toBe(0);
     expect(stops.slice(-2).map(([at]) => at)).toEqual([0.315, 0.315]);
     expect(note.midi).toBe(67);
+  },
+);
+
+it.each<InstrumentId>(["beep", "epiano", "pluck", "flute", "trumpet", "saxophone", "pad"])(
+  "bends every pitched source of %s while excluding noise and vibrato",
+  async (instrument) => {
+    const { playNotes, detunes } = await fakeAudio();
+    playNotes(
+      [
+        {
+          midi: 69,
+          name: "A4",
+          start: 0,
+          duration: 1,
+          bend: {
+            glide: 0.7,
+            points: [
+              { position: 0, offset: -12 },
+              { position: 1, offset: 0 },
+            ],
+          },
+        },
+      ],
+      1,
+      { instrument, octave: -1 },
+    );
+    const pitched = detunes.filter((param) => param.setValueAtTime.mock.calls.length);
+    expect(pitched).toHaveLength(["epiano", "flute", "pad"].includes(instrument) ? 2 : 1);
+    for (const param of pitched) {
+      expect(param.setValueAtTime.mock.calls[0]).toEqual([param.value - 1200, 0.05]);
+      expect(param.linearRampToValueAtTime.mock.calls.at(-1)).toEqual([param.value, 1.05]);
+    }
   },
 );

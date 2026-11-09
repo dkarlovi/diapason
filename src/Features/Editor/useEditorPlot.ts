@@ -15,6 +15,7 @@ import type { NoteOrigin, TraceLayer, TraceView } from "../../Audio/Trace.type";
 import { scalePitchClasses, type Key } from "../../Melody/Key";
 import {
   fittedPitch,
+  pitchAboveSheet,
   followPan,
   revealPitchShift,
   timeWindow,
@@ -30,6 +31,7 @@ interface Options {
   muted: NoteEvent[];
   edited?: NoteEvent[];
   origins?: NoteOrigin[];
+  bendHandles?: TraceView["bendHandles"] | undefined;
   grid: number;
   key?: Key | null;
   /** Semitones between the logical notes and the pitch they sound at, drawn on the roll. */
@@ -189,6 +191,7 @@ export function useEditorPlot({
   muted,
   edited,
   origins,
+  bendHandles,
   grid,
   key,
   transpose = 0,
@@ -256,6 +259,17 @@ export function useEditorPlot({
         {
           ...shiftView(shared, shift.shift),
           ...(scale ? { scale } : {}),
+          ...(bendHandles
+            ? {
+                bendHandles: {
+                  ...bendHandles,
+                  note: {
+                    ...bendHandles.note,
+                    midi: bendHandles.note.midi + shift.shift + shift.lead,
+                  },
+                },
+              }
+            : {}),
           notePitchOffset: shift.shift + shift.lead,
           animateKeyWarnings: !prefersReducedMotion(),
           ...transposedLayer(
@@ -277,6 +291,7 @@ export function useEditorPlot({
       muted,
       edited,
       origins,
+      bendHandles,
       traceOverlay,
       traceRef,
       rollRef,
@@ -325,6 +340,19 @@ export function useEditorPlot({
     fitPitch: () => {
       setPitchZoom(1);
       setPitchPan(0);
+    },
+    revealBend: (note: NoteEvent, covered: number) => {
+      const values = [
+        note.midi,
+        ...(note.bend?.points.map((point) => note.midi + point.offset) ?? []),
+      ];
+      const target = pitchAboveSheet(
+        range,
+        { midiMin: Math.min(...values), midiMax: Math.max(...values) },
+        covered,
+      );
+      setPitchZoom(target.zoom);
+      setPitchPan(target.pan);
     },
     revealPitch: (midi: number, covered: number) => {
       const shift = revealPitchShift(view, midi, covered);

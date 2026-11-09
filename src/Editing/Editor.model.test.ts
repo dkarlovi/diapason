@@ -7,6 +7,8 @@ import {
   makeReportInput,
   selectedSourceItem,
   draggedPitch,
+  hitsSelectedNote,
+  bendHandleAtPoint,
 } from "./Editor.model";
 import { KNOB_DEFS } from "../Melody/Knobs";
 import type { NoteItem } from "../Recording/NoteItem.type";
@@ -80,4 +82,50 @@ it("snaps dragged pitch to semitones within the MIDI range", () => {
   expect(draggedPitch(69, 60, 25)).toBe(67);
   expect(draggedPitch(126, -500, 25)).toBe(127);
   expect(draggedPitch(1, 500, 25)).toBe(0);
+});
+
+it("hits the sounding contour and raw editable handles independently of glide", () => {
+  const points = [
+    { position: 0, offset: -12 },
+    { position: 0.5, offset: 6 },
+    { position: 1, offset: 0 },
+  ];
+  const curved = { ...item, note: { ...item.note, bend: { points, glide: 1 } } };
+  const view = { tMin: 0, tMax: 1, midiMin: 55, midiMax: 79 };
+  const point = { x: 25, y: (79 - 57) * 10, width: 100, height: 240 };
+  expect(noteAtPoint([curved], view, point)).toBe(curved);
+  expect(hitsSelectedNote(curved, view, point)).toBe(true);
+  expect(noteAtPoint([curved], view, { ...point, y: 100 })).toBeNull();
+  expect(bendHandleAtPoint(curved, points, view, point)).toBe(0);
+  expect(bendHandleAtPoint(curved, points, view, { ...point, x: 50, y: 40 })).toBe(1);
+  expect(bendHandleAtPoint(curved, points, view, { ...point, x: 75, y: 100 })).toBeNull();
+});
+
+it("hits descending stepped blocks, including a transposed contour, and preserves item identity", () => {
+  const curved = {
+    ...item,
+    note: {
+      ...item.note,
+      midi: 81,
+      bend: {
+        glide: 0.4,
+        points: [
+          { position: 0, offset: 12 },
+          { position: 1, offset: 0 },
+        ],
+      },
+    },
+  };
+  const view = { tMin: 0, tMax: 1, midiMin: 79, midiMax: 95 };
+  expect(noteAtPoint([curved], view, { x: 25, y: 20, width: 100, height: 160 })).toBe(curved);
+  expect(hitsSelectedNote(curved, view, { x: 25, y: 20, width: 100, height: 160 })).toBe(true);
+  expect(noteAtPoint([curved], view, { x: 50, y: 80, width: 100, height: 160 })).toBe(curved);
+  expect(hitsSelectedNote(curved, view, { x: 25, y: 140, width: 100, height: 160 })).toBe(false);
+});
+it("labels the four effective Glide modes", () => {
+  const glideDef = KNOB_DEFS.find((candidate) => candidate.key === "glide")!;
+  expect(knobValueLabel(glideDef, 0)).toBe("None · 0%");
+  expect(knobValueLabel(glideDef, 0.2)).toBe("Coarse steps · 20%");
+  expect(knobValueLabel(glideDef, 0.4)).toBe("Fine steps · 40%");
+  expect(knobValueLabel(glideDef, 0.7)).toBe("Smooth · 70%");
 });

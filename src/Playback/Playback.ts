@@ -1,6 +1,7 @@
 // Editor playback: the recorded audio, or the detected notes through a tiny synth.
 // One thing plays at a time; starting a new playback stops the previous one.
 
+import { bendSamples, steppedNotes } from "../Melody/PitchCurve";
 import type { NoteEvent } from "../Melody/Notes";
 import { VOICES, DEFAULT_PLAY, type PlaySettings } from "./Instruments";
 import { activeOutput } from "../Midi/MidiOutput";
@@ -85,7 +86,7 @@ export function playNotes(
   // The playhead and every voice share this start, however long scheduling takes.
   const t0 = c.currentTime + 0.05;
   const srcs: AudioScheduledSourceNode[] = [];
-  const queue = notes.toSorted((a, b) => a.start - b.start);
+  const queue = steppedNotes(notes).toSorted((a, b) => a.start - b.start);
   let next = 0;
   // Building every voice up front blocks the click for long takes; schedule a window at a time.
   const schedule = () => {
@@ -93,7 +94,9 @@ export function playNotes(
     for (; next < queue.length && queue[next]!.start < horizon; next++) {
       const n = queue[next]!;
       const freq = 440 * 2 ** ((n.midi + 12 * octave - 69) / 12);
-      srcs.push(...voice(c, out, freq, t0 + n.start, n.duration));
+      const sounding = voice(c, out, freq, t0 + n.start, n.duration);
+      applyVoiceBend(n, sounding.pitched, t0 + n.start);
+      srcs.push(...sounding.sources);
     }
     if (next === queue.length) clearInterval(refill);
   };
@@ -108,4 +111,18 @@ export function playNotes(
       playback.stop();
     },
   };
+}
+
+function applyVoiceBend(note: NoteEvent, pitched: AudioParam[], start: number) {
+  if (!note.bend || note.bend.glide <= 0.4) return;
+  const samples = bendSamples(note);
+  for (const param of pitched) {
+    const intrinsic = param.value;
+    for (const [i, sample] of samples.entries()) {
+      const at = start + sample.position * note.duration;
+      const cents = intrinsic + sample.offset * 100;
+      if (i === 0) param.setValueAtTime(cents, at);
+      else param.linearRampToValueAtTime(cents, at);
+    }
+  }
 }

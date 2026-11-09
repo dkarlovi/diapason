@@ -14,6 +14,8 @@ import { noteSourceFromAnalysis, validateNoteSource } from "../Recording/NoteSou
 import { processRecording } from "../Recording/Processing";
 import type { Frame } from "../Melody/Notes";
 import type { PortableTune } from "./PortableTune.type";
+import { bendEditFor } from "../Editing/BendEdits";
+import { isPitchCurve } from "../Melody/PitchCurve";
 
 export const TUNE_LIMITS = {
   encoded: 1_048_576,
@@ -29,10 +31,17 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
   const original = structuredClone(
     record.noteSource ?? noteSourceFromAnalysis(record, frames, processed.interpretation.segments),
   );
-  original.interpretationVersion = interpretationVersionForControls(
+  const version = interpretationVersionForControls(
     processed.interpretation.knobs,
     melody.overrides,
   );
+  original.interpretationVersion =
+    version === 3 ||
+    original.interpretationVersion === 3 ||
+    original.segments.some((s) => s.curve) ||
+    record.noteEdits?.bend?.length
+      ? 3
+      : version;
   const rounded = structuredClone(original);
   const ms = (t: number) => Math.round(t * 1000) / 1000;
   for (const segment of rounded.segments) {
@@ -51,10 +60,15 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
     effectiveKnobs: resolveKnobs(melody.preset, melody.overrides),
     play: { ...DEFAULT_PLAY, ...record.play },
     pitchEdits: processed.items.flatMap((item, noteIndex) =>
-      item.editState.axes.length ? [{ noteIndex, midi: item.note.midi }] : [],
+      item.editState.axes.includes("pitch") ? [{ noteIndex, midi: item.note.midi }] : [],
     ),
     mutedIndices: processed.items.flatMap((item, noteIndex) => (item.muted ? [noteIndex] : [])),
   };
+  const bendEdits = processed.items.flatMap((item, noteIndex) => {
+    const edit = bendEditFor(record.noteEdits, item.source);
+    return edit ? [{ noteIndex, points: structuredClone(edit.points) }] : [];
+  });
+  if (bendEdits.length) tune.bendEdits = bendEdits;
   // Keep exact interpretation timing only when quantization changes a musical decision.
   const candidate = processRecording(recordingFromPortableTune(tune, "preview", 0), []);
   if (
@@ -89,8 +103,8 @@ function validateTuneMusic(t: PortableTune, historical: boolean) {
   requireTune(isKnobs(t.effectiveKnobs));
   const savedKnobs = withControlDefaults(t.effectiveKnobs);
   requireTune(
-    t.noteSource.interpretationVersion === 2 ||
-      interpretationVersionForControls(savedKnobs, t.melody.overrides) === 1,
+    t.noteSource.interpretationVersion >=
+      interpretationVersionForControls(savedKnobs, t.melody.overrides),
   );
   requireTune(t.play && INSTRUMENTS.some((i) => i.id === t.play.instrument));
   requireTune([1, 0, -1, -2, -3].includes(t.play.octave));
@@ -112,6 +126,16 @@ function validateTuneEdits(t: PortableTune) {
   requireTune(t.mutedIndices.every((i) => integerBetween(i, 0, count - 1)));
   requireTune(new Set(t.mutedIndices).size === t.mutedIndices.length);
   requireTune(new Set(t.pitchEdits.map((e) => e.noteIndex)).size === t.pitchEdits.length);
+  if (t.bendEdits !== undefined) {
+    requireTune(t.noteSource.interpretationVersion === 3 && Array.isArray(t.bendEdits));
+    requireTune(t.bendEdits.length <= count);
+    requireTune(
+      t.bendEdits.every(
+        (edit) => edit && integerBetween(edit.noteIndex, 0, count - 1) && isPitchCurve(edit.points),
+      ),
+    );
+    requireTune(new Set(t.bendEdits.map((edit) => edit.noteIndex)).size === t.bendEdits.length);
+  }
 }
 export function validatePortableTune(
   value: unknown,
@@ -151,6 +175,12 @@ export function recordingFromPortableTune(
       midi,
     })),
   };
+  if (tune.bendEdits?.length)
+    record.noteEdits.bend = tune.bendEdits.map(({ noteIndex, points }) => ({
+      id: `shared-bend-${noteIndex}`,
+      segment: structuredClone(noteSource.segments[noteIndex]!),
+      points: structuredClone(points),
+    }));
   // Fixed-note mutes use time membership, so future key changes cannot unmute them.
   record.muted = tune.mutedIndices.map((i) => {
     const s = noteSource.segments[i]!;

@@ -1,7 +1,9 @@
+import type { InterpretationVersion } from "./Decode.type";
 import { PackageError } from "../Recording/PackageError";
 export type GridSubdivision = 0 | 1 | 2 | 3 | 4;
 export type Mode = "auto" | "major" | "minor";
 type NumericKnob =
+  | "glide"
   | "steadiness"
   | "minNoteMs"
   | "silenceGapMs"
@@ -51,6 +53,13 @@ const RANGE_GROUPS: Record<
     ],
   },
   shape: {
+    glide: [
+      "Glide",
+      "Fixed notes, stepped slides, then smooth bends. Above Fine, higher values give bends more time.",
+      0,
+      1,
+      0.01,
+    ],
     leapPenalty: ["Smooth leaps", "Prefer smaller melodic steps.", 0, 1, 0.01],
     maxMoveSemitones: [
       "Max pitch move",
@@ -84,7 +93,7 @@ export const KNOB_DEFS: readonly KnobDef[] = [
       max,
       step,
       kind: "range",
-      basic: ["steadiness", "keyPull", "contextCorrection"].includes(key),
+      basic: ["steadiness", "keyPull", "contextCorrection", "glide"].includes(key),
     })),
   ),
   {
@@ -132,6 +141,7 @@ export interface Preset {
   knobs: Knobs;
 }
 const BASE: Knobs = {
+  glide: 0,
   steadiness: 0.6,
   minNoteMs: 80,
   silenceGapMs: 90,
@@ -254,20 +264,24 @@ export function isKnobs(value: unknown): value is Partial<Knobs> {
   });
 }
 
-/** Historical snapshots predate the explicit Context correction control. */
+/** Historical controls retain their documented neutral values. */
 export function withControlDefaults(knobs: Knobs): Knobs {
-  return { ...knobs, contextCorrection: knobs.contextCorrection ?? 0 };
+  return { ...knobs, contextCorrection: knobs.contextCorrection ?? 0, glide: knobs.glide ?? 0 };
 }
 
-/** V1 cannot encode the new control, including an explicit zero override. */
-export function interpretationVersionForControls(knobs: Knobs, overrides: Partial<Knobs>): 1 | 2 {
+/** Explicit overrides require a format that can retain their membership, including zero. */
+export function interpretationVersionForControls(
+  knobs: Knobs,
+  overrides: Partial<Knobs>,
+): InterpretationVersion {
+  if ((knobs.glide ?? 0) > 0 || overrides.glide !== undefined) return 3;
   return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined ? 2 : 1;
 }
 
 /** Materialize documented historical fields; never consult today's preset recipe. */
 export function historicalControls(
   value: Partial<Knobs>,
-  version: 1 | 2,
+  version: InterpretationVersion,
   path = "knobs",
 ): {
   values: Knobs;
@@ -275,23 +289,19 @@ export function historicalControls(
 } {
   const values = { ...value };
   const defaults: { key: keyof Knobs; value: number | string; reason: string }[] = [];
-  if (version !== 1 && version !== 2)
+  if (version !== 1 && version !== 2 && version !== 3)
     throw new PackageError("unsupported", path, "controls.version");
   for (const def of KNOB_DEFS) {
     if (values[def.key] === undefined) {
-      if (def.key === "contextCorrection" && version === 1) {
-        values.contextCorrection = 0;
-        defaults.push({
-          key: "contextCorrection",
-          value: 0,
-          reason: "Interpretation 1 predates Context correction.",
-        });
-      } else
+      const reason = historicalControlReason(def.key, version);
+      if (!reason)
         throw new PackageError(
           "historical-default",
           `${path}.${def.key}`,
           "controls.historical-default",
         );
+      Object.assign(values, { [def.key]: 0 });
+      defaults.push({ key: def.key, value: 0, reason });
     }
     if (!validValue(def, values[def.key]))
       throw new PackageError("malformed", `${path}.${def.key}`, "controls.value");
@@ -300,6 +310,13 @@ export function historicalControls(
     if (!KNOB_DEFS.some((def) => def.key === key))
       throw new PackageError("malformed", `${path}.${key}`, "controls.known");
   return { values: values as Knobs, defaults };
+}
+
+function historicalControlReason(key: keyof Knobs, version: InterpretationVersion): string | null {
+  if (key === "contextCorrection" && version === 1)
+    return "Interpretation 1 predates Context correction.";
+  if (key === "glide" && version < 3) return "Interpretations 1 and 2 predate Glide.";
+  return null;
 }
 
 /** Knobs that shape note detection; a note source freezes them when it is captured. */

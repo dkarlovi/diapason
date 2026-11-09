@@ -1,3 +1,4 @@
+import { pitchAboveSheet } from "./EditorViewport";
 import { expect, it } from "vitest";
 import {
   fittedPitch,
@@ -56,4 +57,36 @@ it("eases a transposition out while the notes briefly lead toward the target", (
   expect(third.lead).toBeCloseTo(-0.5);
   expect(transposeFrame(0, 12, TRANSPOSE_MS / 3, 0.5).lead).toBeCloseTo(0.5);
   expect(transposeFrame(0, -12, TRANSPOSE_MS, 0.5)).toEqual({ shift: -12, lead: -0, done: true });
+});
+
+it("fits ascending and descending contours including their target after octave transposition", () => {
+  const note = {
+    midi: 72,
+    name: "C5",
+    start: 0,
+    duration: 1,
+    bend: {
+      glide: 1,
+      points: [
+        { position: 0, offset: -24 },
+        { position: 0.5, offset: 12 },
+        { position: 1, offset: 0 },
+      ],
+    },
+  };
+  expect(fittedPitch([note])).toEqual({ midiMin: 46, midiMax: 86 });
+  expect(fittedPitch([{ ...note, midi: 84 }])).toEqual({ midiMin: 58, midiMax: 98 });
+  expect(fittedPitch([{ ...note, bend: { ...note.bend, glide: 0 } }])).toEqual({
+    midiMin: 70,
+    midiMax: 76,
+  });
+});
+it("fits the entire selected bend above a phone inspector", () => {
+  const range = { midiMin: 51, midiMax: 84 };
+  const target = pitchAboveSheet(range, { midiMin: 53, midiMax: 82 }, 0.42);
+  const span = (range.midiMax - range.midiMin) / target.zoom;
+  const center = (range.midiMax + range.midiMin) / 2 + target.pan;
+  const top = center + span / 2;
+  expect(top).toBeGreaterThan(82);
+  expect((top - 53) / span).toBeLessThanOrEqual(0.58);
 });

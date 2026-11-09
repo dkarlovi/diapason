@@ -1,5 +1,7 @@
+import type { SynthVoice } from "./Voice.type";
+
 // Small synthesized instruments for MIDI playback. Pure Web Audio, no samples, so it
-// works offline. Each voice schedules one note and returns its source nodes (for stop()).
+// works offline. Voices expose lifecycle sources and pitched parameters independently.
 
 export type InstrumentId = "epiano" | "pluck" | "flute" | "pad" | "beep" | "trumpet" | "saxophone";
 
@@ -21,13 +23,7 @@ export interface PlaySettings {
 
 export const DEFAULT_PLAY: PlaySettings = { instrument: "beep", octave: 0 };
 
-type Voice = (
-  c: AudioContext,
-  out: AudioNode,
-  freq: number,
-  at: number,
-  dur: number,
-) => AudioScheduledSourceNode[];
+type Voice = (c: AudioContext, out: AudioNode, freq: number, at: number, dur: number) => SynthVoice;
 
 /** Attack → hold → release envelope on a fresh gain node; returns it and the time it's silent. */
 function envelope(
@@ -80,10 +76,8 @@ const beep: Voice = (c, out, freq, at, dur) => {
   osc.type = "triangle";
   osc.frequency.value = freq;
   const [env, end] = envelope(c, at, dur, 0.01, 0.03);
-  osc.connect(env).connect(out);
-  osc.start(at);
-  osc.stop(end);
-  return [osc];
+  startVoiceSource(osc, env, out, at, end);
+  return { sources: [osc], pitched: [osc.detune] };
 };
 
 /** 2-operator FM: bright "tine" attack mellowing into a sine, with a natural decay. */
@@ -102,7 +96,7 @@ const epiano: Voice = (c, out, freq, at, dur) => {
   decay.gain.setValueAtTime(1, at);
   decay.gain.setTargetAtTime(0.35, at, 0.6);
   car.connect(decay).connect(env).connect(out);
-  return scheduleSources([car, mod], at, end);
+  return { sources: scheduleSources([car, mod], at, end), pitched: [car.detune, mod.detune] };
 };
 
 /** Karplus–Strong string, rendered into a buffer; playbackRate corrects the integer-delay tuning. */
@@ -120,11 +114,21 @@ const pluck: Voice = (c, out, freq, at, dur) => {
   src.buffer = buf;
   src.playbackRate.value = freq / (sr / (period + 0.5));
   const [env, end] = envelope(c, at, dur, 0.002, 0.15, 0.8);
-  src.connect(env).connect(out);
-  src.start(at);
-  src.stop(end);
-  return [src];
+  startVoiceSource(src, env, out, at, end);
+  return { sources: [src], pitched: [src.detune] };
 };
+
+function startVoiceSource(
+  source: AudioScheduledSourceNode,
+  gain: GainNode,
+  output: AudioNode,
+  start: number,
+  end: number,
+) {
+  source.connect(gain).connect(output);
+  source.start(start);
+  source.stop(end);
+}
 
 let noise: AudioBuffer | null = null;
 function noiseBuffer(c: AudioContext): AudioBuffer {
@@ -161,7 +165,10 @@ const flute: Voice = (c, out, freq, at, dur) => {
   h2.connect(h2g).connect(env);
   breath.connect(bp).connect(bg).connect(env);
   env.connect(out);
-  return scheduleSources([tone, h2, vib, breath], at, end);
+  return {
+    sources: scheduleSources([tone, h2, vib, breath], at, end),
+    pitched: [tone.detune, h2.detune],
+  };
 };
 
 /** Harmonic wind tone with a brightening attack and gentle delayed vibrato. */
@@ -183,7 +190,7 @@ function windVoice(harmonics: number[], attack: number, release: number): Voice 
 
     const [env, end] = envelope(c, at, dur, attack, release, 0.65);
     tone.connect(filter).connect(env).connect(out);
-    return scheduleSources([tone, vibrato], at, end);
+    return { sources: scheduleSources([tone, vibrato], at, end), pitched: [tone.detune] };
   };
 }
 
@@ -209,7 +216,7 @@ const pad: Voice = (c, out, freq, at, dur) => {
     o.stop(end);
     return o;
   });
-  return oscs;
+  return { sources: oscs, pitched: oscs.map((o) => o.detune) };
 };
 
 export const VOICES: Record<InstrumentId, Voice> = {

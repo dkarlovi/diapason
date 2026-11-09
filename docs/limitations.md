@@ -5,6 +5,11 @@
 Read this when a transcription or import does not behave as expected. See the [studio guide](studio-guide.md) for controls and [recording inspection](recording-inspection.md) for diagnosis.
 
 - Slurred repeated notes with neither a level dip nor a pitch change merge.
+- Automatic contours can mistake intentional motion for a slide or split a slide
+  into notes. Compare Glide modes and edit bend points when needed.
+- Smooth external MIDI uses standard pitch-bend messages and a configured bend
+  range. Some devices ignore that configuration or require a matching manual
+  bend range. Use Coarse steps or Fine steps for ordinary note output.
 - Steadiness can absorb quick intentional steps as well as slips. At lower values,
   connecting slides can become intermediate notes; drift within a held note can
   change its representative pitch. These detection limits are being investigated

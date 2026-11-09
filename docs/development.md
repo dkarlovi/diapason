@@ -139,6 +139,20 @@ Run the source and synthetic contour checks with:
 npm test -- src/Melody/Contours.integration.test.ts tests/support/contours.test.ts
 ```
 
+## Visual studies
+
+With `npm run dev` running, open
+`http://localhost:5173/diapason/dev/glide-study.html` for the interactive glide
+visualization study. A short synthesized excerpt of the opening clarinet phrase from
+Gershwin’s _Rhapsody in Blue_ compares fixed notes, stepped slides, and curved note
+ribbons. The opening trill and broad rising glide use approximate expressive timing
+and a clarinet-like synth. Selected notes expose draggable bend points with keyboard
+support. Above the Fine stop, the Glide slider varies the time spent bending between
+control points: lower values hold pitches longer and connect them briefly, while
+100% uses the full drawn curve. Point pitches and arrival times stay fixed.
+It does not change saved recordings or export
+MIDI. This is a design study, separate from the shipped editor.
+
 ## Deployment
 
 GitHub Actions runs `npm run check` on pull requests. Pushes to `main` (or a manual

@@ -1,19 +1,8 @@
+import type { SourceRange, PitchEdit, NoteEdits, PitchEditCoverage } from "./NoteEdits.type";
+import { isPitchCurve } from "../Melody/PitchCurve";
 import { hasProperties } from "../Encoding/Properties";
 
 /** Half-open coverage in the original analysis timeline, in seconds. */
-export interface SourceRange {
-  start: number;
-  end: number;
-}
-export interface PitchEdit {
-  id: string;
-  ranges: SourceRange[];
-  midi: number;
-}
-export interface NoteEdits {
-  version: 1;
-  pitch: PitchEdit[];
-}
 function validRange(value: unknown, duration: number): value is SourceRange {
   if (!hasProperties(value, "start", "end")) return false;
   const { start, end } = value;
@@ -34,8 +23,19 @@ export function isNoteEdits(value: unknown, durationSec: number): value is NoteE
   const layer = value;
   if (layer.version !== 1 || !Array.isArray(layer.pitch)) return false;
   const ids = new Set<string>();
-  const ranges: SourceRange[] = [];
   const pitch: readonly unknown[] = layer.pitch;
+  const ranges = collectPitchRanges(pitch, durationSec, ids);
+  if (!ranges) return false;
+  ranges.sort((a, b) => a.start - b.start);
+  if (!ranges.every((scope, i) => i === 0 || scope.start >= ranges[i - 1]!.end)) return false;
+  return validBendEdits(layer, durationSec, ids);
+}
+function collectPitchRanges(
+  pitch: readonly unknown[],
+  durationSec: number,
+  ids: Set<string>,
+): SourceRange[] | null {
+  const ranges: SourceRange[] = [];
   for (const edit of pitch) {
     if (
       !hasProperties(edit, "id", "midi", "ranges") ||
@@ -46,19 +46,19 @@ export function isNoteEdits(value: unknown, durationSec: number): value is NoteE
       !Array.isArray(edit.ranges) ||
       !edit.ranges.length
     )
-      return false;
+      return null;
     ids.add(edit.id);
     let end = -1;
     const scopes: readonly unknown[] = edit.ranges;
     for (const scope of scopes) {
-      if (!validRange(scope, durationSec) || scope.start < end) return false;
+      if (!validRange(scope, durationSec) || scope.start < end) return null;
       end = scope.end;
       ranges.push(scope);
     }
   }
-  ranges.sort((a, b) => a.start - b.start);
-  return ranges.every((scope, i) => i === 0 || scope.start >= ranges[i - 1]!.end);
+  return ranges;
 }
+
 function assertInputs(edits: NoteEdits | undefined, scope: SourceRange) {
   if (!validRange(scope, Infinity)) throw new Error("Invalid source coverage range");
   if (edits !== undefined && !isNoteEdits(edits, Infinity))
@@ -76,6 +76,7 @@ function subtract(ranges: readonly SourceRange[], scope: SourceRange): SourceRan
 export function resetPitchEdit(edits: NoteEdits | undefined, scope: SourceRange): NoteEdits {
   assertInputs(edits, scope);
   return {
+    ...edits,
     version: 1,
     pitch: (edits?.pitch ?? [])
       .map((edit) => ({ ...edit, ranges: subtract(edit.ranges, scope) }))
@@ -89,7 +90,12 @@ export function setPitchEdit(
   id: string,
 ): NoteEdits {
   assertInputs(edits, scope);
-  if (!validMidi(midi) || !id.trim() || edits?.pitch.some((edit) => edit.id === id))
+  if (
+    !validMidi(midi) ||
+    !id.trim() ||
+    edits?.pitch.some((edit) => edit.id === id) ||
+    edits?.bend?.some((edit) => edit.id === id)
+  )
     throw new Error("Invalid pitch or duplicate edit ID");
   const next = resetPitchEdit(edits, scope);
   next.pitch.push({ id, midi, ranges: [{ ...scope }] });
@@ -114,8 +120,10 @@ export function protectedNoteBoundaries(edits: NoteEdits | undefined): number[] 
         [],
     ),
   ];
+  for (const edit of edits?.bend ?? [])
+    boundaries.push(edit.segment.source.start, edit.segment.source.end);
   boundaries.sort((a, b) => a - b);
-  return boundaries;
+  return [...new Set(boundaries)];
 }
 export function pitchEditFor(
   edits: NoteEdits | undefined,
@@ -131,11 +139,6 @@ export function pitchEditFor(
       match = edit;
     }
   return match;
-}
-export interface PitchEditCoverage {
-  id: string;
-  status: "active" | "partial" | "inactive";
-  missing: SourceRange[];
 }
 export function summarizePitchEdits(
   edits: NoteEdits | undefined,
@@ -153,4 +156,40 @@ export function summarizePitchEdits(
       missing,
     };
   });
+}
+
+function validBendSegment(value: unknown, duration: number): boolean {
+  if (!hasProperties(value, "source", "start", "duration", "pitch")) return false;
+  if (!validRange(value.source, duration)) return false;
+  return (
+    typeof value.pitch === "number" &&
+    Number.isFinite(value.pitch) &&
+    value.pitch >= 0 &&
+    value.pitch <= 127 &&
+    value.start === value.source.start &&
+    typeof value.duration === "number" &&
+    Math.abs(value.duration - (value.source.end - value.source.start)) <= 1e-9 &&
+    (!("curve" in value) || isPitchCurve(value.curve))
+  );
+}
+function validBendEdits(value: object, duration: number, ids: Set<string>): boolean {
+  if (!("bend" in value) || value.bend === undefined) return true;
+  if (!Array.isArray(value.bend)) return false;
+  const ranges: SourceRange[] = [];
+  for (const edit of value.bend) {
+    if (
+      !hasProperties(edit, "id", "segment", "points") ||
+      typeof edit.id !== "string" ||
+      !edit.id.trim() ||
+      ids.has(edit.id)
+    )
+      return false;
+    if (!validBendSegment(edit.segment, duration) || !isPitchCurve(edit.points)) return false;
+    ids.add(edit.id);
+    if (!hasProperties(edit.segment, "source") || !validRange(edit.segment.source, duration))
+      return false;
+    ranges.push(edit.segment.source);
+  }
+  ranges.sort((a, b) => a.start - b.start);
+  return ranges.every((range, i) => !i || range.start >= ranges[i - 1]!.end);
 }

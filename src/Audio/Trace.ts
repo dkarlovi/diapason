@@ -2,6 +2,7 @@
 // calibration view and for inspecting recorded samples. Dependency-free 2D canvas.
 
 import { midiToName, freqToMidi, type Frame, type NoteEvent } from "../Melody/Notes";
+import { bendSamples, steppedNotes } from "../Melody/PitchCurve";
 import { isOutOfKey } from "../Melody/Key";
 import type { TraceColors, TraceLayer, TraceView } from "./Trace.type";
 import type { PitchRange } from "./Pitch";
@@ -134,6 +135,7 @@ export function drawTrace(
   drawPitchLabels(ctx, geometry, view);
   drawRangeLabels(ctx, geometry, view);
   drawKeyWarnings(ctx, geometry, view);
+  drawBendHandles(ctx, geometry, view);
 }
 
 function setLabelFont(ctx: CanvasRenderingContext2D, view: TraceView) {
@@ -426,6 +428,10 @@ function drawNoteBars(
   if (muted) {
     ctx.lineWidth = 1;
     for (const n of muted) {
+      if (n.bend?.glide) {
+        paintContour(ctx, geometry, view, n, edited.has(n), true);
+        continue;
+      }
       const x0 = xOf(n.start);
       const width = Math.max(2, xOf(n.start + n.duration) - x0);
       const y = yOf(n.midi) - semi / 2;
@@ -478,7 +484,12 @@ function drawOrigins(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, vie
     const x = xOf(from.start);
     const width = Math.max(2, xOf(from.start + from.duration) - x);
     ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, yOf(from.midi) - height / 2 + 0.5, width - 1, height - 1);
+    if (from.bend?.glide) {
+      contourPath(ctx, geometry, from, height);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(x + 0.5, yOf(from.midi) - height / 2 + 0.5, width - 1, height - 1);
+    }
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(x + 6, yOf(from.midi));
@@ -595,6 +606,10 @@ function paintNote(
   note: NoteEvent,
   edited: boolean,
 ) {
+  if (note.bend?.glide) {
+    paintContour(ctx, geometry, view, note, edited, false);
+    return;
+  }
   const { xOf, yOf, colors, semitoneHeight } = geometry;
   const x = xOf(note.start),
     width = Math.max(2, xOf(note.start + note.duration) - x);
@@ -610,10 +625,7 @@ function paintNote(
   if (striped) paintStripes(ctx, x, y, width, height, colors.noteText, 0.6);
   ctx.strokeStyle = colors.noteEdge;
   ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
-  const outOfKey = noteOutsideKey(note, view);
-  const labelWidth = width - (outOfKey ? height * 0.8 + 6 : 0);
-  if (labelWidth >= Math.max(23, ctx.measureText(note.name).width + 6) && height >= 9)
-    paintLabel(ctx, colors.noteText, note.name, x, y, labelWidth, height, striped ? fill : null);
+  paintNoteName(ctx, geometry, view, note, height, striped ? fill : null);
 }
 
 function drawBeatLine(
@@ -639,4 +651,156 @@ function drawBeatLine(
     ctx.textBaseline = "top";
     ctx.fillText(index < 0 ? "Count-in" : String(index / perBar + 1), x + 3, labelY);
   }
+}
+
+function contourPath(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  note: NoteEvent,
+  height: number,
+) {
+  const { xOf, yOf } = geometry;
+  ctx.beginPath();
+  if (note.bend!.glide <= 0.4) {
+    for (const step of steppedNotes([note])) {
+      const x = xOf(step.start);
+      ctx.rect(x, yOf(step.midi) - height / 2, xOf(step.start + step.duration) - x, height);
+    }
+    return;
+  }
+  const samples = bendSamples(note);
+  ctx.moveTo(xOf(note.start), yOf(note.midi + samples[0]!.offset) - height / 2);
+  for (const sample of samples)
+    ctx.lineTo(
+      xOf(note.start + sample.position * note.duration),
+      yOf(note.midi + sample.offset) - height / 2,
+    );
+  for (const sample of samples.toReversed())
+    ctx.lineTo(
+      xOf(note.start + sample.position * note.duration),
+      yOf(note.midi + sample.offset) + height / 2,
+    );
+  ctx.closePath();
+}
+
+function paintContour(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+  note: NoteEvent,
+  edited: boolean,
+  muted: boolean,
+) {
+  const { xOf, yOf, colors, semitoneHeight } = geometry;
+  const x = xOf(note.start);
+  const width = Math.max(2, xOf(note.start + note.duration) - x);
+  const height = semitoneHeight * (muted ? 1 : (view.noteHeight ?? 1));
+  const sounding = !muted && isSounding(view.playheadTime, note);
+  const fill = sounding ? colors.playhead : colors.note;
+  paintContourBody(ctx, geometry, note, height, fill, muted);
+  if (edited && !sounding) paintContourStripes(ctx, geometry, note, height, muted);
+  ctx.strokeStyle = colors.label;
+  ctx.globalAlpha = 0.3;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(x, yOf(note.midi));
+  ctx.lineTo(x + width, yOf(note.midi));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+  if (!muted) paintNoteName(ctx, geometry, view, note, height, fill);
+}
+
+function paintContourBody(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  note: NoteEvent,
+  height: number,
+  fill: string,
+  muted: boolean,
+) {
+  ctx.fillStyle = fill;
+  contourPath(ctx, geometry, note, height);
+  if (!muted) {
+    ctx.globalAlpha = 0.85;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.strokeStyle = muted ? geometry.colors.label : geometry.colors.noteEdge;
+  ctx.setLineDash(muted ? [3, 3] : []);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function paintContourStripes(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  note: NoteEvent,
+  height: number,
+  muted: boolean,
+) {
+  const { xOf, yOf, colors } = geometry;
+  const pitches = bendSamples(note).map((sample) => note.midi + sample.offset);
+  const top = yOf(Math.max(...pitches)) - height / 2;
+  const bottom = yOf(Math.min(...pitches)) + height / 2;
+  ctx.save();
+  contourPath(ctx, geometry, note, height);
+  ctx.clip();
+  paintStripes(
+    ctx,
+    xOf(note.start),
+    top,
+    Math.max(2, xOf(note.start + note.duration) - xOf(note.start)),
+    bottom - top,
+    muted ? colors.label : colors.noteText,
+    muted ? 0.35 : 0.6,
+  );
+  ctx.restore();
+}
+
+function paintNoteName(
+  ctx: CanvasRenderingContext2D,
+  geometry: TraceGeometry,
+  view: TraceView,
+  note: NoteEvent,
+  height: number,
+  plate: string | null,
+) {
+  const x = geometry.xOf(note.start);
+  const width = Math.max(2, geometry.xOf(note.start + note.duration) - x);
+  const labelWidth = width - (noteOutsideKey(note, view) ? height * 0.8 + 6 : 0);
+  if (labelWidth >= Math.max(23, ctx.measureText(note.name).width + 6) && height >= 9)
+    paintLabel(
+      ctx,
+      geometry.colors.noteText,
+      note.name,
+      x,
+      geometry.yOf(note.midi) - height / 2,
+      labelWidth,
+      height,
+      plate,
+    );
+}
+
+function drawBendHandles(ctx: CanvasRenderingContext2D, geometry: TraceGeometry, view: TraceView) {
+  if (!view.bendHandles) return;
+  const { note, points, active } = view.bendHandles;
+  const { xOf, yOf, colors } = geometry;
+  points.forEach((point, index) => {
+    const destination = index === points.length - 1;
+    ctx.fillStyle = destination ? colors.noteEdge : "#ffffff";
+    ctx.strokeStyle = colors.noteText;
+    ctx.lineWidth = index === active ? 3 : 1.5;
+    ctx.beginPath();
+    ctx.arc(
+      xOf(note.start + point.position * note.duration),
+      yOf(note.midi + point.offset),
+      destination ? 4 : 6,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.lineWidth = 1;
 }

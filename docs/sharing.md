@@ -18,9 +18,11 @@ In the Library recording actions or the editor's main recording dropdown,
 **Copy tune link** packs the current melody into an ordinary URL. The editor
 finishes the current gesture before copying; temporary tunes stay unsaved. **Download MIDI** in the Library or editor produces a playable
 Diapason MIDI file containing the same editable tune. Both carry your current
-preset/key, control choices, pitch corrections, mutes, instrument and octave.
+preset/key, control choices, pitch corrections, automatic contours, manual bend
+edits, mutes, instrument and octave.
 Corrections remain marked as edits; resetting one returns to the automatic pitch
-under the current musical settings. Muted notes can be unmuted.
+under the current musical settings. Reset bend restores the automatic contour;
+whole-note pitch edits transpose it. Muted notes can be unmuted.
 
 ## Open and save a tune link
 
@@ -68,6 +70,13 @@ by Diapason can be imported; ordinary MIDI import is unsupported. Other programs
 can play the rendered MIDI, though their instrument sounds vary, and may remove
 or invalidate Diapason metadata if they edit/re-save the file. The recipient's
 MIDI device routing and viewport are local choices.
+
+Smooth Glide output includes standard MIDI 1.0 pitch-bend messages, bend-range
+configuration, and resets. Coarse and Fine steps use ordinary notes. Devices that
+ignore the range configuration may need their bend range set manually. Saved
+automatic and manual curves remain separate in editable metadata, so their
+controls and resets survive a round trip. Older tunes without curves retain their
+saved interpretation and flat MIDI output.
 
 See [the portable format](portable-tune-format.md) for packing, compatibility
 rules, decoder limits and reproducible size measurements.

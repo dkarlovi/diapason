@@ -1,5 +1,6 @@
+import type { PitchPoint } from "./PitchCurve.type";
 import type { Key } from "./Key";
-import type { SourceRange } from "../Editing/NoteEdits";
+import type { SourceRange } from "../Editing/NoteEdits.type";
 
 export interface PitchContext {
   key: Key | null;
@@ -11,8 +12,11 @@ export interface PitchContext {
   meter: { beat: number; lag: number } | null;
 }
 
-/** One performed note, in seconds, with a single continuous pitch. */
+export type InterpretationVersion = 1 | 2 | 3;
+
+/** One performed note, in seconds, with an optional pitch contour. */
 export interface Segment {
+  curve?: PitchPoint[];
   source: SourceRange;
   start: number;
   duration: number;

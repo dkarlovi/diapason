@@ -39,7 +39,10 @@ export function EmbeddedRecordingActions({ state }: { state: EditorState }) {
           Copy tune link
         </Button>
         <Button
-          disabled={!state.canEditPitch || !state.record?.noteEdits?.pitch.length}
+          disabled={
+            !state.canEditPitch ||
+            !(state.record?.noteEdits?.pitch.length || state.record?.noteEdits?.bend?.length)
+          }
           onClick={() => run(state.resetAllNoteEdits)}
         >
           Reset edits

@@ -51,7 +51,7 @@ it("Clean exports the approved intro MIDI byte for byte", async () => {
   expect(
     midiEvents(notes, { bpm: intro.record.bpm })
       .filter((event) => event.type === "on")
-      .map((event) => [midiToName(event.midi), event.tick / eighth]),
+      .map((event) => [midiToName("midi" in event ? event.midi : 0), event.tick / eighth]),
   ).toEqual(intended.map(([name, start]) => [name, start * 2]));
   const exported = new Uint8Array(
     await notesToMidi(notes, { bpm: intro.record.bpm }).arrayBuffer(),

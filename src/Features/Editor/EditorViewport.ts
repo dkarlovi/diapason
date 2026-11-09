@@ -1,4 +1,5 @@
 import { traceHorizontalPadding } from "../../Audio/Trace";
+import { bendSamples } from "../../Melody/PitchCurve";
 import type { NoteEvent } from "../../Melody/Notes";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -34,13 +35,25 @@ export function followPan(
   if (!maxStart || (position >= tMin && position < tMin + length * 0.85)) return pan;
   return clamp((position - length * 0.2) / maxStart, 0, 1);
 }
-export function fittedPitch(notes: Pick<NoteEvent, "midi">[]) {
+export function fittedPitch(notes: (Pick<NoteEvent, "midi"> & Partial<NoteEvent>)[]) {
   if (!notes.length) return { midiMin: 67, midiMax: 96 };
   let min = Infinity,
     max = -Infinity;
   for (const note of notes) {
     min = Math.min(min, note.midi);
     max = Math.max(max, note.midi);
+    if (note.bend) {
+      const samples = bendSamples({
+        ...note,
+        start: note.start ?? 0,
+        duration: note.duration ?? 1,
+        name: note.name ?? "",
+      });
+      for (const sample of samples) {
+        min = Math.min(min, note.midi + sample.offset);
+        max = Math.max(max, note.midi + sample.offset);
+      }
+    }
   }
   const midiMin = Math.floor(min) - 2;
   return { midiMin, midiMax: Math.max(Math.ceil(max) + 2, midiMin + 6) };
@@ -88,5 +101,20 @@ export function transposeFrame(from: number, to: number, elapsed: number, lead =
     shift: from + (to - from) * easeOut(progress),
     lead: Math.sign(to - from) * lead * overshoot(progress),
     done: progress >= 1,
+  };
+}
+export function pitchAboveSheet(
+  range: { midiMin: number; midiMax: number },
+  selected: { midiMin: number; midiMax: number },
+  covered: number,
+) {
+  const span = Math.min(
+    127,
+    (selected.midiMax - selected.midiMin + 2) / (1 - clamp(covered, 0, 0.8)),
+  );
+  const center = selected.midiMax + 1 - span / 2;
+  return {
+    zoom: (range.midiMax - range.midiMin) / span,
+    pan: center - (range.midiMin + range.midiMax) / 2,
   };
 }

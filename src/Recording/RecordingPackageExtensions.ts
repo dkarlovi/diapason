@@ -2,6 +2,8 @@ import { isObject } from "../Diagnostics/Diagnostics.validation";
 import { KNOB_DEFS } from "../Melody/Knobs";
 
 function optionalKnownKeys(path: string): string[] {
+  if (path.endsWith(".noteEdits")) return ["bend"];
+  if (path === "tune") return ["bendEdits"];
   if (path === "intent.intent")
     return ["melody", "tuning", "quantize", "noteEdits", "muted", "play"];
   if (path.endsWith(".overrides")) return KNOB_DEFS.map((d) => d.key);
