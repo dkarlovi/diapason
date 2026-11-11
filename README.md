@@ -49,6 +49,6 @@ Use `npm run build` for a production build and `npm run check` for the full chec
 Product intent lives in [PRODUCT.md](PRODUCT.md); interface guidance lives in
 [DESIGN.md](DESIGN.md). Coding agents should start with [AGENTS.md](AGENTS.md) and
 use the [recording investigation skill](.agents/skills/diapason-recordings/SKILL.md)
-when working with a supplied WAV.
+when investigating recording or interpretation behavior, including repository fixtures.
 
 Report bugs and follow planned work in [GitHub issues](https://github.com/dkarlovi/diapason/issues).
