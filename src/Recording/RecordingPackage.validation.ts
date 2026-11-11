@@ -317,7 +317,7 @@ function validateStructure(value: unknown): asserts value is RecordingPackageV2 
   requiredObject(p.provenance.build, "provenance.build");
 
   const version = p.tune.noteSource.interpretationVersion;
-  if (version !== 1 && version !== 2 && version !== 3 && version !== 4)
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4 && version !== 5)
     throw new PackageError(
       "unsupported",
       "tune.noteSource.interpretationVersion",

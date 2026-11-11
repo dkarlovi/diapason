@@ -5,6 +5,7 @@ import { loadFixture } from "../../tests/support/fixtures";
 import { noteRecording } from "../../tests/support/note-recording";
 import { processRecording } from "../Recording/Processing";
 import type { Recording } from "../Recording/Recording.type";
+import type { InterpretationVersion } from "./Decode.type";
 import { PRESETS, resolveKnobs, type PresetId } from "./Knobs";
 
 const intro = loadFixture("whistle-intro");
@@ -38,21 +39,33 @@ const offered = Object.values(PRESETS)
   .filter((preset) => preset.kind !== "retired")
   .map((preset) => preset.id);
 
-function outputs(preset: PresetId): string[] {
+function outputs(preset: PresetId, version: InterpretationVersion): string[] {
   return fixtures.map(({ record, frames }) =>
     JSON.stringify(
-      processRecording({ ...record, melody: { preset, overrides: {}, key: "auto" } }, frames).notes,
+      processRecording(
+        {
+          ...(record.noteSource
+            ? { ...record, noteSource: { ...record.noteSource, interpretationVersion: version } }
+            : { ...record, interpretationVersion: version }),
+          melody: { preset, overrides: {}, key: "auto" },
+        },
+        frames,
+      ).notes,
     ),
   );
 }
 
-it("every offered preset sounds different from every other on some fixture", () => {
-  const sounds = new Map(offered.map((preset) => [preset, outputs(preset)]));
-  const identical = offered.flatMap((a, i) =>
-    offered
-      .slice(i + 1)
-      .filter((b) => sounds.get(a)!.every((output, f) => output === sounds.get(b)![f]))
-      .map((b) => `${a} = ${b}`),
-  );
-  expect(identical).toEqual([]);
-}, 60_000);
+it.each([1, 5] as const)(
+  "every offered preset sounds different from every other on some fixture in v%s",
+  (version) => {
+    const sounds = new Map(offered.map((preset) => [preset, outputs(preset, version)]));
+    const identical = offered.flatMap((a, i) =>
+      offered
+        .slice(i + 1)
+        .filter((b) => sounds.get(a)!.every((output, f) => output === sounds.get(b)![f]))
+        .map((b) => `${a} = ${b}`),
+    );
+    expect(identical).toEqual([]);
+  },
+  60_000,
+);

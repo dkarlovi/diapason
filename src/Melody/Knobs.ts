@@ -273,9 +273,9 @@ export function withControlDefaults(knobs: Knobs): Knobs {
 export function interpretationVersionForControls(
   knobs: Knobs,
   overrides: Partial<Knobs>,
-  version: InterpretationVersion = 4,
+  version: InterpretationVersion = 5,
 ): InterpretationVersion {
-  if (version === 4) return 4;
+  if (version >= 4) return version;
   if ((knobs.glide ?? 0) > 0 || overrides.glide !== undefined) return 3;
   if (version === 3) return 3;
   return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined
@@ -294,7 +294,7 @@ export function historicalControls(
 } {
   const values = { ...value };
   const defaults: { key: keyof Knobs; value: number | string; reason: string }[] = [];
-  if (version !== 1 && version !== 2 && version !== 3 && version !== 4)
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4 && version !== 5)
     throw new PackageError("unsupported", path, "controls.version");
   for (const def of KNOB_DEFS) {
     if (values[def.key] === undefined) {

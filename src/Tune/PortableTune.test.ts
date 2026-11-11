@@ -307,7 +307,7 @@ it("rejects source coverage beyond the declared duration before offering an edit
   await expect(encodeTune(tune)).rejects.toThrow();
 });
 
-it.each([1, 2, 3, 4] as const)(
+it.each([1, 2, 3, 4, 5] as const)(
   "preserves interpretation %s key decisions through sharing and MIDI",
   async (version) => {
     const record = noteRecording();
@@ -336,18 +336,67 @@ it.each([1, 2, 3, 4] as const)(
   },
 );
 
-it("retains v4 automatic and manual contours through the binary payload", async () => {
-  const record = noteRecording();
-  record.noteSource.interpretationVersion = 4;
-  record.noteSource.segments[0]!.curve = automaticCurve;
-  record.melody!.overrides.glide = 0.7;
-  record.noteEdits = {
-    version: 1,
-    pitch: [],
-    bend: [{ id: "bend", segment: record.noteSource.segments[0]!, points: manualCurve }],
-  };
-  const decoded = await decodeTune(await encodeTune(createPortableTune(record, [])));
-  expect(decoded.noteSource.interpretationVersion).toBe(4);
-  expect(decoded.noteSource.segments[0]!.curve).toEqual(automaticCurve);
-  expect(decoded.bendEdits).toEqual([{ noteIndex: 0, points: manualCurve }]);
-});
+it.each([
+  { version: 4 as const, glide: 0 },
+  { version: 4 as const, glide: 0.7 },
+  { version: 5 as const, glide: 0 },
+  { version: 5 as const, glide: 0.7 },
+])(
+  "retains v$version automatic and manual contours through the binary payload at Glide $glide",
+  async ({ version, glide }) => {
+    const record = noteRecording();
+    record.noteSource.interpretationVersion = version;
+    record.noteSource.segments[0]!.curve = automaticCurve;
+    record.melody!.overrides.glide = glide;
+    record.noteEdits = {
+      version: 1,
+      pitch: [],
+      bend: [{ id: "bend", segment: record.noteSource.segments[0]!, points: manualCurve }],
+    };
+    const decoded = await decodeTune(await encodeTune(createPortableTune(record, [])));
+    expect(decoded.noteSource.interpretationVersion).toBe(version);
+    expect(decoded.noteSource.segments[0]!.curve).toEqual(automaticCurve);
+    expect(decoded.bendEdits).toEqual([{ noteIndex: 0, points: manualCurve }]);
+  },
+);
+
+it.each([
+  { version: 4 as const, expectedPitch: 61 },
+  { version: 5 as const, expectedPitch: 62 },
+])(
+  "retains v$version intermediate-pull decisions through sharing and MIDI",
+  async ({ version, expectedPitch }) => {
+    const record = noteRecording();
+    const pitches = [...Array.from({ length: 4 }, () => [60, 64, 67, 72]).flat(), 61.46];
+    record.durationSec = pitches.length * 0.25;
+    record.noteSource.interpretationVersion = version;
+    record.noteSource.segments = pitches.map((pitch, i) => ({
+      pitch,
+      start: i * 0.25,
+      duration: 0.25,
+      source: { start: i * 0.25, end: (i + 1) * 0.25 },
+    }));
+    record.melody = {
+      preset: "as-played",
+      overrides: { keyPull: 0.5 },
+      key: { tonic: 0, mode: "major" },
+    };
+    const expected = [...pitches.slice(0, -1), expectedPitch];
+    expect(processRecording(record, []).notes.map((note) => note.midi)).toEqual(expected);
+    const tune = createPortableTune(record, []);
+    const decoded = await decodeTune(await encodeTune(tune));
+    const { encodeTuneMidi, decodeTuneMidi } = await import("../Midi/TuneMidi");
+    const midi = await decodeTuneMidi(
+      new Uint8Array(await (await encodeTuneMidi(tune)).arrayBuffer()),
+    );
+    for (const restored of [decoded, midi]) {
+      expect(restored.noteSource.interpretationVersion).toBe(version);
+      expect(
+        processRecording(recordingFromPortableTune(restored, "pull", 0), []).notes.map(
+          (note) => note.midi,
+        ),
+      ).toEqual(expected);
+    }
+  },
+  30_000,
+);

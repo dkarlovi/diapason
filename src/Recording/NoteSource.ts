@@ -62,7 +62,7 @@ function validateSourceContext(source: NoteSource, historical: boolean) {
   requireTune(
     historical
       ? Number.isSafeInteger(source.interpretationVersion) && source.interpretationVersion > 0
-      : [1, 2, 3, 4].includes(source.interpretationVersion),
+      : [1, 2, 3, 4, 5].includes(source.interpretationVersion),
   );
   requireTune(Array.isArray(source.segments));
   requireTune(

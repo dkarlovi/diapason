@@ -12,7 +12,7 @@ export interface PitchContext {
   meter: { beat: number; lag: number } | null;
 }
 
-export type InterpretationVersion = 1 | 2 | 3 | 4;
+export type InterpretationVersion = 1 | 2 | 3 | 4 | 5;
 
 /** One performed note, in seconds, with an optional pitch contour. */
 export interface Segment {

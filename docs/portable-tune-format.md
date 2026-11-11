@@ -8,7 +8,7 @@ sender-local recording ID.
 ## Envelope and URL
 
 Bytes 0–3 are ASCII `DPSN`; byte 4 is schema version 1; byte 5 is interpretation
-version 1, 2, 3 or 4; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
+version 1, 2, 3, 4 or 5; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
 fields below, with no trailing data. Choose gzip only when it is smaller than the
 raw representation. URLs use unpadded canonical base64url after
 `/diapason/#tune=`. The Library offers import before any candidate writes.
@@ -36,13 +36,21 @@ it rather than flattening its melody.
 
 Interpretation v4 keeps the performer's tuning independent of the selected key.
 An explicit key takes precedence over Mode; Mode recasts only an automatic key.
-The wire fields are identical to v3. New recordings and fresh WAV imports use v4;
-existing versioned tunes and restored WAV packages retain their interpretation.
+The wire fields are identical to v3. Existing versioned tunes and restored WAV
+packages retain their interpretation.
 Unversioned local recordings retain the historical control-based version (v1–v3).
 With Glide off, v4 uses the fixed-note segmentation; enabling Glide uses contour
 segmentation. Fixed source contours and bend edits remain representable at zero.
 Readers that do not support v4 reject it. Re-sharing retains the source version,
 upgrading only when added controls require a newer format.
+
+Interpretation v5 rescales the base key and chord prior so its strength relative
+to pitch evidence grows linearly with Pull into key. Zero and full pull retain
+v4 scoring, including its exact endpoint arithmetic. Context correction and the
+optional Max pitch move retain their separate behavior. New recordings and fresh
+WAV imports use v5; saved v1–v4 tunes retain their scoring. V5 uses the same wire
+fields and note-detection behavior as v4. Readers that do not support v5 reject
+it; re-sharing must not upgrade or downgrade its interpretation.
 
 A contour has 2–32 points, each with a finite normalized position and a finite
 semitone offset from its target pitch. Positions strictly increase from 0 to 1;
