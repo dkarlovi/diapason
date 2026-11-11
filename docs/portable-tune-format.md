@@ -8,7 +8,7 @@ sender-local recording ID.
 ## Envelope and URL
 
 Bytes 0–3 are ASCII `DPSN`; byte 4 is schema version 1; byte 5 is interpretation
-version 1, 2 or 3; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
+version 1, 2, 3 or 4; byte 6 is 0 for raw fields or 1 for gzip. Remaining bytes contain the
 fields below, with no trailing data. Choose gzip only when it is smaller than the
 raw representation. URLs use unpadded canonical base64url after
 `/diapason/#tune=`. The Library offers import before any candidate writes.
@@ -33,6 +33,16 @@ override, including zero, requires v3. Source contours and manual bend edits sta
 separate; pitch edits transpose a contour, and timing edits retain its normalized
 positions. V1/v2 encodings remain unchanged. Readers that do not support v3 reject
 it rather than flattening its melody.
+
+Interpretation v4 keeps the performer's tuning independent of the selected key.
+An explicit key takes precedence over Mode; Mode recasts only an automatic key.
+The wire fields are identical to v3. New recordings and fresh WAV imports use v4;
+existing versioned tunes and restored WAV packages retain their interpretation.
+Unversioned local recordings retain the historical control-based version (v1–v3).
+With Glide off, v4 uses the fixed-note segmentation; enabling Glide uses contour
+segmentation. Fixed source contours and bend edits remain representable at zero.
+Readers that do not support v4 reject it. Re-sharing retains the source version,
+upgrading only when added controls require a newer format.
 
 A contour has 2–32 points, each with a finite normalized position and a finite
 semitone offset from its target pitch. Positions strictly increase from 0 to 1;
@@ -67,7 +77,7 @@ UTF-8 strings have a byte-length varint and are decoded strictly.
    bit 14, a 0–1 range in 0.01 steps with the same Float64 escape; v1/v2 reject it.
 7. Note count, then each note in chronological order:
    - Flags: fractional pitch (bit 0), muted (bit 1), manual pitch override (bit 2),
-     exact interpretation timing refinement (bit 3). V3 also permits automatic
+     exact interpretation timing refinement (bit 3). V3/v4 also permit automatic
      source contour (bit 4) and manual bend edit (bit 5); v1/v2 reject these bits.
      Other bits are invalid.
    - Start delta from the preceding integer millisecond start, then duration in

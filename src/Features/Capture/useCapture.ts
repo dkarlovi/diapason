@@ -184,6 +184,7 @@ export function useCapture() {
         id: uid(),
         name: `Recording ${fmtDate(now)}`,
         createdAt: now,
+        interpretationVersion: 4,
         sampleRate: opened.sampleRate,
         durationSec: trimmed.length / opened.sampleRate,
         bpm: settings.bpm,

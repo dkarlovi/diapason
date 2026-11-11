@@ -31,17 +31,13 @@ export function createPortableTune(record: Recording, frames: Frame[]): Portable
   const original = structuredClone(
     record.noteSource ?? noteSourceFromAnalysis(record, frames, processed.interpretation.segments),
   );
-  const version = interpretationVersionForControls(
+  original.interpretationVersion = interpretationVersionForControls(
     processed.interpretation.knobs,
-    melody.overrides,
+    original.segments.some((s) => s.curve) || record.noteEdits?.bend?.length
+      ? { ...melody.overrides, glide: processed.interpretation.knobs.glide }
+      : melody.overrides,
+    original.interpretationVersion,
   );
-  original.interpretationVersion =
-    version === 3 ||
-    original.interpretationVersion === 3 ||
-    original.segments.some((s) => s.curve) ||
-    record.noteEdits?.bend?.length
-      ? 3
-      : version;
   const rounded = structuredClone(original);
   const ms = (t: number) => Math.round(t * 1000) / 1000;
   for (const segment of rounded.segments) {
@@ -104,7 +100,7 @@ function validateTuneMusic(t: PortableTune, historical: boolean) {
   const savedKnobs = withControlDefaults(t.effectiveKnobs);
   requireTune(
     t.noteSource.interpretationVersion >=
-      interpretationVersionForControls(savedKnobs, t.melody.overrides),
+      interpretationVersionForControls(savedKnobs, t.melody.overrides, 1),
   );
   requireTune(t.play && INSTRUMENTS.some((i) => i.id === t.play.instrument));
   requireTune([1, 0, -1, -2, -3].includes(t.play.octave));
@@ -127,7 +123,7 @@ function validateTuneEdits(t: PortableTune) {
   requireTune(new Set(t.mutedIndices).size === t.mutedIndices.length);
   requireTune(new Set(t.pitchEdits.map((e) => e.noteIndex)).size === t.pitchEdits.length);
   if (t.bendEdits !== undefined) {
-    requireTune(t.noteSource.interpretationVersion === 3 && Array.isArray(t.bendEdits));
+    requireTune(t.noteSource.interpretationVersion >= 3 && Array.isArray(t.bendEdits));
     requireTune(t.bendEdits.length <= count);
     requireTune(
       t.bendEdits.every(

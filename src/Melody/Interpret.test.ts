@@ -5,7 +5,7 @@ import { freqToMidi, type NoteEvent } from "./Notes";
 import { analyzeRecording } from "../Analysis/RecordingAnalysis";
 import { PRESETS } from "./Knobs";
 import { keyName } from "./Key";
-import { interpretMelody } from "./Interpret";
+import { interpretMelody, interpretSegments } from "./Interpret";
 const take1 = loadFixture("whistle-regression");
 const take2 = loadFixture("whistle-take2");
 const input = {
@@ -130,4 +130,81 @@ it("exposes aligned source segments and respects protected boundaries", () => {
   const result = interpretMelody(take1.frames, { ...input, protectedBoundaries: [cut] });
   expect(result.segments).toHaveLength(result.notes.length);
   result.segments.forEach((s) => expect(s.source.start < cut && s.source.end > cut).toBe(false));
+});
+
+it.each([take1, take2])(
+  "zero key pull preserves pitches across all explicit keys",
+  (take) => {
+    const knobs = { ...PRESETS["as-played"].knobs, contextCorrection: 1 };
+    const auto = interpretMelody(take.frames, { ...input, knobs });
+    for (let tonic = 0; tonic < 12; tonic++) {
+      for (const mode of ["major", "minor"] as const) {
+        const keyed = interpretSegments(auto.segments, { ...input, knobs, key: { tonic, mode } });
+        expect(keyed.tuning).toBe(auto.tuning);
+        expect(keyed.decoded).toEqual(auto.decoded);
+      }
+    }
+  },
+  30_000,
+);
+
+it.each([0, 0.5, 1])("key selection preserves performed tuning at pull %s", (keyPull) => {
+  const knobs = { ...PRESETS["auto-pitch"].knobs, keyPull };
+  const auto = interpretMelody(take2.frames, { ...input, knobs });
+  const keyed = interpretMelody(take2.frames, {
+    ...input,
+    knobs,
+    key: { tonic: 3, mode: "major" },
+  });
+  expect(keyed.tuning).toBe(auto.tuning);
+});
+
+it.each(["major", "minor"] as const)("an explicit key takes precedence over %s Mode", (mode) => {
+  const key = { tonic: 4, mode: mode === "major" ? ("minor" as const) : ("major" as const) };
+  const result = interpretMelody(take2.frames, { ...input, knobs: { ...input.knobs, mode }, key });
+  expect(result.key).toMatchObject({ chosen: key, auto: false });
+});
+
+it.each([1, 2, 3] as const)(
+  "retains saved interpretation %s key and tuning behavior",
+  (version) => {
+    const knobs = PRESETS["as-played"].knobs;
+    const auto = interpretMelody(take2.frames, { ...input, knobs, version });
+    const keyed = interpretMelody(take2.frames, {
+      ...input,
+      knobs,
+      version,
+      key: { tonic: 3, mode: "major" },
+    });
+    expect(keyed.tuning).toBeCloseTo(version === 3 ? -0.5 : 0.49, 2);
+    expect(keyed.decoded.map((note) => note.midi)).not.toEqual(
+      auto.decoded.map((note) => note.midi),
+    );
+    expect(
+      interpretMelody(take2.frames, {
+        ...input,
+        version,
+        knobs: { ...knobs, mode: "major" },
+        key: { tonic: 4, mode: "minor" },
+      }).key.chosen,
+    ).toEqual({ tonic: 4, mode: "major" });
+  },
+);
+
+it("zero key pull disables key-dependent chord correction even with Max pitch move enabled", () => {
+  const pitches = [60, 61, 64, 67, 60, 61, 64, 67];
+  const segments = pitches.map((pitch, start) => ({
+    pitch,
+    start,
+    duration: 0.5,
+    source: { start, end: start + 0.5 },
+  }));
+  for (const tonic of [0, 1]) {
+    const result = interpretSegments(segments, {
+      ...input,
+      knobs: { ...PRESETS["as-played"].knobs, maxMoveSemitones: 2 },
+      key: { tonic, mode: "major" },
+    });
+    expect(result.decoded.map((note) => note.midi)).toEqual(pitches);
+  }
 });

@@ -21,6 +21,7 @@ it("saves downbeat-trimmed audio and explicit calibration/source settings", asyn
   act(() => fixture.metro?.onDownbeat?.());
   await click("Stop recording");
   expect(fixture.saved).toMatchObject({
+    interpretationVersion: 4,
     sampleRate: 48000,
     durationSec: 0.8,
     bpm: 90,

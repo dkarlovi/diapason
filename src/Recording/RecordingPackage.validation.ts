@@ -252,7 +252,7 @@ function validateItemBends(p: RecordingPackageV2, item: NoteItem, index: number)
     item.note.bend,
     "note.bend",
   );
-  if (p.tune.noteSource.interpretationVersion !== 3)
+  if (p.tune.noteSource.interpretationVersion < 3)
     requireFields(
       !bend,
       [item.note, item.automatic, item.raw].every((note) => note.bend === undefined),
@@ -317,7 +317,7 @@ function validateStructure(value: unknown): asserts value is RecordingPackageV2 
   requiredObject(p.provenance.build, "provenance.build");
 
   const version = p.tune.noteSource.interpretationVersion;
-  if (version !== 1 && version !== 2 && version !== 3)
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4)
     throw new PackageError(
       "unsupported",
       "tune.noteSource.interpretationVersion",

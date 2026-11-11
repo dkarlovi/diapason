@@ -150,6 +150,9 @@ export async function restoreRecordingPackage(
     metadata.recording;
   const pcm = input.pcm.subarray(downbeatSample);
   const record: AudioRecording = {
+    ...(metadata.schemaVersion === 2 && mode === "restore"
+      ? { interpretationVersion: metadata.tune.noteSource.interpretationVersion }
+      : { interpretationVersion: 4 as const }),
     id,
     name,
     createdAt,

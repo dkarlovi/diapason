@@ -42,8 +42,8 @@ function Harness() {
   const change = (patch: Partial<MelodySetting>) => set((current) => ({ ...current, ...patch }));
   const interpretation = {
     key: {
-      chosen: { tonic: 4, mode: "minor" },
-      auto: true,
+      chosen: melody.key === "auto" ? { tonic: 4, mode: "minor" } : melody.key,
+      auto: melody.key === "auto",
       ranked: [
         { key: { tonic: 4, mode: "minor" }, score: 0.8 },
         { key: { tonic: 7, mode: "major" }, score: 0.6 },

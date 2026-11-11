@@ -25,11 +25,11 @@ export function processRecording(rec: Recording, frames: Frame[]) {
   const { preset, overrides, key } = settings.melody;
   const { minFreq, maxFreq } = analysisOptionsFor(rec);
   const knobs = resolveKnobs(preset, overrides);
-  const controlVersion = interpretationVersionForControls(knobs, overrides);
-  const version =
-    controlVersion === 3 || rec.noteEdits?.bend?.length
-      ? 3
-      : (rec.noteSource?.interpretationVersion ?? controlVersion);
+  const version = interpretationVersionForControls(
+    knobs,
+    rec.noteEdits?.bend?.length ? { ...overrides, glide: knobs.glide } : overrides,
+    rec.noteSource ? rec.noteSource.interpretationVersion : (rec.interpretationVersion ?? 1),
+  );
   const input = {
     version,
     ...(rec.noteEdits?.bend

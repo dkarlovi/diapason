@@ -269,13 +269,18 @@ export function withControlDefaults(knobs: Knobs): Knobs {
   return { ...knobs, contextCorrection: knobs.contextCorrection ?? 0, glide: knobs.glide ?? 0 };
 }
 
-/** Explicit overrides require a format that can retain their membership, including zero. */
+/** Preserve saved semantics while retaining explicit control membership, including zero. */
 export function interpretationVersionForControls(
   knobs: Knobs,
   overrides: Partial<Knobs>,
+  version: InterpretationVersion = 4,
 ): InterpretationVersion {
+  if (version === 4) return 4;
   if ((knobs.glide ?? 0) > 0 || overrides.glide !== undefined) return 3;
-  return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined ? 2 : 1;
+  if (version === 3) return 3;
+  return (knobs.contextCorrection ?? 0) > 0 || overrides.contextCorrection !== undefined
+    ? 2
+    : version;
 }
 
 /** Materialize documented historical fields; never consult today's preset recipe. */
@@ -289,7 +294,7 @@ export function historicalControls(
 } {
   const values = { ...value };
   const defaults: { key: keyof Knobs; value: number | string; reason: string }[] = [];
-  if (version !== 1 && version !== 2 && version !== 3)
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4)
     throw new PackageError("unsupported", path, "controls.version");
   for (const def of KNOB_DEFS) {
     if (values[def.key] === undefined) {

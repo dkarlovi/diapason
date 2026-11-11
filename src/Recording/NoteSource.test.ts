@@ -8,6 +8,7 @@ import { processRecording } from "./Processing";
 const take = loadFixture("whistle-intro");
 it("accepts valid curves only in interpretation 3", () => {
   const source = noteSourceFromAnalysis(take.record, take.frames);
+  source.interpretationVersion = 1;
   source.segments[0]!.curve = [
     { position: 0, offset: -2 },
     { position: 1, offset: 0 },

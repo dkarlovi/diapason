@@ -306,3 +306,48 @@ it("rejects source coverage beyond the declared duration before offering an edit
   tune.durationMs = 1000;
   await expect(encodeTune(tune)).rejects.toThrow();
 });
+
+it.each([1, 2, 3, 4] as const)(
+  "preserves interpretation %s key decisions through sharing and MIDI",
+  async (version) => {
+    const record = noteRecording();
+    record.noteSource.interpretationVersion = version;
+    record.melody!.overrides.mode = "major";
+    record.melody!.key = { tonic: 4, mode: "minor" };
+    const before = processRecording(record, []);
+    const tune = createPortableTune(record, []);
+    const bytes = await encodeTune(tune);
+    expect(bytes[5]).toBe(version);
+    const decoded = await decodeTune(bytes);
+    const after = processRecording(recordingFromPortableTune(decoded, "key", 0), []);
+    expect(after.interpretation.key.chosen).toEqual({
+      tonic: 4,
+      mode: version < 4 ? "major" : "minor",
+    });
+    expect(after.notes).toEqual(before.notes);
+    const { encodeTuneMidi, decodeTuneMidi } = await import("../Midi/TuneMidi");
+    const fromMidi = await decodeTuneMidi(
+      new Uint8Array(await (await encodeTuneMidi(tune)).arrayBuffer()),
+    );
+    expect(fromMidi.noteSource.interpretationVersion).toBe(version);
+    expect(processRecording(recordingFromPortableTune(fromMidi, "key-midi", 0), []).notes).toEqual(
+      before.notes,
+    );
+  },
+);
+
+it("retains v4 automatic and manual contours through the binary payload", async () => {
+  const record = noteRecording();
+  record.noteSource.interpretationVersion = 4;
+  record.noteSource.segments[0]!.curve = automaticCurve;
+  record.melody!.overrides.glide = 0.7;
+  record.noteEdits = {
+    version: 1,
+    pitch: [],
+    bend: [{ id: "bend", segment: record.noteSource.segments[0]!, points: manualCurve }],
+  };
+  const decoded = await decodeTune(await encodeTune(createPortableTune(record, [])));
+  expect(decoded.noteSource.interpretationVersion).toBe(4);
+  expect(decoded.noteSource.segments[0]!.curve).toEqual(automaticCurve);
+  expect(decoded.bendEdits).toEqual([{ noteIndex: 0, points: manualCurve }]);
+});

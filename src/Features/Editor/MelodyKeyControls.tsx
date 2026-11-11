@@ -50,7 +50,7 @@ export function MelodyKeyControls(props: Props) {
   const label =
     props.melody.key === "auto"
       ? `Auto${chosen ? ` · ${keyName(chosen)}` : ""}`
-      : keyName(props.melody.key);
+      : keyName(chosen ?? props.melody.key);
   const suggestions = props.interpretation?.key.ranked.slice(0, 3).map(({ key }) => key) ?? [];
   const suggested = new Set(suggestions.map(keyValue));
   const groups = [
