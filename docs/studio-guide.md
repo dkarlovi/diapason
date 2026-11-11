@@ -133,6 +133,13 @@ the same note detection as Auto timing. It does not alter the recorded audio. Pr
 notes, and it does not guarantee a correct transcription. As played and Auto
 timing remain available for performances where those exceptions matter.
 
+For new recordings, **Pull into key** strengthens the base key and implied-chord
+preference evenly across the slider. Individual notes change when the musical
+preference outweighs their measured pitch, so not every slider step changes a
+note. Zero and full pull keep the same endpoint behavior as interpretation v4;
+saved tunes retain their original response. Context correction and Max pitch move
+remain separate controls. See [interpretation versions](portable-tune-format.md).
+
 Gentle fix, Clean, Keep my odd notes, Happy, Sad,
 Dreamy and the original Syncopated are retired: recordings and shared tunes that
 use them still open with the same values and show the preset as retired, but

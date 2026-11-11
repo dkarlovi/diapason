@@ -71,7 +71,7 @@ export async function decodeTune(bytes: Uint8Array): Promise<PortableTune> {
   if (
     bytes.length > TUNE_LIMITS.encoded ||
     MAGIC.some((n, i) => bytes[i] !== n) ||
-    (bytes[5] !== 1 && bytes[5] !== 2 && bytes[5] !== 3 && bytes[5] !== 4) ||
+    (bytes[5] !== 1 && bytes[5] !== 2 && bytes[5] !== 3 && bytes[5] !== 4 && bytes[5] !== 5) ||
     (bytes[6] !== 0 && bytes[6] !== 1)
   )
     throw new Error("Unsupported or damaged Diapason tune. Update Diapason if this link is newer.");

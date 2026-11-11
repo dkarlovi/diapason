@@ -152,7 +152,7 @@ export async function restoreRecordingPackage(
   const record: AudioRecording = {
     ...(metadata.schemaVersion === 2 && mode === "restore"
       ? { interpretationVersion: metadata.tune.noteSource.interpretationVersion }
-      : { interpretationVersion: 4 as const }),
+      : { interpretationVersion: 5 as const }),
     id,
     name,
     createdAt,

@@ -271,7 +271,7 @@ it("preserves compatible nested extensions while replacing known current state",
   expect(next.metadata.intent.intent.noteEdits).toBeUndefined();
 }, 15000);
 
-it.each([1, 2, 3, 4] as const)(
+it.each([1, 2, 3, 4, 5] as const)(
   "restores interpretation %s tuning and key decisions from WAV",
   async (version) => {
     const { record, pcm, frames } = fixture;
@@ -299,6 +299,39 @@ it.each([1, 2, 3, 4] as const)(
     expect(after.interpretation.tuning).toBe(before.interpretation.tuning);
     expect(after.notes).toEqual(before.notes);
     const fresh = await restoreRecordingPackage(parsed, "key.wav", "fresh");
-    expect(fresh.interpretationVersion).toBe(4);
+    expect(fresh.interpretationVersion).toBe(5);
   },
 );
+
+it("retains v5 fixed contours and bend intent through WAV restoration with Glide zero", async () => {
+  const { record, pcm, frames } = fixture;
+  const base = {
+    ...record,
+    interpretationVersion: 5 as const,
+    melody: { preset: "as-played" as const, key: "auto" as const, overrides: { glide: 0 } },
+  };
+  const points = [
+    { position: 0, offset: -3 },
+    { position: 1, offset: 0 },
+  ];
+  const segment = { ...processRecording(base, frames).interpretation.segments[0]!, curve: points };
+  const edited = {
+    ...base,
+    noteEdits: { version: 1 as const, pitch: [], bend: [{ id: "bend", segment, points }] },
+  };
+  const captured = captureRecordingPackage(edited, pcm, frames, context, 1234);
+  const parsed = await readRecordingPackage(
+    await (await encodeRecordingPackage(captured)).arrayBuffer(),
+  );
+  if (parsed.metadata.schemaVersion !== 2) throw new Error("expected package");
+  expect(parsed.metadata.tune.noteSource.interpretationVersion).toBe(5);
+  expect(parsed.metadata.tune.noteSource.segments[0]!.curve).toEqual(points);
+  expect(parsed.metadata.tune.bendEdits).toEqual([{ noteIndex: 0, points }]);
+  const restored = await restoreRecordingPackage(parsed, "zero-glide.wav", "restore");
+  const processed = processRecording(restored, frames);
+  expect(processed.notes.every((note) => note.bend === undefined)).toBe(true);
+  const next = captureRecordingPackage(restored, pcm, frames, context, 1235);
+  expect(next.tune.noteSource.interpretationVersion).toBe(5);
+  expect(next.tune.noteSource.segments[0]!.curve).toEqual(points);
+  expect(next.tune.bendEdits).toEqual(captured.tune.bendEdits);
+}, 30_000);

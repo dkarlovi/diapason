@@ -230,9 +230,10 @@ function pitchScore(
   pitch: number,
   state: number,
   knobs: Knobs,
-  scale: ReadonlySet<number> | null,
+  space: LabelSpace,
   chord: ReadonlySet<number> | undefined,
 ): number {
+  const { scale, version } = space;
   const distance = Math.abs(pitch - state);
   if (distance > NAMING_REACH) return -Infinity;
   const pc = ((state % 12) + 12) % 12;
@@ -241,9 +242,13 @@ function pitchScore(
   const confidence = 1 - Math.min(1, 2 * distance);
   const keyPrior = scale ? pull * (scale.has(pc) ? 1 : -(1 - KEEP_ODD_NOTES * confidence)) : 0;
   const chordPrior = chord?.has(pc) ? HARMONY_SHARE * pull : 0;
-  return -trust * (distance / 0.35) ** 2 + (1 - trust) * (keyPrior + chordPrior);
+  // Preserve exact endpoint arithmetic, including pitch ties in saved tunes.
+  const priorWeight =
+    version < 5 || pull === 1 ? 1 - trust : (trust * (1 - PITCH_TRUST_MIN)) / PITCH_TRUST_MIN;
+  return -trust * (distance / 0.35) ** 2 + priorWeight * (keyPrior + chordPrior);
 }
 interface LabelSpace {
+  version: InterpretationVersion;
   low: number;
   count: number;
   scale: ReadonlySet<number> | null;
@@ -257,7 +262,7 @@ function emissions(
 ) {
   const pitch = segment.pitch - space.tuning;
   return Float64Array.from({ length: space.count }, (_, s) =>
-    pitchScore(pitch, space.low + s, knobs, space.scale, chord),
+    pitchScore(pitch, space.low + s, knobs, space, chord),
   );
 }
 function chordAt(context: PitchContext, segment: Segment) {
@@ -323,9 +328,15 @@ function bestPredecessor(
 }
 // Note-level Viterbi: each performed note gets one pitch, chosen from its
 // tuned pitch, the key, the implied chord and the size of the melodic step.
-function labelSegments(segments: Segment[], knobs: Knobs, context: PitchContext): number[] {
+function labelSegments(
+  segments: Segment[],
+  knobs: Knobs,
+  context: PitchContext,
+  version: InterpretationVersion,
+): number[] {
   const low = Math.round(context.range.minMidi);
   const space: LabelSpace = {
+    version,
     low,
     count: Math.round(context.range.maxMidi) - low + 1,
     scale: context.key ? scalePitchClasses(context.key) : null,
@@ -364,8 +375,9 @@ export function notesFromSegments(
   segments: Segment[],
   knobs: Knobs,
   context: PitchContext,
+  version: InterpretationVersion = 5,
 ): NoteEvent[] {
-  const labels = labelSegments(segments, knobs, context);
+  const labels = labelSegments(segments, knobs, context, version);
   return segments.map((segment, i) =>
     toNote(
       segment,

@@ -42,11 +42,7 @@ export function interpretMelody(
     frames,
     input.knobs,
     input.protectedBoundaries,
-    input.version === 4 || input.version === undefined
-      ? input.knobs.glide > 0
-        ? 3
-        : 1
-      : input.version,
+    (input.version ?? 5) >= 4 ? (input.knobs.glide > 0 ? 3 : 1) : input.version,
   );
   const fixed = input.fixedSegments ?? [];
   const segments = fixed.length
@@ -78,7 +74,7 @@ export function interpretSegments(
       : input.key
     : null;
   // Historical tunes retain their scale-dependent tuning and mode precedence.
-  const legacy = (input.version ?? 4) < 4;
+  const legacy = (input.version ?? 5) < 4;
   const tuning =
     legacy && chosen && input.key !== "auto"
       ? fitTuning(segments, scalePitchClasses(chosen))
@@ -87,13 +83,18 @@ export function interpretSegments(
     chosen = parallelKey(chosen, knobs.mode);
   const harmony = chosen ? inferHarmony(faithful, chosen, timing, "bar") : [];
   const meter = { beat: 60 / timing.bpm, lag: gridLag(faithful, timing, 2) };
-  const decoded = notesFromSegments(segments, knobs, {
-    key: chosen,
-    harmony: !legacy && knobs.keyPull === 0 ? [] : harmony,
-    range,
-    tuning,
-    meter,
-  });
+  const decoded = notesFromSegments(
+    segments,
+    knobs,
+    {
+      key: chosen,
+      harmony: !legacy && knobs.keyPull === 0 ? [] : harmony,
+      range,
+      tuning,
+      meter,
+    },
+    input.version,
+  );
   const notes = applyFeel(decoded, knobs, timing).map((note, i) => {
     const points = segments[i]!.curve;
     return points && knobs.glide > 0
