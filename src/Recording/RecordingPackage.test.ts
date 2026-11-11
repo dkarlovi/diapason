@@ -270,3 +270,35 @@ it("preserves compatible nested extensions while replacing known current state",
   if (next.metadata.schemaVersion !== 2) throw new Error("package");
   expect(next.metadata.intent.intent.noteEdits).toBeUndefined();
 }, 15000);
+
+it.each([1, 2, 3, 4] as const)(
+  "restores interpretation %s tuning and key decisions from WAV",
+  async (version) => {
+    const { record, pcm, frames } = fixture;
+    const original = {
+      ...record,
+      interpretationVersion: version,
+      melody: {
+        preset: "as-played" as const,
+        overrides: { mode: "major" as const },
+        key: { tonic: 4, mode: "minor" as const },
+      },
+    };
+    const before = processRecording(original, frames);
+    const captured = captureRecordingPackage(original, pcm, frames, context, 1234);
+    expect(captured.tune.noteSource.interpretationVersion).toBe(version);
+    const parsed = await readRecordingPackage(
+      await (await encodeRecordingPackage(captured)).arrayBuffer(),
+    );
+    const restored = await restoreRecordingPackage(parsed, "key.wav", "restore");
+    const after = processRecording(restored, frames);
+    expect(after.interpretation.key.chosen).toEqual({
+      tonic: 4,
+      mode: version < 4 ? "major" : "minor",
+    });
+    expect(after.interpretation.tuning).toBe(before.interpretation.tuning);
+    expect(after.notes).toEqual(before.notes);
+    const fresh = await restoreRecordingPackage(parsed, "key.wav", "fresh");
+    expect(fresh.interpretationVersion).toBe(4);
+  },
+);

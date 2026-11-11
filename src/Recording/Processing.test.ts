@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { processRecording, recordingNotes } from "./Processing";
-import type { Recording } from "./Recording.type";
+import type { AudioRecording, Recording } from "./Recording.type";
 import type { Frame } from "../Melody/Notes";
 
 const recordingItems = (rec: Recording, frames: Frame[]) => processRecording(rec, frames).items;
@@ -11,7 +11,7 @@ const frames: Frame[] = Array.from({ length: 12 }, (_, i) => ({
   clarity: 0.99,
   rms: 0.1,
 }));
-const recording: Recording = {
+const recording: AudioRecording = {
   id: "one",
   name: "Test",
   createdAt: 0,
@@ -77,4 +77,23 @@ it("previewNotes does not change the record", async () => {
   const before = JSON.stringify(rec);
   expect(previewNotes(rec, frames, { preset: "clean" })).toHaveLength(1);
   expect(JSON.stringify(rec)).toBe(before);
+});
+
+it("uses v4 key precedence for new audio while preserving unversioned recordings", () => {
+  const rec = {
+    ...recording,
+    melody: {
+      preset: "as-played" as const,
+      overrides: { mode: "major" as const },
+      key: { tonic: 4, mode: "minor" as const },
+    },
+  };
+  expect(processRecording(rec, frames).interpretation.key.chosen).toEqual({
+    tonic: 4,
+    mode: "major",
+  });
+  expect(
+    processRecording({ ...rec, interpretationVersion: 4 as const }, frames).interpretation.key
+      .chosen,
+  ).toEqual({ tonic: 4, mode: "minor" });
 });

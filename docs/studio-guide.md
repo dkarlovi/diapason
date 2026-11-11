@@ -270,8 +270,13 @@ change note height. Playback follows the playhead through the uncovered canvas.
 The roll shades rows outside the effective key and marks out-of-key notes with an
 exclamation badge, including muted and edited notes. Previews use the previewed key;
 minor accepts both natural and raised sevenths. These guides do not change notes.
-Mode can change the effective key from the selected key; see
-[issue #75](https://github.com/dkarlovi/diapason/issues/75).
+For new recordings, an explicit Key takes precedence over Mode. Mode recasts
+only an automatic key. Key supplies a per-note prior controlled by Pull into key;
+at zero pull, selecting a key leaves pitches unchanged. Key does not refit the
+performer's tuning or transpose the take. Older saved tunes retain their original
+interpretation, where Mode can override an explicit key and key selection can
+refit tuning. The Key dropdown shows the effective key used by the decoder.
+See [interpretation versions](portable-tune-format.md).
 
 The header's **MIDI out** picker routes note playback to the browser synth or an
 external synth/DAW via Web MIDI when supported and permitted. Both outputs support

@@ -37,7 +37,17 @@ export function interpretMelody(
   frames: Frame[],
   input: SegmentInterpretationInput & { protectedBoundaries?: readonly number[] },
 ): Interpretation {
-  const detected = segmentMelody(frames, input.knobs, input.protectedBoundaries, input.version);
+  // V3 retains contour detection at zero Glide; v4 enables it through the control.
+  const detected = segmentMelody(
+    frames,
+    input.knobs,
+    input.protectedBoundaries,
+    input.version === 4 || input.version === undefined
+      ? input.knobs.glide > 0
+        ? 3
+        : 1
+      : input.version,
+  );
   const fixed = input.fixedSegments ?? [];
   const segments = fixed.length
     ? detected
@@ -67,18 +77,19 @@ export function interpretSegments(
       ? (ranked[0]?.key ?? null)
       : input.key
     : null;
-  // An explicit key fixes the scale the performance is tuned against; moods
-  // that change the mode afterwards keep the tuning that was performed.
+  // Historical tunes retain their scale-dependent tuning and mode precedence.
+  const legacy = (input.version ?? 4) < 4;
   const tuning =
-    chosen && input.key !== "auto"
+    legacy && chosen && input.key !== "auto"
       ? fitTuning(segments, scalePitchClasses(chosen))
       : performedTuning;
-  if (chosen && knobs.mode !== "auto") chosen = parallelKey(chosen, knobs.mode);
+  if (chosen && knobs.mode !== "auto" && (legacy || input.key === "auto"))
+    chosen = parallelKey(chosen, knobs.mode);
   const harmony = chosen ? inferHarmony(faithful, chosen, timing, "bar") : [];
   const meter = { beat: 60 / timing.bpm, lag: gridLag(faithful, timing, 2) };
   const decoded = notesFromSegments(segments, knobs, {
     key: chosen,
-    harmony,
+    harmony: !legacy && knobs.keyPull === 0 ? [] : harmony,
     range,
     tuning,
     meter,

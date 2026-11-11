@@ -166,7 +166,7 @@ function readOverrides(
 }
 function readNoteFlags(r: TuneReader, version: NoteSource["interpretationVersion"]): number {
   const flags = r.byte();
-  if (flags > (version === 3 ? 63 : 15)) throw new Error("Unknown note flags");
+  if (flags > (version >= 3 ? 63 : 15)) throw new Error("Unknown note flags");
   return flags;
 }
 function readNoteSegment(

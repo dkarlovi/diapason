@@ -1,3 +1,4 @@
+import type { InterpretationVersion } from "../Melody/Decode.type";
 import type { NoteEdits } from "../Editing/NoteEdits.type";
 import type { PlaySettings } from "../Playback/Instruments";
 import type { WaveformSummary } from "../Audio/Waveform";
@@ -69,6 +70,8 @@ interface RecordingFields {
 }
 
 export interface AudioRecording extends RecordingFields {
+  /** Interpretation semantics retained when restoring an audio package. */
+  interpretationVersion?: InterpretationVersion;
   audio: Blob;
   sampleRate: number;
   capture: CaptureMeta;

@@ -24,11 +24,15 @@ export function noteSourceFromAnalysis(
   const knobs = resolveKnobs(preset, overrides);
   const { minFreq, maxFreq } = analysisOptionsFor(record);
   const range = { minMidi: freqToMidi(minFreq), maxMidi: freqToMidi(maxFreq) };
-  const controlVersion = interpretationVersionForControls(knobs, overrides);
-  const interpretationVersion =
+  const interpretationVersion = interpretationVersionForControls(
+    knobs,
     record.noteEdits?.bend?.length || segments?.some((segment) => segment.curve)
-      ? 3
-      : controlVersion;
+      ? { ...overrides, glide: knobs.glide }
+      : overrides,
+    record.noteSource
+      ? record.noteSource.interpretationVersion
+      : (record.interpretationVersion ?? 1),
+  );
   return {
     version: 1,
     interpretationVersion,
@@ -58,7 +62,7 @@ function validateSourceContext(source: NoteSource, historical: boolean) {
   requireTune(
     historical
       ? Number.isSafeInteger(source.interpretationVersion) && source.interpretationVersion > 0
-      : [1, 2, 3].includes(source.interpretationVersion),
+      : [1, 2, 3, 4].includes(source.interpretationVersion),
   );
   requireTune(Array.isArray(source.segments));
   requireTune(
@@ -97,7 +101,7 @@ export function validateNoteSource(
     validateSegment(segment, end, durationSec);
     requireTune(
       segment.curve === undefined ||
-        (source.interpretationVersion === 3 && isPitchCurve(segment.curve)),
+        (source.interpretationVersion >= 3 && isPitchCurve(segment.curve)),
     );
     end = segment.source.end;
   }
