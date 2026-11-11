@@ -5,15 +5,15 @@
 The README is the public overview and entry point. Load detailed context for the
 task from these maintained references:
 
-| Task                                                               | Context                                                                                            |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Product scope and supported behavior                               | [PRODUCT.md](PRODUCT.md), [studio guide](docs/studio-guide.md), [limitations](docs/limitations.md) |
-| UI implementation or review                                        | [DESIGN.md](DESIGN.md), `.impeccable/design.json`, `.impeccable/config.json`                       |
-| Processing or module ownership                                     | [Architecture](docs/architecture.md)                                                               |
-| Toolchain, baselines, coverage, or deployment                      | [Development](docs/development.md)                                                                 |
-| Sharing or import/export                                           | [Sharing](docs/sharing.md), [portable tune format](docs/portable-tune-format.md)                   |
-| Embedding or theme integration                                     | [Embedding](docs/embedding.md), [theme format](docs/themes.md)                                     |
-| Supplied WAV, wrong notes, replay differences, or package failures | [diapason-recordings skill](.agents/skills/diapason-recordings/SKILL.md)                           |
+| Task                                                                            | Context                                                                                            |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Product scope and supported behavior                                            | [PRODUCT.md](PRODUCT.md), [studio guide](docs/studio-guide.md), [limitations](docs/limitations.md) |
+| UI implementation or review                                                     | [DESIGN.md](DESIGN.md), `.impeccable/design.json`, `.impeccable/config.json`                       |
+| Processing or module ownership                                                  | [Architecture](docs/architecture.md)                                                               |
+| Toolchain, baselines, coverage, or deployment                                   | [Development](docs/development.md)                                                                 |
+| Sharing or import/export                                                        | [Sharing](docs/sharing.md), [portable tune format](docs/portable-tune-format.md)                   |
+| Embedding or theme integration                                                  | [Embedding](docs/embedding.md), [theme format](docs/themes.md)                                     |
+| Whistle interpretation/controls, recording fixtures, replay or package failures | [diapason-recordings skill](.agents/skills/diapason-recordings/SKILL.md)                           |
 
 The recording skill contains the investigation workflow and routes to focused
 references; [recording inspection](docs/recording-inspection.md) is the human CLI
