@@ -59,7 +59,7 @@
     "jsonc-parser": "^3.3.1",
     "mdast-util-gfm-table": "^2.0.0",
     "mdast-util-to-markdown": "^2.2.3",
-    "oxc-transform-react": "^0.157.0",
+    "oxc-transform-react": "^0.156.0",
     "oxfmt": "^0.77.0",
     "oxlint": "^1.92.0",
     "oxlint-tsgolint": "^7.0.2006",
@@ -73,6 +73,6 @@
     "node": ">=22.18.0"
   },
   "allowScripts": {
-    "@swc/core@1.16.21": true
+    "@swc/core@1.16.22": true
   }
 }

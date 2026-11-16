@@ -10,6 +10,11 @@ Dependencies use stable npm releases, with exact resolved versions committed in
 `package-lock.json`. Node.js type definitions track the latest stable release;
 runtime scripts must remain compatible with Node 22.18+ and CI runs on Node 22.
 
+`.npmrc` enables strict peer dependency checks so npm rejects declared package
+incompatibilities. Dependabot holds `oxc-transform-react` below 0.157 while
+`@vitejs/plugin-react` requires that range. Remove the hold in
+`.github/dependabot.yml` when the plugin supports newer compiler versions.
+
 Dependabot checks npm dependencies and GitHub Actions weekly, grouping updates
 into one pull request per ecosystem. Its configuration lives in
 [`.github/dependabot.yml`](../.github/dependabot.yml).

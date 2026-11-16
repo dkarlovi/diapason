@@ -60,6 +60,11 @@ export function useTempo(options: Options) {
     await mic.context.resume();
     return current === resources.current.token && latest.current.currentMic() === mic;
   };
+  const reportFailure = (current: number, failureMessage: string) => {
+    if (current !== resources.current.token) return;
+    stop();
+    latest.current.onError(failureMessage);
+  };
   const startClap = async () => {
     reset();
     latest.current.onError("");
@@ -90,12 +95,10 @@ export function useTempo(options: Options) {
       setListening(true);
       setMessage("Clap several steady beats.");
     } catch (error) {
-      if (current === resources.current.token) {
-        stop();
-        latest.current.onError(
-          `Clap listening unavailable: ${error instanceof Error ? error.message : String(error)}. You can tap instead.`,
-        );
-      }
+      reportFailure(
+        current,
+        `Clap listening unavailable: ${error instanceof Error ? error.message : String(error)}. You can tap instead.`,
+      );
     }
   };
   const preview = async () => {
@@ -118,12 +121,10 @@ export function useTempo(options: Options) {
         running: true,
       });
     } catch (error) {
-      if (current === resources.current.token) {
-        stop();
-        latest.current.onError(
-          `Preview unavailable: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
+      reportFailure(
+        current,
+        `Preview unavailable: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   };
   const changeBpm = (bpm: number) => {
