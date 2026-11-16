@@ -17,6 +17,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it("leaves focus outside embedded capture on startup", () => {
+  const hostControl = document.createElement("button");
+  document.body.append(hostControl);
+  hostControl.focus();
+  try {
+    renderCapture("?embed=1");
+    expect(document.activeElement).toBe(hostControl);
+  } finally {
+    hostControl.remove();
+  }
+});
+
+it("focuses the initial setup heading in standalone capture", () => {
+  renderCapture();
+  expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Choose your sound" }));
+});
+
+it("focuses embedded setup headings when advancing, going back, and choosing a step", async () => {
+  renderCapture("?embed=1");
+  await click("Continue with whistling");
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { name: "Set up your microphone" }),
+  );
+  await click("Back");
+  expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Choose your sound" }));
+  await click("Step 2: Set up your microphone");
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { name: "Set up your microphone" }),
+  );
+});
+
 it("shows six horizontal setup steps without enabling future steps or an initial Back action", () => {
   renderCapture();
   const steps = screen.getByRole("navigation", { name: "Recording steps" });

@@ -95,6 +95,9 @@ Embed the recording studio in a lesson or songwriting page:
 - `embed=1` removes the header and Library navigation. Recording embeds redirect Library
   and unknown routes to New recording; tune embeds stay on their specific tune. The logo sits beside the canvas labels
   in capture and editing. This is a workflow restriction, not storage isolation.
+  Recording setup leaves the host page's focus and scroll position alone on startup.
+  Moving between setup steps focuses the new step's heading. This behavior applies
+  to both `<diapason-studio>` and direct iframe embeds; no extra option is needed.
 - `afterRecording=edit` opens the Editor only after a recording saves successfully.
   Without it, the studio stays ready for another take. This option also works without embedded mode.
 - Both settings survive internal navigation, deletion, and starting
