@@ -16,6 +16,10 @@ updates:
           - "*"
   - package-ecosystem: npm
     directory: /
+    ignore:
+      # Remove this hold when @vitejs/plugin-react supports compiler 0.157+.
+      - dependency-name: oxc-transform-react
+        versions: [">=0.157.0"]
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

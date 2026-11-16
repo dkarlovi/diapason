@@ -129,9 +129,6 @@
   "src/Features/Capture/useMicrophone.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
-    },
-    "react/immutability": {
-      "count": 1
     }
   },
   "src/Features/Capture/useRecordingSetup.ts": {
@@ -179,9 +176,6 @@
     }
   },
   "src/Features/Editor/EditorCanvas.tsx": {
-    "react/immutability": {
-      "count": 1
-    },
     "react/refs": {
       "count": 3
     }
@@ -215,9 +209,6 @@
     "react/exhaustive-effect-dependencies": {
       "count": 1
     },
-    "react/immutability": {
-      "count": 1
-    },
     "react/set-state-in-effect": {
       "count": 1
     }
@@ -237,9 +228,6 @@
   },
   "src/Features/Editor/useEditor.ts": {
     "react-hooks/exhaustive-deps": {
-      "count": 1
-    },
-    "react/immutability": {
       "count": 1
     },
     "react/refs": {
@@ -364,9 +352,6 @@
     }
   },
   "src/Features/Library/useWavDrop.ts": {
-    "react/immutability": {
-      "count": 1
-    },
     "react/refs": {
       "count": 1
     }
