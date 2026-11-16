@@ -121,11 +121,6 @@
       "count": 1
     }
   },
-  "src/Features/Capture/useCaptureWizard.ts": {
-    "react/exhaustive-effect-dependencies": {
-      "count": 1
-    }
-  },
   "src/Features/Capture/useMicrophone.test.tsx": {
     "typescript/no-unsafe-type-assertion": {
       "count": 1
